@@ -93,6 +93,10 @@ class Host(models.Model):
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('group.User', db_column='changed_by')
+
+    def __unicode__(self):
+        return self.hostname
+
     class Meta:
         db_table = 'hosts'
 

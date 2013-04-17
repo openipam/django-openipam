@@ -158,6 +158,18 @@ INSTALLED_APPS = (
 
 ) + LOCAL_INSTALLED_APPS
 
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
+)
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -202,6 +214,11 @@ LOGGING = {
         # },
     }
 }
+
+ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
+ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
+ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
+
 
 #SENTRY_DSN = 'https://public_key:private_key@sentry.usu.edu/project_number'
 
