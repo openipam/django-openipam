@@ -215,8 +215,6 @@ LOGGING = {
     }
 }
 
-AUTH_USER_MODEL = 'openipam.User'
-
 
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
