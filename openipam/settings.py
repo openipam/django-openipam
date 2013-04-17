@@ -125,10 +125,10 @@ TEMPLATE_DIRS = (
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
     'openipam.admintools',
-    'openipam.host',
+    'openipam.hosts',
     'openipam.network',
     'openipam.dns',
-    'openipam.group',
+    'openipam.user',
 
     'admin_tools',
     'admin_tools.theming',
@@ -214,6 +214,9 @@ LOGGING = {
         # },
     }
 }
+
+AUTH_USER_MODEL = 'openipam.User'
+
 
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'

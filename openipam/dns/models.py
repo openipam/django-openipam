@@ -11,7 +11,7 @@ class Domain(models.Model):
     account = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'domains'
 
@@ -27,7 +27,7 @@ class DnsRecord(models.Model):
     ttl = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'dns_records'
 
@@ -49,7 +49,7 @@ class DnsRecordMunged(models.Model):
 class DhcpDnsRecord(models.Model):
     id = models.IntegerField(primary_key=True)
     did = models.ForeignKey('Domain', db_column='did')
-    name = models.ForeignKey('host.Host', unique=True, db_column='name')
+    name = models.ForeignKey('hosts.Host', unique=True, db_column='name')
     ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
@@ -61,7 +61,7 @@ class DnsType(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=16, blank=True)
     description = models.TextField(blank=True)
-    min_permissions = models.ForeignKey('group.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
     class Meta:
         db_table = 'dns_types'
 
@@ -80,7 +80,7 @@ class Supermaster(models.Model):
     nameserver = models.CharField(max_length=255)
     account = models.CharField(max_length=40, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'supermasters'
 

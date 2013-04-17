@@ -29,9 +29,14 @@ class DhcpGroup(models.Model):
     name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+
+    def __unicode__(self):
+        return self.name
+
     class Meta:
         db_table = 'dhcp_groups'
+        ordering = ('name',)
 
 
 class DhcpOption(models.Model):
@@ -50,17 +55,17 @@ class DhcpOptionToDhcpGroup(models.Model):
     oid = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True)
     value = models.TextField(blank=True) # This field type is a guess.
     changed = models.DateTimeField()
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'dhcp_options_to_dhcp_groups'
 
 
 class HostToPool(models.Model):
     id = models.IntegerField(primary_key=True)
-    mac = models.ForeignKey('host.Host', db_column='mac')
+    mac = models.ForeignKey('hosts.Host', db_column='mac')
     pool = models.ForeignKey('Pool')
     changed = models.DateTimeField()
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'hosts_to_pools'
 
@@ -70,7 +75,7 @@ class SharedNetwork(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     changed = models.DateTimeField()
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'shared_networks'
 
@@ -83,7 +88,7 @@ class Network(models.Model):
     dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
     shared_network = models.ForeignKey('SharedNetwork', null=True, db_column='shared_network', blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'networks'
 
@@ -93,7 +98,7 @@ class Vlan(models.Model):
     name = models.CharField(max_length=12)
     description = models.TextField(blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'vlans'
 
@@ -102,18 +107,18 @@ class NetworkToVlan(models.Model):
     network = models.ForeignKey('Network', primary_key=True, db_column='network')
     vlan = models.ForeignKey('Vlan', db_column='vlan')
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'networks_to_vlans'
 
 class Address(models.Model):
     address = InetAddressField(primary_key=True)
-    mac = models.ForeignKey('host.Host', null=True, db_column='mac', blank=True)
+    mac = models.ForeignKey('hosts.Host', null=True, db_column='mac', blank=True)
     pool = models.ForeignKey('Pool', null=True, db_column='pool', blank=True)
     reserved = models.BooleanField()
     network = models.ForeignKey('Network', db_column='network')
     changed = models.DateTimeField()
-    changed_by = models.ForeignKey('group.User', db_column='changed_by')
+    changed_by = models.ForeignKey('user.User', db_column='changed_by')
     class Meta:
         db_table = 'addresses'
 

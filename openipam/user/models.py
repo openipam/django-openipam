@@ -13,6 +13,10 @@ class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     source = models.ForeignKey('AuthSource', db_column='source')
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions')
+
+    def __unicode__(self):
+        return self.username
+
     class Meta:
         db_table = 'users'
 
@@ -59,7 +63,7 @@ class DomainToGroup(models.Model):
 
 class HostToGroup(models.Model):
     id = models.IntegerField(primary_key=True)
-    mac = models.ForeignKey('host.Host', db_column='mac')
+    mac = models.ForeignKey('hosts.Host', db_column='mac')
     gid = models.ForeignKey('Group', db_column='gid')
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('User', db_column='changed_by')
