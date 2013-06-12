@@ -1,16 +1,21 @@
 from django.conf.urls import patterns, include, url
-
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+import autocomplete_light
+
+autocomplete_light.autodiscover()
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'openipam.views.home', name='home'),
-    # url(r'^openipam/', include('openipam.foo.urls')),
-
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+
+    # Utitity routes to serve admin
+    url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^admin_tools/', include('admin_tools.urls')),
+
+    # Admin Frontend
     url(r'^admin/', include(admin.site.urls)),
+
+    # openIPAM urls
+    url(r'^', include('openipam.core.urls')),
 )

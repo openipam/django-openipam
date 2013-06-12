@@ -19,21 +19,22 @@ class IPAMMenu(Menu):
     def __init__(self, **kwargs):
         Menu.__init__(self, **kwargs)
         self.children += [
-            items.MenuItem(_('Dashboard'), reverse('admin:index')),
+            #items.MenuItem(_('Dashboard'), reverse('admin:index')),
             #items.Bookmarks(icon='icon-heart icon-white'),
-            items.AppList(
-                _('Hosts'),
-                models=('openipam.hosts.*',),
-                icon='icon-list icon-white'
-            ),
-            items.AppList(
-                _('DNS'),
-                models=('openipam.dns.*',),
-                icon='icon-list icon-white'
-            ),
+            # items.AppList(
+            #     _('Hosts'),
+            #     models=('openipam.hosts.*',),
+            #     icon='icon-list icon-white'
+            # ),
+            # items.AppList(
+            #     _('DNS'),
+            #     models=('openipam.dns.*',),
+            #     icon='icon-list icon-white'
+            # ),
             items.AppList(
                 _('Administration'),
                 models=(
+                    'openipam.*',
                     'django.contrib.*',
                 ),
                 icon='icon-cog icon-white'

@@ -17,6 +17,9 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+.Python
+env/share
+env/include
 
 # Installer logs
 pip-log.txt
@@ -33,6 +36,12 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# Mac garbage
+.DS_Store
 
 # For Ipam
 fabfile.py

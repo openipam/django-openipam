@@ -1,10 +1,10 @@
 from django.contrib import admin
 from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute
+from guardian.admin import GuardedModelAdmin
 
 
-
-class HostAdmin(admin.ModelAdmin):
-    list_display = ('hostname', 'mac', 'dhcp_group', 'expires')
+class HostAdmin(GuardedModelAdmin):
+    list_display = ('nice_hostname', 'mac', 'dhcp_group', 'expires')
     list_filter = ('dhcp_group',)
     readonly_fields = ('changed_by', 'changed')
     search_fields = ('hostname', 'mac')
@@ -14,6 +14,12 @@ class HostAdmin(admin.ModelAdmin):
         qs = super(HostAdmin, self).queryset(request)
         qs = qs.select_related('dhcp_group').all()
         return qs
+
+    def nice_hostname(self, obj):
+        return '<a href="./%s/">%s</a>' % (obj.mac, obj.hostname)
+    nice_hostname.allow_tags = True
+    nice_hostname.short_description = 'Hostname'
+    nice_hostname.admin_order_field = 'hostname'
 
 
 class DisabledAdmin(admin.ModelAdmin):

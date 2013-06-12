@@ -1,4 +1,7 @@
 # Django settings for openipam project.
+import hashlib
+import socket
+
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -19,8 +22,8 @@ except:
 
 DATABASES = locals().pop('DATABASES', {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '%s/development.db' % BASE_DIR, # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '%s/development.db' % BASE_DIR,  # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -91,7 +94,10 @@ FIXTURE_DIRS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '_gh#hdis0a^e3y#%47k+=oc$(vkudn13#5o9@24ad1w$8#0^r9'
+SECRET_KEY = locals().pop(
+    'LOCAL_SECRET_KEY',
+    hashlib.md5(socket.gethostname() + ')*)&8a36)6%74e@-ne5(-!8a(vv#tkv)(eyg&@0=zd^pl!7=y@').hexdigest()
+)
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -109,6 +115,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ) + LOCAL_MIDDLEWARE_CLASSES
 
 ROOT_URLCONF = 'openipam.urls'
@@ -124,11 +131,7 @@ TEMPLATE_DIRS = (
 
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
-    'openipam.admintools',
-    'openipam.hosts',
-    'openipam.network',
-    'openipam.dns',
-    'openipam.user',
+    'openipam.core',
 
     'admin_tools',
     'admin_tools.theming',
@@ -143,6 +146,9 @@ INSTALLED_APPS = (
     #'django_ace',
     #'mptt',
     #'djcelery',
+    'crispy_forms',
+    'autocomplete_light',
+    'guardian',
     'south',
     'rest_framework',
 
@@ -153,11 +159,20 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+
+    'openipam.hosts',
+    'openipam.network',
+    'openipam.dns',
+    'openipam.user',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 
 ) + LOCAL_INSTALLED_APPS
 
+IPAM_APPS = [
+    app.split('.')[1] for app in
+    filter(lambda x: x.split('.')[0] == 'openipam', INSTALLED_APPS)
+]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -168,7 +183,19 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
+    'openipam.core.context_processors.gravatar',
+    'openipam.core.context_processors.root_path',
 )
+
+LOCAL_AUTHENTICATION_BACKENDS = locals().pop('LOCAL_AUTHENTICATION_BACKENDS', ())
+AUTHENTICATION_BACKENDS = LOCAL_AUTHENTICATION_BACKENDS + (
+    #'django.contrib.auth.backends.ModelBackend',
+    'openipam.core.backends.CaseInsensitiveModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+)
+
+ANONYMOUS_USER_ID = -1
+LOGIN_URL = 'login'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -215,16 +242,10 @@ LOGGING = {
     }
 }
 
-
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
 
+IPAM_USER_GROUP = locals().pop('LOCAL_IPAM_USER_GROUP', 'ipam-users')
+IPAM_ADMIN_GROUP = locals().pop('LOCAL_IPAM_ADMIN_GROUP', 'ipam-admins')
 
-#SENTRY_DSN = 'https://public_key:private_key@sentry.usu.edu/project_number'
-
-# Fabric Settings
-DEPLOYMENT_PROJECT_NAME = 'openipam'
-DEPLOYMENT_SVN_URL = 'https://svn.usu.edu/repos/padprojects/<base_project_name>/'
-
-HOSTNAME = 'openipam.stage.usu.edu' if DEBUG else 'openipam.usu.edu'

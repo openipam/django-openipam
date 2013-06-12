@@ -26,6 +26,9 @@ class IPAMIndexDashboard(Dashboard):
     Custom index dashboard for openipam.
     """
 
+    title = 'Admin Dashboard'
+
+
     def init_with_context(self, context):
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
@@ -46,14 +49,40 @@ class IPAMIndexDashboard(Dashboard):
 
         #append an app list module for "IPAM"
         self.children.append(modules.ModelList(
-            _('Cable Management'),
-            models=('openipam.*',),
+            _('Hosts'),
+            models=(
+                'openipam.hosts.*',
+            ),
+        ))
+
+        self.children.append(modules.ModelList(
+            _('Network'),
+            models=(
+                'openipam.network.*',
+            ),
+        ))
+
+        self.children.append(modules.ModelList(
+            _('DNS'),
+            models=(
+                'openipam.dns.*',
+            ),
+        ))
+
+        self.children.append(modules.ModelList(
+            _('TO BE DELETED'),
+            models=(
+                'openipam.user.*',
+            ),
         ))
 
         # append an app list module for "Administration"
         self.children.append(modules.ModelList(
             _('Administration'),
-            models=('django.contrib.*',),
+            models=(
+            'django.contrib.*',
+            'guardian.*',
+            ),
         ))
 
         # append a recent actions module
