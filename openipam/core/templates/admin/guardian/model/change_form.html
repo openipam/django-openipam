@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <div class="pull-right object-tools">
+    {% block object-tools-items %}
+    <a href="permissions/" class="btn btn-info">{% trans "Object permissions" %}</a>
+    <a href="history/" class="btn btn-info">{% trans "History" %}</a>
+    {% if has_absolute_url %}<a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="btn primary">{% trans "View on site" %}</a>{% endif%}
+    {% endblock %}
+  </div>
+{% endif %}{% endif %}
+{% endblock %}

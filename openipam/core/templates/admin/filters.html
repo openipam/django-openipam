@@ -1,0 +1,14 @@
+{% load openipam %}
+
+{% if cl.has_filters %}
+    <a id="changelist-filters-toggle" class="pull-right btn dropdown-toggle">
+        Filters
+        <span class="caret"></span>
+    </a>
+    <div id="changelist-filter-actions" class="hide well well-small action-wrapper">
+        {% for spec in cl.filter_specs %}
+          {% admin_select_filter cl spec %}
+        {% endfor %}
+    <div class="clear"><!-- --></div>
+    </div>
+{% endif %}

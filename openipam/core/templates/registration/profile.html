@@ -1,0 +1,42 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        ../../|{% trans "Home" %}
+        Profile
+    {% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style type="text/css">
+        label.control-label {
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block coltype %}{% endblock %}
+
+{% block content %}
+    <form method="post">
+        {% csrf_token %}
+        <fieldset class="module aligned wide control-group well">
+            <div class="pull-left" style="margin-right: 20px;">
+                <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
+                  <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
+                </a>
+            </div>
+            {{ form.as_p }}
+            <div class="clear"><!-- --></div>
+        </fieldset>
+
+        <div class="well">
+            <div class="pull-right">
+              <input type="submit" value="Save" class="default btn btn-success" name="save" />
+            </div>
+            <div class="clear"><!-- --></div>
+        </div>
+    </form>
+{% endblock %}

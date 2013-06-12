@@ -1,0 +1,67 @@
+{% extends "hosts/base.html" %}
+{% load i18n static crispy_forms_tags %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+    Host
+  </h3>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+        $(function(){
+            $('#id_hostname').yourlabsAutocomplete({
+                url: '/autocomplete/DomainAutocomplete/',
+                choiceSelector: '[data-value]',
+                minimumCharacters: 1,
+                placeholder: 'Enter a FQDN for this host',
+                getQuery: function() {
+                    var value = this.input.val();
+                    return value.substr(value.indexOf('.') + 1)
+                },
+                refresh: function() {
+                    if (this.input.val().indexOf('.') == -1){
+                        this.hide();
+                    }
+                    else {
+                        // Set the new current value.
+                        this.value = this.getQuery();
+
+                        // If the input doesn't contain enought characters then abort, else fetch.
+                        this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
+                    }
+                }
+            }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                var value = choice.text();
+                var pre_value = this.value.split('.')[0]
+                this.value = pre_value + '.' + value;
+                //alert("You have choosen: " + value);
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+        ../|{% trans "Hosts" %}
+        *{% trans "Host" %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="row-fluid">
+        {{ block.super }}
+        <div class="well well-small quickbody">
+            <form id="host-form" action="" method="post">
+                {% csrf_token %}
+                <div class="margin10">
+                        {% crispy form %}
+                    <!-- <input type="submit" value="Submit" class="btn btn-primary" />
+                    <input type="reset" value="Clear" class="btn" />-->
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "hosts/base.html" %}
+{% load i18n %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+      Hosts
+  </h3>
+{% endblock %}
+
+{% block object-tools %}
+<div class="pull-right object-tools">
+  {% block object-tools-items %}
+    <a href="{% url 'add_hosts' %}" class="btn btn-primary">
+      <i class="icon-plus icon-white"></i>
+      Add Host
+    </a>
+  {% endblock %}
+</div>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    *{% trans "Hosts" %}
+{% endblock %}
+
+{% block sidenav %}
+            <ul class="nav nav-list">
+              <li class="nav-header">Sidebar</li>
+              <li class="active"><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li class="nav-header">Sidebar</li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li class="nav-header">Sidebar</li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+              <li><a href="#">Link</a></li>
+            </ul>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "core/base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+      Feature Request
+  </h3>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    *{% trans "Feature Request" %}
+{% endblock %}
+
+{% block content %}
+    <div class="row-fluid">
+        {% include "core/includes/quicklinks.html" %}
+         <div id="feature-request" class="well well-small quickbody">
+            {% if is_complete %}
+                <h3>Thank you for your request.</h3>
+                <p>If you have any further questions, feel free to contant one of the openIPAM administrators.</p>
+            {% else %}
+                <form id="request-form" action="" method="post">
+                    {% csrf_token %}
+                    <div class="margin10">
+                        <h3>
+                            Please use this form to submit any features or bug requests that you have.
+                        </h3>
+                        <fieldset class="module aligned control-group">
+                            {% crispy form %}
+                        </fieldset>
+                        <input type="submit" value="Submit" class="btn btn-primary" />
+                        <input type="reset" value="Clear" class="btn" />
+                    </div>
+
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

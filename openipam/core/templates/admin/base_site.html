@@ -1,0 +1,92 @@
+  {% extends "admin/base.html" %}
+{% load static i18n admin_tools_menu_tags openipam %}
+{% load url from future %}
+
+{% block title %}{{ title }} | {% atb_site_name %}{% endblock %}
+
+{% block extrahead %}
+    {% include 'autocomplete_light/static.html' %}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap/css/bootstrap.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
+    <!-- <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap/less/style.css" %}?{% now "c" %}" /> -->
+
+    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.css" %}" />
+    {# <!--[if IE]><link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery.ui.1.8.16.ie.css" %}" /><![endif]--> #}
+    {# <link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery-ui-1.8.16.custom.css" %}" /> #}
+    {# <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" /> #}
+
+{% endblock %}
+
+{% block nav-global %}
+    {% if user.is_active %}
+        {% if not is_popup %}
+            <ul class="nav pull-left">
+              <li {% if root_path == 'hosts' %}class="active"{% endif %}>
+                <a href="{% url 'list_hosts' %}">Hosts</a>
+              </li>
+              <li {% if root_path == 'dns' %}class="active"{% endif %}>
+                <a href="{% url 'dns' %}">DNS</a>
+              </li>
+            </ul>
+
+            {% if user.is_active %}
+            <ul class="nav pull-right">
+                {% if user.is_staff %}
+                  <li class="dropdown">
+                    <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
+                      <i class="icon-search icon-white"></i>
+                    </a>
+                    <ul id="menu-search" class="dropdown-menu">
+                        <li id="menu-search-li">
+                          <input id="menu-search-input" type="text" placeholder="{% trans "Search in menu" %}"/>
+                        </li>
+                    </ul>
+                  </li>
+                  {% atb_site_link %}
+                  {% admin_tools_render_menu %}
+                {% endif %}
+                <li class="dropdown">
+                  <a class="dropdown-toggle" href="#" data-toggle="dropdown">
+                      <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />
+                    {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
+                    <b class="caret"></b>
+                  </a>
+                  <ul class="dropdown-menu">
+                  {% block userlinks %}
+                      <li>
+                        <a href="{% url 'profile' %}">
+                          <i class="icon-user"></i>
+                          Profile
+                        </a>
+                      </li>
+                      <li>
+                        <a href="{% url 'password_change' %}">
+                          <i class="icon-lock"></i>
+                          {% trans 'Change password' %}
+                        </a>
+                      </li>
+                      <li>
+                        <a href="{% url 'password_reset' %}">
+                          <i class="icon-lock"></i>
+                          {% trans 'Reset password' %}
+                        </a>
+                      </li>
+                      <li>
+                        <a href="{% url 'logout' %}">
+                          <i class="icon-off"></i>
+                          {% trans 'Log out' %}
+                        </a>
+                      </li>
+                  {% endblock %}
+                  </ul>
+                </li>
+            </ul>
+            {% endif %}
+
+        {% endif %}
+    {% endif %}
+{% endblock %}

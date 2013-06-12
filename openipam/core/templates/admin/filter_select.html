@@ -1,0 +1,10 @@
+<div>
+    <label>Filter By {{ title }}:</label>
+    <select class="filter-select">
+        {% for choice in choices %}
+        <option value="{{ choice.query_string|iriencode }}" {% if choice.selected %}selected="selected"{% endif %}>
+            {{ choice.display }}
+        </option>
+        {% endfor %}
+    </select>
+</div>

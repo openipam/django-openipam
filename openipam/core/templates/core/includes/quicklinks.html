@@ -1,0 +1,19 @@
+{% url 'feature_request' as feature_request_url %}
+{% url 'feature_request_complete' as feature_request_complete_url %}
+{% url 'my_hosts' as my_hosts_url %}
+{% url 'my_dns' as my_dns_url %}
+
+<div id="quicklinks" class="well well-small pull-left">
+    <ul class="nav nav-list">
+        <li class="nav-header">Quick Links</li>
+        <li {% if my_hosts_url == request.path %}class="active"{% endif %}>
+            <a href="{{ my_hosts_url }}">My Hosts</a>
+        </li>
+        <li {% if my_dns_url == request.path %}class="active"{% endif %}>
+            <a href="{{ my_dns_url }}">My DNS Records</a>
+        </li>
+        <li {% if feature_request_url == request.path or feature_request_complete_url == request.path %}class="active"{% endif %}>
+            <a href="{{ feature_request_url }}">Bug/Feature Request</a>
+        </li>
+    </ul>
+</div>
