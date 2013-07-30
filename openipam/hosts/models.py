@@ -1,12 +1,16 @@
 from django.db import models
 from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from netfields import InetAddressField, MACAddressField, NetManager
 from guardian.managers import UserObjectPermissionManager
-from guardian.shortcuts import get_objects_for_user
+from guardian.models import UserObjectPermission
+from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms
 from openipam.hosts.validators import validate_hostname
 from openipam.dns.models import Domain
 from datetime import datetime
+from managers import HostManager
 
 
 class Attribute(models.Model):
@@ -59,7 +63,7 @@ class Disabled(models.Model):
 
 
 class ExpirationType(models.Model):
-    expiration = models.TextField(blank=True) # This field type is a guess.
+    expiration = models.DateTimeField()
     min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
 
     def __unicode__(self):
@@ -67,6 +71,7 @@ class ExpirationType(models.Model):
 
     class Meta:
         db_table = 'expiration_types'
+        ordering = ('expiration',)
 
 
 class FreeformAttributeToHost(models.Model):
@@ -125,10 +130,6 @@ class GulRecentArpBymac(models.Model):
         db_table = 'gul_recent_arp_bymac'
 
 
-# class HostManager(NetManager, UserObjectPermissionManager):
-#     pass
-
-
 class Host(models.Model):
     mac = MACAddressField('Mac Address', primary_key=True)
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname])
@@ -137,19 +138,27 @@ class Host(models.Model):
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool', related_name='pool_hosts')
     freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost', related_name='freeform_hosts')
     structured_attributes = models.ManyToManyField('StructuredAttributeValue', through='StructuredAttributeToHost', related_name='structured_hosts')
-    dhcp_group = models.ForeignKey('network.DhcpGroup', null=True, db_column='dhcp_group', blank=True, verbose_name='DHCP Group')
+    dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group', verbose_name='DHCP Group', blank=True, null=True)
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('auth.User', db_column='changed_by')
 
-    objects = NetManager()
+    objects = HostManager()
+
+    @property
+    def mac_is_disabled(self):
+        return True if Disabled.objects.filter(mac=self.mac) else False
+
+    @property
+    def is_expired(self):
+        return True if self.expires < datetime.utcnow().replace(tzinfo=utc) else False
 
     def __unicode__(self):
         return self.hostname
 
-    def is_expired(self):
-        return True if self.expires < datetime.utcnow().replace(tzinfo=utc) else False
-
+    def clean(self):
+        # Make sure hostname is lowercase
+        self.hostname = self.hostname.lower()
 
     # Do hostname checks to make sure there is a FQDN
     # and that the user has permissions to add on that domain
@@ -172,7 +181,6 @@ class Host(models.Model):
             raise ValidationError({
                 'hostname': ("No Domain found for host '%s'" % self.hostname,)
             })
-
 
     class Meta:
         db_table = 'hosts'
@@ -204,12 +212,12 @@ class MacOui(models.Model):
 
 
 class Notification(models.Model):
-    notification = models.TextField(blank=True)
+    notification = models.DateField()
     hosts = models.ManyToManyField('Host', through='NotificationToHost', related_name='host_notifications')
-    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    # min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
 
     def __unicode__(self):
-        return self.notification
+        return '%s' % self.notification
 
     class Meta:
         db_table = 'notifications'
@@ -262,5 +270,3 @@ try:
     ])
 except ImportError:
     pass
-
-

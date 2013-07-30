@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url, include
-from openipam.hosts.views import HostListView, HostUpdateView
+from openipam.hosts.views import HostListView, HostUpdateView, HostCreateView
 
 
 urlpatterns = patterns('openipam.hosts.views',
@@ -9,9 +9,6 @@ urlpatterns = patterns('openipam.hosts.views',
 
     url(r'^(?P<pk>([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2})/$', HostUpdateView.as_view(), name='update_host'),
     url(r'^mine/$', HostListView.as_view(is_owner=True), name='my_hosts'),
-    url(r'^add/$', 'add', name='add_hosts'),
+    url(r'^add/$', HostCreateView.as_view(), name='add_hosts'),
+    #url(r'^add/$', 'add', name='add_hosts'),
 )
-
-
-
-

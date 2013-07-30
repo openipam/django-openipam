@@ -29,11 +29,12 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
+autocomplete_light.register(IPAMObjectsAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields=['username', 'first_name', 'last_name', 'email']
-    autocomplete_js_attributes={'placeholder': 'Search Users',}
+    search_fields = ['username', 'first_name', 'last_name', 'email']
+    autocomplete_js_attributes = {'placeholder': 'Search Users'}
 
     def choice_label(self, choice):
         if choice.get_full_name():
@@ -50,12 +51,6 @@ autocomplete_light.register(Permission,
 )
 
 
-autocomplete_light.register(Network,
-    search_fields=['network'],
-    autocomplete_js_attributes={'placeholder': 'Search Networks',},
-)
-
-
 autocomplete_light.register(Address,
     search_fields=['address'],
     autocomplete_js_attributes={'placeholder': 'Search Addresses',},
@@ -65,7 +60,4 @@ autocomplete_light.register(Domain,
     search_fields=['name'],
     autocomplete_js_attributes={'placeholder': 'Search Domains',},
 )
-
-autocomplete_light.register(IPAMObjectsAutoComplete)
-
 

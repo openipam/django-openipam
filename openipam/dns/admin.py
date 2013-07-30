@@ -10,8 +10,11 @@ class DomainAdmin(admin.ModelAdmin):
 
 
 class DnsRecordAdmin(admin.ModelAdmin):
+    list_display = ('name', 'domain', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content')
+    list_filter = ('dns_type', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
     change_form_template = 'admin/openipam/change_form.html'
+    list_editable = ('domain', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content')
 
 
 class DnsTypeAdmin(GuardedModelAdmin):

@@ -75,7 +75,6 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     search_fields = ('user',)
 
 
-
 admin.site.unregister(AuthUser)
 admin.site.register(AuthUser, AuthUserAdmin)
 admin.site.unregister(AuthGroup)
@@ -88,4 +87,3 @@ admin.site.register(Permission, PermissionAdmin)
 
 admin.site.register(UserObjectPermission, UserObjectPermissionAdmin)
 admin.site.register(GroupObjectPermission)
-

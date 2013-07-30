@@ -15,6 +15,9 @@ urlpatterns = patterns('openipam.core.views',
     #url(r'^accounts/profile/$', 'profile', name='profile'),
 
     # Hosts
+    url(r'^api/', include('openipam.api.urls')),
+
+    # Hosts
     url(r'^hosts/', include('openipam.hosts.urls')),
 
     # DNS
@@ -33,12 +36,7 @@ urlpatterns = patterns('openipam.core.views',
     url(r'^password/reset/done/$', password_reset_complete, name='password_reset_complete'),
     url(r'request/complete/$',
         TemplateView.as_view(template_name='core/featurerequest_form.html'),
-        { 'is_complete': True },
-        name='feature_request_complete'
-    ),
+        {'is_complete': True},
+        name='feature_request_complete'),
     url(r'request/$', FeatureRequestView.as_view(), name='feature_request'),
 )
-
-
-
-

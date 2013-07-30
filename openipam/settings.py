@@ -132,6 +132,7 @@ TEMPLATE_DIRS = (
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
     'openipam.core',
+    'openipam.api',
 
     'admin_tools',
     'admin_tools.theming',
@@ -185,6 +186,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     'openipam.core.context_processors.gravatar',
     'openipam.core.context_processors.root_path',
+    'openipam.api.context_processors.api_version',
 )
 
 LOCAL_AUTHENTICATION_BACKENDS = locals().pop('LOCAL_AUTHENTICATION_BACKENDS', ())
@@ -242,10 +244,21 @@ LOGGING = {
     }
 }
 
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': (
+#         'rest_framework.renderers.JSONRenderer',
+#         'rest_framework.renderers.BrowsableAPIRenderer',
+#     )
+# }
+
+
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
 
 IPAM_USER_GROUP = locals().pop('LOCAL_IPAM_USER_GROUP', 'ipam-users')
 IPAM_ADMIN_GROUP = locals().pop('LOCAL_IPAM_ADMIN_GROUP', 'ipam-admins')
+IPAM_DEFAULT_POOL = 1
+
 

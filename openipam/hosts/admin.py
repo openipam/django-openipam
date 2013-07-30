@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute
+from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification
 from guardian.admin import GuardedModelAdmin
 
 
@@ -37,3 +37,4 @@ admin.site.register(Host, HostAdmin)
 admin.site.register(Attribute)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)
+admin.site.register(Notification)

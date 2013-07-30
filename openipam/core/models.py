@@ -12,6 +12,7 @@ TYPE_CHOICES = (
     ('comment', 'Comment',),
 )
 
+
 class FeatureRequest(models.Model):
     comment = models.TextField('Comment Detail')
     type = models.CharField('Request Type', max_length=255, choices=TYPE_CHOICES)
@@ -37,6 +38,7 @@ widgets.FilteredSelectMultiple = FilteredSelectMultiple
 # patching admintools menu item
 # addming icon argument to base MenuItem class
 items.MenuItem.icon = None
+
 
 # pathing AdminDateInput
 class ATBAdminDateWidget(forms.DateInput):

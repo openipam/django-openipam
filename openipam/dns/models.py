@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from openipam.dns.managers import DnsManager
 
 
 class DomainManager(models.Manager):
@@ -30,18 +31,19 @@ class Domain(models.Model):
         )
 
 
-
 class DnsRecord(models.Model):
-    did = models.ForeignKey('Domain', db_column='did')
-    tid = models.ForeignKey('DnsType', db_column='tid')
-    vid = models.ForeignKey('DnsView', null=True, db_column='vid', blank=True)
+    domain = models.ForeignKey('Domain', db_column='did')
+    dns_type = models.ForeignKey('DnsType', db_column='tid')
+    dns_view = models.ForeignKey('DnsView', db_column='vid', blank=True, null=True)
     name = models.CharField(max_length=255)
-    text_content = models.CharField(max_length=255, blank=True)
-    ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True, verbose_name='IP Content')
+    text_content = models.CharField(max_length=255, blank=True, null=True)
+    ip_content = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
     ttl = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
+
+    objects = DnsManager()
 
     def __unicode__(self):
         return self.name

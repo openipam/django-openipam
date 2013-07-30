@@ -3,4 +3,11 @@
 
 {% block coltype %}{% endblock %}
 
-
+{% block content %}
+    <div class="row-fluid">
+        {% block quicklinks %}
+            {% include "core/includes/quicklinks.html" %}
+        {% endblock %}
+        {% block contentbody %}{% endblock %}
+    </div>
+{% endblock %}

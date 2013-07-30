@@ -23,7 +23,7 @@ class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     source = models.ForeignKey('AuthSource', db_column='source')
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions')
-    #groups = models.ManyToManyField('Group', through='UserToGroup', related_name='users')
+    # groups = models.ManyToManyField('Group', through='UserToGroup', related_name='users')
 
     def __unicode__(self):
         return self.username
@@ -39,7 +39,7 @@ class User(models.Model):
 
 
 class Permission(models.Model):
-    id = models.TextField(primary_key=True) # This field type is a guess.
+    id = models.TextField(primary_key=True)  # This field type is a guess.
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 
@@ -57,12 +57,13 @@ class UserToGroup(models.Model):
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('User', db_column='changed_by')
     host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_host_permissions')
+
     class Meta:
         db_table = 'users_to_groups'
 
 
 class Group(models.Model):
-    #id = models.IntegerField(primary_key=True)
+    # id = models.IntegerField(primary_key=True)
     name = models.TextField(unique=True, blank=True)
     description = models.TextField(blank=True)
     domains = models.ManyToManyField('dns.Domain', through='DomainToGroup', related_name='domain_groups')

@@ -2,7 +2,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_save
+
+from openipam.network.managers import LeaseManager, PoolManager, AddressManager
 
 
 class Lease(models.Model):
@@ -13,7 +15,7 @@ class Lease(models.Model):
     starts = models.DateTimeField()
     ends = models.DateTimeField()
 
-    objects = NetManager()
+    objects = LeaseManager()
 
     def __unicode__(self):
         return self.address
@@ -27,7 +29,10 @@ class Pool(models.Model):
     description = models.TextField(blank=True)
     allow_unknown = models.BooleanField()
     lease_time = models.IntegerField()
+    assignable = models.BooleanField()
     dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
+
+    objects = PoolManager()
 
     def __unicode__(self):
         return self.name
@@ -39,6 +44,28 @@ class Pool(models.Model):
         )
 
 
+class DefaultPool(models.Model):
+    pool = models.ForeignKey('Pool', related_name='pool_defaults', blank=True, null=True)
+    cidr = CidrAddressField(unique=True)
+
+    objects = NetManager()
+
+    def __unicode__(self):
+        return '%s - %s' % (self.pool, self.cidr)
+
+    class Meta:
+        db_table = 'default_pools'
+
+
+class DhcpGroupManager(models.Manager):
+
+    def get_query_set(self):
+        qs = super(DhcpGroupManager, self).get_query_set()
+        qs = qs.extra(select={'lname': 'lower(name)'}).order_by('lname')
+
+        return qs
+
+
 class DhcpGroup(models.Model):
     name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
@@ -46,12 +73,13 @@ class DhcpGroup(models.Model):
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
+    objects = DhcpGroupManager()
+
     def __unicode__(self):
-        return self.name
+        return '%s -- %s' % (self.name, self.description)
 
     class Meta:
         db_table = 'dhcp_groups'
-        ordering = ('name',)
 
 
 class DhcpOption(models.Model):
@@ -70,7 +98,7 @@ class DhcpOption(models.Model):
 class DhcpOptionToDhcpGroup(models.Model):
     gid = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
     oid = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
-    value = models.TextField(blank=True) # This is really a bytea field, must stringify.
+    value = models.TextField(blank=True)    # This is really a bytea field, must stringify.
     changed = models.DateTimeField()
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
@@ -121,7 +149,7 @@ class Network(models.Model):
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s' % self.network
+        return '%s -- %s' % (self.network, self.name)
 
     class Meta:
         db_table = 'networks'
@@ -172,17 +200,50 @@ class NetworkToVlan(models.Model):
 
 class Address(models.Model):
     address = InetAddressField(primary_key=True)
-    mac = models.ForeignKey('hosts.Host', null=True, db_column='mac', blank=True)
-    pool = models.ForeignKey('Pool', null=True, db_column='pool', blank=True)
+    mac = models.ForeignKey('hosts.Host',db_column='mac', blank=True, null=True, related_name='addresses')
+    pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True)
     reserved = models.BooleanField()
     network = models.ForeignKey('Network', db_column='network')
     changed = models.DateTimeField()
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
-    objects = NetManager()
+    objects = AddressManager()
 
     def __unicode__(self):
-        return self.address.strNormal()
+        return unicode(self.address)
+
+    def clean(self):
+        if self.mac and self.pool:
+            raise ValidationError('MAC and Pool cannot both be defined.  Choose one or the other.')
+        elif (self.mac or self.pool) and self.reserved:
+            raise ValidationError('If a MAC or Pool are defined, reserved must be false.')
+
+    def release(self, pool=False):
+        from openipam.dns.models import DnsRecord
+
+        # Get default pool if false
+        if pool is False:
+            pool = (DefaultPool.objects
+                .filter(cidr__net_contains_or_equals=self.address)
+                .extra(select={'masklen': "masklen(cidr)"}, order_by=['masklen']))
+        # Assume an int of not Model
+        elif not isinstance(pool, models.Model):
+            pool = DefaultPool.objects.get(pk=pool)
+
+        # Delete dns PTR records
+        DnsRecord.objects.filter(name=self.address.reverse_dns).delete()
+        # Delete dns A records
+        DnsRecord.objects.filter(address=self).delete()
+
+        # Set new pool and save
+        self.pool = pool
+        self.save()
+
+    # Signal to delete leases when an address is changed, if MAC is set to None.
+    @staticmethod
+    def release_leases(sender, instance, action, **kwargs):
+        if not instance.mac:
+            Lease.objects.filter(address=instance).delete()
 
     class Meta:
         db_table = 'addresses'
@@ -202,14 +263,18 @@ class AddressType(models.Model):
         if self.is_default and AddressType.objects.filter(is_default=True):
             raise ValidationError(_('There can only be one default Address Type'))
 
+    # Signal to make sure Address Types can only have a range OR pool.
+    @staticmethod
+    def validate_address_type(sender, instance, action, **kwargs):
+        if action == 'pre_add':
+            if instance.pool:
+                raise ValidationError(_('Address Types cannot have both a pool and a range.'))
+
     class Meta:
         db_table = 'addresstypes'
+        ordering = ('name',)
 
-# Signal to make sure Address Types can only have a range OR pool.
-def validate_address_type(sender, instance, action, **kwargs):
-    if action == 'pre_add':
-        if instance.pool:
-            raise ValidationError(_('Address Types cannot have both a pool and a range.'))
 
-m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
-
+# Register Signals
+m2m_changed.connect(AddressType.validate_address_type, sender=AddressType.ranges.through)
+post_save.connect(Address.release_leases, sender=Address)

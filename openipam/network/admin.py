@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.template.defaultfilters import slugify
 from django.utils.http import urlencode
 from openipam.user.models import User
-from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, Pool, Vlan, AddressType
+from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, Pool, Vlan, AddressType, DefaultPool
 from openipam.network.forms import AddressTypeAdminForm
 from guardian.admin import GuardedModelAdmin
 import autocomplete_light
@@ -35,6 +35,7 @@ class AddressTypeAdmin(admin.ModelAdmin):
     show_ranges.allow_tags = True
 
 
+admin.site.register(DefaultPool)
 admin.site.register(Vlan)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)

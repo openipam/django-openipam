@@ -92,16 +92,19 @@ $(function(){
 <div id="container" class="container-fluid{% if is_popup %} container-popup{% endif %}">
     {% if not is_popup %}
     <!-- Header -->
+    {% block header %}
     <div id="header" class="navbar navbar-inverse navbar-fixed-top" data-dropdown="dropdown">
       <div class="navbar-inner">
-      <div class="container-fluid">
-        {% block branding %}
-          <a class="brand" href="{% url 'index' %}">{% atb_site_name %}</a>
-        {% endblock %}
-        {% block nav-global %}{% endblock %}
-      </div>
+        <div class="container-fluid">
+          {% block branding %}
+            {# <img id="globe-small" src="{% static 'core/img/logo-globe-small.png' %}" alt="openIPAM globe" /> #}
+            <a class="brand" href="{% url 'index' %}">openIPAM{# {% atb_site_name %} #}</a>
+          {% endblock %}
+          {% block nav-global %}{% endblock %}
+        </div>
       </div>
     </div>
+    {% endblock %}
     <!-- END Header -->
 
       {% block page_nav %}

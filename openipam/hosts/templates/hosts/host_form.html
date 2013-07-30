@@ -39,6 +39,64 @@
                 this.value = pre_value + '.' + value;
                 //alert("You have choosen: " + value);
             });
+
+            $("#id_address_type").change(function(){
+                if($(this).val()) {
+                    $.get('/api/web/networkselects/'+$(this).val(), function(data) {
+                        $("#id_network").html(data);
+                    });
+                    $("#div_id_network_or_ip").show();
+                }
+                else {
+                    $("#div_id_network_or_ip").hide();
+                    $("#div_id_network").hide();
+                    $("#div_id_ip_address").hide();
+                }
+            });
+
+            $.networkIPToggle = function() {
+                if (!$("#id_address_type").val()) {
+                    $("#div_id_network_or_ip").hide();
+                }
+                if (!$(":radio[name='network_or_ip']:checked").length) {
+                    $("#div_id_network").hide();
+                    $("#div_id_ip_address").hide();
+                }
+                else if ($(":radio[name='network_or_ip']:checked").val() === '0'){
+                    $("#div_id_network").show();
+                    $("#div_id_ip_address").hide();
+                }
+                else if ($(":radio[name='network_or_ip']:checked").val() === '1') {
+                    $("#div_id_ip_address").show();
+                    $("#div_id_network").hide();
+                }
+            }
+
+            $.pageInit = function() {
+
+                // Click handlers for DHCP Group
+                $("#id_show_hide_dhcp_group").click(function(){
+                    $("#div_id_dhcp_group").toggle();
+                });
+
+                if (!$("#id_dhcp_group_text:checked").length) {
+                    $("#div_id_dhcp_group").hide();
+                }
+                else {
+                    $("#id_show_hide_dhcp_group").attr('checked', 'checked');
+                }
+
+                // Click hadlers for Network or IP fields
+                $(":radio[name='network_or_ip']").click(function(){
+                    $.networkIPToggle();
+                });
+
+                $.networkIPToggle();
+            }
+
+            // Fire init
+            $.pageInit();
+
         });
     </script>
 {% endblock %}
@@ -50,18 +108,13 @@
 {% endblock %}
 
 
-{% block content %}
-    <div class="row-fluid">
-        {{ block.super }}
-        <div class="well well-small quickbody">
-            <form id="host-form" action="" method="post">
-                {% csrf_token %}
-                <div class="margin10">
-                        {% crispy form %}
-                    <!-- <input type="submit" value="Submit" class="btn btn-primary" />
-                    <input type="reset" value="Clear" class="btn" />-->
-                </div>
-            </form>
-        </div>
+{% block contentbody %}
+    <div class="well well-small quickbody">
+        <form id="host-form" action="" method="post">
+            {% csrf_token %}
+            <div class="margin10">
+                {% crispy form %}
+            </div>
+        </form>
     </div>
 {% endblock %}

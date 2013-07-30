@@ -59,99 +59,96 @@
 {% endblock %}
 
 
-{% block content %}
-    <div class="row-fluid">
-        {{ block.super }}
-        <form id="changelist-form" action="" method="post" class="quickbody">
-            {% csrf_token %}
-            <div class="well well-small">
-                {% spaceless %}
-                <div class="actions changelist-actions pull-left">
-                    <div class="changelist-action" style="height: auto !important;">
-                        <div class="action-wrapper">
-                            <select>
-                                <option></option>
-                            </select>
-                            <button type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
-                                <span class="icon-play"></span>
-                                {% trans "Go" %}
-                            </button>
-                        </div>
+{% block contentbody %}
+    <form id="changelist-form" action="" method="post" class="quickbody">
+        {% csrf_token %}
+        <div class="well well-small">
+            {% spaceless %}
+            <div class="actions changelist-actions pull-left">
+                <div class="changelist-action" style="height: auto !important;">
+                    <div class="action-wrapper">
+                        <select>
+                            <option></option>
+                        </select>
+                        <button type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                            <span class="icon-play"></span>
+                            {% trans "Go" %}
+                        </button>
                     </div>
                 </div>
-                <div id="changelist-search" class="pull-left">
-                    <input type="text" size="40" name="search" value="{{ request.GET.q }}" id="searchbar" placeholder="{% trans "Search" %}" />
-                    <span class="search-results">
-                        {% blocktrans count paginator.count as counter %}
-                            {{ counter }} result{% plural %}{{ counter }} results
-                        {% endblocktrans %}
-                        (<a href=".">reset</a>)
-                    </span>
-                </div>
-                <div class="clear"><!-- --></div>
-                {% endspaceless %}
             </div>
+            <div id="changelist-search" class="pull-left">
+                <input type="text" size="40" name="search" value="{{ request.GET.q }}" id="searchbar" placeholder="{% trans "Search" %}" />
+                <span class="search-results">
+                    {% blocktrans count paginator.count as counter %}
+                        {{ counter }} result{% plural %}{{ counter }} results
+                    {% endblocktrans %}
+                    (<a href=".">reset</a>)
+                </span>
+            </div>
+            <div class="clear"><!-- --></div>
+            {% endspaceless %}
+        </div>
 
-            <div class="results">
-                <table cellspacing="0" id="result_list" class="table table-striped table-condensed table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="action-checkbox-column">
-                                <div class="text">
-                                    <span><input type="checkbox" id="action-toggle" /></span>
-                                </div>
-                                <div class="clear"></div>
+        <div class="results">
+            <table cellspacing="0" id="result_list" class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col" class="action-checkbox-column">
+                            <div class="text">
+                                <span><input type="checkbox" id="action-toggle" /></span>
+                            </div>
+                            <div class="clear"></div>
+                        </th>
+                        <th scope="col">Hostname</th>
+                        <th scope="col">Ethernet Address</th>
+                        <th scope="col">Expires</th>
+                        <th scope="col">Mac Address Last seen</th>
+                        <th scope="col">Static IP Last seen</th>
+                        <th scope="col">DNS Records</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in host_list %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td class="action-checkbox">
+                                <input class="action-select" name="_selected_action" type="checkbox" value="-1" />
+                            </td>
+                            <th><a href="{% url 'update_host' host.mac %}">
+                                {{ host.hostname }}
+                                </a>
                             </th>
-                            <th scope="col">Hostname</th>
-                            <th scope="col">Ethernet Address</th>
-                            <th scope="col">Expires</th>
-                            <th scope="col">Mac Address Last seen</th>
-                            <th scope="col">Static IP Last seen</th>
-                            <th scope="col">DNS Records</th>
+                            <td>{{ host.mac }}</td>
+                            <td>{{ host.expires|date:"M d, Y h:i A" }}</td>
+                            <td>--</td>
+                            <td>--</td>
+                            <td>
+                                <a href="" class="right10">DNS Records</a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for host in host_list %}
-                            <tr class="{% cycle 'row1' 'row2' %}">
-                                <td class="action-checkbox">
-                                    <input class="action-select" name="_selected_action" type="checkbox" value="-1" />
-                                </td>
-                                <th><a href="{% url 'update_host' host.mac %}">
-                                    {{ host.hostname }}
-                                    </a>
-                                </th>
-                                <td>{{ host.mac }}</td>
-                                <td>{{ host.expires|date:"M d, Y h:i A" }}</td>
-                                <td>--</td>
-                                <td>--</td>
-                                <td>
-                                    <a href="" class="right10">DNS Records</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                {% if is_paginated %}
-                    <div class="pagination pull-right">
-                        <ul>
-                            {% if page_obj.has_previous %}
-                                <li>
-                                    <a href="{% url 'list_hosts' %}?page={{ page_obj.previous_page_number }}">Previous</a>
-                                </li>
-                            {% endif %}
+            {% if is_paginated %}
+                <div class="pagination pull-right">
+                    <ul>
+                        {% if page_obj.has_previous %}
                             <li>
-                                <a href="{% url 'list_hosts' %}?page={{ page_obj.number }}">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                                <a href="{% url 'list_hosts' %}?page={{ page_obj.previous_page_number }}">Previous</a>
                             </li>
-                            {% if page_obj.has_next %}
-                                <li>
-                                    <a href="{% url 'list_hosts' %}?page={{ page_obj.next_page_number }}">Next</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
-        </form>
-    </div>
+                        {% endif %}
+                        <li>
+                            <a href="{% url 'list_hosts' %}?page={{ page_obj.number }}">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li>
+                                <a href="{% url 'list_hosts' %}?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </form>
 {% endblock %}
