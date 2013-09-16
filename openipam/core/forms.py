@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from openipam.core.models import FeatureRequest
 
 

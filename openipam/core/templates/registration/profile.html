@@ -23,6 +23,7 @@
     <form method="post">
         {% csrf_token %}
         <fieldset class="module aligned wide control-group well">
+            <legend>Personal Info</legend>
             <div class="pull-left" style="margin-right: 20px;">
                 <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
                   <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
@@ -32,7 +33,21 @@
             <div class="clear"><!-- --></div>
         </fieldset>
 
+        {% if groups %}
+            <fieldset class="module aligned wide control-group well">
+                <legend>Groups</legend>
+                <div style="max-width: 500px;">
+                    {% for group in groups %}
+                        <span class="label label-info" style="margin: 3px;">{{ group }}</span>
+                    {% endfor %}
+                </div>
+            </fieldset>
+        {% endif %}
+
         <div class="well">
+            <div class="pull-left">
+              <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:auth_user_change' request.user.pk %}';" />
+            </div>
             <div class="pull-right">
               <input type="submit" value="Save" class="default btn btn-success" name="save" />
             </div>

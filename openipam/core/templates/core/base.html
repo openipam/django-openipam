@@ -3,6 +3,12 @@
 
 {% block coltype %}{% endblock %}
 
+{% block breadcrumbs %}
+    {{ block.super }}
+    /|{% trans "Home" %}
+{% endblock %}
+
+
 {% block content %}
     <div class="row-fluid">
         {% block quicklinks %}

@@ -44,20 +44,27 @@ class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
 autocomplete_light.register(User, UserAutocomplete)
 
 
+autocomplete_light.register(Group,
+    search_fields=['name'],
+    autocomplete_js_attributes={'placeholder': 'Search Groups'},
+)
+
+
 autocomplete_light.register(Permission,
     search_fields=['name', 'content_type__app_label', 'codename'],
-    autocomplete_js_attributes={'placeholder': 'Search Permissions',},
-    choices = Permission.objects.select_related().filter(content_type__app_label__in=settings.IPAM_APPS)
+    autocomplete_js_attributes={'placeholder': 'Search Permissions'},
+    choices=Permission.objects.select_related().filter(content_type__app_label__in=settings.IPAM_APPS)
 )
 
 
 autocomplete_light.register(Address,
     search_fields=['address'],
-    autocomplete_js_attributes={'placeholder': 'Search Addresses',},
+    autocomplete_js_attributes={'placeholder': 'Search Addresses'},
 )
 
 autocomplete_light.register(Domain,
     search_fields=['name'],
-    autocomplete_js_attributes={'placeholder': 'Search Domains',},
+    autocomplete_js_attributes={'placeholder': 'Search Domains'},
 )
+
 

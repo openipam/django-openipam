@@ -8,9 +8,15 @@ from django.conf import settings
 from django.template.context import Context
 from django.template.loader import get_template
 from BeautifulSoup import BeautifulSoup
+from urllib import unquote
 
 
 register = template.Library()
+
+
+@register.filter
+def unquote_raw(value):
+    return unquote(value)
 
 
 @register.simple_tag

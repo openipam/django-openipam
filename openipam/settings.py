@@ -113,6 +113,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'openipam.middleware.LoginRequiredMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -198,6 +199,8 @@ AUTHENTICATION_BACKENDS = LOCAL_AUTHENTICATION_BACKENDS + (
 
 ANONYMOUS_USER_ID = -1
 LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'profile'
+LOGOUT_URL = 'logout'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -252,6 +255,7 @@ LOGGING = {
 #     )
 # }
 
+CRISPY_TEMPLATE_PACK = 'bootstrap'
 
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'

@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.views.generic.edit import CreateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import password_change as auth_password_change
+from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestAdminForm
 
@@ -27,6 +28,8 @@ def profile(request):
         instance=request.user,
     )
 
+    groups = request.user.groups.all()
+
     # if len(form.initial) < 3:
     #     profile_complete = False
     # else:
@@ -45,6 +48,7 @@ def profile(request):
 
     context = {
         'title': 'Profile for %s' % request.user.get_full_name(),
+        'groups': groups,
         'form': form,
     }
 
@@ -57,6 +61,10 @@ def password_change(request, *args, **kwargs):
         return auth_password_change(request, *args, **kwargs)
     else:
         return redirect('index')
+
+
+def password_forgot(request):
+    pass
 
 
 class FeatureRequestView(CreateView):

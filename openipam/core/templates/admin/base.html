@@ -8,7 +8,8 @@
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
 <script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
 
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+{# <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script> #}
 {# <script type="text/javascript" src="{% static "admin/js/jquery.min.js" %}"></script> #}
 <script type="text/javascript" src="{% static "admin/js/jquery.init.js" %}"></script>
 <script>
@@ -76,7 +77,6 @@ $(function(){
       e.stopPropagation();
   });
 
-  $('fieldset label').addClass('control-label');
   $(".chzn-select").chosen();
 	$('select[multiple]:not(.value-select)').css('width', '500px').chosen();
 });
@@ -116,6 +116,10 @@ $(function(){
             </h3>
           {% endif %}
           {% endblock %}
+
+          {% breadcrumbs %}
+            {% block breadcrumbs %}{% endblock %}
+          {% endbreadcrumbs %}
 
           {% block object-tools %}{% endblock %}
           <div class="clear"><!-- --></div>
