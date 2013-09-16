@@ -6,7 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from netfields import InetAddressField, MACAddressField, NetManager
 from guardian.managers import UserObjectPermissionManager
 from guardian.models import UserObjectPermission
-from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms
+from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
+    get_groups_with_perms, remove_perm, assign_perm
 from openipam.hosts.validators import validate_hostname
 from openipam.dns.models import Domain
 from datetime import datetime
@@ -103,28 +104,28 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    mac = MACAddressField(blank=True)
-    address = InetAddressField(null=True, blank=True)
-    stopstamp = models.DateTimeField(null=True, blank=True)
+    mac = MACAddressField(primary_key=True)
+    address = InetAddressField()
+    stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s (%s - %s)' % (self.id, self.mac, self.address)
+        return '%s - %s' % (self.mac, self.address)
 
     class Meta:
         db_table = 'gul_recent_arp_byaddress'
 
 
 class GulRecentArpBymac(models.Model):
-    mac = MACAddressField(blank=True)
-    address = InetAddressField(null=True, blank=True)
-    stopstamp = models.DateTimeField(null=True, blank=True)
+    mac = MACAddressField(primary_key=True)
+    address = InetAddressField()
+    stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s (%s - %s)' % (self.id, self.mac, self.address)
+        return '%s - %s' % (self.mac, self.address)
 
     class Meta:
         db_table = 'gul_recent_arp_bymac'
@@ -135,15 +136,21 @@ class Host(models.Model):
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname])
     description = models.TextField(blank=True)
     address_type = models.ForeignKey('network.AddressType', blank=True, null=True)
-    pools = models.ManyToManyField('network.Pool', through='network.HostToPool', related_name='pool_hosts')
-    freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost', related_name='freeform_hosts')
-    structured_attributes = models.ManyToManyField('StructuredAttributeValue', through='StructuredAttributeToHost', related_name='structured_hosts')
-    dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group', verbose_name='DHCP Group', blank=True, null=True)
+    pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
+                                   related_name='pool_hosts',  blank=True, null=True)
+    freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
+                                                 related_name='freeform_hosts',  blank=True, null=True)
+    structured_attributes = models.ManyToManyField('StructuredAttributeValue', through='StructuredAttributeToHost',
+                                                   related_name='structured_hosts',  blank=True, null=True)
+    dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group',
+                                   verbose_name='DHCP Group', blank=True, null=True)
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('auth.User', db_column='changed_by')
 
     objects = HostManager()
+    #gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
+    #gul_recent_arp_byaddress = GulRecentArpByaddress.objects.all()
 
     @property
     def mac_is_disabled(self):
@@ -152,6 +159,58 @@ class Host(models.Model):
     @property
     def is_expired(self):
         return True if self.expires < datetime.utcnow().replace(tzinfo=utc) else False
+
+    @property
+    def mac_last_seen(self):
+        # if self.gul_recent_arp_bymac is None:
+        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
+
+        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+
+        if gul_mac:
+            return gul_mac[0].stopstamp
+        else:
+            return None
+
+    @property
+    def static_ip_last_seen(self):
+        gul_ip = GulRecentArpByaddress.objects.filter(mac=self.mac).order_by('-stopstamp')
+
+        #ul_ip = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_byaddress)
+
+        if gul_ip:
+            return gul_ip[0].stopstamp
+        else:
+            return None
+
+    @property
+    def owners(self):
+        user_list = []
+        group_list = []
+
+        users = get_users_with_perms(self, attach_perms=True)
+        for user, perm in users.iteritems():
+            if 'is_owner' in perm:
+                user_list.append(user)
+
+        groups = get_groups_with_perms(self, attach_perms=True)
+        for group, perm in groups.iteritems():
+            if 'is_owner' in perm:
+                group_list.append(group)
+
+        return (user_list, group_list)
+
+    def remove_owners(self):
+        owners = self.owners
+        for user in owners[0]:
+            remove_perm('is_owner', user, self)
+        for group in owners[0]:
+            remove_perm('is_owner', group, self)
+
+    def assign_owner(self, user_or_group):
+        return assign_perm('is_owner', user_or_group, self)
+
 
     def __unicode__(self):
         return self.hostname
@@ -174,13 +233,18 @@ class Host(models.Model):
             domains_to_check.append('.'.join(partial_domain))
 
         # Check user permissions
-        domains = get_objects_for_user(self.changed_by, 'dns.add_within')
-        # Check if domain exists
-        domains = domains.filter(name__in=domains_to_check)
-        if not domains:
-            raise ValidationError({
-                'hostname': ("No Domain found for host '%s'" % self.hostname,)
-            })
+        if hasattr(self, 'changed_by'):
+            try:
+                domains = get_objects_for_user(self.changed_by, 'dns.add_within')
+            except ContentType.DoesNotExist:
+                return
+
+            # Check if domain exists
+            domains = domains.filter(name__in=domains_to_check)
+            if not domains:
+                raise ValidationError({
+                    'hostname': ("No Domain found for host '%s'" % self.hostname,)
+                })
 
     class Meta:
         db_table = 'hosts'

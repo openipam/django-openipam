@@ -1,0 +1,28 @@
+{% extends "hosts/base.html" %}
+{% load i18n static crispy_forms_tags %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+    Host
+  </h3>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+        ../|{% trans "Hosts" %}
+        *{% trans "Change owners" %}
+{% endblock %}
+
+
+{% block contentbody %}
+    <div class="well well-small quickbody">
+
+        <form id="host-change-owners-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px">
+            {% csrf_token %}
+            <div class="margin10">
+                {% crispy form %}
+            </div>
+        </form>
+    </div>
+{% endblock %}
+

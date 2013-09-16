@@ -10,5 +10,6 @@ urlpatterns = patterns('openipam.hosts.views',
     url(r'^(?P<pk>([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2})/$', HostUpdateView.as_view(), name='update_host'),
     url(r'^mine/$', HostListView.as_view(is_owner=True), name='my_hosts'),
     url(r'^add/$', HostCreateView.as_view(), name='add_hosts'),
+    url(r'^owners/$', 'change_owners', name='change_owners'),
     #url(r'^add/$', 'add', name='add_hosts'),
 )

@@ -44,33 +44,59 @@
                 if($(this).val()) {
                     $.get('/api/web/networkselects/'+$(this).val(), function(data) {
                         $("#id_network").html(data);
+                        $.addressTypeTogge();
                     });
+                }
+                else {
+                    $.addressTypeTogge();
+                }
+            });
+
+            $.addressTypeTogge = function() {
+                if ($("#id_network option[value!='']").size() > 0) {
                     $("#div_id_network_or_ip").show();
                 }
                 else {
                     $("#div_id_network_or_ip").hide();
-                    $("#div_id_network").hide();
-                    $("#div_id_ip_address").hide();
+                    $("#div_id_network_or_ip input:checked").prop('checked', false);
+                    $.networkIPToggle();
                 }
-            });
+            }
 
             $.networkIPToggle = function() {
                 if (!$("#id_address_type").val()) {
                     $("#div_id_network_or_ip").hide();
                 }
+
                 if (!$(":radio[name='network_or_ip']:checked").length) {
                     $("#div_id_network").hide();
                     $("#div_id_ip_address").hide();
+                    $("#div_id_network select").empty();
+                    $("#div_id_ip_address input").val('');
                 }
                 else if ($(":radio[name='network_or_ip']:checked").val() === '0'){
                     $("#div_id_network").show();
                     $("#div_id_ip_address").hide();
+                    $("#div_id_ip_address input").val('');
                 }
                 else if ($(":radio[name='network_or_ip']:checked").val() === '1') {
                     $("#div_id_ip_address").show();
                     $("#div_id_network").hide();
+                    $("#div_id_network select").empty();
                 }
             }
+
+            $("a#host-renew").click(function(){
+                $("#div_id_expire_days").toggle();
+                return false;
+            })
+
+            $("a#ip-change").click(function(){
+                $("#div_id_address_type").toggle();
+                return false;
+                //$("#div_id_network_or_ip").toggle();
+                //$("#div_id_ip_address").toggle();
+            })
 
             $.pageInit = function() {
 
@@ -79,11 +105,21 @@
                     $("#div_id_dhcp_group").toggle();
                 });
 
-                if (!$("#id_dhcp_group_text:checked").length) {
+                if (!$("#id_show_hide_dhcp_group:checked").length) {
                     $("#div_id_dhcp_group").hide();
                 }
                 else {
                     $("#id_show_hide_dhcp_group").attr('checked', 'checked');
+                }
+
+                if ($("a#host-renew").length > 0) {
+                    $("#div_id_expire_days").hide();
+                }
+
+                if ($("a#ip-change").length > 0) {
+                    $("#div_id_address_type").hide();
+                    $("#div_id_network_or_ip").hide();
+                    $("#div_id_ip_address").hide();
                 }
 
                 // Click hadlers for Network or IP fields
@@ -110,9 +146,32 @@
 
 {% block contentbody %}
     <div class="well well-small quickbody">
-        <form id="host-form" action="" method="post">
+        {% if form.instance.id %}
+            {% if form.instance.is_expired %}
+                <div class="alert alert-error">
+                    <h4>Host is expired: expired on {{ form.instance.expires }}</h4>
+                </div>
+            {% endif %}
+            {% if form.instance.mac_is_disabled %}
+                <div class="alert alert-error">
+                    <h4>Mac is currently disabled.</h4>
+                </div>
+            {% endif %}
+            {% if not form.instance.mac_last_seen %}
+                <div class="alert alert-error">
+                    Mac not seen: there is no data for this mac address and we have not seen it in over 3 months (if ever).
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <form id="host-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px">
             {% csrf_token %}
             <div class="margin10">
+                {% if form.instance.pk %}
+                    <h2>Edit Host: {{ form.instance.mac }}</h2>
+                {% else %}
+                    <h2>Add Host</h2>
+                {% endif %}
                 {% crispy form %}
             </div>
         </form>

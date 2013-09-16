@@ -144,7 +144,7 @@ class Network(models.Model):
     dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
     shared_network = models.ForeignKey('SharedNetwork', null=True, db_column='shared_network', blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed_by = models.ForeignKey('auth.User', db_column='changed_by')
 
     objects = NetManager()
 
@@ -200,7 +200,7 @@ class NetworkToVlan(models.Model):
 
 class Address(models.Model):
     address = InetAddressField(primary_key=True)
-    mac = models.ForeignKey('hosts.Host',db_column='mac', blank=True, null=True, related_name='addresses')
+    mac = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses')
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True)
     reserved = models.BooleanField()
     network = models.ForeignKey('Network', db_column='network')
@@ -211,6 +211,28 @@ class Address(models.Model):
 
     def __unicode__(self):
         return unicode(self.address)
+
+    @property
+    def last_mac_seen(self):
+        from openipam.hosts.models import GulRecentArpBymac
+
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+
+        if gul_mac:
+            return gul_mac[0].mac
+        else:
+            return None
+
+    @property
+    def last_seen(self):
+        from openipam.hosts.models import GulRecentArpByaddress
+
+        gul_ip = GulRecentArpByaddress.objects.filter(address=self.address).order_by('-stopstamp')
+
+        if gul_ip:
+            return gul_ip[0].stopstamp
+        else:
+            return None
 
     def clean(self):
         if self.mac and self.pool:
@@ -249,6 +271,12 @@ class Address(models.Model):
         db_table = 'addresses'
 
 
+class AddressTypeManager(models.Manager):
+
+    def get_by_name(self, name):
+        return AddressType.objects.get(name__iexact=name)
+
+
 class AddressType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -256,8 +284,10 @@ class AddressType(models.Model):
     pool = models.ForeignKey('Pool', blank=True, null=True)
     is_default = models.BooleanField()
 
+    objects = AddressTypeManager()
+
     def __unicode__(self):
-        return self.name
+        return self.description
 
     def clean(self):
         if self.is_default and AddressType.objects.filter(is_default=True):

@@ -1,5 +1,5 @@
 {% extends "hosts/base.html" %}
-{% load i18n static %}
+{% load i18n static openipam openipam_host_extras %}
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
@@ -22,17 +22,29 @@
             $("#result_list").dataTable({
                 "bPaginate": false,
                 "sDom": '',
-                "aaSorting": [],
+                "aaSorting": [[ 1, "asc" ]],
                 "aoColumns": [
                     { "bSortable": false },
                     null,
                     null,
                     { "sType": "date" },
-                    null,
-                    null,
+                    { "sType": "date" },
+                    { "sType": "date" },
                     { "bSortable": false },
                 ]
             });
+
+            $("#host-filter").change(function(){
+                // make sure this is not set
+                $("#changelist-form").attr('action', '');
+
+                if ($(this).val() == 'delete') {
+                    return confirm('Are you sure you want to delete these hosts?');
+                }
+                else if ($(this).val() == 'owners') {
+                    $("#changelist-form").attr('action', '{% url 'change_owners' %}');
+                }
+            })
         });
     </script>
 {% endblock %}
@@ -67,8 +79,12 @@
             <div class="actions changelist-actions pull-left">
                 <div class="changelist-action" style="height: auto !important;">
                     <div class="action-wrapper">
-                        <select>
-                            <option></option>
+                        <select id="host-filter" name="filter">
+                            <option value="">Choose an action...</option>
+                            <option value="">--------------</option>
+                            <option value="delete">Delete selected hosts</option>
+                            <option value="owners">Set owners on selected hosts</option>
+                            <option value="renew">Renew selected hosts</option>
                         </select>
                         <button type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
                             <span class="icon-play"></span>
@@ -78,7 +94,7 @@
                 </div>
             </div>
             <div id="changelist-search" class="pull-left">
-                <input type="text" size="40" name="search" value="{{ request.GET.q }}" id="searchbar" placeholder="{% trans "Search" %}" />
+                <input type="text" size="40" name="search" value="{{ request.GET.q }}" id="searchbar" placeholder="{% trans "Quick Search" %}" />
                 <span class="search-results">
                     {% blocktrans count paginator.count as counter %}
                         {{ counter }} result{% plural %}{{ counter }} results
@@ -110,18 +126,21 @@
                 </thead>
                 <tbody>
                     {% for host in host_list %}
-                        <tr class="{% cycle 'row1' 'row2' %}">
+                        {% arp_filter gul_recent_arp_bymac host.mac as mac_last_seen %}
+                        {% arp_filter gul_recent_arp_byaddress host.mac as ip_last_seen %}
+                        <tr class="{% cycle 'row1' 'row2' %} {% if host.is_expired or not mac_last_seen %}expired{% endif %}">
                             <td class="action-checkbox">
-                                <input class="action-select" name="_selected_action" type="checkbox" value="-1" />
+                                <input class="action-select" name="selected_hosts" type="checkbox" value="{{ host.mac }}" />
                             </td>
-                            <th><a href="{% url 'update_host' host.mac %}">
+                            {% url 'update_host' host.mac as host_url %}
+                            <th><a href="{{ host_url|unquote_raw }}">
                                 {{ host.hostname }}
                                 </a>
                             </th>
                             <td>{{ host.mac }}</td>
-                            <td>{{ host.expires|date:"M d, Y h:i A" }}</td>
-                            <td>--</td>
-                            <td>--</td>
+                            <td class="expired-date">{{ host.expires|date:"M d, Y h:i A" }}</td>
+                            <td class="mac-last-seen">{{ mac_last_seen }}</td>
+                            <td>{{ ip_last_seen }}</td>
                             <td>
                                 <a href="" class="right10">DNS Records</a>
                             </td>
