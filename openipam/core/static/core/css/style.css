@@ -107,6 +107,11 @@ textarea {
   color: #b94a48;
   list-style: none;
 }
+
+.errorlist-group li {
+  margin: 10px 15px;
+  color: #b94a48;
+}
 .pagination ul {
   margin-left: 1em;
 }
@@ -218,10 +223,7 @@ td.action-checkbox {
 .results .sortoptions a {
   padding: 0px !important;
 }
-#result_list td, #result_list th {
-  background-color: transparent;
-}
-#result_list tr.expired td, #result_list tr.expired th {
+#result_list tr.expired td , #result_list tr.expired th {
   border-left: 1px solid #eed3d7 !important;
   border-top: 1px solid #eed3d7 !important;
   background-color: #FFEB84;
@@ -593,3 +595,45 @@ fieldset.module legend {
 .renew {
   margin-left: 10px;
 }
+
+.control-group > label {
+  float: left;
+}
+
+#result_list_processing {
+  float: left;
+  position: relative;
+  top: 5px;
+  left: 80px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+#result_list_length {
+  float: right;
+}
+
+#result_list_info, #result_list_paginate {
+  font-weight: bold;
+}
+
+#result_list_length label {
+  position: relative;
+  font-weight: bold;
+  margin-bottom: 0;
+  top: 5px;
+}
+
+#result_list_filter label {
+  margin: 0;
+}
+
+.css_right {
+  float: right;
+}
+
+.search_init {
+  margin: 0 !important;
+}
+

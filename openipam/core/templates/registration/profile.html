@@ -45,9 +45,11 @@
         {% endif %}
 
         <div class="well">
+            {% if request.user.is_superuser %}
             <div class="pull-left">
-              <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:auth_user_change' request.user.pk %}';" />
+              <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{# {% url 'admin:auth_user_change' request.user.pk %} #}';" />
             </div>
+            {% endif %}
             <div class="pull-right">
               <input type="submit" value="Save" class="default btn btn-success" name="save" />
             </div>

@@ -1,1 +1,28 @@
-{% extends "core/base.html" %}
+{% extends "dns/base.html" %}
+{% load i18n %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+      DNS
+  </h3>
+{% endblock %}
+
+{% comment %}
+
+{% block object-tools %}
+<div class="pull-right object-tools">
+  {% block object-tools-items %}
+    <a href="{% url 'add_hosts' %}" class="btn btn-primary">
+      <i class="icon-plus icon-white"></i>
+      Add Host
+    </a>
+  {% endblock %}
+</div>
+{% endblock %}
+{% endcomment %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    *{% trans "DNS" %}
+{% endblock %}
+

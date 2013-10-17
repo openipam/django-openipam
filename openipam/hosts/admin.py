@@ -1,16 +1,31 @@
 from django.contrib import admin
-from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification
-from guardian.admin import GuardedModelAdmin
+from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification, \
+    HostGroupObjectPermission, HostUserObjectPermission
+from openipam.hosts.forms import HostGroupPermissionForm, HostUserPermissionForm
+import autocomplete_light
 
 
-class HostAdmin(GuardedModelAdmin):
+class HostGroupPermissionInline(admin.TabularInline):
+    model = HostGroupObjectPermission
+    form = HostGroupPermissionForm
+    extra = 1
+
+
+class HostUserPermissionInline(admin.TabularInline):
+    model = HostUserObjectPermission
+    form = HostUserPermissionForm
+    extra = 1
+
+
+class HostAdmin(admin.ModelAdmin):
     list_display = ('nice_hostname', 'mac', 'dhcp_group', 'expires')
     list_filter = ('dhcp_group',)
     readonly_fields = ('changed_by', 'changed')
     search_fields = ('hostname', 'mac')
+    inlines = [HostGroupPermissionInline, HostUserPermissionInline]
 
     # Null Foreign Keys dont get included by default
-    def queryset(self, request):
+    def get_queryset(self, request):
         qs = super(HostAdmin, self).queryset(request)
         qs = qs.select_related('dhcp_group').all()
         return qs
@@ -22,19 +37,56 @@ class HostAdmin(GuardedModelAdmin):
     nice_hostname.admin_order_field = 'hostname'
 
 
-class DisabledAdmin(admin.ModelAdmin):
-    list_display = ('mac',)
-    readonly_fields = ('disabled', 'disabled_by')
+class HostUserObjectPermissionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'hostname', 'mac', 'permission',)
+    list_select_related = True
+    search_fields = ('user_username', 'content_object__mac', 'content_object__hostname')
+    form = autocomplete_light.modelform_factory(HostUserObjectPermission)
+    change_form_template = 'admin/openipam/change_form.html'
 
+    def hostname(self, obj):
+        return '%s' % obj.content_object.hostname
+
+    def mac(self, obj):
+        return '%s' % obj.content_object.mac
+
+
+class HostGroupObjectPermissionAdmin(admin.ModelAdmin):
+    list_display = ('group', 'hostname', 'mac', 'permission',)
+    list_filter = ('group__name',)
+    search_fields = ('group__name', 'content_object__mac', 'content_object__hostname')
+    list_select_related = True
+    form = autocomplete_light.modelform_factory(HostGroupObjectPermission)
+    change_form_template = 'admin/openipam/change_form.html'
+
+    def hostname(self, obj):
+        return '%s' % obj.content_object.hostname
+
+    def mac(self, obj):
+        return '%s' % obj.content_object.mac
+
+
+class DisabledAdmin(admin.ModelAdmin):
+    list_display = ('mac', 'disabled', 'disabled_by_full',)
+    form = autocomplete_light.modelform_factory(Disabled)
+    change_form_template = 'admin/openipam/change_form.html'
+    list_select_related = True
+
+    def disabled_by_full(self, obj):
+        return '%s (%s)' % (obj.disabled_by.username, obj.disabled_by.get_full_name())
+    disabled_by_full.short_description = 'Disabled By'
 
 class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'uid', 'starts', 'ends')
     list_filter = ('starts', 'ends')
     search_fields = ('uid', 'ticket')
+    form = autocomplete_light.modelform_factory(GuestTicket)
+    change_form_template = 'admin/openipam/change_form.html'
 
 
 admin.site.register(Host, HostAdmin)
+admin.site.register(HostUserObjectPermission, HostUserObjectPermissionAdmin)
+admin.site.register(HostGroupObjectPermission, HostGroupObjectPermissionAdmin)
 admin.site.register(Attribute)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)
-admin.site.register(Notification)

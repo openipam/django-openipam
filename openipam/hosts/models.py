@@ -1,11 +1,13 @@
+from django.conf import settings
 from django.db import models
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from netfields import InetAddressField, MACAddressField, NetManager
 from guardian.managers import UserObjectPermissionManager
-from guardian.models import UserObjectPermission
+from guardian.models import UserObjectPermission, UserObjectPermissionBase, GroupObjectPermissionBase
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 from openipam.hosts.validators import validate_hostname
@@ -20,8 +22,8 @@ class Attribute(models.Model):
     structured = models.BooleanField()
     required = models.BooleanField()
     validation = models.TextField(blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return self.name
@@ -52,8 +54,8 @@ class AttributeToHost(models.Model):
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
     reason = models.TextField(blank=True)
-    disabled = models.DateTimeField(null=True, blank=True)
-    disabled_by = models.ForeignKey('user.User', db_column='disabled_by')
+    disabled = models.DateTimeField(auto_now=True)
+    disabled_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
     def __unicode__(self):
         return self.mac
@@ -61,6 +63,7 @@ class Disabled(models.Model):
     class Meta:
         db_table = 'disabled'
         verbose_name = 'Disabled Host'
+        ordering = ('-disabled',)
 
 
 class ExpirationType(models.Model):
@@ -76,11 +79,11 @@ class ExpirationType(models.Model):
 
 
 class FreeformAttributeToHost(models.Model):
-    mac = models.ForeignKey('Host', db_column='mac')
+    mac = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
     aid = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s %s %s' % (self.mac, self.aid, self.value)
@@ -90,7 +93,7 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    uid = models.ForeignKey('user.User', db_column='uid', verbose_name='Group')
+    uid = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', verbose_name='User')
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -138,27 +141,31 @@ class Host(models.Model):
     address_type = models.ForeignKey('network.AddressType', blank=True, null=True)
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
                                    related_name='pool_hosts',  blank=True, null=True)
-    freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
-                                                 related_name='freeform_hosts',  blank=True, null=True)
-    structured_attributes = models.ManyToManyField('StructuredAttributeValue', through='StructuredAttributeToHost',
-                                                   related_name='structured_hosts',  blank=True, null=True)
+    #freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
+    #                                             related_name='freeform_hosts',  blank=True, null=True)
+    #structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
+    #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group',
                                    verbose_name='DHCP Group', blank=True, null=True)
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey('auth.User', db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = HostManager()
     #gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
     #gul_recent_arp_byaddress = GulRecentArpByaddress.objects.all()
 
     @property
-    def mac_is_disabled(self):
-        return True if Disabled.objects.filter(mac=self.mac) else False
+    def is_dynamic(self):
+        return True if self.pools.all() else False
 
     @property
     def is_expired(self):
-        return True if self.expires < datetime.utcnow().replace(tzinfo=utc) else False
+        return True if self.expires < timezone.now() else False
+
+    @property
+    def mac_is_disabled(self):
+        return True if Disabled.objects.filter(mac=self.mac) else False
 
     @property
     def mac_last_seen(self):
@@ -201,16 +208,62 @@ class Host(models.Model):
 
         return (user_list, group_list)
 
+    def get_ip_address(self):
+        addresses = self.addresses.all()
+        if addresses:
+            return addresses[0]
+        else:
+            return None
+
+    def get_address_type(self):
+        from openipam.network.models import AddressType
+
+        if self.address_type:
+            return self.address_type
+        else:
+            addresses = self.addresses.all()
+            pools = self.pools.all()
+
+            try:
+                if (len(addresses) + len(pools)) > 1:
+                    self.address_type = None
+                elif addresses:
+                    try:
+                        self.address_type = AddressType.objects.get(ranges__range__net_contained_or_equal=addresses[0])
+                    except AddresType.DoesNotExist:
+                        self.address_type = AddressType.objects.get(is_default=True)
+                elif pools:
+                    self.address_type = AddressType.objects.get(pool=pools[0])
+            except AddressType.DoesNotExist:
+                self.address_type = None
+            finally:
+                self.save()
+
+        return self.address_type
+
+
     def remove_owners(self):
         owners = self.owners
         for user in owners[0]:
-            remove_perm('is_owner', user, self)
+            remove_perm('is_owner_host', user, self)
         for group in owners[0]:
-            remove_perm('is_owner', group, self)
+            remove_perm('is_owner_host', group, self)
+
 
     def assign_owner(self, user_or_group):
-        return assign_perm('is_owner', user_or_group, self)
+        return assign_perm('is_owner_host', user_or_group, self)
 
+
+    def dns_records(self):
+        from openipam.dns.models import DnsRecord
+
+        addresses = self.addresses.all()
+        a_record_names = DnsRecord.objects.select_related().filter(ip_content__in=addresses).values_list('name')
+        dns_records = DnsRecord.objects.select_related().filter(
+            Q(text_content__in=a_record_names) | Q(name__in=a_record_names) | Q(ip_content__in=addresses)
+        ).order_by('dns_type__name')
+
+        return dns_records
 
     def __unicode__(self):
         return self.hostname
@@ -249,8 +302,17 @@ class Host(models.Model):
     class Meta:
         db_table = 'hosts'
         permissions = (
-            ('is_owner', 'Is owner'),
+            ('is_owner_host', 'Is owner'),
         )
+        ordering = ('hostname',)
+
+
+class HostUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey('Host', related_name='user_permissions')
+
+
+class HostGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey('Host', related_name='group_permissions')
 
 
 # TODO:  What is this?
@@ -302,8 +364,8 @@ class StructuredAttributeValue(models.Model):
     aid = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
     is_default = models.BooleanField()
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return self.value
@@ -313,10 +375,10 @@ class StructuredAttributeValue(models.Model):
 
 
 class StructuredAttributeToHost(models.Model):
-    mac = models.ForeignKey('Host', db_column='mac')
+    mac = models.ForeignKey('Host', db_column='mac', related_name='structured_attributes')
     avid = models.ForeignKey('StructuredAttributeValue', db_column='avid')
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s %s' % (self.mac, self.avid)

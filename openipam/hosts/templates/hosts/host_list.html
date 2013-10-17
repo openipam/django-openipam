@@ -9,42 +9,149 @@
 
 {% block extrahead %}
     <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <style type="text/css">
+        .modal {
+            width: 800px;
+            margin-left: -400px;
+        }
+        .modal-body {
+            max-height: 600px;
+        }
+        tfoot {
+            display: table-header-group;
+        }
+        input {
+            min-width: 50px;
+        }
+        .ui-button {
+            margin-right: 0 !important;
+        }
+    </style>
+    {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript">
         $(function(){
-           $("#searchbar").keypress(function(e){
-                if (e.keyCode == 13) {
-                    location.href = './?q=' + $(this).val();
-                    return false;
-                }
-            });
-            $("#result_list").dataTable({
-                "bPaginate": false,
-                "sDom": '',
+
+           // $("#searchbar").keypress(function(e){
+           //      if (e.keyCode == 13) {
+           //          location.href = './?q=' + $(this).val();
+           //          return false;
+           //      }
+           //  });
+
+            var asInitVals = new Array();
+
+            var results = $("#result_list").dataTable({
+                "bPaginate": true,
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": "{% if is_owner %}{% url 'my_json_hosts' %}{% else %}{% url 'json_hosts' %}{% endif %}",
+                "sPaginationType": "full_numbers",
+                "bAutoWidth": false,
+                "bStateSave": true,
+                "bJQueryUI": true,
+                "sDom": '<"filters well well-small"lr>t<"pagination well well-small"pi><"clear">',
                 "aaSorting": [[ 1, "asc" ]],
+                "oLanguage": {
+                    "sLengthMenu": "Show _MENU_ records",
+                    "sSearch": ""
+                },
                 "aoColumns": [
                     { "bSortable": false },
                     null,
                     null,
-                    { "sType": "date" },
-                    { "sType": "date" },
-                    { "sType": "date" },
                     { "bSortable": false },
-                ]
+                    null,
+                    { "bSortable": false },
+                    { "bSortable": false },
+                    { "bSortable": false },
+                    { "bSortable": false },
+                ],
+                "fnInitComplete": function() {
+                    this.fnAdjustColumnSizing(true);
+                },
+                "fnServerParams": function (aoData) {
+                    aoData.push({ "name": "group_filter", "value": $("#id_groups").val()});
+                },
+                "fnServerData": function(sSource, aoData, fnCallback) {
+                    $.getJSON(sSource, aoData, function(json) {
+
+                        // Populate Table
+                        fnCallback(json);
+
+                        $(".host-details").click(function(){
+                            var rel = $(this).prop("rel");
+                            var href = $(this).prop("href");
+
+                            $('#host-details').modal({
+                                  remote: href
+                            });
+
+                            $('#host-details').on('shown', function(){
+                                $("#myModalLabel").text("Details for: " + rel);
+                                $("#edit-host").prop("href", $(this).prop("href"));
+                            });
+
+                            return false;
+                        });
+
+                        $('#host-details').on('hidden', function() {
+                            $(this).data('modal').$element.removeData();
+                            $(".modal-body").html('Loading...');
+                        });
+
+
+                    });
+                }
             });
 
-            $("#host-filter").change(function(){
-                // make sure this is not set
-                $("#changelist-form").attr('action', '');
+            var group_autocomplete = $('#group-filter').yourlabsAutocomplete({
+                url: '/api/web/GroupAutocomplete',
+                choiceSelector: 'a',
+            });
 
-                if ($(this).val() == 'delete') {
-                    return confirm('Are you sure you want to delete these hosts?');
+            // JS Styling :/
+            $("div.filters").append($("#filters"));
+            $("#result_list_filter label").html('<input type="text" aria-controls="result_list" size="40" id="searchbar" placeholder="Quick Search">');
+            $("#changelist-search").append($("#result_list_filter"));
+            $("#filters").append($("#result_list_processing")).append('<div class="clear"><!-- --></div>');
+            //$("#filter-actions").append($("#result_list_filter"));
+
+            $("tfoot input").each(function (i){
+                asInitVals[i] = this.value;
+            });
+
+            $(".search_init").bind('keyup change', function(){
+                /* Filter on the column (the index) of this element */
+                results.fnFilter($(this).val(), $(".search_init").index($(this)));
+            });
+
+            // $("#host-action").change(function(){
+            //     // make sure this is not set
+            //     $("#changelist-form").attr('action', '');
+
+            //     if ($(this).val() == 'delete') {
+            //         return confirm('Are you sure you want to delete these hosts?');
+            //     }
+            //     else if ($(this).val() == 'owners') {
+            //         $("#changelist-form").attr('action', '{% url 'change_owners' %}');
+            //     }
+            // });
+
+            $("#id_groups").unbind('change').change(function(){
+                results.fnDraw();
+            });
+
+            $("#action-toggle").click(function(){
+                if ($(this).is(":checked")) {
+                    $(".action-select").prop('checked', 'checked');
                 }
-                else if ($(this).val() == 'owners') {
-                    $("#changelist-form").attr('action', '{% url 'change_owners' %}');
+                else {
+                    $(".action-select").prop('checked', '');
                 }
-            })
+            });
+
         });
     </script>
 {% endblock %}
@@ -74,16 +181,18 @@
 {% block contentbody %}
     <form id="changelist-form" action="" method="post" class="quickbody">
         {% csrf_token %}
-        <div class="well well-small">
+        <div id="filters">
             {% spaceless %}
             <div class="actions changelist-actions pull-left">
                 <div class="changelist-action" style="height: auto !important;">
                     <div class="action-wrapper">
-                        <select id="host-filter" name="filter">
+                        <select id="host-action" name="action">
                             <option value="">Choose an action...</option>
                             <option value="">--------------</option>
-                            <option value="delete">Delete selected hosts</option>
-                            <option value="owners">Set owners on selected hosts</option>
+                            {% if request.user.is_superuser or request.user.is_ipamadmin %}
+                                <option value="delete">Delete selected hosts</option>
+                                <option value="owners">Set owners on selected hosts</option>
+                            {% endif %}
                             <option value="renew">Renew selected hosts</option>
                         </select>
                         <button type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
@@ -91,18 +200,22 @@
                             {% trans "Go" %}
                         </button>
                     </div>
+                    <div class="action-wrapper">
+                        {{ form.groups }}
+                        {% comment %}
+
+                        <select id="group-filter">
+                        <option value="">Filter by Group...</option>
+                            <option value="">--------------</option>
+                            {% for group in groups %}
+                                <option value="{{ group.pk }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% endcomment %}
+                    </div>
                 </div>
             </div>
-            <div id="changelist-search" class="pull-left">
-                <input type="text" size="40" name="search" value="{{ request.GET.q }}" id="searchbar" placeholder="{% trans "Quick Search" %}" />
-                <span class="search-results">
-                    {% blocktrans count paginator.count as counter %}
-                        {{ counter }} result{% plural %}{{ counter }} results
-                    {% endblocktrans %}
-                    (<a href=".">reset</a>)
-                </span>
-            </div>
-            <div class="clear"><!-- --></div>
+            <div id="changelist-search" class="pull-left"></div>
             {% endspaceless %}
         </div>
 
@@ -118,37 +231,96 @@
                         </th>
                         <th scope="col">Hostname</th>
                         <th scope="col">Ethernet Address</th>
+                        <th scope="col">IP Address</th>
                         <th scope="col">Expires</th>
                         <th scope="col">Mac Address Last seen</th>
                         <th scope="col">Static IP Last seen</th>
+                        <!--<th scope="col">Last Updated</th>
+                        <th scope="col">Last Updated by</th>-->
                         <th scope="col">DNS Records</th>
+                        <th scope="col">Edit</th>
                     </tr>
                 </thead>
+                {% if not is_owner %}
+                <tfoot>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <th><div><input type="text" class="search_init" placeholder="Search Host" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
+                        <th><div><input type="text" class="search_init" placeholder="Search MAC" value="{{ aoSearchCols.1.sSearch }}" style="max-width: 100px;" /></div></th>
+                        <th><div><input type="text" class="search_init" placeholder="Search IP" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 100px;" /></div></th>
+                        <th>
+                            <div>
+                                <select style="max-width: 80px;" class="filter_init search_init">
+                                    <option value="">All</option>
+                                    <option value="1" {% ifequal aoSearchCols.3.sSearch '1' %}selected="selected"{% endifequal %}>Active</option>
+                                    <option value="0" {% ifequal aoSearchCols.3.sSearch '0' %}selected="selected"{% endifequal %}>Expired</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>&nbsp;</th>
+                        <th>&nbsp;</th>
+                        <th>&nbsp;</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </tfoot>
+                {% endif %}
                 <tbody>
+                    <tr>
+                        <td>&npsb;</td>
+                        <td colspan="8">Loading...</td>
+                    </tr>
+                {% comment %}
+
                     {% for host in host_list %}
-                        {% arp_filter gul_recent_arp_bymac host.mac as mac_last_seen %}
-                        {% arp_filter gul_recent_arp_byaddress host.mac as ip_last_seen %}
-                        <tr class="{% cycle 'row1' 'row2' %} {% if host.is_expired or not mac_last_seen %}expired{% endif %}">
+                        {% arp_timestamp_filter gul_recent_arp_bymac host.mac as mac_last_seen_time %}
+                        {% arp_timestamp_filter gul_recent_arp_byaddress host.mac as ip_last_seen_time %}
+                        {% arp_ip_filter gul_recent_arp_byaddress host.mac as ip_last_seen %}
+                        <tr class="{% cycle 'row1' 'row2' %} {% if host.is_expired or mac_last_seen_time == 'No Data' %}expired{% endif %}">
                             <td class="action-checkbox">
                                 <input class="action-select" name="selected_hosts" type="checkbox" value="{{ host.mac }}" />
                             </td>
                             {% url 'update_host' host.mac as host_url %}
-                            <th><a href="{{ host_url|unquote_raw }}">
+                            <th><a href="{{ host_url|unquote_raw }}" rel="{{ host.hostname }}" class="host-details" data-toggle="modal">
                                 {{ host.hostname }}
                                 </a>
                             </th>
                             <td>{{ host.mac }}</td>
-                            <td class="expired-date">{{ host.expires|date:"M d, Y h:i A" }}</td>
-                            <td class="mac-last-seen">{{ mac_last_seen }}</td>
+                            <td class="expired-date" nowrap="nowrap">{{ host.expires|date:"Y-m-d" }}</td>
+                            <td class="mac-last-seen" nowrap="nowrap">{{ mac_last_seen_time }}</td>
                             <td>{{ ip_last_seen }}</td>
+                            <td nowrap="nowrap">{{ ip_last_seen_time }}</td>
+                            <!--<td nowrap="nowrap">
+                                {{ host.changed|date:"Y-m-d h:i A" }}
+                            </td>
+                            <td>
+                                {{ host.changed_by.get_full_name }}
+                            </td>-->
                             <td>
                                 <a href="" class="right10">DNS Records</a>
                             </td>
+
+                            <td>
+                                <a href="{{ host_url|unquote_raw }}" class="right10">Edit</a>
+                            </td>
                         </tr>
                     {% endfor %}
+                {% endcomment %}
                 </tbody>
             </table>
 
+            <div id="host-details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="myModalLabel">Details for: </h3>
+                </div>
+                <div class="modal-body">Loading...</div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                    <a id="edit-host" class="btn btn-success">Edit Host</a>
+                </div>
+            </div>
+
+            {% comment %}
             {% if is_paginated %}
                 <div class="pagination pull-right">
                     <ul>
@@ -168,6 +340,7 @@
                     </ul>
                 </div>
             {% endif %}
+            {% endcomment %}
         </div>
     </form>
 {% endblock %}

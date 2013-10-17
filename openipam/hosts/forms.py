@@ -1,15 +1,21 @@
 from django import forms
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, Permission
 from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
-from openipam.network.models import AddressType, DhcpGroup, Network
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from openipam.network.models import AddressType, DhcpGroup, Network, Pool
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
+from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
 from crispy_forms.bootstrap import FormActions, InlineRadios, Accordion, AccordionGroup
+from guardian.shortcuts import get_objects_for_user, assign_perm
 import autocomplete_light
+import operator
 
+User = get_user_model()
 
 NET_IP_CHOICES = (
     (0, 'Network'),
@@ -40,20 +46,22 @@ class HostForm(forms.ModelForm):
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
 
         #Populate some fields if we are editing the record
         current_address_html = None
         expire_date = None
-        if self.instance.pk:
 
-            #assert False, self.instance.address_type
+        if self.instance.pk:
 
             # Get owners
             owners = self.instance.owners
             self.fields['user_owners'].initial = owners[0]
             self.fields['group_owners'].initial = owners[1]
+
+            # Set address_type
+            self.fields['address_type'].initial = self.instance.get_address_type()
 
             # Get IP Address(es)
             html_addresses = []
@@ -98,7 +106,12 @@ class HostForm(forms.ModelForm):
             if self.instance.dhcp_group:
                 self.fields['show_hide_dhcp_group'].initial = True
 
+        # Setup attributes.
         attribute_fields = Attribute.objects.all()
+        attribute_initials = []
+        if self.instance.pk:
+            attribute_initials += self.instance.structured_attributes.values_list('avid__aid', 'avid')
+            attribute_initials += self.instance.freeform_attributes.values_list('aid', 'value')
         attribute_field_keys = ['Attributes']
         for attribute_field in attribute_fields:
             attribute_field_key = slugify(attribute_field.name)
@@ -108,11 +121,12 @@ class HostForm(forms.ModelForm):
                 self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
             else:
                 self.fields[attribute_field_key] = forms.CharField(required=False)
+            initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
+            if initial:
+                self.fields[attribute_field_key].initial = initial[0][1]
 
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Accordion(
-                AccordionGroup(
+        accordion_groups = [
+            AccordionGroup(
                     'Host Details',
                     'mac',
                     'hostname',
@@ -126,15 +140,48 @@ class HostForm(forms.ModelForm):
                     'description',
                     'show_hide_dhcp_group',
                     'dhcp_group',
-                    #css_class='module aligned control-group'
-                ),
+            )
+        ]
+
+        # Add owners and groups if super user or ipam admin
+        if user.is_superuser or user.is_ipamadmin:
+            accordion_groups.append(
                 AccordionGroup(
                     'Owners',
                     'user_owners',
                     'group_owners',
-                ),
-                AccordionGroup(*attribute_field_keys),
-            ),
+                )
+            )
+        else:
+            # Customize address types for non super users
+            user_pools = get_objects_for_user(
+                user,
+                ['network.add_records_to_pool', 'network.change_pool'],
+                #klass=Pool,
+                any_perm=True
+            )
+            #assert False, user_pools
+            user_nets = get_objects_for_user(
+                user,
+                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                any_perm=True
+            )
+
+            r_list = [Q(pool__in=user_pools)]
+            for net in user_nets:
+                r_list.append(Q(ranges__range__net_contains_or_equals=net.network))
+            user_address_types = AddressType.objects.filter(reduce(operator.or_, r_list))
+            self.fields['address_type'].queryset = user_address_types
+
+            # Remove 10950 days from expires as this is only for admins.
+            self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
+
+        # Add attributes
+        accordion_groups.append(AccordionGroup(*attribute_field_keys))
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Accordion(*accordion_groups),
 
             FormActions(
                 Submit('save', 'Save changes'),
@@ -155,6 +202,18 @@ class ChangeOwnerForm(forms.Form):
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
 
+class HostListForm(forms.Form):
+    groups = forms.ModelChoiceField(Group.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('GroupAutocomplete'))
+
+
+class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
+    permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
+
+
+class HostUserPermissionForm(BaseUserObjectPermissionForm):
+    permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
+    content_object = forms.ModelChoiceField(Host.objects.all(), widget=autocomplete_light.ChoiceWidget('HostAutocomplete'))
 
 # class EditHostForm(forms.ModelForm):
 # hostname = forms.CharField(widget=autocomplete_light.TextWidget('DomainAutocomplete'))

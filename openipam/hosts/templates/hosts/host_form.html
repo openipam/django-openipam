@@ -13,7 +13,7 @@
     <script type="text/javascript">
         $(function(){
             $('#id_hostname').yourlabsAutocomplete({
-                url: '/autocomplete/DomainAutocomplete/',
+                url: '/api/web/DomainAutocomplete/',
                 choiceSelector: '[data-value]',
                 minimumCharacters: 1,
                 placeholder: 'Enter a FQDN for this host',
@@ -71,6 +71,7 @@
                 if (!$(":radio[name='network_or_ip']:checked").length) {
                     $("#div_id_network").hide();
                     $("#div_id_ip_address").hide();
+                    $("#div_id_network_or_ip").hide();
                     $("#div_id_network select").empty();
                     $("#div_id_ip_address input").val('');
                 }

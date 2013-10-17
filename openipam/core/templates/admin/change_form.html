@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_modify %}
+{% load i18n admin_modify openipam %}
 
 {% block extrahead %}{{ block.super }}
 <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
@@ -17,7 +17,7 @@
 ../../../|{% trans "Home" %}
 ../../|{{ app_label|capfirst|escape }}
 *{% if has_change_permission %}../|{{ opts.verbose_name_plural|capfirst }}{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
-*{% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+*{% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18"|replace:"/\|/-" }}{% endif %}
 {% endif %}
 {% endblock %}
 

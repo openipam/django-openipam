@@ -19,26 +19,47 @@ class IPAMMenu(Menu):
     def __init__(self, **kwargs):
         Menu.__init__(self, **kwargs)
         self.children += [
-            #items.MenuItem(_('Dashboard'), reverse('admin:index')),
+            items.MenuItem(
+                _('Admin Dashboard'),
+                reverse('admin:index'),
+                icon='icon-home icon-white'
+            ),
             #items.Bookmarks(icon='icon-heart icon-white'),
+            items.MenuItem('',
+                children = [
+                    items.ModelList('Users & Groups',
+                        [
+                            'openipam.user.models.User',
+                            'django.contrib.auth.*',
+                            'openipam.hosts.models.HostUserObjectPermission',
+                            'openipam.hosts.models.HostGroupObjectPermission',
+                            'openipam.dns.models.DomainGroupObjectPermission',
+                            'openipam.dns.models.DomainUserObjectPermission',
+                        ]
+                    ),
+                ],
+                icon='icon-user icon-white'
+            ),
+            items.MenuItem('',
+                children = [
+                    items.AppList('',
+                        models = (
+                            'openipam.dns.*',
+                            'openipam.network.*',
+                            'openipam.hosts.*',
+                        )
+                    ),
+                ],
+                icon='icon-globe icon-white'
+            ),
             # items.AppList(
-            #     _('Hosts'),
-            #     models=('openipam.hosts.*',),
-            #     icon='icon-list icon-white'
-            # ),
-            # items.AppList(
-            #     _('DNS'),
-            #     models=('openipam.dns.*',),
-            #     icon='icon-list icon-white'
-            # ),
-            items.AppList(
-                _('Administration'),
-                models=(
-                    'openipam.*',
-                    'django.contrib.*',
-                ),
-                icon='icon-cog icon-white'
-            )
+            #     _('Administration'),
+            #     models=(
+            #         'openipam.user.models.User',
+            #         'django.contrib.*',
+            #     ),
+            #     icon='icon-cog icon-white'
+            # )
         ]
 
     def init_with_context(self, context):

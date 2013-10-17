@@ -8,13 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'AuthSource'
-        db.create_table('auth_sources', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, blank=True)),
-        ))
-        db.send_create_signal(u'user', ['AuthSource'])
-
         # Adding model 'User'
         db.create_table('users', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -106,9 +99,6 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'AuthSource'
-        db.delete_table('auth_sources')
-
         # Deleting model 'User'
         db.delete_table('users')
 
@@ -232,11 +222,6 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
-        },
-        u'user.authsource': {
-            'Meta': {'object_name': 'AuthSource', 'db_table': "'auth_sources'"},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255', 'blank': 'True'})
         },
         u'user.domaintogroup': {
             'Meta': {'object_name': 'DomainToGroup', 'db_table': "'domains_to_groups'"},

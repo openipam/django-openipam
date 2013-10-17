@@ -150,7 +150,6 @@ INSTALLED_APPS = (
     #'djcelery',
     'crispy_forms',
     'autocomplete_light',
-    'guardian',
     'south',
     'rest_framework',
 
@@ -166,6 +165,9 @@ INSTALLED_APPS = (
     'openipam.network',
     'openipam.dns',
     'openipam.user',
+
+    'guardian',
+
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 
@@ -196,6 +198,8 @@ AUTHENTICATION_BACKENDS = LOCAL_AUTHENTICATION_BACKENDS + (
     'openipam.core.backends.CaseInsensitiveModelBackend',
     'guardian.backends.ObjectPermissionBackend',
 )
+
+AUTH_USER_MODEL = 'user.User'
 
 ANONYMOUS_USER_ID = -1
 LOGIN_URL = 'login'

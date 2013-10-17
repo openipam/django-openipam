@@ -35,11 +35,15 @@ class AddressTypeAdmin(admin.ModelAdmin):
     show_ranges.allow_tags = True
 
 
+class PoolAdmin(GuardedModelAdmin):
+    pass
+
+
 admin.site.register(DefaultPool)
 admin.site.register(Vlan)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(Address)
-admin.site.register(Pool)
+admin.site.register(Pool, PoolAdmin)
 admin.site.register(DhcpGroup)

@@ -9,6 +9,7 @@ from django.template.context import Context
 from django.template.loader import get_template
 from BeautifulSoup import BeautifulSoup
 from urllib import unquote
+import re
 
 
 register = template.Library()
@@ -196,3 +197,11 @@ def admin_select_filter(cl, spec):
         'choices': list(spec.choices(cl)),
         'spec': spec,
     }))
+
+
+@register.filter
+def replace ( string, args ):
+    search  = args.split(args[0])[1]
+    replace = args.split(args[0])[2]
+
+    return re.sub( search, replace, string )

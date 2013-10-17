@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from openipam.dns.managers import DnsManager
+from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
 
 
 class DomainManager(models.Manager):
@@ -26,9 +27,17 @@ class Domain(models.Model):
     class Meta:
         db_table = 'domains'
         permissions = (
-            ('is_owner', 'Is owner'),
-            ('add_records_to', 'Can add records to'),
+            ('is_owner_domain', 'Is owner'),
+            ('add_records_to_domain', 'Can add records to'),
         )
+
+
+class DomainUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey('Domain', related_name='user_permissions')
+
+
+class DomainGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey('Domain', related_name='group_permissions')
 
 
 class DnsRecord(models.Model):
@@ -38,9 +47,9 @@ class DnsRecord(models.Model):
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
     ip_content = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
-    ttl = models.IntegerField(null=True, blank=True)
+    ttl = models.IntegerField(default=86400, null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
     objects = DnsManager()
@@ -49,12 +58,18 @@ class DnsRecord(models.Model):
         return self.name
 
     def clean(self):
+        # Make sure these are saved as NULL to db.
+        if not self.text_content:
+            self.text_content = None
+        if not self.ip_content:
+            self.ip_content = None
+
         if self.text_content and self.ip_content:
-            raise ValidationError('`text_content` and `ip_content` cannot both have values.'
-                                  '  Please choose one or the other')
+            raise ValidationError('Text Content and IP Content cannot both exist for %s' % self.name)
 
     class Meta:
         db_table = 'dns_records'
+        ordering = ('dns_type', 'name')
 
 
 
@@ -100,6 +115,17 @@ class DnsType(models.Model):
 
     class Meta:
         db_table = 'dns_types'
+        permissions = (
+            ('add_records_to_dnstype', 'Can add records to'),
+        )
+        ordering = ('name',)
+
+class DnsTypeUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey('DnsType', related_name='user_permissions')
+
+
+class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey('DnsType', related_name='group_permissions')
 
 
 class DnsView(models.Model):

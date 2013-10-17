@@ -63,7 +63,7 @@ class IPAMIndexDashboard(Dashboard):
         ))
 
         self.children.append(modules.ModelList(
-            _('DNS'),
+            _('Domains & DNS'),
             models=(
                 'openipam.dns.*',
             ),
@@ -72,7 +72,8 @@ class IPAMIndexDashboard(Dashboard):
         self.children.append(modules.ModelList(
             _('TO BE DELETED'),
             models=(
-                'openipam.user.*',
+                'openipam.user.models.Permission',
+                'openipam.user.models.Group',
             ),
         ))
 
@@ -80,6 +81,7 @@ class IPAMIndexDashboard(Dashboard):
         self.children.append(modules.ModelList(
             _('Administration'),
             models=(
+            'openipam.user.models.User',
             'django.contrib.*',
             'guardian.*',
             ),
@@ -106,10 +108,14 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     """
 
     # we disable title because its redundant with the model list module
-    title = ''
+    title = 'Admin Dashboard'
 
     def __init__(self, *args, **kwargs):
         AppIndexDashboard.__init__(self, *args, **kwargs)
+
+        #Hack for DNS App
+        if 'dns' in self.app_title.lower():
+            self.app_title = 'Domains & DNS'
 
         # append a model list module and a recent actions module
         self.children += [

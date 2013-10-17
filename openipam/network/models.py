@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -20,6 +21,27 @@ class Lease(models.Model):
     def __unicode__(self):
         return self.address
 
+    @property
+    def gul_last_seen(self):
+        from openipam.hosts.models import GulRecentArpByaddress
+
+        try:
+            return GulRecentArpByaddress.objects.get(address=self.address.address).stopstamp
+        except GulRecentArpByaddress.DoesNotExist:
+            return None
+
+    @property
+    def gul_last_seen_mac(self):
+        from openipam.hosts.models import GulRecentArpByaddress
+
+        if self.mac:
+            try:
+                return GulRecentArpByaddress.objects.get(address=self.address.address).mac
+            except GulRecentArpByaddress.DoesNotExist:
+                return None
+        else:
+            return None
+
     class Meta:
         db_table = 'leases'
 
@@ -40,7 +62,7 @@ class Pool(models.Model):
     class Meta:
         db_table = 'pools'
         permissions = (
-            ('add_records_to', 'Can add records to'),
+            ('add_records_to_pool', 'Can add records to'),
         )
 
 
@@ -144,7 +166,7 @@ class Network(models.Model):
     dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
     shared_network = models.ForeignKey('SharedNetwork', null=True, db_column='shared_network', blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('auth.User', db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = NetManager()
 
@@ -154,8 +176,8 @@ class Network(models.Model):
     class Meta:
         db_table = 'networks'
         permissions = (
-            ('is_owner', 'Is owner'),
-            ('add_records_to', 'Can add records to'),
+            ('is_owner_network', 'Is owner'),
+            ('add_records_to_network', 'Can add records to'),
         )
 
 
@@ -280,7 +302,7 @@ class AddressTypeManager(models.Manager):
 class AddressType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    ranges = models.ManyToManyField('NetworkRange', blank=True, null=True)
+    ranges = models.ManyToManyField('NetworkRange', blank=True, null=True, related_name='address_ranges')
     pool = models.ForeignKey('Pool', blank=True, null=True)
     is_default = models.BooleanField()
 
