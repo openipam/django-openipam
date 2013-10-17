@@ -11,7 +11,6 @@ from guardian.models import UserObjectPermission, UserObjectPermissionBase, Grou
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 from openipam.hosts.validators import validate_hostname
-from openipam.dns.models import Domain
 from datetime import datetime
 from managers import HostManager
 
