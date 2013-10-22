@@ -77,7 +77,7 @@ class DisabledAdmin(admin.ModelAdmin):
     disabled_by_full.short_description = 'Disabled By'
 
 class GuestTicketAdmin(admin.ModelAdmin):
-    list_display = ('ticket', 'uid', 'starts', 'ends')
+    list_display = ('ticket', 'user', 'starts', 'ends')
     list_filter = ('starts', 'ends')
     search_fields = ('uid', 'ticket')
     form = autocomplete_light.modelform_factory(GuestTicket)
