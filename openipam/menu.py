@@ -30,7 +30,12 @@ class IPAMMenu(Menu):
                     items.ModelList('Users & Groups',
                         [
                             'openipam.user.models.User',
-                            'django.contrib.auth.*',
+                            'django.contrib.auth.models.Group',
+                        ]
+                    ),
+                    items.ModelList('Permissions',
+                        [
+                            'django.contrib.auth.models.Permission',
                             'openipam.hosts.models.HostUserObjectPermission',
                             'openipam.hosts.models.HostGroupObjectPermission',
                             'openipam.dns.models.DomainGroupObjectPermission',

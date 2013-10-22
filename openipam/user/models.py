@@ -10,7 +10,12 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django.conf import settings
 from django.core.validators import ValidationError
+
 from django_postgres import BitStringField
+
+from openipam.user.managers import UserToGroupManager
+from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
+    remove_obj_perms_connected_with_user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -28,7 +33,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_('Designates whether this user has IPAM admin privledges'))
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
-    min_permissions = models.ForeignKey('Permission', db_column='min_permissions', related_name='user_min_permissions')
+    # TODO: Remove later
+    min_permissions = models.ForeignKey('Permission', db_column='min_permissions',
+                                        related_name='user_min_permissions')
 
     objects = UserManager()
 
@@ -73,6 +80,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 
 
+class AuthSource(models.Model):
+    name = models.CharField(unique=True, max_length=255, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_sources'
+
+
 class Permission(models.Model):
     permission = BitStringField(max_length=8, primary_key=True, db_column='id')
     name = models.TextField(blank=True)
@@ -86,18 +101,12 @@ class Permission(models.Model):
         managed = False
 
 
-class UserToGroupManager(models.Manager):
-
-    def get_queryset(self):
-        return super(UserToGroupManager, self).get_queryset().select_related().all()
-
-
 class UserToGroup(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', related_name='user_groups')
     group = models.ForeignKey('Group', db_column='gid', related_name='group_users')
     permissions = models.ForeignKey('Permission', db_column='permissions', related_name='default_permissions')
     host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_host_permissions')
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = UserToGroupManager()
@@ -117,7 +126,7 @@ class Group(models.Model):
     hosts = models.ManyToManyField('hosts.Host', through='HostToGroup', related_name='host_groups')
     networks = models.ManyToManyField('network.Network', through='NetworkToGroup', related_name='network_groups')
     pools = models.ManyToManyField('network.Pool', through='PoolToGroup', related_name='pool_groups')
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
@@ -131,7 +140,7 @@ class Group(models.Model):
 class DomainToGroup(models.Model):
     domain = models.ForeignKey('dns.Domain', db_column='did')
     group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     class Meta:
@@ -142,7 +151,7 @@ class DomainToGroup(models.Model):
 class HostToGroup(models.Model):
     mac = models.ForeignKey('hosts.Host', db_column='mac')
     group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     class Meta:
@@ -153,7 +162,7 @@ class HostToGroup(models.Model):
 class NetworkToGroup(models.Model):
     network = models.ForeignKey('network.Network', db_column='nid')
     group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     class Meta:
@@ -171,11 +180,12 @@ class PoolToGroup(models.Model):
 
 
 class InternalAuth(models.Model):
-    id = models.ForeignKey(settings.AUTH_USER_MODEL, primary_key=True, db_column='id', related_name='internal_user')
+    id = models.ForeignKey(settings.AUTH_USER_MODEL, primary_key=True,
+                           db_column='id', related_name='internal_user')
     hash = models.CharField(max_length=128)
     name = models.CharField(max_length=255, blank=True)
     email = models.CharField(max_length=255, blank=True)
-    changed = models.DateTimeField(default=timezone.now)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     class Meta:
@@ -183,38 +193,13 @@ class InternalAuth(models.Model):
         managed = False
 
 
-# Force Usernames to be lower case when being created
-def force_usernames_uppercase(sender, instance, **kwargs):
-    username = instance.username.lower()
-    if username.startswith('a') and username[1:].isdigit() and len(username) == 9:
-        instance.username = instance.username.upper()
+# Connect signals
 pre_save.connect(force_usernames_uppercase, sender=User)
-
-
-# Automatically assign new users to IPAM_USER_GROUP
-def assign_ipam_groups(sender, instance, created, **kwargs):
-    # Get user group
-    ipam_user_group = AuthGroup.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
-    # Check to make sure Admin Group exists
-    ipam_admin_group = AuthGroup.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
-
-    if created:
-        instance.groups.add(ipam_user_group)
 post_save.connect(assign_ipam_groups, sender=User)
-
-
-# Automatically remove permissions when user is deleted.
-def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
-    from guardian.models import UserObjectPermission, GroupObjectPermission
-
-    filters = Q(content_type=ContentType.objects.get_for_model(instance),
-        object_pk=instance.pk)
-    UserObjectPermission.objects.filter(filters).delete()
-    GroupObjectPermission.objects.filter(filters).delete()
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
 
 
-
+# South Fixes for Bit string field
 try:
     from south.modelsinspector import add_introspection_rules
     add_introspection_rules([], [

@@ -17,10 +17,10 @@ from managers import HostManager
 
 class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     structured = models.BooleanField()
     required = models.BooleanField()
-    validation = models.TextField(blank=True)
+    validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
@@ -32,13 +32,13 @@ class Attribute(models.Model):
 
 
 class AttributeToHost(models.Model):
-    aid = models.IntegerField(null=True, blank=True)
-    name = models.CharField(max_length=255, blank=True)
+    attribute = models.IntegerField(null=True, blank=True, db_column='aid')
+    name = models.CharField(max_length=255, blank=True, null=True)
     structured = models.BooleanField()
     required = models.BooleanField()
-    mac = MACAddressField(blank=True)
-    avid = models.IntegerField(null=True, blank=True)
-    value = models.TextField(blank=True)
+    mac = MACAddressField(blank=True, null=True)
+    avid = models.IntegerField(blank=True, null=True)
+    value = models.TextField(blank=True, null=True)
 
     objects = NetManager()
 
@@ -52,7 +52,7 @@ class AttributeToHost(models.Model):
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
-    reason = models.TextField(blank=True)
+    reason = models.TextField(blank=True, null=True)
     disabled = models.DateTimeField(auto_now=True)
     disabled_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
@@ -79,7 +79,7 @@ class ExpirationType(models.Model):
 
 class FreeformAttributeToHost(models.Model):
     mac = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
-    aid = models.ForeignKey('Attribute', db_column='aid')
+    attribute = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
@@ -92,11 +92,11 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    uid = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', verbose_name='User')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid')
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return self.ticket
@@ -136,7 +136,7 @@ class GulRecentArpBymac(models.Model):
 class Host(models.Model):
     mac = MACAddressField('Mac Address', primary_key=True)
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname])
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     address_type = models.ForeignKey('network.AddressType', blank=True, null=True)
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
                                    related_name='pool_hosts',  blank=True, null=True)
@@ -309,9 +309,14 @@ class Host(models.Model):
 class HostUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey('Host', related_name='user_permissions')
 
+    class Meta:
+        verbose_name = 'Host User Permission'
 
 class HostGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey('Host', related_name='group_permissions')
+
+    class Meta:
+        verbose_name = 'Host Group Permission'
 
 
 # TODO:  What is this?
@@ -339,7 +344,7 @@ class MacOui(models.Model):
 class Notification(models.Model):
     notification = models.DateField()
     hosts = models.ManyToManyField('Host', through='NotificationToHost', related_name='host_notifications')
-    # min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
 
     def __unicode__(self):
         return '%s' % self.notification
@@ -349,8 +354,8 @@ class Notification(models.Model):
 
 
 class NotificationToHost(models.Model):
-    nid = models.ForeignKey('Notification', db_column='nid')
-    mac = models.ForeignKey('Host', db_column='mac')
+    notification = models.ForeignKey('Notification', db_column='nid')
+    host = models.ForeignKey('Host', db_column='mac')
 
     def __unicode__(self):
         return '%s %s' % (self.nid, self.mac)
@@ -360,7 +365,7 @@ class NotificationToHost(models.Model):
 
 
 class StructuredAttributeValue(models.Model):
-    aid = models.ForeignKey('Attribute', db_column='aid')
+    attribute = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
     is_default = models.BooleanField()
     changed = models.DateTimeField(auto_now=True)
@@ -374,8 +379,8 @@ class StructuredAttributeValue(models.Model):
 
 
 class StructuredAttributeToHost(models.Model):
-    mac = models.ForeignKey('Host', db_column='mac', related_name='structured_attributes')
-    avid = models.ForeignKey('StructuredAttributeValue', db_column='avid')
+    host = models.ForeignKey('Host', db_column='mac', related_name='structured_attributes')
+    structured_attribute_value = models.ForeignKey('StructuredAttributeValue', db_column='avid')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 

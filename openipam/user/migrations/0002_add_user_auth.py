@@ -3,6 +3,8 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
+from django.utils import timezone
+from bitstring import Bits
 
 
 class Migration(SchemaMigration):
@@ -18,7 +20,7 @@ class Migration(SchemaMigration):
 
         # Adding field 'User.last_login'
         db.add_column('users', 'last_login',
-                      self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now),
+                      self.gf('django.db.models.fields.DateTimeField')(default=timezone.now),
                       keep_default=False)
 
         # Adding field 'User.is_superuser'
@@ -28,17 +30,17 @@ class Migration(SchemaMigration):
 
         # Adding field 'User.first_name'
         db.add_column('users', 'first_name',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=30, blank=True),
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True),
                       keep_default=False)
 
         # Adding field 'User.last_name'
         db.add_column('users', 'last_name',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=30, blank=True),
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True),
                       keep_default=False)
 
         # Adding field 'User.email'
         db.add_column('users', 'email',
-                      self.gf('django.db.models.fields.EmailField')(default='', max_length=254, blank=True),
+                      self.gf('django.db.models.fields.EmailField')(default='', max_length=255, blank=True),
                       keep_default=False)
 
         # Adding field 'User.is_staff'
@@ -51,9 +53,14 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=True),
                       keep_default=False)
 
+        # Adding field 'User.is_ipamadmin'
+        db.add_column('users', 'is_ipamadmin',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
         # Adding field 'User.date_joined'
         db.add_column('users', 'date_joined',
-                      self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now),
+                      self.gf('django.db.models.fields.DateTimeField')(default=timezone.now),
                       keep_default=False)
 
         # Adding M2M table for field groups on 'User'
@@ -78,45 +85,7 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
 
         # User chose to not deal with backwards NULL issues for 'User.source'
-        raise RuntimeError("Cannot reverse this migration. 'User.source' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration        # Adding field 'User.source'
-        db.add_column('users', 'source',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.AuthSource'], db_column='source'),
-                      keep_default=False)
-
-        # Deleting field 'User.password'
-        db.delete_column('users', 'password')
-
-        # Deleting field 'User.last_login'
-        db.delete_column('users', 'last_login')
-
-        # Deleting field 'User.is_superuser'
-        db.delete_column('users', 'is_superuser')
-
-        # Deleting field 'User.first_name'
-        db.delete_column('users', 'first_name')
-
-        # Deleting field 'User.last_name'
-        db.delete_column('users', 'last_name')
-
-        # Deleting field 'User.email'
-        db.delete_column('users', 'email')
-
-        # Deleting field 'User.is_staff'
-        db.delete_column('users', 'is_staff')
-
-        # Deleting field 'User.is_active'
-        db.delete_column('users', 'is_active')
-
-        # Deleting field 'User.date_joined'
-        db.delete_column('users', 'date_joined')
-
-        # Removing M2M table for field groups on 'User'
-        db.delete_table(db.shorten_name('users_groups'))
-
-        # Removing M2M table for field user_permissions on 'User'
-        db.delete_table(db.shorten_name('users_user_permissions'))
+        raise RuntimeError("Cannot reverse this migration. 'User' model and its values cannot be restored.")
 
 
     models = {
@@ -153,56 +122,17 @@ class Migration(SchemaMigration):
             'notified_serial': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '6'})
         },
-        u'hosts.attribute': {
-            'Meta': {'object_name': 'Attribute', 'db_table': "'attributes'"},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'required': ('django.db.models.fields.BooleanField', [], {}),
-            'structured': ('django.db.models.fields.BooleanField', [], {}),
-            'validation': ('django.db.models.fields.TextField', [], {'blank': 'True'})
-        },
-        u'hosts.freeformattributetohost': {
-            'Meta': {'object_name': 'FreeformAttributeToHost', 'db_table': "'freeform_attributes_to_hosts'"},
-            'aid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Attribute']", 'db_column': "'aid'"}),
-            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mac': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Host']", 'db_column': "'mac'"}),
-            'value': ('django.db.models.fields.TextField', [], {})
-        },
         u'hosts.host': {
-            'Meta': {'object_name': 'Host', 'db_table': "'hosts'"},
+            'Meta': {'ordering': "('hostname',)", 'object_name': 'Host', 'db_table': "'hosts'"},
             'address_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.AddressType']", 'null': 'True', 'blank': 'True'}),
             'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'dhcp_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.DhcpGroup']", 'null': 'True', 'db_column': "'dhcp_group'", 'blank': 'True'}),
             'expires': ('django.db.models.fields.DateTimeField', [], {}),
-            'freeform_attributes': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'freeform_hosts'", 'to': u"orm['hosts.Attribute']", 'through': u"orm['hosts.FreeformAttributeToHost']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'}),
             'hostname': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'mac': ('netfields.fields.MACAddressField', [], {'max_length': '17', 'primary_key': 'True'}),
-            'pools': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'pool_hosts'", 'to': u"orm['network.Pool']", 'through': u"orm['network.HostToPool']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'}),
-            'structured_attributes': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'structured_hosts'", 'to': u"orm['hosts.StructuredAttributeValue']", 'through': u"orm['hosts.StructuredAttributeToHost']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'})
-        },
-        u'hosts.structuredattributetohost': {
-            'Meta': {'object_name': 'StructuredAttributeToHost', 'db_table': "'structured_attributes_to_hosts'"},
-            'avid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.StructuredAttributeValue']", 'db_column': "'avid'"}),
-            'changed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mac': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Host']", 'db_column': "'mac'"})
-        },
-        u'hosts.structuredattributevalue': {
-            'Meta': {'object_name': 'StructuredAttributeValue', 'db_table': "'structured_attribute_values'"},
-            'aid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Attribute']", 'db_column': "'aid'"}),
-            'changed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_default': ('django.db.models.fields.BooleanField', [], {}),
-            'value': ('django.db.models.fields.TextField', [], {})
+            'pools': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'pool_hosts'", 'to': u"orm['network.Pool']", 'through': u"orm['network.HostToPool']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'})
         },
         u'network.addresstype': {
             'Meta': {'ordering': "('name',)", 'object_name': 'AddressType', 'db_table': "'addresstypes'"},
@@ -211,7 +141,7 @@ class Migration(SchemaMigration):
             'is_default': ('django.db.models.fields.BooleanField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'pool': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Pool']", 'null': 'True', 'blank': 'True'}),
-            'ranges': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['network.NetworkRange']", 'null': 'True', 'blank': 'True'})
+            'ranges': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'address_ranges'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['network.NetworkRange']"})
         },
         u'network.dhcpgroup': {
             'Meta': {'object_name': 'DhcpGroup', 'db_table': "'dhcp_groups'"},
@@ -298,21 +228,21 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '12'})
         },
         u'user.authsource': {
-            'Meta': {'object_name': 'AuthSource', 'db_table': "'auth_sources'"},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
+            'Meta': {'object_name': 'AuthSource', 'db_table': "'auth_sources'", 'managed': 'False'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255', 'blank': 'True'})
         },
         u'user.domaintogroup': {
             'Meta': {'object_name': 'DomainToGroup', 'db_table': "'domains_to_groups'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            'did': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['dns.Domain']", 'db_column': "'did'"}),
-            'gid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
+            'domain': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['dns.Domain']", 'db_column': "'did'"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'user.group': {
             'Meta': {'object_name': 'Group', 'db_table': "'groups'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'domains': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'domain_groups'", 'symmetrical': 'False', 'through': u"orm['user.DomainToGroup']", 'to': u"orm['dns.Domain']"}),
@@ -324,15 +254,15 @@ class Migration(SchemaMigration):
         },
         u'user.hosttogroup': {
             'Meta': {'object_name': 'HostToGroup', 'db_table': "'hosts_to_groups'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            'gid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'mac': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Host']", 'db_column': "'mac'"})
         },
         u'user.internalauth': {
             'Meta': {'object_name': 'InternalAuth', 'db_table': "'internal_auth'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
             'email': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
             'hash': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
@@ -341,36 +271,37 @@ class Migration(SchemaMigration):
         },
         u'user.networktogroup': {
             'Meta': {'object_name': 'NetworkToGroup', 'db_table': "'networks_to_groups'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            'gid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'nid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Network']", 'db_column': "'nid'"})
+            'network': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Network']", 'db_column': "'nid'"})
         },
         u'user.permission': {
             'Meta': {'object_name': 'Permission', 'db_table': "'permissions'", 'managed': 'False'},
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'blank': 'True'})
+            'name': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'permission': ('django_postgres.bitstrings.BitStringField', [], {'default': "Bits('0x00')", 'max_length': '8', 'primary_key': 'True', 'db_column': "'id'"})
         },
         u'user.pooltogroup': {
             'Meta': {'object_name': 'PoolToGroup', 'db_table': "'pools_to_groups'", 'managed': 'False'},
-            'gid': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Group']", 'db_column': "'gid'"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pool': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Pool']", 'db_column': "'pool'"})
         },
         u'user.user': {
             'Meta': {'object_name': 'User', 'db_table': "'users'"},
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '254', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'email': ('django.db.models.fields.EmailField', [], {'max_length': '255', 'blank': 'True'}),
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Group']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'is_ipamadmin': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
             'min_permissions': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_min_permissions'", 'db_column': "'min_permissions'", 'to': u"orm['user.Permission']"}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
@@ -378,13 +309,13 @@ class Migration(SchemaMigration):
         },
         u'user.usertogroup': {
             'Meta': {'object_name': 'UserToGroup', 'db_table': "'users_to_groups'", 'managed': 'False'},
-            'changed': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
-            'gid': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'group_users'", 'db_column': "'gid'", 'to': u"orm['user.Group']"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'group_users'", 'db_column': "'gid'", 'to': u"orm['user.Group']"}),
             'host_permissions': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_host_permissions'", 'db_column': "'host_permissions'", 'to': u"orm['user.Permission']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'permissions': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'default_permissions'", 'db_column': "'permissions'", 'to': u"orm['user.Permission']"}),
-            'uid': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_groups'", 'db_column': "'uid'", 'to': u"orm['user.User']"})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_groups'", 'db_column': "'uid'", 'to': u"orm['user.User']"})
         }
     }
 

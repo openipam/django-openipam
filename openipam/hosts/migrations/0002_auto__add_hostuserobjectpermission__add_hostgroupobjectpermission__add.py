@@ -9,170 +9,39 @@ from bitstring import Bits
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Attribute'
-        db.create_table('attributes', (
+        # Adding model 'HostUserObjectPermission'
+        db.create_table(u'hosts_hostuserobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('structured', self.gf('django.db.models.fields.BooleanField')()),
-            ('required', self.gf('django.db.models.fields.BooleanField')()),
-            ('validation', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='user_permissions', to=orm['hosts.Host'])),
         ))
-        db.send_create_signal(u'hosts', ['Attribute'])
+        db.send_create_signal(u'hosts', ['HostUserObjectPermission'])
 
-        # Adding model 'Disabled'
-        db.create_table('disabled', (
-            ('mac', self.gf('netfields.fields.MACAddressField')(max_length=17, primary_key=True)),
-            ('reason', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('disabled', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('disabled_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='disabled_by')),
-        ))
-        db.send_create_signal(u'hosts', ['Disabled'])
-
-        # Adding model 'ExpirationType'
-        db.create_table('expiration_types', (
+        # Adding model 'HostGroupObjectPermission'
+        db.create_table(u'hosts_hostgroupobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('expiration', self.gf('django.db.models.fields.DateTimeField')()),
-            ('min_permissions', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.Permission'], db_column='min_permissions')),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Group'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='group_permissions', to=orm['hosts.Host'])),
         ))
-        db.send_create_signal(u'hosts', ['ExpirationType'])
+        db.send_create_signal(u'hosts', ['HostGroupObjectPermission'])
 
-        # Adding model 'FreeformAttributeToHost'
-        db.create_table('freeform_attributes_to_hosts', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('mac', self.gf('django.db.models.fields.related.ForeignKey')(related_name='freeform_attributes', db_column='mac', to=orm['hosts.Host'])),
-            ('attribute', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.Attribute'], db_column='aid')),
-            ('value', self.gf('django.db.models.fields.TextField')()),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
-        ))
-        db.send_create_signal(u'hosts', ['FreeformAttributeToHost'])
-
-        # Adding model 'GuestTicket'
-        db.create_table('guest_tickets', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='uid')),
-            ('ticket', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('starts', self.gf('django.db.models.fields.DateTimeField')()),
-            ('ends', self.gf('django.db.models.fields.DateTimeField')()),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'hosts', ['GuestTicket'])
-
-        # Adding model 'GulRecentArpByaddress'
-        db.create_table('gul_recent_arp_byaddress', (
-            ('mac', self.gf('netfields.fields.MACAddressField')(max_length=17, primary_key=True)),
-            ('address', self.gf('netfields.fields.InetAddressField')(max_length=39)),
-            ('stopstamp', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal(u'hosts', ['GulRecentArpByaddress'])
-
-        # Adding model 'GulRecentArpBymac'
-        db.create_table('gul_recent_arp_bymac', (
-            ('mac', self.gf('netfields.fields.MACAddressField')(max_length=17, primary_key=True)),
-            ('address', self.gf('netfields.fields.InetAddressField')(max_length=39)),
-            ('stopstamp', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal(u'hosts', ['GulRecentArpBymac'])
-
-        # Adding model 'Host'
-        db.create_table('hosts', (
-            ('mac', self.gf('netfields.fields.MACAddressField')(max_length=17, primary_key=True)),
-            ('hostname', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('dhcp_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.DhcpGroup'], null=True, db_column='dhcp_group', blank=True)),
-            ('expires', self.gf('django.db.models.fields.DateTimeField')()),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
-        ))
-        db.send_create_signal(u'hosts', ['Host'])
-
-        # Adding model 'MacOui'
-        db.create_table('mac_oui', (
-            ('oui', self.gf('netfields.fields.MACAddressField')(max_length=17, primary_key=True)),
-            ('vendor', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'hosts', ['MacOui'])
-
-        # Adding model 'Notification'
-        db.create_table('notifications', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('notification', self.gf('django.db.models.fields.DateField')()),
-            ('min_permissions', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.Permission'], db_column='min_permissions')),
-        ))
-        db.send_create_signal(u'hosts', ['Notification'])
-
-        # Adding model 'NotificationToHost'
-        db.create_table('notifications_to_hosts', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('notification', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.Notification'], db_column='nid')),
-            ('host', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.Host'], db_column='mac')),
-        ))
-        db.send_create_signal(u'hosts', ['NotificationToHost'])
-
-        # Adding model 'StructuredAttributeValue'
-        db.create_table('structured_attribute_values', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('attribute', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.Attribute'], db_column='aid')),
-            ('value', self.gf('django.db.models.fields.TextField')()),
-            ('is_default', self.gf('django.db.models.fields.BooleanField')()),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
-        ))
-        db.send_create_signal(u'hosts', ['StructuredAttributeValue'])
-
-        # Adding model 'StructuredAttributeToHost'
-        db.create_table('structured_attributes_to_hosts', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('host', self.gf('django.db.models.fields.related.ForeignKey')(related_name='structured_attributes', db_column='mac', to=orm['hosts.Host'])),
-            ('structured_attribute_value', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.StructuredAttributeValue'], db_column='avid')),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
-        ))
-        db.send_create_signal(u'hosts', ['StructuredAttributeToHost'])
+        # Adding field 'Host.address_type'
+        db.add_column('hosts', 'address_type',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.AddressType'], null=True, blank=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Attribute'
-        db.delete_table('attributes')
+        # Deleting model 'HostUserObjectPermission'
+        db.delete_table(u'hosts_hostuserobjectpermission')
 
-        # Deleting model 'Disabled'
-        db.delete_table('disabled')
+        # Deleting model 'HostGroupObjectPermission'
+        db.delete_table(u'hosts_hostgroupobjectpermission')
 
-        # Deleting model 'ExpirationType'
-        db.delete_table('expiration_types')
-
-        # Deleting model 'FreeformAttributeToHost'
-        db.delete_table('freeform_attributes_to_hosts')
-
-        # Deleting model 'GuestTicket'
-        db.delete_table('guest_tickets')
-
-        # Deleting model 'GulRecentArpByaddress'
-        db.delete_table('gul_recent_arp_byaddress')
-
-        # Deleting model 'GulRecentArpBymac'
-        db.delete_table('gul_recent_arp_bymac')
-
-        # Deleting model 'Host'
-        db.delete_table('hosts')
-
-        # Deleting model 'MacOui'
-        db.delete_table('mac_oui')
-
-        # Deleting model 'Notification'
-        db.delete_table('notifications')
-
-        # Deleting model 'NotificationToHost'
-        db.delete_table('notifications_to_hosts')
-
-        # Deleting model 'StructuredAttributeValue'
-        db.delete_table('structured_attribute_values')
-
-        # Deleting model 'StructuredAttributeToHost'
-        db.delete_table('structured_attributes_to_hosts')
+        # Deleting field 'Host.address_type'
+        db.delete_column('hosts', 'address_type_id')
 
 
     models = {
@@ -263,6 +132,7 @@ class Migration(SchemaMigration):
         },
         u'hosts.host': {
             'Meta': {'ordering': "('hostname',)", 'object_name': 'Host', 'db_table': "'hosts'"},
+            'address_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.AddressType']", 'null': 'True', 'blank': 'True'}),
             'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']", 'db_column': "'changed_by'"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -271,6 +141,20 @@ class Migration(SchemaMigration):
             'hostname': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'mac': ('netfields.fields.MACAddressField', [], {'max_length': '17', 'primary_key': 'True'}),
             'pools': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'pool_hosts'", 'to': u"orm['network.Pool']", 'through': u"orm['network.HostToPool']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'})
+        },
+        u'hosts.hostgroupobjectpermission': {
+            'Meta': {'object_name': 'HostGroupObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'group_permissions'", 'to': u"orm['hosts.Host']"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Group']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"})
+        },
+        u'hosts.hostuserobjectpermission': {
+            'Meta': {'object_name': 'HostUserObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_permissions'", 'to': u"orm['hosts.Host']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']"})
         },
         u'hosts.macoui': {
             'Meta': {'object_name': 'MacOui', 'db_table': "'mac_oui'"},
@@ -307,6 +191,15 @@ class Migration(SchemaMigration):
             'is_default': ('django.db.models.fields.BooleanField', [], {}),
             'value': ('django.db.models.fields.TextField', [], {})
         },
+        u'network.addresstype': {
+            'Meta': {'ordering': "('name',)", 'object_name': 'AddressType', 'db_table': "'addresstypes'"},
+            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_default': ('django.db.models.fields.BooleanField', [], {}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'pool': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Pool']", 'null': 'True', 'blank': 'True'}),
+            'ranges': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'address_ranges'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['network.NetworkRange']"})
+        },
         u'network.dhcpgroup': {
             'Meta': {'object_name': 'DhcpGroup', 'db_table': "'dhcp_groups'"},
             'changed': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -340,6 +233,11 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'mac': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['hosts.Host']", 'db_column': "'mac'"}),
             'pool': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['network.Pool']"})
+        },
+        u'network.networkrange': {
+            'Meta': {'object_name': 'NetworkRange', 'db_table': "'network_ranges'"},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'range': ('netfields.fields.CidrAddressField', [], {'unique': 'True', 'max_length': '43'})
         },
         u'network.pool': {
             'Meta': {'object_name': 'Pool', 'db_table': "'pools'"},

@@ -9,95 +9,67 @@ from bitstring import Bits
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Domain'
-        db.create_table('domains', (
+        # Adding model 'DomainGroupObjectPermission'
+        db.create_table(u'dns_domaingroupobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('master', self.gf('django.db.models.fields.CharField')(default=None, max_length=128, null=True, blank=True)),
-            ('last_check', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=6)),
-            ('notified_serial', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('account', self.gf('django.db.models.fields.CharField')(default=None, max_length=40, null=True, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Group'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='group_permissions', to=orm['dns.Domain'])),
         ))
-        db.send_create_signal(u'dns', ['Domain'])
+        db.send_create_signal(u'dns', ['DomainGroupObjectPermission'])
 
-        # Adding model 'DnsRecord'
-        db.create_table('dns_records', (
+        # Adding model 'DnsTypeUserObjectPermission'
+        db.create_table(u'dns_dnstypeuserobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('domain', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dns.Domain'], db_column='did')),
-            ('dns_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dns.DnsType'], db_column='tid')),
-            ('dns_view', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dns.DnsView'], null=True, db_column='vid', blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('text_content', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('ip_content', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.Address'], null=True, db_column='ip_content', blank=True)),
-            ('ttl', self.gf('django.db.models.fields.IntegerField')(default=86400, null=True, blank=True)),
-            ('priority', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='user_permissions', to=orm['dns.DnsType'])),
         ))
-        db.send_create_signal(u'dns', ['DnsRecord'])
+        db.send_create_signal(u'dns', ['DnsTypeUserObjectPermission'])
 
-        # Adding model 'DhcpDnsRecord'
-        db.create_table('dhcp_dns_records', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('did', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dns.Domain'], db_column='did')),
-            ('name', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['hosts.Host'], unique=True, db_column='name')),
-            ('ip_content', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.Address'], null=True, db_column='ip_content', blank=True)),
-            ('ttl', self.gf('django.db.models.fields.IntegerField')(default=-1, null=True, blank=True)),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal(u'dns', ['DhcpDnsRecord'])
+        # Adding unique constraint on 'DnsTypeUserObjectPermission', fields ['user', 'permission', 'content_object']
+        db.create_unique(u'dns_dnstypeuserobjectpermission', ['user_id', 'permission_id', 'content_object_id'])
 
-        # Adding model 'DnsType'
-        db.create_table('dns_types', (
+        # Adding model 'DomainUserObjectPermission'
+        db.create_table(u'dns_domainuserobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=16, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('min_permissions', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.Permission'], db_column='min_permissions')),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='user_permissions', to=orm['dns.Domain'])),
         ))
-        db.send_create_signal(u'dns', ['DnsType'])
+        db.send_create_signal(u'dns', ['DomainUserObjectPermission'])
 
-        # Adding model 'DnsView'
-        db.create_table('dns_views', (
+        # Adding model 'DnsTypeGroupObjectPermission'
+        db.create_table(u'dns_dnstypegroupobjectpermission', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
+            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Group'])),
+            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='group_permissions', to=orm['dns.DnsType'])),
         ))
-        db.send_create_signal(u'dns', ['DnsView'])
+        db.send_create_signal(u'dns', ['DnsTypeGroupObjectPermission'])
 
-        # Adding model 'Supermaster'
-        db.create_table('supermasters', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('ip', self.gf('django.db.models.fields.CharField')(max_length=25)),
-            ('nameserver', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('account', self.gf('django.db.models.fields.CharField')(default=None, max_length=40, null=True, blank=True)),
-            ('changed', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'], db_column='changed_by')),
-        ))
-        db.send_create_signal(u'dns', ['Supermaster'])
+        # Adding unique constraint on 'DnsTypeGroupObjectPermission', fields ['group', 'permission', 'content_object']
+        db.create_unique(u'dns_dnstypegroupobjectpermission', ['group_id', 'permission_id', 'content_object_id'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Domain'
-        db.delete_table('domains')
+        # Removing unique constraint on 'DnsTypeGroupObjectPermission', fields ['group', 'permission', 'content_object']
+        db.delete_unique(u'dns_dnstypegroupobjectpermission', ['group_id', 'permission_id', 'content_object_id'])
 
-        # Deleting model 'DnsRecord'
-        db.delete_table('dns_records')
+        # Removing unique constraint on 'DnsTypeUserObjectPermission', fields ['user', 'permission', 'content_object']
+        db.delete_unique(u'dns_dnstypeuserobjectpermission', ['user_id', 'permission_id', 'content_object_id'])
 
-        # Deleting model 'DhcpDnsRecord'
-        db.delete_table('dhcp_dns_records')
+        # Deleting model 'DomainGroupObjectPermission'
+        db.delete_table(u'dns_domaingroupobjectpermission')
 
-        # Deleting model 'DnsType'
-        db.delete_table('dns_types')
+        # Deleting model 'DnsTypeUserObjectPermission'
+        db.delete_table(u'dns_dnstypeuserobjectpermission')
 
-        # Deleting model 'DnsView'
-        db.delete_table('dns_views')
+        # Deleting model 'DomainUserObjectPermission'
+        db.delete_table(u'dns_domainuserobjectpermission')
 
-        # Deleting model 'Supermaster'
-        db.delete_table('supermasters')
+        # Deleting model 'DnsTypeGroupObjectPermission'
+        db.delete_table(u'dns_dnstypegroupobjectpermission')
 
 
     models = {
@@ -163,6 +135,20 @@ class Migration(SchemaMigration):
             'min_permissions': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.Permission']", 'db_column': "'min_permissions'"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '16', 'blank': 'True'})
         },
+        u'dns.dnstypegroupobjectpermission': {
+            'Meta': {'unique_together': "([u'group', u'permission', u'content_object'],)", 'object_name': 'DnsTypeGroupObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'group_permissions'", 'to': u"orm['dns.DnsType']"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Group']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"})
+        },
+        u'dns.dnstypeuserobjectpermission': {
+            'Meta': {'unique_together': "([u'user', u'permission', u'content_object'],)", 'object_name': 'DnsTypeUserObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_permissions'", 'to': u"orm['dns.DnsType']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']"})
+        },
         u'dns.dnsview': {
             'Meta': {'object_name': 'DnsView', 'db_table': "'dns_views'"},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -181,6 +167,20 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'notified_serial': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '6'})
+        },
+        u'dns.domaingroupobjectpermission': {
+            'Meta': {'object_name': 'DomainGroupObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'group_permissions'", 'to': u"orm['dns.Domain']"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Group']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"})
+        },
+        u'dns.domainuserobjectpermission': {
+            'Meta': {'object_name': 'DomainUserObjectPermission'},
+            'content_object': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'user_permissions'", 'to': u"orm['dns.Domain']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'permission': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Permission']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['user.User']"})
         },
         u'dns.pdnszonexfer': {
             'Meta': {'object_name': 'PdnsZoneXfer', 'db_table': "'pdns_zone_xfer'", 'managed': 'False'},

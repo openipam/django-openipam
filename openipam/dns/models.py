@@ -10,13 +10,13 @@ class DomainManager(models.Manager):
 
 class Domain(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    master = models.CharField(max_length=128, blank=True)
-    last_check = models.IntegerField(null=True, blank=True)
+    master = models.CharField(max_length=128, blank=True, null=True, default=None)
+    last_check = models.IntegerField(blank=True, null=True)
     type = models.CharField(max_length=6)
-    notified_serial = models.IntegerField(null=True, blank=True)
-    account = models.CharField(max_length=40, blank=True)
-    description = models.TextField(blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    notified_serial = models.IntegerField(blank=True, null=True)
+    account = models.CharField(max_length=40, blank=True, null=True, default=None)
+    description = models.TextField(blank=True, null=True)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
     objects = DomainManager()
@@ -35,9 +35,15 @@ class Domain(models.Model):
 class DomainUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey('Domain', related_name='user_permissions')
 
+    class Meta:
+        verbose_name = 'Domain User Permission'
+
 
 class DomainGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey('Domain', related_name='group_permissions')
+
+    class Meta:
+        verbose_name = 'Domain Group Permission'
 
 
 class DnsRecord(models.Model):
@@ -47,8 +53,8 @@ class DnsRecord(models.Model):
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
     ip_content = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
-    ttl = models.IntegerField(default=86400, null=True, blank=True)
-    priority = models.IntegerField(null=True, blank=True)
+    ttl = models.IntegerField(default=86400, blank=True, null=True)
+    priority = models.IntegerField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
@@ -95,8 +101,8 @@ class DhcpDnsRecord(models.Model):
     did = models.ForeignKey('Domain', db_column='did')
     name = models.ForeignKey('hosts.Host', unique=True, db_column='name')
     ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
-    ttl = models.IntegerField(null=True, blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    ttl = models.IntegerField(default=-1, blank=True, null=True)
+    changed = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return self.name
@@ -107,7 +113,7 @@ class DhcpDnsRecord(models.Model):
 
 class DnsType(models.Model):
     name = models.CharField(max_length=16, blank=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
 
     def __unicode__(self):
@@ -120,6 +126,7 @@ class DnsType(models.Model):
         )
         ordering = ('name',)
 
+
 class DnsTypeUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey('DnsType', related_name='user_permissions')
 
@@ -130,7 +137,7 @@ class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
 
 class DnsView(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -142,8 +149,8 @@ class DnsView(models.Model):
 class Supermaster(models.Model):
     ip = models.CharField(max_length=25)
     nameserver = models.CharField(max_length=255)
-    account = models.CharField(max_length=40, blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    account = models.CharField(max_length=40, blank=True, null=True, default=None)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
     def __unicode__(self):

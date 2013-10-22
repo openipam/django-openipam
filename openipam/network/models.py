@@ -10,9 +10,9 @@ from openipam.network.managers import LeaseManager, PoolManager, AddressManager
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address')
-    mac = MACAddressField(unique=True, blank=True)
+    mac = MACAddressField(unique=True, blank=True, null=True)
     abandoned = models.BooleanField()
-    server = models.CharField(max_length=255, blank=True)
+    server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
 
@@ -89,11 +89,11 @@ class DhcpGroupManager(models.Manager):
 
 
 class DhcpGroup(models.Model):
-    name = models.CharField(max_length=255, blank=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     dhcp_options = models.ManyToManyField('DhcpOption', through='DhcpOptionToDhcpGroup')
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = DhcpGroupManager()
 
@@ -105,10 +105,10 @@ class DhcpGroup(models.Model):
 
 
 class DhcpOption(models.Model):
-    size = models.CharField(max_length=10, blank=True)
-    name = models.CharField(max_length=255, unique=True, blank=True)
-    option = models.CharField(max_length=255, unique=True, blank=True)
-    comment = models.TextField(blank=True)
+    size = models.CharField(max_length=10, blank=True, null=True)
+    name = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    option = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return '%s_%s' % (self.id, self.name)
@@ -118,11 +118,11 @@ class DhcpOption(models.Model):
 
 
 class DhcpOptionToDhcpGroup(models.Model):
-    gid = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
-    oid = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
-    value = models.TextField(blank=True)    # This is really a bytea field, must stringify.
-    changed = models.DateTimeField()
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    group = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
+    option = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
+    value = models.BinaryField(blank=True, null=True)
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s:%s=%r' % (self.gid, self.oid, str(self.value))
@@ -134,8 +134,8 @@ class DhcpOptionToDhcpGroup(models.Model):
 class HostToPool(models.Model):
     mac = models.ForeignKey('hosts.Host', db_column='mac')
     pool = models.ForeignKey('Pool')
-    changed = models.DateTimeField()
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s %s' % (self.mac, self.pool)
@@ -146,9 +146,9 @@ class HostToPool(models.Model):
 
 class SharedNetwork(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-    changed = models.DateTimeField()
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    description = models.TextField(blank=True, null=True)
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return self.name
@@ -159,13 +159,13 @@ class SharedNetwork(models.Model):
 
 class Network(models.Model):
     network = CidrAddressField(primary_key=True)
-    name = models.CharField(max_length=255, blank=True)
-    gateway = InetAddressField(null=True, blank=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    gateway = InetAddressField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     vlans = models.ManyToManyField('Vlan', through='NetworkToVlan', related_name='vlan_networks')
-    dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
-    shared_network = models.ForeignKey('SharedNetwork', null=True, db_column='shared_network', blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    dhcp_group = models.ForeignKey('DhcpGroup', db_column='dhcp_group', blank=True, null=True)
+    shared_network = models.ForeignKey('SharedNetwork', db_column='shared_network', blank=True, null=True)
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = NetManager()
@@ -210,8 +210,8 @@ class Vlan(models.Model):
 class NetworkToVlan(models.Model):
     network = models.ForeignKey('Network', primary_key=True, db_column='network')
     vlan = models.ForeignKey('Vlan', db_column='vlan')
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s %s' % (self.network, self.vlan)
@@ -226,8 +226,8 @@ class Address(models.Model):
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True)
     reserved = models.BooleanField()
     network = models.ForeignKey('Network', db_column='network')
-    changed = models.DateTimeField()
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = AddressManager()
 
