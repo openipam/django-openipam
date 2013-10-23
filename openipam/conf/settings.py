@@ -14,7 +14,7 @@ MANAGERS = ADMINS
 
 DEBUG_MONITOR = True if DEBUG else False
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 try:
     from local_settings import *
 except:
