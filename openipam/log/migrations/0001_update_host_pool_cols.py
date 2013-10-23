@@ -10,12 +10,12 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
 
         # Adding field 'Pool.assignable'
-        db.add_column('poolslog', 'assignable',
+        db.add_column('pools_log', 'assignable',
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
         # Adding field 'Host.address_type'
-        db.add_column('hostlog', 'address_type_id',
+        db.add_column('host_log', 'address_type_id',
                       self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
                       keep_default=False)
 
@@ -23,10 +23,10 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
 
         # Deleting field 'Pool.assignable'
-        db.delete_column('pools', 'assignable')
+        db.delete_column('pools_log', 'assignable')
 
         # Deleting field 'Host.address_type'
-        db.delete_column('hostlog', 'address_type_id')
+        db.delete_column('host_log', 'address_type_id')
 
 
     models = {
