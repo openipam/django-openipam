@@ -165,6 +165,7 @@ INSTALLED_APPS = (
     'openipam.network',
     'openipam.dns',
     'openipam.user',
+    'openipam.log',
 
     'guardian',
 
