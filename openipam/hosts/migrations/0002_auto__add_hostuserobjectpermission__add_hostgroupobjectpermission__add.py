@@ -32,6 +32,14 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.AddressType'], null=True, blank=True),
                       keep_default=False)
 
+        try:
+            # Adding field for host_log table
+            db.add_column('hosts_log', 'address_type_id',
+                          self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
+                          keep_default=False)
+        except:
+            pass
+
 
     def backwards(self, orm):
         # Deleting model 'HostUserObjectPermission'
@@ -42,6 +50,12 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Host.address_type'
         db.delete_column('hosts', 'address_type_id')
+
+        try:
+            # Deleting field hosts_log table
+            db.delete_column('hosts_log', 'address_type_id')
+        except:
+            pass
 
 
     models = {
