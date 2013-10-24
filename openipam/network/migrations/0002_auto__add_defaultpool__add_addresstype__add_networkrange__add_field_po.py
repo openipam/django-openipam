@@ -48,6 +48,14 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
+        try:
+        # Adding field for pools_log
+        db.add_column('pools_log', 'assignable',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+        except:
+            pass
+
 
     def backwards(self, orm):
         # Deleting model 'DefaultPool'
@@ -64,6 +72,12 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Pool.assignable'
         db.delete_column('pools', 'assignable')
+
+        try:
+            # Deleting field for pools_log table
+            db.delete_column('pools_log', 'assignable')
+        except:
+            pass
 
 
     models = {
