@@ -17,6 +17,8 @@ from openipam.user.managers import UserToGroupManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
     remove_obj_perms_connected_with_user
 
+from bitstring import Bits
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=50, unique=True)
@@ -35,7 +37,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # TODO: Remove later
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions',
-                                        related_name='user_min_permissions')
+                                        related_name='user_min_permissions', default=Bits('0x00'))
+    source = models.ForeignKey('AuthSource', db_column='source')
 
     objects = UserManager()
 

@@ -10,9 +10,6 @@ from bitstring import Bits
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'User.source'
-        db.delete_column('users', 'source')
-
         # Adding field 'User.password'
         db.add_column('users', 'password',
                       self.gf('django.db.models.fields.CharField')(default='!', max_length=128),
