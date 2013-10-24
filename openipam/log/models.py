@@ -27,38 +27,7 @@ class HostLog(BaseLog):
         db_table = 'hosts_log'
 
 
-class AddressLog(BaseLog):
-    address = models.GenericIPAddressField()
-    mac = models.TextField(blank=True) # This field type is a guess.
-    pool = models.IntegerField(null=True, blank=True)
-    reserved = models.BooleanField()
-    network = models.TextField(blank=True) # This field type is a guess.
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.IntegerField(null=True, blank=True)
-
-    class Meta:
-        managed = False
-        db_table = 'addresses_log'
-
-
-class DomainLog(BaseLog):
-    id = models.IntegerField()
-    name = models.CharField(max_length=255)
-    master = models.CharField(max_length=128, blank=True)
-    last_check = models.IntegerField(null=True, blank=True)
-    type = models.CharField(max_length=6)
-    notified_serial = models.IntegerField(null=True, blank=True)
-    account = models.CharField(max_length=40, blank=True)
-    description = models.TextField(blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'domains_log'
-
-
-class PoolsLog(BaseLog):
+class PoolLog(BaseLog):
     id = models.IntegerField()
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -70,3 +39,34 @@ class PoolsLog(BaseLog):
     class Meta:
         managed = False
         db_table = 'pools_log'
+
+
+# class AddressLog(BaseLog):
+#     address = models.GenericIPAddressField()
+#     mac = models.TextField(blank=True) # This field type is a guess.
+#     pool = models.IntegerField(null=True, blank=True)
+#     reserved = models.BooleanField()
+#     network = models.TextField(blank=True) # This field type is a guess.
+#     changed = models.DateTimeField(null=True, blank=True)
+#     changed_by = models.IntegerField(null=True, blank=True)
+
+#     class Meta:
+#         managed = False
+#         db_table = 'addresses_log'
+
+
+# class DomainLog(BaseLog):
+#     id = models.IntegerField()
+#     name = models.CharField(max_length=255)
+#     master = models.CharField(max_length=128, blank=True)
+#     last_check = models.IntegerField(null=True, blank=True)
+#     type = models.CharField(max_length=6)
+#     notified_serial = models.IntegerField(null=True, blank=True)
+#     account = models.CharField(max_length=40, blank=True)
+#     description = models.TextField(blank=True)
+#     changed = models.DateTimeField(null=True, blank=True)
+#     changed_by = models.IntegerField()
+
+#     class Meta:
+#         managed = False
+#         db_table = 'domains_log'
