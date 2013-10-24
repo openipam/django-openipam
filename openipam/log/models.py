@@ -1,4 +1,5 @@
 from django.db import models
+from django_postgres import BitStringField
 
 
 class BaseLog(models.Model):
@@ -39,6 +40,29 @@ class PoolLog(BaseLog):
     class Meta:
         managed = False
         db_table = 'pools_log'
+
+
+class UserLog(BaseLog):
+    id = models.IntegerField()
+    username = models.CharField(max_length=50)
+    source = models.IntegerField()
+    min_permissions = BitStringField(max_length=8)
+
+    password = models.CharField(max_length=128, default='!')
+    last_login = models.DateTimeField(blank=True, null=True)
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_ipamadmin = models.BooleanField(default=False)
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    last_name = models.CharField(max_length=255, blank=True, null=True)
+    email = models.CharField(max_length=255, blank=True, null=True)
+    date_joined = models.DateTimeField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+
+    class Meta:
+        managed = True
+        db_table = 'users_log'
 
 
 # class AddressLog(BaseLog):
