@@ -1,18 +1,15 @@
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.utils.timezone import utc
 
 from guardian.shortcuts import assign_perm
-from guardian.models import UserObjectPermission, GroupObjectPermission
+from guardian.models import UserObjectPermission
 
 from django_auth_ldap.backend import LDAPBackend
 
-from openipam.user.models import Permission, Group, UserToGroup, HostToGroup
+from openipam.user.models import Group, HostToGroup
 from openipam.hosts.models import HostGroupObjectPermission, HostUserObjectPermission
 
-from datetime import datetime
 import gc
 
 User = get_user_model()
@@ -33,7 +30,7 @@ def convert_groups():
 
     for group in groups:
         if not group.name.lower().startswith('user_'):
-            AuthGroup.objects.create(name=group.name)
+            AuthGroup.objects.get_or_create(name=group.name)
 
 
 def convert_host_permissions(delete=False):

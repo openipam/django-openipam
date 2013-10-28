@@ -1,15 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, UserManager
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User as AuthUser, UserManager
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.contrib.auth.models import UserManager
 from django.utils.translation import ugettext_lazy as _
-from django.db.models import Q
+from django.core.mail import send_mail
 from django.conf import settings
-from django.core.validators import ValidationError
+
 
 from django_postgres import BitStringField
 
@@ -31,8 +29,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('Designates whether this user should be treated as '
                     'active. Unselect this instead of deleting accounts.'))
-    is_ipamadmin = models.BooleanField(_('ipam administrator'), default=False,
-        help_text=_('Designates whether this user has IPAM admin privledges'))
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     # TODO: Remove later
@@ -47,6 +43,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __unicode__(self):
         return self.username
+
+    @property
+    def is_ipamadmin(self):
+        return True if self.group.filter(group='ipam-admins') else False
 
     def get_auth_user(self):
         try:
@@ -210,4 +210,3 @@ try:
     ])
 except ImportError:
     pass
-

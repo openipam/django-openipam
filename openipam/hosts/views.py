@@ -1,7 +1,4 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
-from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView
 from django.views.generic import TemplateView
@@ -15,15 +12,10 @@ from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.http import HttpResponseRedirect
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from openipam.user.utils.user_utils import get_objects_for_owner
 from openipam.hosts.forms import HostForm, HostListForm
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
 from openipam.network.models import Lease
-from guardian.shortcuts import get_objects_for_user, assign_perm
-from guardian.mixins import PermissionRequiredMixin
-from guardian.forms import BaseObjectPermissionsForm
-from datetime import datetime
 
 
 class HostListJson(BaseDatatableView):
@@ -38,7 +30,7 @@ class HostListJson(BaseDatatableView):
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
-    max_display_length = 2000
+    max_display_length = 100
 
     def get_initial_queryset(self):
         # return queryset used as base for futher sorting/filtering
@@ -91,7 +83,6 @@ class HostListJson(BaseDatatableView):
 
         return qs
 
-
     def prepare_results(self, qs):
 
         qs_macs = [q.mac for q in qs]
@@ -103,14 +94,14 @@ class HostListJson(BaseDatatableView):
             if filtered_list:
                 return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
-                return '<span class="expired">No Data</span>'
+                return '<span class="expired-date">No Data</span>'
 
         def get_last_ip_stamp(mac):
             filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
             if filtered_list:
                 return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
-                return '<span class="expired">No Data</span>'
+                return '<span class="expired-date">No Data</span>'
 
         def get_last_ip(mac):
             filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
@@ -121,7 +112,7 @@ class HostListJson(BaseDatatableView):
 
         def get_expires(expires):
             if expires < timezone.now():
-                return '<span class="expired">%s</span>' % expires.strftime('%Y-%m-%d')
+                return '<span class="expired-date">%s</span>' % expires.strftime('%Y-%m-%d')
             else:
                 return expires.strftime('%Y-%m-%d')
 
@@ -147,7 +138,6 @@ class HostListJson(BaseDatatableView):
 class HostListView(TemplateView):
     template_name = 'hosts/host_list.html'
     is_owner = False
-
 
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
@@ -236,8 +226,9 @@ class HostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(HostDetailView, self).get_context_data(**kwargs)
         attributes = []
-        attributes += self.object.freeform_attributes.values_list('aid__description', 'value')
-        attributes += self.object.structured_attributes.values_list('avid__aid__description', 'avid__value')
+        attributes += self.object.freeform_attributes.values_list('attribute__description', 'value')
+        attributes += self.object.structured_attributes.values_list('structured_attribute_value__attribute__description',
+                                                                    'structured_attribute_value__value')
         context['attributes'] = attributes
         context['dns_records'] = self.object.dns_records()
         context['addresses'] = self.object.addresses.all()
@@ -303,7 +294,7 @@ class HostCreateView(CreateView):
         instance = form.save(commit=False)
         instance.changed_by = self.request.user
         instance.expires = timezone.now() + form.cleaned_data['expire_days'].expiration
-        instnace.save()
+        instance.save()
 
         if form.cleaned_data['user_owners']:
             for user in form.cleaned_data['user_owners']:
@@ -367,22 +358,3 @@ def change_freeform_attributes(user, instance, form):
                     changed_by=user
                 )
     return
-
-
-
-# def index(request):
-#     return render(request, 'hosts/index.html', {})
-
-
-# def add(request):
-
-#     form = AddHostForm(request.POST or None)
-
-#     if form.is_valid():
-#         return redirect('hosts')
-
-#     context = {
-#         'form': form
-#     }
-
-#     return render(request, 'hosts/add.html', context)

@@ -80,6 +80,9 @@
                         // Populate Table
                         fnCallback(json);
 
+
+                        $("#result_list span.expired-date").parents('tr').addClass('expired');
+
                         $(".host-details").click(function(){
                             var rel = $(this).prop("rel");
                             var href = $(this).prop("href");
@@ -100,7 +103,6 @@
                             $(this).data('modal').$element.removeData();
                             $(".modal-body").html('Loading...');
                         });
-
 
                     });
                 }
@@ -200,10 +202,10 @@
                             {% trans "Go" %}
                         </button>
                     </div>
+                    {% if not is_owner %}
                     <div class="action-wrapper">
                         {{ form.groups }}
                         {% comment %}
-
                         <select id="group-filter">
                         <option value="">Filter by Group...</option>
                             <option value="">--------------</option>
@@ -213,6 +215,7 @@
                         </select>
                         {% endcomment %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
             <div id="changelist-search" class="pull-left"></div>
