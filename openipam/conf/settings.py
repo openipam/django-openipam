@@ -1,4 +1,5 @@
 # Django settings for openipam project.
+from django.core.urlresolvers import reverse_lazy
 import hashlib
 import socket
 
@@ -203,9 +204,9 @@ AUTHENTICATION_BACKENDS = LOCAL_AUTHENTICATION_BACKENDS + (
 AUTH_USER_MODEL = 'user.User'
 
 ANONYMOUS_USER_ID = -1
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'profile'
-LOGOUT_URL = 'logout'
+LOGIN_URL = reverse_lazy('django.contrib.auth.views.login')
+LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
+LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

@@ -224,20 +224,13 @@ td.action-checkbox {
   padding: 0px !important;
 }
 #result_list tr.expired td , #result_list tr.expired th {
-  border-left: 1px solid #eed3d7 !important;
-  border-top: 1px solid #eed3d7 !important;
   background-color: #FFEB84;
 }
 
 #result_list tr.expired td.sorting_1, #result_list tr.expired th.sorting_1 {
-  border-left: 1px solid #eed3d7 !important;
-  border-top: 1px solid #eed3d7 !important;
   background-color: #FFDF69 !important;
 }
-#result_list tr.expired td.expired-date, #result_list tr.expired th.expired-date {
-  color: #ff0000;
-}
-#result_list tr.expired td.mac-last-seen, #result_list tr.expired th.mac-last-seen {
+#result_list tr.expired td span.expired-date, #result_list tr.expired th span.expired-date {
   color: #ff0000;
 }
 code, pre {

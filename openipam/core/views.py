@@ -2,26 +2,21 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse
 from django.views.generic.edit import CreateView
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import password_change as auth_password_change
-from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestAdminForm
 
 
-@login_required
 def index(request):
+    if not request.user.get_full_name() or not request.user.email:
+        return redirect('profile')
+
     return render(request, 'core/index.html')
 
 
-@login_required
 def profile(request):
     """Profile view used with accounts"""
-
-    if not request.user.is_authenticated():
-        return redirect('auth_login')
 
     form = ProfileForm(
         request.POST or None,
@@ -55,7 +50,6 @@ def profile(request):
     return render(request, 'registration/profile.html', context)
 
 
-@login_required
 def password_change(request, *args, **kwargs):
     if request.user.has_usable_password():
         return auth_password_change(request, *args, **kwargs)

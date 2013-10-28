@@ -4,13 +4,12 @@ from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from openipam.network.models import AddressType, DhcpGroup, Network, Pool
-from openipam.dns.models import Domain
+from openipam.network.models import AddressType, DhcpGroup, Network
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
-from crispy_forms.bootstrap import FormActions, InlineRadios, Accordion, AccordionGroup
+from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup
 from guardian.shortcuts import get_objects_for_user, assign_perm
 import autocomplete_light
 import operator
@@ -110,14 +109,15 @@ class HostForm(forms.ModelForm):
         attribute_fields = Attribute.objects.all()
         attribute_initials = []
         if self.instance.pk:
-            attribute_initials += self.instance.structured_attributes.values_list('avid__aid', 'avid')
-            attribute_initials += self.instance.freeform_attributes.values_list('aid', 'value')
+            attribute_initials += self.instance.structured_attributes.values_list('structured_attribute_value__attribute',
+                                                                                  'structured_attribute_value')
+            attribute_initials += self.instance.freeform_attributes.values_list('attribute', 'value')
         attribute_field_keys = ['Attributes']
         for attribute_field in attribute_fields:
             attribute_field_key = slugify(attribute_field.name)
             attribute_field_keys.append(attribute_field_key)
             if attribute_field.structured:
-                attribute_choices_qs = StructuredAttributeValue.objects.filter(aid=attribute_field.id)
+                attribute_choices_qs = StructuredAttributeValue.objects.filter(attribute=attribute_field.id)
                 self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
             else:
                 self.fields[attribute_field_key] = forms.CharField(required=False)
@@ -127,19 +127,19 @@ class HostForm(forms.ModelForm):
 
         accordion_groups = [
             AccordionGroup(
-                    'Host Details',
-                    'mac',
-                    'hostname',
-                    current_address_html,
-                    'address_type',
-                    'network_or_ip',
-                    'network',
-                    'ip_address',
-                    expire_date,
-                    'expire_days',
-                    'description',
-                    'show_hide_dhcp_group',
-                    'dhcp_group',
+                'Host Details',
+                'mac',
+                'hostname',
+                current_address_html,
+                'address_type',
+                'network_or_ip',
+                'network',
+                'ip_address',
+                expire_date,
+                'expire_days',
+                'description',
+                'show_hide_dhcp_group',
+                'dhcp_group',
             )
         ]
 
@@ -201,6 +201,7 @@ class ChangeOwnerForm(forms.Form):
     group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
+
 
 class HostListForm(forms.Form):
     groups = forms.ModelChoiceField(Group.objects.all(),
