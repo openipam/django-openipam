@@ -4,6 +4,7 @@ from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from openipam.network.models import AddressType, DhcpGroup, Network
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
@@ -47,6 +48,8 @@ class HostForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
+
+        self.user = user
 
         #Populate some fields if we are editing the record
         current_address_html = None
@@ -188,6 +191,17 @@ class HostForm(forms.ModelForm):
                 Button('cancel', 'Cancel', onclick="javascript:location.href='%s';" % reverse('list_hosts')),
             )
         )
+
+    def clean(self):
+        cleaned_data = super(HostForm, self).clean()
+
+        if self.user.is_superuser or self.user.is_ipamadmin:
+            return cleaned_data
+        elif self.user.has_perm('hosts.is_owner_host', self.instance):
+            return cleaned_data
+        else:
+            raise ValidationError('You do not have sufficient permissions to modify'
+                                  ' this host, please contact an IPAM Administrator.')
 
     class Meta:
         model = Host

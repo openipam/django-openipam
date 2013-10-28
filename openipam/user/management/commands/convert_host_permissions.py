@@ -7,16 +7,21 @@ class Command(BaseCommand):
     args = ''
     help = 'Convert User Permissions'
 
-
     option_list = BaseCommand.option_list + (
         make_option('--delete',
             action='store_true',
             dest='delete',
             default=False,
             help='Delete poll instead of closing it'),
-        )
+
+        make_option('--username',
+            dest='username',
+            default=False,
+            help='Specify a specific username to update'),
+    )
 
     def handle(self, *args, **options):
         delete = options['delete']
-        convert_host_permissions(delete)
+        username = options['username'] or None
         self.stdout.write('Converting Host Permissions...')
+        convert_host_permissions(delete, username)

@@ -33,15 +33,19 @@ def convert_groups():
             AuthGroup.objects.get_or_create(name=group.name)
 
 
-def convert_host_permissions(delete=False):
+def convert_host_permissions(delete=False, username=None):
     # First delete to make a clean slate
     if delete:
         owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
         HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
         HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
 
-    host_groups = (HostToGroup.objects.prefetch_related('group__group_users')
-             .filter(mac__expires__gte=timezone.now))
+    if username:
+        host_groups = (HostToGroup.objects.prefetch_related('group__group_users')
+                 .filter(mac__expires__gte=timezone.now, group__name__iexact='user_%s' % username))
+    else:
+        host_groups = (HostToGroup.objects.prefetch_related('group__group_users')
+                 .filter(mac__expires__gte=timezone.now))
 
     for host_group in queryset_iterator(host_groups):
         # Convert User Permissions (Group = user_A0000000)
