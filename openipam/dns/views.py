@@ -11,7 +11,6 @@ from openipam.dns.models import DnsRecord, DnsType
 from openipam.dns.forms import DNSUpdateForm, BaseDNSUpdateFormset
 
 
-
 def dns_list_edit(request):
 
     search_string = request.GET.get('q', None)

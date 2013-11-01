@@ -222,7 +222,7 @@ class Host(models.Model):
             return None
 
     def get_address_type(self):
-        from openipam.network.models import AddressType
+        from openipam.network.models import AddressType, NetworkRange
 
         if self.address_type:
             return self.address_type
@@ -235,7 +235,11 @@ class Host(models.Model):
                     self.address_type = None
                 elif addresses:
                     try:
-                        self.address_type = AddressType.objects.get(ranges__range__net_contained_or_equal=addresses[0])
+                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
+                        if ranges:
+                            self.address_type = AddressType.objects.get(ranges__range__in=ranges)
+                        else:
+                            raise AddressType.DoesNotExist
                     except AddressType.DoesNotExist:
                         self.address_type = AddressType.objects.get(is_default=True)
                 elif pools:

@@ -212,7 +212,7 @@
             <div class="pull-left">
                 <input id="add_button" type="button" class="btn btn-success" value="Add Record" />
                 <input type="submit" class="btn btn-primary" value="Save" />
-                <input type="reset" class="btn btn-secondary" value="Cancel" />
+                <a href="{% url 'list_dns' %}" class="btn btn-secondary">Cancel</a>
             </div>
             {% if page_objects %}
             <div class="pagination pull-right">

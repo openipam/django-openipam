@@ -135,7 +135,7 @@ class HostListJson(BaseDatatableView):
                 get_expires(host.expires),
                 get_last_mac_stamp(host.mac),
                 get_last_ip_stamp(host.mac),
-                '<a href="">DNS Records</a>',
+                '<a href="%s?q=%s">DNS Records</a>' % (reverse_lazy('list_dns'), host.hostname),
                 '<a href="%s">Edit</a>' % reverse_lazy('update_host', args=(slugify(host.mac),))
             ])
         return json_data
