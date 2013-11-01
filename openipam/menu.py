@@ -8,6 +8,7 @@ To activate your custom menu add the following to your settings.py::
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.contrib import admin
 
 from admin_tools.menu import items, Menu
 
@@ -17,6 +18,13 @@ class IPAMMenu(Menu):
     Custom Menu for openipam admin site.
     """
     def __init__(self, **kwargs):
+
+        #admin_sites = admin.site._registry
+        #hosts_models = filter(lambda x: x.__module__ == 'openipam.hosts.models', admin_sites)
+        #hosts_models = tuple(sorted(['%s.%s' % (model.__module__, model.__name__) for model in hosts_models]))
+
+        #assert False, hosts_models
+
         Menu.__init__(self, **kwargs)
         self.children += [
             items.MenuItem(
@@ -36,11 +44,8 @@ class IPAMMenu(Menu):
                     items.ModelList('Permissions',
                         [
                             'django.contrib.auth.models.Permission',
-                            'openipam.hosts.models.HostUserObjectPermission',
-                            'openipam.hosts.models.HostGroupObjectPermission',
-                            'openipam.dns.models.DomainGroupObjectPermission',
-                            'openipam.dns.models.DomainUserObjectPermission',
-                            'guardian.*'
+                            'guardian.models.UserObjectPermission',
+                            'guardian.models.GroupObjectPermission',
                         ]
                     ),
                 ],
@@ -52,7 +57,6 @@ class IPAMMenu(Menu):
                         models = (
                             'openipam.dns.*',
                             'openipam.network.*',
-                            'openipam.hosts.*',
                         )
                     ),
                 ],

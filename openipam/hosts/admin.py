@@ -31,39 +31,39 @@ class HostAdmin(admin.ModelAdmin):
         return qs
 
     def nice_hostname(self, obj):
-        return '<a href="./%s/">%s</a>' % (obj.mac, obj.hostname)
+        return '<a href="./%s/">%s</a>' % (obj.mac, obj.hostname or 'N/A')
     nice_hostname.allow_tags = True
     nice_hostname.short_description = 'Hostname'
     nice_hostname.admin_order_field = 'hostname'
 
 
-class HostUserObjectPermissionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'hostname', 'mac', 'permission',)
-    list_select_related = True
-    search_fields = ('user_username', 'content_object__mac', 'content_object__hostname')
-    form = autocomplete_light.modelform_factory(HostUserObjectPermission)
-    change_form_template = 'admin/openipam/change_form.html'
+# class HostUserObjectPermissionAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'hostname', 'mac', 'permission',)
+#     list_select_related = True
+#     search_fields = ('user_username', 'content_object__mac', 'content_object__hostname')
+#     form = autocomplete_light.modelform_factory(HostUserObjectPermission)
+#     change_form_template = 'admin/openipam/change_form.html'
 
-    def hostname(self, obj):
-        return '%s' % obj.content_object.hostname
+#     def hostname(self, obj):
+#         return '%s' % obj.content_object.hostname
 
-    def mac(self, obj):
-        return '%s' % obj.content_object.mac
+#     def mac(self, obj):
+#         return '%s' % obj.content_object.mac
 
 
-class HostGroupObjectPermissionAdmin(admin.ModelAdmin):
-    list_display = ('group', 'hostname', 'mac', 'permission',)
-    list_filter = ('group__name',)
-    search_fields = ('group__name', 'content_object__mac', 'content_object__hostname')
-    list_select_related = True
-    form = autocomplete_light.modelform_factory(HostGroupObjectPermission)
-    change_form_template = 'admin/openipam/change_form.html'
+# class HostGroupObjectPermissionAdmin(admin.ModelAdmin):
+#     list_display = ('group', 'hostname', 'mac', 'permission',)
+#     list_filter = ('group__name',)
+#     search_fields = ('group__name', 'content_object__mac', 'content_object__hostname')
+#     list_select_related = True
+#     form = autocomplete_light.modelform_factory(HostGroupObjectPermission)
+#     change_form_template = 'admin/openipam/change_form.html'
 
-    def hostname(self, obj):
-        return '%s' % obj.content_object.hostname
+#     def hostname(self, obj):
+#         return '%s' % obj.content_object.hostname
 
-    def mac(self, obj):
-        return '%s' % obj.content_object.mac
+#     def mac(self, obj):
+#         return '%s' % obj.content_object.mac
 
 
 class DisabledAdmin(admin.ModelAdmin):
@@ -85,8 +85,8 @@ class GuestTicketAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Host, HostAdmin)
-admin.site.register(HostUserObjectPermission, HostUserObjectPermissionAdmin)
-admin.site.register(HostGroupObjectPermission, HostGroupObjectPermissionAdmin)
+# admin.site.register(HostUserObjectPermission, HostUserObjectPermissionAdmin)
+# admin.site.register(HostGroupObjectPermission, HostGroupObjectPermissionAdmin)
 admin.site.register(Attribute)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)

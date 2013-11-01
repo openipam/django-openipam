@@ -126,7 +126,7 @@ class HostListJson(BaseDatatableView):
                 '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host.mac,
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
                  ' class="host-details" data-toggle="modal">%(hostname)s</a>' % {
-                                                                                    'hostname': host.hostname,
+                                                                                    'hostname': host.hostname or 'N/A',
                                                                                     'view_href': host_view_href,
                                                                                     'update_href': host_edit_href
                                                                                 }),

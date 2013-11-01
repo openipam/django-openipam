@@ -69,14 +69,6 @@ class IPAMIndexDashboard(Dashboard):
             ),
         ))
 
-        self.children.append(modules.ModelList(
-            _('TO BE DELETED'),
-            models=(
-                'openipam.user.models.Permission',
-                'openipam.user.models.Group',
-            ),
-        ))
-
         # append an app list module for "Administration"
         self.children.append(modules.ModelList(
             _('Administration'),
@@ -92,6 +84,14 @@ class IPAMIndexDashboard(Dashboard):
             _('Recent Actions'),
             limit=5,
 
+        ))
+
+        self.children.append(modules.ModelList(
+            _('TO BE DELETED'),
+            models=(
+                'openipam.user.models.Permission',
+                'openipam.user.models.Group',
+            ),
         ))
 
 

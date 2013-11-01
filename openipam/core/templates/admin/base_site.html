@@ -34,6 +34,7 @@
             {% if user.is_active %}
             <ul class="nav pull-right">
                 {% if user.is_staff %}
+                {% comment %}
                   <li class="dropdown">
                     <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
                       <i class="icon-search icon-white"></i>
@@ -44,6 +45,7 @@
                         </li>
                     </ul>
                   </li>
+                {% endcomment %}
                   {% atb_site_link %}
                   {% admin_tools_render_menu %}
                 {% endif %}

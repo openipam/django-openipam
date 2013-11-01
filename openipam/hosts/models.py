@@ -236,7 +236,7 @@ class Host(models.Model):
                 elif addresses:
                     try:
                         self.address_type = AddressType.objects.get(ranges__range__net_contained_or_equal=addresses[0])
-                    except AddresType.DoesNotExist:
+                    except AddressType.DoesNotExist:
                         self.address_type = AddressType.objects.get(is_default=True)
                 elif pools:
                     self.address_type = AddressType.objects.get(pool=pools[0])

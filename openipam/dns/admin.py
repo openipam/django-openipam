@@ -57,21 +57,21 @@ class DomainAdmin(OpjectPermissionAdmin):
     inlines = [DomainGroupPermissionInline, DomainUserPermissionInline]
 
 
-class DomainGroupObjectPermissionAdmin(admin.ModelAdmin):
-    list_display = ('group', 'content_object', 'permission',)
-    list_filter = ('group__name',)
-    search_fields = ('group__name', 'content_object__name',)
-    list_select_related = True
-    form = autocomplete_light.modelform_factory(DomainGroupObjectPermission)
-    change_form_template = 'admin/openipam/change_form.html'
+# class DomainGroupObjectPermissionAdmin(admin.ModelAdmin):
+#     list_display = ('group', 'content_object', 'permission',)
+#     list_filter = ('group__name',)
+#     search_fields = ('group__name', 'content_object__name',)
+#     list_select_related = True
+#     form = autocomplete_light.modelform_factory(DomainGroupObjectPermission)
+#     change_form_template = 'admin/openipam/change_form.html'
 
 
-class DomainUserObjectPermissionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'content_object', 'permission',)
-    search_fields = ('user__username', 'content_object__name',)
-    list_select_related = True
-    form = autocomplete_light.modelform_factory(DomainUserObjectPermission)
-    change_form_template = 'admin/openipam/change_form.html'
+# class DomainUserObjectPermissionAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'content_object', 'permission',)
+#     search_fields = ('user__username', 'content_object__name',)
+#     list_select_related = True
+#     form = autocomplete_light.modelform_factory(DomainUserObjectPermission)
+#     change_form_template = 'admin/openipam/change_form.html'
 
 
 class DnsRecordAdmin(admin.ModelAdmin):
@@ -109,5 +109,5 @@ class DnsTypeAdmin(OpjectPermissionAdmin):
 admin.site.register(DnsType, DnsTypeAdmin)
 admin.site.register(DnsRecord, DnsRecordAdmin)
 admin.site.register(Domain, DomainAdmin)
-admin.site.register(DomainGroupObjectPermission, DomainGroupObjectPermissionAdmin)
-admin.site.register(DomainUserObjectPermission, DomainUserObjectPermissionAdmin)
+# admin.site.register(DomainGroupObjectPermission, DomainGroupObjectPermissionAdmin)
+# admin.site.register(DomainUserObjectPermission, DomainUserObjectPermissionAdmin)

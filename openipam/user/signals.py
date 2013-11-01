@@ -4,7 +4,6 @@ from django.db.models import Q
 from django.conf import settings
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
-from guardian.utils import get_user_obj_perms_model, get_group_obj_perms_model
 
 
 DIRECT_PERM_MODELS_LIST = (
