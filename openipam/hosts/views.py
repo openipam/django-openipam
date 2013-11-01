@@ -120,10 +120,16 @@ class HostListJson(BaseDatatableView):
         # queryset is already paginated here
         json_data = []
         for host in qs:
+            host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
+            host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
             json_data.append([
                 '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host.mac,
-                '<a href="%s" rel="%s" class="host-details" data-toggle="modal">%s</a>' % (reverse_lazy('view_host', args=(slugify(host.mac),)),
-                                                                                           host.hostname, host.hostname),
+                ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
+                 ' class="host-details" data-toggle="modal">%(hostname)s</a>' % {
+                                                                                    'hostname': host.hostname,
+                                                                                    'view_href': host_view_href,
+                                                                                    'update_href': host_edit_href
+                                                                                }),
                 host.mac,
                 get_last_ip(host.mac),
                 get_expires(host.expires),

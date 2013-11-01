@@ -5,14 +5,21 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
+
 from netfields import InetAddressField, MACAddressField, NetManager
+
 from guardian.managers import UserObjectPermissionManager
-from guardian.models import UserObjectPermission, UserObjectPermissionBase, GroupObjectPermissionBase
+from guardian.models import UserObjectPermission, GroupObjectPermission, \
+    UserObjectPermissionBase, GroupObjectPermissionBase
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
+
 from openipam.hosts.validators import validate_hostname
+from openipam.hosts.managers import HostManager
+
 from datetime import datetime
-from managers import HostManager
 
 
 class Attribute(models.Model):
@@ -240,7 +247,6 @@ class Host(models.Model):
 
         return self.address_type
 
-
     def remove_owners(self):
         owners = self.owners
         for user in owners[0]:
@@ -248,10 +254,8 @@ class Host(models.Model):
         for group in owners[0]:
             remove_perm('is_owner_host', group, self)
 
-
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
-
 
     def dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -311,6 +315,7 @@ class HostUserObjectPermission(UserObjectPermissionBase):
 
     class Meta:
         verbose_name = 'Host User Permission'
+
 
 class HostGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey('Host', related_name='group_permissions')

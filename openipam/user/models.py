@@ -1,19 +1,23 @@
 from django.db import models
-from django.contrib.auth.models import User as AuthUser, UserManager
+from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, UserManager
 from django.utils import timezone
 from django.utils.http import urlquote
-from django.db.models.signals import post_save, pre_save, pre_delete
+from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.conf import settings
 
-
 from django_postgres import BitStringField
+
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from openipam.user.managers import UserToGroupManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-    remove_obj_perms_connected_with_user
+   remove_obj_perms_connected_with_user, add_direct_user_object_permission, \
+   add_direct_group_object_permission, remove_direct_user_object_permission, \
+   remove_direct_group_object_permission, add_user_object_permission, \
+   add_group_object_permission, remove_user_object_permission, remove_group_object_permission
 
 from bitstring import Bits
 
@@ -46,7 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_ipamadmin(self):
-        return True if self.group.filter(group='ipam-admins') else False
+        return True if self.groups.filter(name='ipam-admins') else False
 
     def get_auth_user(self):
         try:
@@ -76,6 +80,34 @@ class User(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email])
+
+    # # Force Usernames to be lower case when being created
+    # @classmethod
+    # def force_usernames_uppercase(sender, instance, **kwargs):
+    #     username = instance.username.lower()
+    #     if username.startswith('a') and username[1:].isdigit() and len(username) == 9:
+    #         instance.username = instance.username.upper()
+
+    # # Automatically assign new users to IPAM_USER_GROUP
+    # @classmethod
+    # def assign_ipam_groups(sender, instance, created, **kwargs):
+    #     # Get user group
+    #     ipam_user_group = AuthGroup.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
+    #     # Check to make sure Admin Group exists
+    #     ipam_admin_group = AuthGroup.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
+
+    #     if created:
+    #         instance.groups.add(ipam_user_group)
+
+    # # Automatically remove permissions when user is deleted.
+    # # This is only used when there are row level permissions defined using
+    # # guadian tables.  Right now Host, Domain, DnsType, etc have explicit perm tables.
+    # @classmethod
+    # def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
+    #     filters = Q(content_type=ContentType.objects.get_for_model(instance),
+    #         object_pk=instance.pk)
+    #     UserObjectPermission.objects.filter(filters).delete()
+    #     GroupObjectPermission.objects.filter(filters).delete()
 
     class Meta:
         db_table = 'users'
@@ -200,7 +232,14 @@ class InternalAuth(models.Model):
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-
+post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
+post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)
+post_save.connect(add_direct_group_object_permission, sender=GroupObjectPermission)
+post_delete.connect(remove_direct_group_object_permission, sender=GroupObjectPermission)
+post_save.connect(add_user_object_permission)
+post_save.connect(add_group_object_permission)
+post_delete.connect(remove_user_object_permission)
+post_delete.connect(remove_group_object_permission)
 
 # South Fixes for Bit string field
 try:

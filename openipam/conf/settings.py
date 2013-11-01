@@ -16,10 +16,10 @@ MANAGERS = ADMINS
 DEBUG_MONITOR = True if DEBUG else False
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-try:
-    from local_settings import *
-except:
-    pass
+#try:
+from local_settings import *
+#except:
+#    pass
 
 DATABASES = locals().pop('DATABASES', {
     'default': {
@@ -153,6 +153,7 @@ INSTALLED_APPS = (
     'autocomplete_light',
     'south',
     'rest_framework',
+    'guardian',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -162,13 +163,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
+    'openipam.user',
     'openipam.hosts',
     'openipam.network',
     'openipam.dns',
-    'openipam.user',
     'openipam.log',
-
-    'guardian',
 
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

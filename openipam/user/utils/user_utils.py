@@ -1,9 +1,10 @@
 from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 from guardian.shortcuts import assign_perm
-from guardian.models import UserObjectPermission
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from django_auth_ldap.backend import LDAPBackend
 
@@ -34,9 +35,11 @@ def convert_groups():
 
 
 def convert_host_permissions(delete=False, username=None):
+    owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
+    host_type = ContentType.objects.get(app_label='hosts', model='host')
+
     # First delete to make a clean slate
     if delete:
-        owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
         HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
         HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
 
@@ -70,14 +73,26 @@ def convert_host_permissions(delete=False, username=None):
                     #     auth_user.save()
                     if not auth_user.has_perm('is_owner_host', host_group.mac):
                         print 'Assigning owner permission to user %s for mac %s \n' % (auth_user, host_group.mac)
-                        assign_perm('is_owner_host', auth_user, host_group.mac)
+                        UserObjectPermission.objects.get_or_create(
+                            user=auth_user,
+                            permission=owner_perm,
+                            object_pk=host_group.mac.pk,
+                            content_type=host_type,
+                        )
+                        #assign_perm('is_owner_host', auth_user, host_group.mac)
                 else:
                     continue
         else:
             auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
             if not auth_user.has_perm('is_owner_host', host_group.mac):
                 print 'Assigning owner permission to group %s for mac %s \n' % (auth_group, host_group.mac)
-                assign_perm('is_owner_host', auth_group, host_group.mac)
+                GroupObjectPermission.objects.get_or_create(
+                    group=auth_group,
+                    permission=owner_perm,
+                    object_pk=host_group.mac.pk,
+                    content_type=host_type,
+                )
+                #assign_perm('is_owner_host', auth_group, host_group.mac)
 
 
 def populate_user_from_ldap():

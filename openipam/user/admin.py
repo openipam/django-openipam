@@ -89,6 +89,11 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     list_filter = (PermissionFilter,)
     search_fields = ('user__username',)
 
+    def change_view(self, request, object_id, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['readonly'] = True
+        return super(UserObjectPermissionAdmin, self).change_view(request, object_id, extra_context=extra_context)
+
     def get_queryset(self, request):
         qs = super(UserObjectPermissionAdmin, self).queryset(request)
         qs = qs.prefetch_related('user', 'permission', 'content_object').all()

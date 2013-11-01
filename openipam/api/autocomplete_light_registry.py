@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from openipam.user.models import User
-from openipam.dns.models import Domain
+from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, Pool, DhcpGroup
 from guardian.shortcuts import get_objects_for_user, assign_perm
@@ -17,6 +17,7 @@ import autocomplete_light
 class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
     choices = (
         Domain.objects.all(),
+        DnsType.objects.all(),
         Network.objects.all(),
         Pool.objects.all(),
         Host.objects.all(),
@@ -24,10 +25,15 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 
     search_fields = (
         ('name',),
+        ('name',),
         ('network',),
         ('name',),
         ('hostname',),
     )
+
+    autocomplete_js_attributes = {
+        'minimum_characters': 1,
+    }
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)

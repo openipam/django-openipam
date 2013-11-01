@@ -84,16 +84,17 @@
                         $("#result_list span.expired-date").parents('tr').addClass('expired');
 
                         $(".host-details").click(function(){
-                            var rel = $(this).prop("rel");
+                            var hostname = $(this).prop("rel");
                             var href = $(this).prop("href");
+                            var edit_href = $(this).prop("id");
 
                             $('#host-details').modal({
                                   remote: href
                             });
 
                             $('#host-details').on('shown', function(){
-                                $("#myModalLabel").text("Details for: " + rel);
-                                $("#edit-host").prop("href", $(this).prop("href"));
+                                $("#myModalLabel").text("Details for: " + hostname);
+                                $("#edit-host").prop("href", edit_href);
                             });
 
                             return false;
@@ -269,7 +270,7 @@
                 {% endif %}
                 <tbody>
                     <tr>
-                        <td>&npsb;</td>
+                        <td>&nbsp;</td>
                         <td colspan="8">Loading...</td>
                     </tr>
                 {% comment %}

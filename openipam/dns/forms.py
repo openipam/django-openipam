@@ -5,8 +5,10 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from openipam.dns.models import DomainGroupObjectPermission, DomainUserObjectPermission, DnsRecord, DnsType
+
+from openipam.dns.models import DnsRecord, DnsType
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
+
 import autocomplete_light
 
 
@@ -69,8 +71,7 @@ class DNSUpdateForm(forms.ModelForm):
 
     def clean(self, *args, **kwargs):
 
-        data = self.cleaned_data
-
+        #data = self.cleaned_data
         # if data['text_content'] and self.instance.ip_content:
         #     raise ValidationError('Content for DNS entry %s cannot be added because'
         #                           ' it has IP Content of %s' % (self.instance.name, self.instance.ip_content))

@@ -40,6 +40,7 @@ class IPAMMenu(Menu):
                             'openipam.hosts.models.HostGroupObjectPermission',
                             'openipam.dns.models.DomainGroupObjectPermission',
                             'openipam.dns.models.DomainUserObjectPermission',
+                            'guardian.*'
                         ]
                     ),
                 ],

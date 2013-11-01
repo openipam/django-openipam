@@ -50,11 +50,6 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=True),
                       keep_default=False)
 
-        # Adding field 'User.is_ipamadmin'
-        db.add_column('users', 'is_ipamadmin',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
         # Adding field 'User.date_joined'
         db.add_column('users', 'date_joined',
                       self.gf('django.db.models.fields.DateTimeField')(default=timezone.now),

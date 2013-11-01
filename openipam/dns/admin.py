@@ -1,8 +1,10 @@
 from django.contrib import admin
+
 from openipam.dns.models import DnsRecord, DnsType, Domain, DomainGroupObjectPermission, DomainUserObjectPermission, \
     DnsTypeGroupObjectPermission, DnsTypeUserObjectPermission
 from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
+
 import autocomplete_light
 
 
