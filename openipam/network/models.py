@@ -222,7 +222,7 @@ class NetworkToVlan(models.Model):
 
 class Address(models.Model):
     address = InetAddressField(primary_key=True)
-    mac = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses')
+    host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses')
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True)
     reserved = models.BooleanField()
     network = models.ForeignKey('Network', db_column='network')

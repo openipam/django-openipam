@@ -8,18 +8,26 @@ from django.db.models import Q
 from django.forms.models import modelformset_factory
 from django.contrib import messages
 from openipam.dns.models import DnsRecord, DnsType
+from openipam.hosts.models import Host
 from openipam.dns.forms import DNSUpdateForm, BaseDNSUpdateFormset
 
 
 def dns_list_edit(request):
 
     search_string = request.GET.get('q', None)
+    mac_string = request.GET.get('mac', None)
     page = request.GET.get('page', None)
     queryset = DnsRecord.objects.none()
     page_objects = None
     DNSUpdateFormset = modelformset_factory(DnsRecord, DNSUpdateForm, formset=BaseDNSUpdateFormset, can_delete=True, extra=0)
 
-    if search_string:
+    if mac_string:
+        queryset = DnsRecord.objects.select_related('dns_type').filter(
+            address__host__mac=mac_string
+        )
+        host = Host.objects.get(mac=mac_string)
+
+    elif search_string:
         queryset = DnsRecord.objects.select_related('dns_type').filter(
             #Q(domain__name__istartswith=search_string) |
             Q(name__istartswith=search_string) |
@@ -52,6 +60,7 @@ def dns_list_edit(request):
         return redirect('%s?q=%s' % (reverse('list_dns'), search_string))
 
     context = {
+        'host': host or None,
         'queryset': queryset,
         'page_objects': page_objects,
         'formset': formset,

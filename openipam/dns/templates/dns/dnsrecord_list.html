@@ -38,11 +38,12 @@
         //     $("#change_"+pk).val('1');
         // })
 
-        $("#add_button").click(function(index, value){
+        $(".add_button").click(function(index, value){
+            var body = $("html, body");
             var totalForms = parseInt($("#id_form-TOTAL_FORMS").val());
             var changeFormId = totalForms-1;
             var newRow = $("#result_list tbody tr:last-child").clone().attr('id', '').removeClass('hide')
-            newRow.find(".label-delete, input:checkbox").remove();
+            //newRow.find(".label-delete, input:checkbox").remove();
             newRow.find("td[rel='ttl']").html('86400');
             var controls = newRow.find("input, select");
             controls.each(function(index, selector){
@@ -54,6 +55,8 @@
             });
             newRow.appendTo('#result_list tbody');
             $("#id_form-TOTAL_FORMS").val(totalForms+1);
+
+            $('html, body').scrollTop( $(document).height() - $(window).height());
         });
     });
     </script>
@@ -65,12 +68,26 @@
         <div class="well well-small">
             <div>
                 <p class="help-block pull-left lead">
-                    What DNS records would you like to see?
+                    {% if host %}
+                        Showing DNS entries for {{ host.hostname }}
+                    {% else %}
+                        What DNS records would you like to see?
+                    {% endif %}
                 </p>
-                <label class="pull-left" for="search-input" />
-                <input type="text" name="q" id="search-input" class="input-large" placeholder="Search DNS" value="{{ request.GET.q }}" />
+                {% if not host %}
+                    <label class="pull-left" for="search-input" />
+                    <input type="text" name="q" id="search-input" class="input-large" placeholder="Search DNS" value="{{ request.GET.q }}" />
+                {% endif %}
             </div>
-            <input type="submit" class="btn btn-primary pull-left" id="search-dns">
+            {% if not host %}
+                <input type="submit" class="btn btn-primary pull-left" id="search-dns">
+            {% else %}
+                <div class="pull-right">
+                    <input type="button" class="add_button btn btn-success" value="Add Record" />
+                    <input type="submit" class="btn btn-primary" value="Save" />
+                    <a href="{% url 'list_dns' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            {% endif %}
             {% if page_objects %}
             <div class="pagination pull-right">
                 <ul>
@@ -210,7 +227,7 @@
 
         <div class="well well-small">
             <div class="pull-left">
-                <input id="add_button" type="button" class="btn btn-success" value="Add Record" />
+                <input type="button" class="add_button btn btn-success" value="Add Record" />
                 <input type="submit" class="btn btn-primary" value="Save" />
                 <a href="{% url 'list_dns' %}" class="btn btn-secondary">Cancel</a>
             </div>

@@ -54,7 +54,7 @@ class DnsRecord(models.Model):
     dns_view = models.ForeignKey('DnsView', db_column='vid', blank=True, null=True)
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
-    ip_content = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
+    address = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
     ttl = models.IntegerField(default=86400, blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
