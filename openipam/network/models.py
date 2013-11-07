@@ -102,6 +102,7 @@ class DhcpGroup(models.Model):
 
     class Meta:
         db_table = 'dhcp_groups'
+        verbose_name = 'DHCP Group'
 
 
 class DhcpOption(models.Model):

@@ -236,7 +236,7 @@ class HostDetailView(DetailView):
         attributes += self.object.structured_attributes.values_list('structured_attribute_value__attribute__description',
                                                                     'structured_attribute_value__value')
         context['attributes'] = attributes
-        context['dns_records'] = self.object.dns_records()
+        context['dns_records'] = self.object.get_dns_records()
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
         context['leased_addresses'] = Lease.objects.filter(mac=self.object.mac)

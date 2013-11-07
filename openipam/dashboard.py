@@ -26,7 +26,7 @@ class IPAMIndexDashboard(Dashboard):
     Custom index dashboard for openipam.
     """
 
-    title = 'Admin Dashboard'
+    title = ''
 
 
     def init_with_context(self, context):
@@ -108,7 +108,7 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     """
 
     # we disable title because its redundant with the model list module
-    title = 'Admin Dashboard'
+    title = ''
 
     def __init__(self, *args, **kwargs):
         AppIndexDashboard.__init__(self, *args, **kwargs)

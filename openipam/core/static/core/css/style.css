@@ -514,7 +514,7 @@ ul.timelist, .timelist li {
 
 .quickbody {
   overflow: hidden;
-  margin-left: 195px;
+  /*margin-left: 195px;*/
 }
 
 .margin10 {

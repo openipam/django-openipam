@@ -251,6 +251,17 @@ class Host(models.Model):
 
         return self.address_type
 
+    def get_dns_records(self):
+        from openipam.dns.models import DnsRecord
+
+        addresses = self.addresses.all()
+        a_record_names = DnsRecord.objects.select_related().filter(address__in=addresses).values_list('name')
+        dns_records = DnsRecord.objects.select_related().filter(
+            Q(text_content__in=a_record_names) | Q(name__in=a_record_names) | Q(address__in=addresses)
+        ).order_by('dns_type__name')
+
+        return dns_records
+
     def remove_owners(self):
         owners = self.owners
         for user in owners[0]:
@@ -261,16 +272,6 @@ class Host(models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
-    def dns_records(self):
-        from openipam.dns.models import DnsRecord
-
-        addresses = self.addresses.all()
-        a_record_names = DnsRecord.objects.select_related().filter(ip_content__in=addresses).values_list('name')
-        dns_records = DnsRecord.objects.select_related().filter(
-            Q(text_content__in=a_record_names) | Q(name__in=a_record_names) | Q(ip_content__in=addresses)
-        ).order_by('dns_type__name')
-
-        return dns_records
 
     def __unicode__(self):
         return self.hostname

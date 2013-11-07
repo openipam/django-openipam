@@ -49,14 +49,14 @@ class DomainGroupObjectPermission(GroupObjectPermissionBase):
 
 
 class DnsRecord(models.Model):
-    domain = models.ForeignKey('Domain', db_column='did')
-    dns_type = models.ForeignKey('DnsType', db_column='tid')
-    dns_view = models.ForeignKey('DnsView', db_column='vid', blank=True, null=True)
+    domain = models.ForeignKey('Domain', db_column='did', verbose_name='Domain')
+    dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type')
+    dns_view = models.ForeignKey('DnsView', db_column='vid', verbose_name='View', blank=True, null=True)
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
-    address = models.ForeignKey('network.Address', db_column='ip_content', blank=True, null=True)
+    address = models.ForeignKey('network.Address', db_column='ip_content', verbose_name='IP Content', blank=True, null=True)
     ttl = models.IntegerField(default=86400, blank=True, null=True)
-    priority = models.IntegerField(blank=True, null=True)
+    priority = models.IntegerField(verbose_name='Priority', blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
@@ -78,6 +78,7 @@ class DnsRecord(models.Model):
     class Meta:
         db_table = 'dns_records'
         ordering = ('dns_type', 'name')
+        verbose_name = 'DNS Record'
 
 
 
@@ -127,6 +128,7 @@ class DnsType(models.Model):
             ('add_records_to_dnstype', 'Can add records to'),
         )
         ordering = ('name',)
+        verbose_name = 'DNS Type'
 
 
 class DnsTypeUserObjectPermission(UserObjectPermissionBase):

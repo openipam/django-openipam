@@ -8,11 +8,11 @@ from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestAdminForm
 
 
-def index(request):
-    if not request.user.get_full_name() or not request.user.email:
-        return redirect('profile')
+# def index(request):
+#     if not request.user.get_full_name() or not request.user.email:
+#         return redirect('profile')
 
-    return render(request, 'core/index.html')
+#     return render(request, 'core/index.html')
 
 
 def profile(request):
@@ -54,7 +54,7 @@ def password_change(request, *args, **kwargs):
     if request.user.has_usable_password():
         return auth_password_change(request, *args, **kwargs)
     else:
-        return redirect('index')
+        return redirect('admin:index')
 
 
 def password_forgot(request):

@@ -75,13 +75,34 @@ class DomainAdmin(OpjectPermissionAdmin):
 
 
 class DnsRecordAdmin(admin.ModelAdmin):
-    list_display = ('name', 'domain', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content')
-    list_filter = ('dns_type', 'domain',)
+    list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
+    list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
     change_form_template = 'admin/openipam/change_form.html'
-    #list_editable = ('domain', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content')
+    list_editable = ('name', 'dns_type', 'text_content')
+    list_display_links = ('edit_link',)
     #list_select_related = True
     search_fields = ('name', 'domain__name', 'text_content')
+
+    def lookup_allowed(self, lookup, value):
+        #assert False, lookup
+        if 'address__host__mac' in lookup:
+            return True
+        return super(DnsRecordAdmin, self).lookup_allowed(lookup, value)
+
+    def get_queryset(self, request):
+        qs = super(DnsRecordAdmin, self).get_queryset(request)
+        qs = qs.select_related('address', 'dns_type')
+
+        return qs
+
+    def ip_content(self, obj):
+        return obj.address.address
+
+    def edit_link(self, obj):
+        return '<a href="%s">Edit</a>' % obj.pk
+    edit_link.short_description = 'Edit'
+    edit_link.allow_tags = True
 
 
 class DnsTypeGroupPermissionInline(admin.TabularInline):

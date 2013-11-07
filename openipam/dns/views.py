@@ -20,6 +20,7 @@ def dns_list_edit(request):
     queryset = DnsRecord.objects.none()
     page_objects = None
     DNSUpdateFormset = modelformset_factory(DnsRecord, DNSUpdateForm, formset=BaseDNSUpdateFormset, can_delete=True, extra=0)
+    host = None
 
     if mac_string:
         queryset = DnsRecord.objects.select_related('dns_type').filter(
@@ -60,7 +61,7 @@ def dns_list_edit(request):
         return redirect('%s?q=%s' % (reverse('list_dns'), search_string))
 
     context = {
-        'host': host or None,
+        'host': host,
         'queryset': queryset,
         'page_objects': page_objects,
         'formset': formset,

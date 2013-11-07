@@ -11,9 +11,12 @@
 
 {% block content %}
     <div class="row-fluid">
+        {% comment %}
         {% block quicklinks %}
             {% include "core/includes/quicklinks.html" %}
         {% endblock %}
+        {% endcomment %}
+
         {% block contentbody %}{% endblock %}
     </div>
 {% endblock %}

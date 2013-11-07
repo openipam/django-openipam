@@ -98,7 +98,7 @@ $(function(){
         <div class="container-fluid">
           {% block branding %}
             {# <img id="globe-small" src="{% static 'core/img/logo-globe-small.png' %}" alt="openIPAM globe" /> #}
-            <a class="brand" href="{% url 'index' %}">openIPAM{# {% atb_site_name %} #}</a>
+            <a class="brand" href="{% url 'admin:index' %}">openIPAM{# {% atb_site_name %} #}</a>
           {% endblock %}
           {% block nav-global %}{% endblock %}
         </div>

@@ -23,17 +23,19 @@
     {% if user.is_active %}
         {% if not is_popup %}
             <ul class="nav pull-left">
+              {% comment %}
               <li {% if root_path == 'hosts' %}class="active"{% endif %}>
                 <a href="{% url 'list_hosts' %}">Hosts</a>
               </li>
               <li {% if root_path == 'dns' %}class="active"{% endif %}>
                 <a href="{% url 'list_dns' %}">DNS</a>
               </li>
+              {% endcomment %}
+              {% admin_tools_render_menu %}
             </ul>
 
             {% if user.is_active %}
             <ul class="nav pull-right">
-                {% if user.is_staff %}
                 {% comment %}
                   <li class="dropdown">
                     <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
@@ -45,10 +47,8 @@
                         </li>
                     </ul>
                   </li>
-                {% endcomment %}
                   {% atb_site_link %}
-                  {% admin_tools_render_menu %}
-                {% endif %}
+                {% endcomment %}
                 <li class="dropdown">
                   <a class="dropdown-toggle" href="#" data-toggle="dropdown">
                       <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />

@@ -14,9 +14,9 @@ urlpatterns = patterns('',
     # openIPAM urls
     url(r'^', include('openipam.core.urls')),
 
+    # Admin Frontend
+    url(r'^', include(admin.site.urls)),
+
     # Utitity routes to serve admin
     url(r'^admin_tools/', include('admin_tools.urls')),
-
-    # Admin Frontend
-    url(r'^admin/', include(admin.site.urls)),
 )

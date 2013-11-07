@@ -1,9 +1,14 @@
 from django.conf.urls import patterns, url, include
-from openipam.hosts.views import HostListView, HostUpdateView, HostCreateView, HostDetailView, HostListJson
+from django.core.urlresolvers import reverse_lazy
+from django.views.generic.base import RedirectView
+
+from openipam.hosts.views import HostListView, HostUpdateView, HostCreateView, \
+    HostDetailView, HostListJson
 
 
 urlpatterns = patterns('openipam.hosts.views',
 
+    url(r'^host/\w*$', RedirectView.as_view(url=reverse_lazy('list_hosts'))),
     url(r'^$', HostListView.as_view(), name='list_hosts'),
     #url(r'^$', 'index', name='hosts'),
 
