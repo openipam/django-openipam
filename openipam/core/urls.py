@@ -6,7 +6,7 @@ from openipam.core.views import FeatureRequestView
 
 
 urlpatterns = patterns('openipam.core.views',
-    #url(r'^$', 'index', name='index'),
+    url(r'^$', 'index', name='index'),
 
     # Accounts URLs
     #url(r'^accounts/login/$', login, name='auth_login'),

@@ -4,15 +4,16 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
+from django.contrib.admin.sites import AdminSite
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestAdminForm
 
 
-# def index(request):
-#     if not request.user.get_full_name() or not request.user.email:
-#         return redirect('profile')
-
-#     return render(request, 'core/index.html')
+def index(request):
+    if not request.user.get_full_name() or not request.user.email:
+        return redirect('profile')
+    else:
+        return AdminSite().index(request)
 
 
 def profile(request):

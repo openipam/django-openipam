@@ -26,6 +26,15 @@
         .ui-button {
             margin-right: 0 !important;
         }
+        #id_groups_text {
+            margin-bottom: 0px;
+        }
+        #id_groups-deck {
+            margin-top: 2px;
+        }
+        #result_list_length select {
+            margin: 0px;
+        }
     </style>
     {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
@@ -39,6 +48,33 @@
            //          return false;
            //      }
            //  });
+
+            $.fn.dataTableExt.oApi.fnFilterClear = function(oSettings)
+            {
+                /* Remove global filter */
+                oSettings.oPreviousSearch.sSearch = "";
+
+                /* Remove the text of the global filter in the input boxes */
+                if (typeof oSettings.aanFeatures.f != 'undefined')
+                {
+                    var n = oSettings.aanFeatures.f;
+                    for (var i=0, iLen=n.length ; i<iLen ; i++)
+                    {
+                        $('input[type="text"]', n[i]).val( '' );
+                    }
+                }
+
+                /* Remove the search text for the column filters - NOTE - if you have input boxes for these
+                 * filters, these will need to be reset
+                 */
+                for (var i=0, iLen=oSettings.aoPreSearchCols.length ; i<iLen ; i++)
+                {
+                    oSettings.aoPreSearchCols[i].sSearch = "";
+                }
+
+                /* Redraw */
+                oSettings.oApi._fnReDraw(oSettings);
+            };
 
             var asInitVals = new Array();
 
@@ -116,13 +152,31 @@
 
             // JS Styling :/
             $("div.filters").append($("#filters"));
-            $("#result_list_filter label").html('<input type="text" aria-controls="result_list" size="40" id="searchbar" placeholder="Quick Search">');
-            $("#changelist-search").append($("#result_list_filter"));
+            //$("#result_list_filter label").html('');
+            //$("#changelist-search").append($("#result_list_filter"));
             $("#filters").append($("#result_list_processing")).append('<div class="clear"><!-- --></div>');
             //$("#filter-actions").append($("#result_list_filter"));
 
             $("tfoot input").each(function (i){
                 asInitVals[i] = this.value;
+            });
+
+            $("#clear-search").click(function(){
+                $(".dataTables_filter input[type='text']").val('');
+                $(".search_init").val('');
+                $("select.filter-select option").each(function(index, obj){
+                    if (index == 0){
+                        $(obj).attr('selected', 'selected');
+                    }
+                    else {
+                        $(obj).removeAttr('selected');
+                    }
+                });
+                $("select.filter-select").val('').trigger("liszt:updated");
+                $("input[name='regex-search-type']").removeAttr('checked');
+                $("input[name='regex-search-type'][value='1']").attr('checked', 'checked');
+                results.fnFilterClear();
+                return false;
             });
 
             $(".search_init").bind('keyup change', function(){
@@ -205,7 +259,8 @@
                     </div>
                     {% if not is_owner %}
                     <div class="action-wrapper">
-                        {{ form.groups }}
+                        <label class="pull-left" style="margin: 5px 5px 0px 10px;">Search By Group:</label>
+                        <div class="pull-right">{{ form.groups }}</div>
                         {% comment %}
                         <select id="group-filter">
                         <option value="">Filter by Group...</option>
@@ -219,7 +274,8 @@
                     {% endif %}
                 </div>
             </div>
-            <div id="changelist-search" class="pull-left"></div>
+            {# <div id="changelist-search" class="pull-left"></div> #}
+            <a id="clear-search" class="label label-info pull-right" style="color: #fff; margin: 8px 10px 0px 10px;" href="javascript:void(0);">Clear Searches</a>
             {% endspaceless %}
         </div>
 
