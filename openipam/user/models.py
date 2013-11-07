@@ -17,7 +17,8 @@ from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase,
    remove_obj_perms_connected_with_user, add_direct_user_object_permission, \
    add_direct_group_object_permission, remove_direct_user_object_permission, \
    remove_direct_group_object_permission, add_user_object_permission, \
-   add_group_object_permission, remove_user_object_permission, remove_group_object_permission
+   add_group_object_permission, remove_user_object_permission, remove_group_object_permission, \
+   convert_user_host_permissions
 
 from bitstring import Bits
 
@@ -231,6 +232,7 @@ class InternalAuth(models.Model):
 # Connect signals
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
+post_save.connect(convert_user_host_permissions, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
 post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
 post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)

@@ -24,6 +24,16 @@ def force_usernames_uppercase(sender, instance, **kwargs):
         instance.username = instance.username.upper()
 
 
+# Convert Host permissions on login if created.
+# We use is_staff to flag if they have been converted or not cause this
+# in the end will always be set to True
+def convert_user_host_permissions(sender, instance, created, **kwargs):
+    from openipam.user.utils.user_utils import convert_host_permissions
+
+    if not created and instance.is_staff is False:
+        convert_host_permissions(username=instance.username)
+
+
 # Automatically assign new users to IPAM_USER_GROUP
 def assign_ipam_groups(sender, instance, created, **kwargs):
     # Get user group
