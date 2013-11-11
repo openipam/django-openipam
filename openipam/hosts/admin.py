@@ -1,7 +1,9 @@
 from django.contrib import admin
-from models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification, \
+
+from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification, \
     HostGroupObjectPermission, HostUserObjectPermission
 from openipam.hosts.forms import HostGroupPermissionForm, HostUserPermissionForm
+
 import autocomplete_light
 
 

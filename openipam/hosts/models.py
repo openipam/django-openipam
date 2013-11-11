@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -199,20 +200,23 @@ class Host(models.Model):
 
     @property
     def owners(self):
-        user_list = []
-        group_list = []
+        #user_list = []
+        #group_list = []
 
-        users = get_users_with_perms(self, attach_perms=True)
-        for user, perm in users.iteritems():
-            if 'is_owner' in perm:
-                user_list.append(user)
+        users = [user.user_id for user in self.user_permissions.filter(permission__codename='is_owner_host')]
+        groups = [group.group_id for group in self.group_permissions.filter(permission__codename='is_owner_host')]
 
-        groups = get_groups_with_perms(self, attach_perms=True)
-        for group, perm in groups.iteritems():
-            if 'is_owner' in perm:
-                group_list.append(group)
+        # users = get_users_with_perms(self, attach_perms=True)
+        # for user, perm in users.iteritems():
+        #     if 'is_owner' in perm:
+        #         user_list.append(user)
 
-        return (user_list, group_list)
+        # groups = get_groups_with_perms(self, attach_perms=True)
+        # for group, perm in groups.iteritems():
+        #     if 'is_owner' in perm:
+        #         group_list.append(group)
+
+        return users, groups
 
     def get_ip_address(self):
         addresses = self.addresses.all()
@@ -262,6 +266,10 @@ class Host(models.Model):
 
         return dns_records
 
+    def set_expiration(self, expire_days):
+        now = timezone.now()
+        self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
+
     def remove_owners(self):
         owners = self.owners
         for user in owners[0]:
@@ -272,6 +280,8 @@ class Host(models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
+    def user_has_perm(self, user):
+        return True if user.has_perm('hosts.is_owner_host', self) else False
 
     def __unicode__(self):
         return self.hostname

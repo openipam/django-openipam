@@ -1,5 +1,5 @@
 {% extends "hosts/base.html" %}
-{% load i18n static openipam openipam_host_extras %}
+{% load i18n static openipam openipam_host_extras crispy_forms_tags %}
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
@@ -209,6 +209,31 @@
                 }
             });
 
+            $("#action-submit").click(function(){
+                var action = $("#host-action").val();
+                var hosts = $(".action-select:checked");
+
+                if (hosts.length > 0) {
+                    if (action == 'owners') {
+                        $('#host-owners').modal();
+                    }
+                    else if (action == 'delete') {
+                        var res = confirm("Are you sure you want to delete the selected hosts?")
+                        if (res == true) {
+                            return true;
+                        }
+                    }
+                    else if (action == 'renew') {
+                        $('#host-renew').modal();
+                    }
+                }
+                else {
+                    alert('Please select one or more hosts to perform this action.')
+                }
+
+                return false;
+            });
+
         });
     </script>
 {% endblock %}
@@ -246,13 +271,13 @@
                         <select id="host-action" name="action">
                             <option value="">Choose an action...</option>
                             <option value="">--------------</option>
-                            {% if request.user.is_superuser or request.user.is_ipamadmin %}
                                 <option value="delete">Delete selected hosts</option>
+                            {% if request.user.is_ipamadmin %}
                                 <option value="owners">Set owners on selected hosts</option>
                             {% endif %}
                             <option value="renew">Renew selected hosts</option>
                         </select>
-                        <button type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                        <button id="action-submit" type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
                             <span class="icon-play"></span>
                             {% trans "Go" %}
                         </button>
@@ -368,10 +393,46 @@
                 </tbody>
             </table>
 
-            <div id="host-details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            {% if request.user.is_ipamadmin %}
+                <div id="host-owners" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3>Set Owners for selected hosts</h3>
+                    </div>
+                    <div class="modal-body" style="overflow: visible;">
+                        <div class="pull-left form-horizontal">
+                            {{ owners_form|crispy }}
+                        </div>
+                        <div class="clear"><!-- --></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div id="host-renew" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="myModalLabel">Details for: </h3>
+                    <h3>Renew for selected hosts</h3>
+                </div>
+                    <div class="modal-body">
+                        <div class="pull-left form-horizontal">
+                            {{ renew_form|crispy }}
+                        </div>
+                        <div class="clear"><!-- --></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                    </div>
+            </div>
+
+            <div id="host-details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="host-detail-label">Details for: </h3>
                 </div>
                 <div class="modal-body">Loading...</div>
                 <div class="modal-footer">

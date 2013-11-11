@@ -56,11 +56,11 @@ class HostForm(forms.ModelForm):
         expire_date = None
 
         if self.instance.pk:
-
             # Get owners
-            owners = self.instance.owners
-            self.fields['user_owners'].initial = owners[0]
-            self.fields['group_owners'].initial = owners[1]
+            user_owners, group_owners = self.instance.owners
+
+            self.fields['user_owners'].initial = user_owners
+            self.fields['group_owners'].initial = group_owners
 
             # Set address_type
             self.fields['address_type'].initial = self.instance.get_address_type()
@@ -147,7 +147,7 @@ class HostForm(forms.ModelForm):
         ]
 
         # Add owners and groups if super user or ipam admin
-        if user.is_superuser or user.is_ipamadmin:
+        if user.is_ipamadmin:
             accordion_groups.append(
                 AccordionGroup(
                     'Owners',
@@ -208,13 +208,24 @@ class HostForm(forms.ModelForm):
         exclude = ('expires', 'changed', 'changed_by',)
 
 
-class ChangeOwnerForm(forms.Form):
+class HostOwnerForm(forms.Form):
     user_owners = forms.ModelMultipleChoiceField(User.objects.all(),
         widget=autocomplete_light.MultipleChoiceWidget('UserAutocomplete'),
         required=False)
     group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
+
+
+class HostRenewForm(forms.Form):
+    expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
+
+    def __init__(self, user, *args, **kwargs):
+        super(HostRenewForm, self).__init__(*args, **kwargs)
+
+        # TODO: Change later
+        if not user.is_ipamadmin:
+            self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
 
 class HostListForm(forms.Form):

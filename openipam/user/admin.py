@@ -3,10 +3,15 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter
+from django.utils.encoding import force_text
+
 from openipam.user.models import User, Group, Permission, UserToGroup
 from openipam.user.forms import AuthUserCreateAdminForm, AuthUserChangeAdminForm, AuthGroupAdminForm, \
     UserObjectPermissionAdminForm, GroupObjectPermissionAdminForm
+
 from guardian.models import UserObjectPermission, GroupObjectPermission
+
+import autocomplete_light
 
 
 class AuthUserAdmin(UserAdmin):
@@ -55,8 +60,53 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username',)
 
 
+class GroupTypeFilter(admin.SimpleListFilter):
+    title = 'group type'
+
+    parameter_name = 'type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('group', 'Groups'),
+            ('user', 'Users'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'user':
+            return queryset.filter(name__istartswith='user_')
+        if self.value() == 'group':
+            return queryset.exclude(name__istartswith='user_')
+
+    def choices(self, cl):
+        # yield {
+        #     'selected': self.value() is None,
+        #     'query_string': cl.get_query_string({}, [self.parameter_name]),
+        #     'display': _('All'),
+        # }
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == force_text(lookup),
+                'query_string': cl.get_query_string({
+                    self.parameter_name: lookup,
+                }, []),
+                'display': title,
+            }
+
+
+
 class GroupAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'description',)
+    list_filter = (GroupTypeFilter,)
+    search_fields = ('name',)
+    form = form = autocomplete_light.modelform_factory(Group)
+
+    def get_queryset(self, request):
+        qs = super(GroupAdmin, self).get_queryset(request)
+
+        if not request.GET.get('type', None):
+            return qs.exclude(name__istartswith='user_')
+
+        return qs
 
 
 class PermissionAdmin(admin.ModelAdmin):

@@ -12,10 +12,13 @@ from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.http import HttpResponseRedirect
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from openipam.hosts.forms import HostForm, HostListForm
+
+from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
 from openipam.network.models import Lease
+
+from guardian.shortcuts import assign_perm
 
 
 class HostListJson(BaseDatatableView):
@@ -149,13 +152,87 @@ class HostListView(TemplateView):
         context = super(HostListView, self).get_context_data(**kwargs)
         #context['groups'] = Group.objects.all().order_by('name')
         context['is_owner'] = self.is_owner
-        context['form'] = HostListForm()
+        context['owners_form'] = HostOwnerForm()
+        context['renew_form'] = HostRenewForm(user=self.request.user)
         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
         if data_table_state:
             context.update(simplejson.loads(data_table_state))
 
         return context
 
+    def post(self, request, *args, **kwargs):
+
+        user = request.user
+        action = request.POST.get('action', None)
+        selected_hosts = request.POST.getlist('selected_hosts', [])
+
+        if selected_hosts:
+            selected_hosts = Host.objects.filter(pk__in=selected_hosts)
+
+            # If action is to change owners on host(s)
+            # Only IPAM admins can do this.
+            if action == 'owners':
+                owner_form = HostOwnerForm(request.POST)
+
+                if user.is_ipamadmin and owner_form.is_valid():
+                    user_owners = owner_form.cleaned_data['user_owners']
+                    group_owners = owner_form.cleaned_data['group_owners']
+
+                    for host in selected_hosts:
+                        # Delete user and group permissions first
+                        host.remove_owners()
+
+                        # Re-assign users
+                        for user in user_owners:
+                            host.assign_owner(user)
+
+                        # Re-assign groups
+                        for group in group_owners:
+                            host.assign_owner(group)
+
+                    messages.success(self.request, "Ownership for selected hosts has been updated.")
+
+                else:
+                    messages.error(self.request, "There was an error changing ownership of selected hosts. "
+                                   "Please content an IPAM administrator.")
+
+            # Actions that both IPAM admins and regular users can do.
+            # We do out perm checks first
+            else:
+                user_perms_check = False
+                if user.is_ipamadmin:
+                    user_perms_check = True
+                else:
+                    user_perm_list = [host.user_has_perm(user) for host in selected_hosts]
+                    if set(user_perm_list) == set([True]):
+                        user_perms_check = True
+                    else:
+                        messages.error(self.request, "You do not have permissions to perform this action on the selected hosts."
+                                       "Please content an IPAM administrator.")
+
+                # Continue if user has perms.
+                if user_perms_check:
+                    # If action is to delete hosts
+                    if action == 'delete':
+                        # Delete hosts
+                        selected_hosts.delete()
+                        messages.success(self.request, "Seleted hosts have been deleted.")
+
+                    elif action == 'renew':
+                        renew_form = HostRenewForm(user=request.user, data=request.POST)
+
+                        if renew_form.is_valid():
+                            for host in selected_hosts:
+                                host.set_expiration(renew_form.cleaned_data['expire_days'].expiration)
+                                host.save()
+
+                            messages.success(self.request, "Expiration for selected hosts have been updated.")
+
+                        else:
+                            messages.error(self.request, "There was an error renewing the expiration of selected hosts. "
+                                   "Please content an IPAM administrator.")
+
+        return redirect('list_hosts')
 
 
 
@@ -260,11 +337,13 @@ class HostUpdateView(UpdateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
+        if form.cleaned_data['expire_days']:
+            instance.set_expiration(form.cleaned_data['expire_days'].expiration)
         instance.changed_by = self.request.user
         instance.save()
 
         # Update owner permissions only if super user or ipam admin
-        if self.request.user.is_superuser or self.request.user.is_ipamadmin:
+        if self.request.user.is_ipamadmin:
             instance.remove_owners()
             if form.cleaned_data['user_owners']:
                 for user in form.cleaned_data['user_owners']:
@@ -298,8 +377,8 @@ class HostCreateView(CreateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
+        instance.set_expiration(form.cleaned_data['expire_days'].expiration)
         instance.changed_by = self.request.user
-        instance.expires = timezone.now() + form.cleaned_data['expire_days'].expiration
         instance.save()
 
         if form.cleaned_data['user_owners']:

@@ -51,7 +51,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_ipamadmin(self):
-        return True if self.groups.filter(name='ipam-admins') else False
+        if self.is_superuser:
+            return True
+        else:
+            return True if self.groups.filter(name='ipam-admins') else False
 
     def get_auth_user(self):
         try:
