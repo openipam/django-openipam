@@ -1,18 +1,22 @@
 from django.shortcuts import render, redirect
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic import UpdateView, CreateView, FormView
 from django.views.generic import TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.template.defaultfilters import slugify
 from django.utils.http import urlunquote
 from django.utils import simplejson
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.http import HttpResponseRedirect
+
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
@@ -29,7 +33,6 @@ class HostListJson(BaseDatatableView):
         'addresses__address',
         'expires',
     )
-    is_owner = False
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
@@ -39,15 +42,14 @@ class HostListJson(BaseDatatableView):
         # return queryset used as base for futher sorting/filtering
         # these are simply objects displayed in datatable
         # Get my hosts /hosts/mine
-        if self.is_owner:
-            #qs = get_objects_for_owner(self.request.user, 'hosts', Host)
+        is_owner = self.request.GET.get('owner_filter', '')
+
+        if is_owner:
             qs = Host.objects.get_hosts_owned_by_user(self.request.user)
-        # Get all hosts if we are ipam admin or super user
-        elif self.request.user.is_superuser or self.request.user.is_ipamadmin:
-            qs = Host.objects.select_related().all()
-        # Get only the hosts that have change or is owner perms
+        # Otherwise get hosts based on permissions
         else:
-            qs = Host.objects.get_hosts_by_user(self.request.user)
+            qs = Host.objects.get_hosts_with_owner_perms(self.request.user)
+
         return qs
 
     def filter_queryset(self, qs):
@@ -146,14 +148,21 @@ class HostListJson(BaseDatatableView):
 
 class HostListView(TemplateView):
     template_name = 'hosts/host_list.html'
-    is_owner = False
 
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
         #context['groups'] = Group.objects.all().order_by('name')
-        context['is_owner'] = self.is_owner
+
+        group_initial = self.request.COOKIES.get('group_filter', None)
+        if group_initial:
+            context['form'] = HostListForm(initial={'groups': group_initial})
+        else:
+            context['form'] = HostListForm()
+
+        context['owner_filter'] = self.request.COOKIES.get('owner_filter', '')
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
+
         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
         if data_table_state:
             context.update(simplejson.loads(data_table_state))
@@ -235,74 +244,6 @@ class HostListView(TemplateView):
         return redirect('list_hosts')
 
 
-
-# class HostListView(ListView):
-#     model = Host
-#     paginate_by = 50
-#     is_owner = False
-
-#     gul_recent_arp_bymac = []
-#     gul_recent_arp_byaddress = []
-
-#     def get_queryset(self):
-#         # Get my hosts /hosts/mine
-#         if self.is_owner:
-#             #qs = get_objects_for_owner(self.request.user, 'hosts', Host)
-#             qs = Host.objects.get_hosts_owned_by_user(self.request.user)
-#         # Get all hosts if we are ipam admin or super user
-#         elif self.request.user.is_superuser or self.request.user.is_ipamadmin:
-#             qs = Host.objects.select_related().all()
-#         # Get only the hosts that have change or is owner perms
-#         else:
-#             qs = Host.objects.get_hosts_by_user(self.request.user)
-
-#         search = self.request.REQUEST.get('q', '')
-#         if search:
-#             qs = qs.filter(Q(hostname__icontains=search) | Q(mac__icontains=search))
-
-#         own_hosts = self.request.REQUEST.get('owner', '')
-#         if own_hosts:
-#             qs = qs.filter()
-
-#         #qs_macs = [q.mac for q in qs]
-#         #self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-#         #self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-
-#         return qs
-
-#     def get_context_data(self, **kwargs):
-#         context = super(HostListView, self).get_context_data(**kwargs)
-
-#         # inject arp data and sent it to context to be added on template.
-#         qs_macs = [q.mac for q in context['object_list']]
-#         self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-#         self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-
-#         context['is_owner'] = self.is_owner
-#         context['gul_recent_arp_bymac'] = self.gul_recent_arp_bymac
-#         context['gul_recent_arp_byaddress'] = self.gul_recent_arp_byaddress
-
-#         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
-#         if data_table_state:
-#             context.update(simplejson.loads(data_table_state))
-
-#         return context
-
-#     # post is used by filters
-#     def post(self, request, *args, **kwargs):
-#         filter_action = request.POST.get('filter', None)
-#         selected_hosts = request.POST.getlist('selected_hosts', [])
-
-#         if filter_action and selected_hosts:
-#             if filter_action == 'delete':
-#                 Host.objects.filter(mac_in=selected_hosts).delete()
-#             elif filter_action == 'owners':
-#                 return
-#             #for host in selected_hosts:
-
-#         return super(self, HostListView).post(request, *args, **kwargs)
-
-
 class HostDetailView(DetailView):
     model = Host
 
@@ -317,14 +258,16 @@ class HostDetailView(DetailView):
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
         context['leased_addresses'] = Lease.objects.filter(mac=self.object.mac)
-        context['user_owners'] = self.object.user_permissions.select_related().all()
-        context['group_owners'] = self.object.group_permissions.select_related().all()
+        context['user_owners'], context['group_owners'] = self.object.get_owners(ids_only=False)
 
         return context
 
+    @method_decorator(permission_owner_required)
+    def dispatch(self, *args, **kwargs):
+        return super(HostDetailView, self).dispatch(*args, **kwargs)
 
-class HostUpdateView(UpdateView):
-    permissions = ()
+
+class HostUpdateCreateView(object):
     model = Host
     form_class = HostForm
     success_url = reverse_lazy('list_hosts')
@@ -336,69 +279,22 @@ class HostUpdateView(UpdateView):
         return form
 
     def form_valid(self, form):
-        instance = form.save(commit=False)
-        if form.cleaned_data['expire_days']:
-            instance.set_expiration(form.cleaned_data['expire_days'].expiration)
-        instance.changed_by = self.request.user
-        instance.save()
-
-        # Update owner permissions only if super user or ipam admin
-        if self.request.user.is_ipamadmin:
-            instance.remove_owners()
-            if form.cleaned_data['user_owners']:
-                for user in form.cleaned_data['user_owners']:
-                    instance.assign_owner(user)
-            if form.cleaned_data['group_owners']:
-                for group in form.cleaned_data['group_owners']:
-                    instance.assign_owner(group)
-
-        change_freeform_attributes(self.request.user, instance, form)
-
-        messages.success(self.request, "Host %s was successfully changed." % instance.hostname,)
-
-        return HttpResponseRedirect(self.get_success_url())
-
-   # def get_context_data(self, **kwargs):
-   #     context = super(HostUpdateView, self).get_context_data(**kwargs)
-   #     context['owner_form'] =
-   #     return context
+        messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
+        return super(HostUpdateCreateView, self).form_valid(form)
 
 
-class HostCreateView(CreateView):
-    model = Host
-    form_class = HostForm
-    success_url = reverse_lazy('list_hosts')
+class HostUpdateView(HostUpdateCreateView, UpdateView):
+    @method_decorator(permission_owner_required)
+    def dispatch(self, *args, **kwargs):
+        return super(HostUpdateView, self).dispatch(*args, **kwargs)
 
-    def get_form(self, form_class):
-        # passing the user object to the form here.
-        form = form_class(user=self.request.user, **self.get_form_kwargs())
 
-        return form
-
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        instance.set_expiration(form.cleaned_data['expire_days'].expiration)
-        instance.changed_by = self.request.user
-        instance.save()
-
-        if form.cleaned_data['user_owners']:
-            for user in form.cleaned_data['user_owners']:
-                instance.assign_owner(user)
-        if form.cleaned_data['group_owners']:
-            for group in form.cleaned_data['group_owners']:
-                instance.assign_owner(group)
-
-        change_freeform_attributes(self.request.user, instance, form)
-
-        messages.success(self.request, "Host %s was successfully added." % instance.hostname,)
-
-        return HttpResponseRedirect(self.get_success_url())
-
-        #return super(HostCreateView, self).form_valid(form)
+class HostCreateView(HostUpdateCreateView, CreateView):
+    pass
 
 
 def change_owners(request):
-    form = ChangeOwnerForm(request.POST or None)
+    form = HostOwnerForm(request.POST or None)
 
     if form.is_valid:
         pass
@@ -408,38 +304,3 @@ def change_owners(request):
     }
 
     return render(request, 'hosts/change_owners.html', context)
-
-
-def change_freeform_attributes(user, instance, form):
-
-    # get all possible attributes
-    attribute_fields = Attribute.objects.all()
-
-    # delete all attributes so we can start over.
-    instance.freeform_attributes.all().delete()
-    instance.structured_attributes.all().delete()
-
-    # get all structure attribute values for performance
-    structured_attributes = StructuredAttributeValue.objects.all()
-
-    # loop through potential values and add them
-    for attribute in attribute_fields:
-        attribute_name = slugify(attribute.name)
-        data = form.cleaned_data.get(attribute_name, '')
-        if data:
-            if attribute.structured:
-                attribute_value = filter(lambda x: x == data, structured_attributes)
-                if attribute_value:
-                    StructuredAttributeToHost.objects.create(
-                        mac=instance,
-                        avid=attribute_value[0],
-                        changed_by=user
-                    )
-            else:
-                FreeformAttributeToHost.objects.create(
-                    mac=instance,
-                    aid=attribute,
-                    value=data,
-                    changed_by=user
-                )
-    return

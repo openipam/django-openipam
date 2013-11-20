@@ -91,6 +91,11 @@ class IPAMIndexDashboard(Dashboard):
             models=(
                 'openipam.user.models.Permission',
                 'openipam.user.models.Group',
+                'openipam.user.models.UserToGroup',
+                'openipam.user.models.HostToGroup',
+                'openipam.user.models.DomainToGroup',
+                'openipam.user.models.NetworkToGroup',
+                'openipam.user.models.PoolToGroup',
             ),
         ))
 

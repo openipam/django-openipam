@@ -69,7 +69,7 @@ class HostAdmin(admin.ModelAdmin):
 
 
 class DisabledAdmin(admin.ModelAdmin):
-    list_display = ('mac', 'disabled', 'disabled_by_full',)
+    list_display = ('host', 'disabled', 'disabled_by_full',)
     form = autocomplete_light.modelform_factory(Disabled)
     change_form_template = 'admin/openipam/change_form.html'
     list_select_related = True

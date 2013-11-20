@@ -8,8 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.conf import settings
 
-from django_postgres import BitStringField
-
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from openipam.user.managers import UserToGroupManager
@@ -20,7 +18,8 @@ from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase,
    add_group_object_permission, remove_user_object_permission, remove_group_object_permission, \
    convert_user_host_permissions
 
-from bitstring import Bits
+from django_postgres import Bits
+import django_postgres
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -128,7 +127,7 @@ class AuthSource(models.Model):
 
 
 class Permission(models.Model):
-    permission = BitStringField(max_length=8, primary_key=True, db_column='id')
+    permission = django_postgres.BitStringField(max_length=8, primary_key=True, db_column='id')
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 
@@ -142,16 +141,16 @@ class Permission(models.Model):
 
 class UserToGroup(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', related_name='user_groups')
-    group = models.ForeignKey('Group', db_column='gid', related_name='group_users')
-    permissions = models.ForeignKey('Permission', db_column='permissions', related_name='default_permissions')
-    host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_host_permissions')
+    group = models.ForeignKey('Group', db_column='gid', related_name='user_groups')
+    permissions = models.ForeignKey('Permission', db_column='permissions', related_name='user_groups_permissions')
+    host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_groups_host_permissions')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = UserToGroupManager()
 
     def __unicode__(self):
-        return self.gid.name
+        return self.group.name
 
     class Meta:
         db_table = 'users_to_groups'
@@ -188,7 +187,7 @@ class DomainToGroup(models.Model):
 
 
 class HostToGroup(models.Model):
-    mac = models.ForeignKey('hosts.Host', db_column='mac')
+    host = models.ForeignKey('hosts.Host', db_column='mac')
     group = models.ForeignKey('Group', db_column='gid')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')

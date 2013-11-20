@@ -1,4 +1,4 @@
 <option value selected="selected">---------</option>
 {% for network in networks %}
-<option>{{ network.network }} - {{ network.name }}</option>
+<option value="{{ network.network }}">{{ network.network }} - {{ network.name }}</option>
 {% endfor %}

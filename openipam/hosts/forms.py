@@ -5,13 +5,20 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from openipam.network.models import AddressType, DhcpGroup, Network
-from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
+from django.utils.safestring import mark_safe
+
+from openipam.network.models import Address, AddressType, DhcpGroup, Network
+from openipam.dns.models import Domain
+from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
+    FreeformAttributeToHost, StructuredAttributeToHost
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
 from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup
+
 from guardian.shortcuts import get_objects_for_user, assign_perm
+
 import autocomplete_light
 import operator
 
@@ -21,6 +28,10 @@ NET_IP_CHOICES = (
     (0, 'Network'),
     (1, 'IP'),
 )
+
+ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
+    address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True))
+]
 
 
 class HostForm(forms.ModelForm):
@@ -49,7 +60,9 @@ class HostForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
 
+        # Attach user to form and model
         self.user = user
+        self.instance.user = user
 
         #Populate some fields if we are editing the record
         current_address_html = None
@@ -57,7 +70,7 @@ class HostForm(forms.ModelForm):
 
         if self.instance.pk:
             # Get owners
-            user_owners, group_owners = self.instance.owners
+            user_owners, group_owners = self.instance.get_owners()
 
             self.fields['user_owners'].initial = user_owners
             self.fields['group_owners'].initial = group_owners
@@ -106,7 +119,7 @@ class HostForm(forms.ModelForm):
             self.fields['expire_days'].required = False
 
             if self.instance.dhcp_group:
-                self.fields['show_hide_dhcp_group'].initial = True
+                del self.fields['show_hide_dhcp_group']
 
         # Setup attributes.
         attribute_fields = Attribute.objects.all()
@@ -160,10 +173,8 @@ class HostForm(forms.ModelForm):
             user_pools = get_objects_for_user(
                 user,
                 ['network.add_records_to_pool', 'network.change_pool'],
-                #klass=Pool,
                 any_perm=True
             )
-            #assert False, user_pools
             user_nets = get_objects_for_user(
                 user,
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
@@ -192,16 +203,126 @@ class HostForm(forms.ModelForm):
             )
         )
 
+    def save(self, *args, **kwargs):
+
+        instance = super(HostForm, self).save(commit=False)
+        if self.cleaned_data['expire_days']:
+            instance.set_expiration(self.cleaned_data['expire_days'].expiration)
+        instance.changed_by = self.user
+
+        # Save
+        instance.save()
+
+        # Assign Pool or Network based on conditions
+        instance.set_network_ip_or_pool
+
+        # Remove all owners if there are any
+        instance.remove_owners()
+
+        # If not admin, assign as owner
+        if not self.user.is_ipamadmin:
+            instance.assign_owner(self.user)
+
+        # Add Owners and Groups specified
+        if self.cleaned_data['user_owners']:
+            for user in self.cleaned_data['user_owners']:
+                instance.assign_owner(user)
+        if self.cleaned_data['group_owners']:
+            for group in self.cleaned_data['group_owners']:
+                instance.assign_owner(group)
+
+        # Update all host attributes
+        # Get all possible attributes
+        attribute_fields = Attribute.objects.all()
+
+        # Get all structure attribute values for performance
+        structured_attributes = StructuredAttributeValue.objects.all()
+
+        # Delete all attributes so we can start over.
+        instance.freeform_attributes.all().delete()
+        instance.structured_attributes.all().delete()
+
+
+        # Loop through potential values and add them
+        for attribute in attribute_fields:
+            attribute_name = slugify(attribute.name)
+            form_attribute = self.cleaned_data.get(attribute_name, '')
+            if form_attribute:
+                if attribute.structured:
+                    attribute_value = filter(lambda x: x == form_attribute, structured_attributes)
+                    if attribute_value:
+                        StructuredAttributeToHost.objects.create(
+                            host=instance,
+                            structured_attribute_value=attribute_value[0],
+                            changed_by=self.user
+                        )
+                else:
+                    FreeformAttributeToHost.objects.create(
+                        host=instance,
+                        attribute=attribute,
+                        value=form_attribute,
+                        changed_by=self.user
+                    )
+
+        return instance
+
+
     def clean(self):
         cleaned_data = super(HostForm, self).clean()
 
-        if self.user.is_superuser or self.user.is_ipamadmin:
-            return cleaned_data
-        elif self.user.has_perm('hosts.is_owner_host', self.instance):
-            return cleaned_data
-        else:
-            raise ValidationError('You do not have sufficient permissions to modify'
-                                  ' this host, please contact an IPAM Administrator.')
+        return cleaned_data
+
+    def clean_network_or_ip(self):
+        network_or_ip = self.cleaned_data['network_or_ip']
+        address_type = self.cleaned_data.get('address_type', '')
+
+        if address_type:
+            if address_type.pk in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT and not network_or_ip:
+                raise ValidationError('This field is required.')
+
+        return network_or_ip
+
+    def clean_network(self):
+        network = self.cleaned_data['network']
+        network_or_ip = self.cleaned_data['network_or_ip']
+
+        if network_or_ip and network_or_ip == '0' and not network:
+            raise ValidationError('This field is required.')
+
+        self.instance.network = network
+
+        return network
+
+    def clean_ip_address(self):
+        ip_address = self.cleaned_data['ip_address']
+        network_or_ip = self.cleaned_data['network_or_ip']
+
+        if network_or_ip:
+            if network_or_ip == '1' and not ip_address:
+                raise ValidationError('This field is required.')
+
+        if ip_address:
+            user_pools = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_pool', 'network.change_pool'],
+                any_perm=True
+            )
+
+            address = Address.objects.filter(
+                Q(pool__in=user_pools) | Q(pool__isnull=True),
+                address=ip_address,
+                host__isnull=True,
+                reserved=False
+            )
+            is_available = True if address else False
+
+            if not is_available:
+                raise ValidationError('The IP Address requested is reserved, in use, please try again.')
+            else:
+                self.instance.ip_address = ip_address
+                self.instance.network = address.network
+
+        return ip_address
 
     class Meta:
         model = Host
@@ -230,7 +351,7 @@ class HostRenewForm(forms.Form):
 
 class HostListForm(forms.Form):
     groups = forms.ModelChoiceField(Group.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('GroupAutocomplete'))
+        widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):

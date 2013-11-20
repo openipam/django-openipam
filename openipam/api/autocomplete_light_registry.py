@@ -37,7 +37,9 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
-autocomplete_light.register(IPAMObjectsAutoComplete)
+autocomplete_light.register(IPAMObjectsAutoComplete,
+    autocomplete_js_attributes={'placeholder': 'Search Objects'},
+)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
@@ -53,13 +55,13 @@ autocomplete_light.register(User, UserAutocomplete)
 
 
 class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields=['name']
+    search_fields=['^name']
     autocomplete_js_attributes={'placeholder': 'Search Domains'}
 
     def choices_for_request(self):
         #choices = super(DomainAutoComplete, self).choices_for_request()
 
-        if self.request.user.is_superuser:
+        if self.request.user.is_ipamadmin:
             choices = super(DomainAutocomplete, self).choices_for_request()
         else:
             try:
@@ -99,6 +101,12 @@ autocomplete_light.register(Group,
     search_fields=['name'],
     autocomplete_js_attributes={'placeholder': 'Search Groups'},
 )
+
+
+class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['name']
+    autocomplete_js_attributes = {'placeholder': 'Filter Groups'}
+autocomplete_light.register(Group, GroupFilterAutocomplete)
 
 
 autocomplete_light.register(Permission,

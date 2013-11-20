@@ -1,0 +1,58 @@
+.modal {
+    width: 800px;
+    margin-left: -400px;
+}
+.modal-body {
+    max-height: 600px;
+}
+tfoot {
+    display: table-header-group;
+}
+input {
+    min-width: 50px;
+}
+.ui-button {
+    margin-right: 0 !important;
+}
+#id_groups_text {
+    margin-bottom: 0px;
+}
+#id_groups-deck .hilight {
+    height: 20px;
+    line-height: 20px;
+}
+#id_groups-deck .remove {
+    margin-top: 3px;
+}
+#result_list_length select {
+    margin: 0px;
+}
+#filter-groups {
+    float: left;
+    margin-right: 4px;
+}
+#changelist-filters-toggle {
+    margin-right: 4px;
+}
+#changelist-filter-actions {
+    min-width: 220px;
+    top: 110px;
+    right: 22px;
+    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+}
+.pagination {
+    height: 30px;
+}
+.fixed {
+    height: auto;
+    position: fixed;
+    bottom: 0px;
+    right: 22px;
+    z-index: 999;
+    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+}
+.fixed div {
+    margin: 10px;
+}

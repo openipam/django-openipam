@@ -17,13 +17,18 @@ import operator
 @renderer_classes((TemplateHTMLRenderer,))
 def network_selects(request, address_id):
 
+    # Get assigned ranges
     assigned_ranges = NetworkRange.objects.filter(address_ranges__isnull=False)
 
+    # Get specific ranges on a address
     address_type = AddressType.objects.get(id=address_id)
     net_range = address_type.ranges.all()
+
+    # If address has a range(s)
     if net_range:
         q_list = [Q(network__net_contained_or_equal=net.range) for net in net_range]
         networks = Network.objects.filter(reduce(operator.or_, q_list))
+    # Otherwise try and get from default ranges
     elif address_type.is_default:
         q_list = [Q(network__net_contained_or_equal=net.range) for net in assigned_ranges]
         networks = Network.objects.exclude(reduce(operator.or_, q_list))

@@ -7,6 +7,8 @@ from django.db.models.signals import m2m_changed, post_save
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager
 
+from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
+
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address')
@@ -182,6 +184,20 @@ class Network(models.Model):
         )
 
 
+class NetworkUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey('Network', related_name='user_permissions')
+
+    class Meta:
+        verbose_name = 'Network User Permission'
+
+
+class NetworkGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey('Network', related_name='group_permissions')
+
+    class Meta:
+        verbose_name = 'Network Group Permission'
+
+
 class NetworkRange(models.Model):
     range = CidrAddressField(unique=True)
 
@@ -226,7 +242,7 @@ class Address(models.Model):
     host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses')
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True)
     reserved = models.BooleanField()
-    network = models.ForeignKey('Network', db_column='network')
+    network = models.ForeignKey('Network', db_column='network', related_name='net_addresses')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 

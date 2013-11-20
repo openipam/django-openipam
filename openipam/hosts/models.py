@@ -2,12 +2,13 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import utc
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied, NON_FIELD_ERRORS
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
+from django.utils.safestring import mark_safe
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
@@ -59,7 +60,7 @@ class AttributeToHost(models.Model):
 
 
 class Disabled(models.Model):
-    mac = MACAddressField(primary_key=True)
+    host = MACAddressField(primary_key=True, db_column='mac')
     reason = models.TextField(blank=True, null=True)
     disabled = models.DateTimeField(auto_now=True)
     disabled_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
@@ -86,7 +87,7 @@ class ExpirationType(models.Model):
 
 
 class FreeformAttributeToHost(models.Model):
-    mac = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
+    host = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
     attribute = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
@@ -159,8 +160,14 @@ class Host(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = HostManager()
-    #gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
-    #gul_recent_arp_byaddress = GulRecentArpByaddress.objects.all()
+
+    def __init__(self, *args, **kwargs):
+        super(Host, self).__init__(*args, **kwargs)
+
+        # Adding dummy fields that come from form or web service
+        self.user = None
+        self.ip_address = None
+        self.network = None
 
     @property
     def is_dynamic(self):
@@ -198,28 +205,21 @@ class Host(models.Model):
         else:
             return None
 
-    @property
-    def owners(self):
-        #user_list = []
-        #group_list = []
+    def get_owners(self, ids_only=True):
+        users = self.user_permissions.filter(permission__codename='is_owner_host')
+        groups = self.group_permissions.filter(permission__codename='is_owner_host')
 
-        users = [user.user_id for user in self.user_permissions.filter(permission__codename='is_owner_host')]
-        groups = [group.group_id for group in self.group_permissions.filter(permission__codename='is_owner_host')]
-
-        # users = get_users_with_perms(self, attach_perms=True)
-        # for user, perm in users.iteritems():
-        #     if 'is_owner' in perm:
-        #         user_list.append(user)
-
-        # groups = get_groups_with_perms(self, attach_perms=True)
-        # for group, perm in groups.iteritems():
-        #     if 'is_owner' in perm:
-        #         group_list.append(group)
+        if ids_only:
+            users = [user.user_id for user in users]
+            groups = [group.group_id for group in groups]
+        else:
+            users = [user.user for user in users]
+            groups = [group.group for group in groups]
 
         return users, groups
 
     def get_ip_address(self):
-        addresses = self.addresses.all()
+        addresses = self.addresses.all().order_by('address')
         if addresses:
             return addresses[0]
         else:
@@ -270,11 +270,63 @@ class Host(models.Model):
         now = timezone.now()
         self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
 
+    # TODO: Clean this up, I dont like where this is at.
+    def set_network_ip_or_pool(self, user=None):
+        from openipam.network.models import Address
+
+        if not user and self.user:
+            user = self.user
+        else:
+            raise Exception('A User must be given to set a network or pool')
+
+        user_pools = get_objects_for_user(
+            user,
+            ['network.add_records_to_pool', 'network.change_pool'],
+            any_perm=True
+        )
+
+        # If we have a pool, this dynamic and we assign
+        if self.address_type.pool:
+            # Remove all pools
+            self.pools.clear()
+            # Assign new pool
+            self.pools.add(self.address_type.pool)
+
+        # If we have an IP address, then assign that address to host
+        else:
+            if self.network:
+                address = Address.objects.filter(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True),
+                    network=self.network,
+                    host__isnull=True,
+                    reserved=False,
+                ).order_by('address')
+
+                if not address:
+                    raise Address.DoesNotExist
+
+                # Get only one
+                address = address[0]
+
+            elif self.ip_address:
+                address = Address.objects.get(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True),
+                    address=self.ip_address,
+                    host__isnull=True,
+                    reserved=False,
+                )
+            else:
+                raise Exception('A Network or IP Address must be given to assign this host.')
+
+            address.host = self
+            address.changed_by = self.user
+            address.save()
+
     def remove_owners(self):
-        owners = self.owners
-        for user in owners[0]:
+        users, groups = self.get_owners(ids_only=False)
+        for user in users:
             remove_perm('is_owner_host', user, self)
-        for group in owners[0]:
+        for group in groups:
             remove_perm('is_owner_host', group, self)
 
     def assign_owner(self, user_or_group):
@@ -287,35 +339,72 @@ class Host(models.Model):
         return self.hostname
 
     def clean(self):
-        # Make sure hostname is lowercase
-        self.hostname = self.hostname.lower()
+
+        # Perform permission checks if user is attached to this instance
+        # and user is not an IPAM admin
+        if self.user:
+
+            # Domain permission checks
+            if self.hostname:
+                domain_from_host = self.hostname.split('.')[1:]
+                domain_from_host = '.'.join(domain_from_host)
+
+                valid_domain = get_objects_for_user(
+                    self.user,
+                    ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
+                    #klass=Domain,
+                    any_perm=True
+                ).filter(name=domain_from_host)
+
+                if not valid_domain:
+                    raise ValidationError('You do not have sufficient permissions to add hosts '
+                                          'for this domain. Please contact an IPAM Administrator.')
+
+            # Pool and Network permission checks
+            # Check for pool assignment and perms
+            if self.address_type and self.address_type.pool:
+                #assert False, self.address_type.pool
+                valid_pools = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_pool', 'network.change_pool'],
+                    any_perm=True
+                )
+                if self.address_type.pool not in valid_pools:
+                    raise ValidationError('You do not have sufficient permissions to add hosts to '
+                                          'the assigned pool. Please contact an IPAM Administrator.')
+
+            # Otherwise check for address assignment and perms
+            elif self.network:
+                valid_network = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                    self.network,
+                    any_perm=True
+                )
+                if not valid_network:
+                    raise ValidationError('You do not have sufficient permissions to add hosts to '
+                      'the assigned network. Please contact an IPAM Administrator.')
 
     # Do hostname checks to make sure there is a FQDN
     # and that the user has permissions to add on that domain
     def clean_fields(self, exclude=None):
         super(Host, self).clean_fields(exclude)
 
-        domain_names = self.hostname.split('.')
-        domain_names.reverse()
-        partial_domain = []
-        domains_to_check = []
-        for domain in domain_names:
-            partial_domain.insert(0, domain)
-            domains_to_check.append('.'.join(partial_domain))
+        self.clean_hostname()
 
-        # Check user permissions
-        if hasattr(self, 'changed_by'):
-            try:
-                domains = get_objects_for_user(self.changed_by, 'dns.add_within')
-            except ContentType.DoesNotExist:
-                return
+        # # Check user permissions
+        # if hasattr(self, 'changed_by'):
+        #     try:
+        #         domains = get_objects_for_user(self.changed_by, 'dns.add_within')
+        #     except ContentType.DoesNotExist:
+        #         return
 
-            # Check if domain exists
-            domains = domains.filter(name__in=domains_to_check)
-            if not domains:
-                raise ValidationError({
-                    'hostname': ("No Domain found for host '%s'" % self.hostname,)
-                })
+        # Check if domain exists
+
+
+    def clean_hostname(self):
+        # Make sure hostname is lowercase
+        self.hostname = self.hostname.lower()
 
     class Meta:
         db_table = 'hosts'

@@ -274,7 +274,7 @@ code, pre {
 }
 
 #changelist-filter-actions {
-    position: absolute;
+    position: fixed;
     right: 20px;
     z-index: 999;
     margin: 50px 0px 10px;
@@ -603,12 +603,13 @@ fieldset.module legend {
   font-size: 16px;
 }
 
-#result_list_length {
-  float: right;
-}
-
 #result_list_info, #result_list_paginate {
   font-weight: bold;
+  font-size: 13px;
+  padding-top: 0px;
+  float: right;
+  margin-right: 10px;
+  line-height: 30px;
 }
 
 #result_list_length label {
@@ -618,8 +619,13 @@ fieldset.module legend {
   top: 5px;
 }
 
-#result_list_filter label {
-  margin: 0;
+#result_list_filter {
+  float: left;
+  margin-right: 4px;
+}
+
+#result_list_filter label, #result_list_filter input {
+  margin: 0 !important;
 }
 
 .css_right {
@@ -630,3 +636,7 @@ fieldset.module legend {
   margin: 0 !important;
 }
 
+.accordion-heading {
+  font-size: 16px;
+  font-weight: bold;
+}

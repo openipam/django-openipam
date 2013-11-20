@@ -15,7 +15,7 @@
 </style>
 
 <ul id="host-details-nav" class="affix affix-top nav nav-pills nav-tabs">
-    <li class="active"><a href="#description" data-toggle="pill">Description</a></li>
+    <li class="active"><a href="#info" data-toggle="pill">Info</a></li>
     <li><a href="#owners" data-toggle="pill">Owners</a></li>
     <li><a href="#address" data-toggle="pill">Addresses</a></li>
     <li><a href="#dns-records" data-toggle="pill">DNS Records</a></li>
@@ -24,7 +24,13 @@
 </ul>
 
 <div id="host-details-container" class="tab-content">
-    <div id="description" class="tab-pane active">
+    <div id="info" class="tab-pane active">
+        <h3>
+            Hostname
+        </h3>
+        <div>
+            {{ object.hostname }}
+        </div>
         <h3>
             Description
         </h3>
@@ -34,6 +40,24 @@
             {% else %}
                 N/A
             {% endif %}
+        </div>
+        <h3>
+            MAC Address
+        </h3>
+        <div>
+            {{ object.mac }}
+        </div>
+        <h3>
+            Address Type
+        </h3>
+        <div>
+            {{ object.get_address_type }}
+        </div>
+        <h3>
+            Expires
+        </h3>
+        <div>
+            {{ object.expires }}
         </div>
     </div>
 

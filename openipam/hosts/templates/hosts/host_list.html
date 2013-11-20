@@ -3,239 +3,17 @@
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-      {% if is_owner %}My {% endif %}Hosts
+      Hosts
   </h3>
 {% endblock %}
 
 {% block extrahead %}
     <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
-    <style type="text/css">
-        .modal {
-            width: 800px;
-            margin-left: -400px;
-        }
-        .modal-body {
-            max-height: 600px;
-        }
-        tfoot {
-            display: table-header-group;
-        }
-        input {
-            min-width: 50px;
-        }
-        .ui-button {
-            margin-right: 0 !important;
-        }
-        #id_groups_text {
-            margin-bottom: 0px;
-        }
-        #id_groups-deck {
-            margin-top: 2px;
-        }
-        #result_list_length select {
-            margin: 0px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
     {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
-    <script type="text/javascript">
-        $(function(){
-
-           // $("#searchbar").keypress(function(e){
-           //      if (e.keyCode == 13) {
-           //          location.href = './?q=' + $(this).val();
-           //          return false;
-           //      }
-           //  });
-
-            $.fn.dataTableExt.oApi.fnFilterClear = function(oSettings)
-            {
-                /* Remove global filter */
-                oSettings.oPreviousSearch.sSearch = "";
-
-                /* Remove the text of the global filter in the input boxes */
-                if (typeof oSettings.aanFeatures.f != 'undefined')
-                {
-                    var n = oSettings.aanFeatures.f;
-                    for (var i=0, iLen=n.length ; i<iLen ; i++)
-                    {
-                        $('input[type="text"]', n[i]).val( '' );
-                    }
-                }
-
-                /* Remove the search text for the column filters - NOTE - if you have input boxes for these
-                 * filters, these will need to be reset
-                 */
-                for (var i=0, iLen=oSettings.aoPreSearchCols.length ; i<iLen ; i++)
-                {
-                    oSettings.aoPreSearchCols[i].sSearch = "";
-                }
-
-                /* Redraw */
-                oSettings.oApi._fnReDraw(oSettings);
-            };
-
-            var asInitVals = new Array();
-
-            var results = $("#result_list").dataTable({
-                "bPaginate": true,
-                "bProcessing": true,
-                "bServerSide": true,
-                "sAjaxSource": "{% if is_owner %}{% url 'my_json_hosts' %}{% else %}{% url 'json_hosts' %}{% endif %}",
-                "sPaginationType": "full_numbers",
-                "bAutoWidth": false,
-                "bStateSave": true,
-                "bJQueryUI": true,
-                "sDom": '<"filters well well-small"lr>t<"pagination well well-small"pi><"clear">',
-                "aaSorting": [[ 1, "asc" ]],
-                "oLanguage": {
-                    "sLengthMenu": "Show _MENU_ records",
-                    "sSearch": ""
-                },
-                "aoColumns": [
-                    { "bSortable": false },
-                    null,
-                    null,
-                    { "bSortable": false },
-                    null,
-                    { "bSortable": false },
-                    { "bSortable": false },
-                    { "bSortable": false },
-                    { "bSortable": false },
-                ],
-                "fnInitComplete": function() {
-                    this.fnAdjustColumnSizing(true);
-                },
-                "fnServerParams": function (aoData) {
-                    aoData.push({ "name": "group_filter", "value": $("#id_groups").val()});
-                },
-                "fnServerData": function(sSource, aoData, fnCallback) {
-                    $.getJSON(sSource, aoData, function(json) {
-
-                        // Populate Table
-                        fnCallback(json);
-
-
-                        $("#result_list span.expired-date").parents('tr').addClass('expired');
-
-                        $(".host-details").click(function(){
-                            var hostname = $(this).prop("rel");
-                            var href = $(this).prop("href");
-                            var edit_href = $(this).prop("id");
-
-                            $('#host-details').modal({
-                                  remote: href
-                            });
-
-                            $('#host-details').on('shown', function(){
-                                $("#myModalLabel").text("Details for: " + hostname);
-                                $("#edit-host").prop("href", edit_href);
-                            });
-
-                            return false;
-                        });
-
-                        $('#host-details').on('hidden', function() {
-                            $(this).data('modal').$element.removeData();
-                            $(".modal-body").html('Loading...');
-                        });
-
-                    });
-                }
-            });
-
-            var group_autocomplete = $('#group-filter').yourlabsAutocomplete({
-                url: '/api/web/GroupAutocomplete',
-                choiceSelector: 'a',
-            });
-
-            // JS Styling :/
-            $("div.filters").append($("#filters"));
-            //$("#result_list_filter label").html('');
-            //$("#changelist-search").append($("#result_list_filter"));
-            $("#filters").append($("#result_list_processing")).append('<div class="clear"><!-- --></div>');
-            //$("#filter-actions").append($("#result_list_filter"));
-
-            $("tfoot input").each(function (i){
-                asInitVals[i] = this.value;
-            });
-
-            $("#clear-search").click(function(){
-                $(".dataTables_filter input[type='text']").val('');
-                $(".search_init").val('');
-                $("select.filter-select option").each(function(index, obj){
-                    if (index == 0){
-                        $(obj).attr('selected', 'selected');
-                    }
-                    else {
-                        $(obj).removeAttr('selected');
-                    }
-                });
-                $("select.filter-select").val('').trigger("liszt:updated");
-                $("input[name='regex-search-type']").removeAttr('checked');
-                $("input[name='regex-search-type'][value='1']").attr('checked', 'checked');
-                results.fnFilterClear();
-                return false;
-            });
-
-            $(".search_init").bind('keyup change', function(){
-                /* Filter on the column (the index) of this element */
-                results.fnFilter($(this).val(), $(".search_init").index($(this)));
-            });
-
-            // $("#host-action").change(function(){
-            //     // make sure this is not set
-            //     $("#changelist-form").attr('action', '');
-
-            //     if ($(this).val() == 'delete') {
-            //         return confirm('Are you sure you want to delete these hosts?');
-            //     }
-            //     else if ($(this).val() == 'owners') {
-            //         $("#changelist-form").attr('action', '{% url 'change_owners' %}');
-            //     }
-            // });
-
-            $("#id_groups").unbind('change').change(function(){
-                results.fnDraw();
-            });
-
-            $("#action-toggle").click(function(){
-                if ($(this).is(":checked")) {
-                    $(".action-select").prop('checked', 'checked');
-                }
-                else {
-                    $(".action-select").prop('checked', '');
-                }
-            });
-
-            $("#action-submit").click(function(){
-                var action = $("#host-action").val();
-                var hosts = $(".action-select:checked");
-
-                if (hosts.length > 0) {
-                    if (action == 'owners') {
-                        $('#host-owners').modal();
-                    }
-                    else if (action == 'delete') {
-                        var res = confirm("Are you sure you want to delete the selected hosts?")
-                        if (res == true) {
-                            return true;
-                        }
-                    }
-                    else if (action == 'renew') {
-                        $('#host-renew').modal();
-                    }
-                }
-                else {
-                    alert('Please select one or more hosts to perform this action.')
-                }
-
-                return false;
-            });
-
-        });
-    </script>
+    <script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 
 {# {% block object-tools %}
@@ -251,57 +29,57 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% if is_owner %}
-        ../|{% trans "Hosts" %}
-        *{% trans "My Hosts" %}
-    {% else %}
         *{% trans "Hosts" %}
-    {% endif %}
 {% endblock %}
 
 
 {% block contentbody %}
+    {{ request.COOKIES.owner_filter }}
     <form id="changelist-form" action="" method="post" class="quickbody">
         {% csrf_token %}
-        <div id="filters">
+        <div id="actions">
             {% spaceless %}
-            <div class="actions changelist-actions pull-left">
-                <div class="changelist-action" style="height: auto !important;">
-                    <div class="action-wrapper">
-                        <select id="host-action" name="action">
-                            <option value="">Choose an action...</option>
-                            <option value="">--------------</option>
-                                <option value="delete">Delete selected hosts</option>
-                            {% if request.user.is_ipamadmin %}
-                                <option value="owners">Set owners on selected hosts</option>
-                            {% endif %}
-                            <option value="renew">Renew selected hosts</option>
-                        </select>
-                        <button id="action-submit" type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
-                            <span class="icon-play"></span>
-                            {% trans "Go" %}
-                        </button>
+                <div class="actions changelist-actions pull-left">
+                    <div class="changelist-action" style="height: auto !important;">
+                        <div class="action-wrapper">
+                            <select id="host-action" name="action">
+                                <option value="">Choose an action...</option>
+                                <option value="">--------------</option>
+                                    <option value="delete">Delete selected hosts</option>
+                                {% if request.user.is_ipamadmin %}
+                                    <option value="owners">Set owners on selected hosts</option>
+                                {% endif %}
+                                <option value="renew">Renew selected hosts</option>
+                            </select>
+                            <button id="action-submit" type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                                <span class="icon-play"></span>
+                                {% trans "Go" %}
+                            </button>
+                        </div>
                     </div>
-                    {% if not is_owner %}
-                    <div class="action-wrapper">
-                        <label class="pull-left" style="margin: 5px 5px 0px 10px;">Search By Group:</label>
-                        <div class="pull-right">{{ form.groups }}</div>
-                        {% comment %}
-                        <select id="group-filter">
-                        <option value="">Filter by Group...</option>
-                            <option value="">--------------</option>
-                            {% for group in groups %}
-                                <option value="{{ group.pk }}">{{ group.name }}</option>
-                            {% endfor %}
-                        </select>
-                        {% endcomment %}
-                    </div>
-                    {% endif %}
                 </div>
-            </div>
-            {# <div id="changelist-search" class="pull-left"></div> #}
-            <a id="clear-search" class="label label-info pull-right" style="color: #fff; margin: 8px 10px 0px 10px;" href="javascript:void(0);">Clear Searches</a>
+                <div id="changelist-search" class="pull-right">
+                    <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
+
+                    <a id="changelist-filters-toggle" class="pull-right btn dropdown-toggle">
+                        Filters
+                        <span class="caret"></span>
+                    </a>
+                </div>
             {% endspaceless %}
+        </div>
+
+        <div id="changelist-filter-actions" class="hide well well-small action-wrapper">
+            <a id="filter-close" href="javascript:void(0);" class="icon-remove pull-right"></a>
+            <h4>Filter by Onwer:</h4>
+            <div id="filter-owners" class="btn-group radio-btn-group" data-toggle="buttons-radio">
+                <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
+                <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
+            </div>
+
+            <h4>Filter By Group:</h4>
+            <div id="filter-groups">{{ form.groups }}</div>
+            <div class="clear"><!-- --></div>
         </div>
 
         <div class="results">
@@ -326,7 +104,6 @@
                         <th scope="col">Edit</th>
                     </tr>
                 </thead>
-                {% if not is_owner %}
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
@@ -348,48 +125,11 @@
                         <th>&nbsp;</th>
                     </tr>
                 </tfoot>
-                {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
                         <td colspan="8">Loading...</td>
                     </tr>
-                {% comment %}
-
-                    {% for host in host_list %}
-                        {% arp_timestamp_filter gul_recent_arp_bymac host.mac as mac_last_seen_time %}
-                        {% arp_timestamp_filter gul_recent_arp_byaddress host.mac as ip_last_seen_time %}
-                        {% arp_ip_filter gul_recent_arp_byaddress host.mac as ip_last_seen %}
-                        <tr class="{% cycle 'row1' 'row2' %} {% if host.is_expired or mac_last_seen_time == 'No Data' %}expired{% endif %}">
-                            <td class="action-checkbox">
-                                <input class="action-select" name="selected_hosts" type="checkbox" value="{{ host.mac }}" />
-                            </td>
-                            {% url 'update_host' host.mac as host_url %}
-                            <th><a href="{{ host_url|unquote_raw }}" rel="{{ host.hostname }}" class="host-details" data-toggle="modal">
-                                {{ host.hostname }}
-                                </a>
-                            </th>
-                            <td>{{ host.mac }}</td>
-                            <td class="expired-date" nowrap="nowrap">{{ host.expires|date:"Y-m-d" }}</td>
-                            <td class="mac-last-seen" nowrap="nowrap">{{ mac_last_seen_time }}</td>
-                            <td>{{ ip_last_seen }}</td>
-                            <td nowrap="nowrap">{{ ip_last_seen_time }}</td>
-                            <!--<td nowrap="nowrap">
-                                {{ host.changed|date:"Y-m-d h:i A" }}
-                            </td>
-                            <td>
-                                {{ host.changed_by.get_full_name }}
-                            </td>-->
-                            <td>
-                                <a href="" class="right10">DNS Records</a>
-                            </td>
-
-                            <td>
-                                <a href="{{ host_url|unquote_raw }}" class="right10">Edit</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                {% endcomment %}
                 </tbody>
             </table>
 
@@ -441,27 +181,7 @@
                 </div>
             </div>
 
-            {% comment %}
-            {% if is_paginated %}
-                <div class="pagination pull-right">
-                    <ul>
-                        {% if page_obj.has_previous %}
-                            <li>
-                                <a href="{% url 'list_hosts' %}?page={{ page_obj.previous_page_number }}">Previous</a>
-                            </li>
-                        {% endif %}
-                        <li>
-                            <a href="{% url 'list_hosts' %}?page={{ page_obj.number }}">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
-                        </li>
-                        {% if page_obj.has_next %}
-                            <li>
-                                <a href="{% url 'list_hosts' %}?page={{ page_obj.next_page_number }}">Next</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            {% endif %}
-            {% endcomment %}
+            <br /><br />
         </div>
     </form>
 {% endblock %}

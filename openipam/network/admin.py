@@ -1,14 +1,13 @@
 from django.contrib import admin
-from django.template.defaultfilters import slugify
-from django.utils.http import urlencode
-from openipam.user.models import User
-from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, Pool, Vlan, AddressType, DefaultPool
+
+from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
+    Pool, Vlan, AddressType, DefaultPool
 from openipam.network.forms import AddressTypeAdminForm
-from guardian.admin import GuardedModelAdmin
+
 import autocomplete_light
 
 
-class NetworkAdmin(GuardedModelAdmin):
+class NetworkAdmin(admin.ModelAdmin):
     form = autocomplete_light.modelform_factory(Network)
     change_form_template = 'admin/openipam/change_form.html'
     #list_display = ('network', 'name', 'description', 'gateway')
@@ -18,6 +17,7 @@ class NetworkAdmin(GuardedModelAdmin):
     #     return '<a href="./%s/">%s</a>' % (url, obj.network)
     # nice_network.short_description = 'Network'
     # nice_network.allow_tags = True
+
 
 class AddressTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'show_pool', 'show_ranges')
@@ -35,8 +35,14 @@ class AddressTypeAdmin(admin.ModelAdmin):
     show_ranges.allow_tags = True
 
 
-class PoolAdmin(GuardedModelAdmin):
+class PoolAdmin(admin.ModelAdmin):
     pass
+
+
+class AddressAdmin(admin.ModelAdmin):
+    list
+    form = autocomplete_light.modelform_factory(Address)
+    search_fields = ('address',)
 
 
 admin.site.register(DefaultPool)
@@ -44,6 +50,6 @@ admin.site.register(Vlan)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
-admin.site.register(Address)
+admin.site.register(Address, AddressAdmin)
 admin.site.register(Pool, PoolAdmin)
 admin.site.register(DhcpGroup)
