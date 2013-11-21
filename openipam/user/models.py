@@ -3,6 +3,7 @@ from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Use
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
+from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
@@ -16,7 +17,7 @@ from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase,
    add_direct_group_object_permission, remove_direct_user_object_permission, \
    remove_direct_group_object_permission, add_user_object_permission, \
    add_group_object_permission, remove_user_object_permission, remove_group_object_permission, \
-   convert_user_host_permissions
+   convert_user_permissions
 
 from django_postgres import Bits
 import django_postgres
@@ -150,7 +151,7 @@ class UserToGroup(models.Model):
     objects = UserToGroupManager()
 
     def __unicode__(self):
-        return self.group.name
+        return '%s - %s' % (self.group.name, self.user.username)
 
     class Meta:
         db_table = 'users_to_groups'
@@ -220,7 +221,7 @@ class PoolToGroup(models.Model):
 class InternalAuth(models.Model):
     id = models.ForeignKey(settings.AUTH_USER_MODEL, primary_key=True,
                            db_column='id', related_name='internal_user')
-    hash = models.CharField(max_length=128)
+    password = models.CharField(max_length=128, db_column='hash')
     name = models.CharField(max_length=255, blank=True)
     email = models.CharField(max_length=255, blank=True)
     changed = models.DateTimeField(auto_now=True)
@@ -232,9 +233,9 @@ class InternalAuth(models.Model):
 
 
 # Connect signals
+user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
-post_save.connect(convert_user_host_permissions, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
 post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
 post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)

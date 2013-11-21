@@ -2,13 +2,15 @@ from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.conf import settings
+from django.db import connection
 
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from django_auth_ldap.backend import LDAPBackend
 
-from openipam.user.models import Group, HostToGroup
+from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup
 from openipam.hosts.models import HostGroupObjectPermission, HostUserObjectPermission
 
 import gc
@@ -34,6 +36,108 @@ def convert_groups():
             AuthGroup.objects.get_or_create(name=group.name)
 
 
+def convert_user_permissions(delete=False, user=None):
+    """
+        Converts user permissions from old IPAM permission system.
+        This function will take all permissions from the groups table and
+        explicitly set permission on the user level.
+
+        This is a temporary fix until new groups get sorted out.
+    """
+    pass
+    users = UserToGroup.objects.exclude(group__name__istartswith='user_')
+
+    for group in groups:
+
+        # Convert domain permissions
+        domain_perms = group.domains.all()
+
+
+def convert_permissions(delete=False, groups=None, user=None, username=None):
+
+    if delete:
+        GroupObjectPermission.objects.all().delete()
+
+    # Base groups queryset, dont take user groups and the default group
+    groups = (Group.objects.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups')
+        .exclude(name__istartswith='user_').exclude(name__in=['default', 'guests']))
+
+    if user:
+        groups = groups.filter(user_groups__user=user)
+    elif username:
+        groups = groups.filter(user_groups__user__username__iexact=user)
+
+    for group in groups:
+        permissions = set([ug.permissions.name for ug in group.user_groups.all()])
+        auth_group, created = AuthGroup.objects.get_or_create(name=group.name)
+
+        hosts = group.hosts.all()
+        domains = group.domains.all()
+        networks = group.networks.all()
+        pools = group.pools.all()
+
+        if permissions:
+            # Only owner permission is needed for hosts
+            if 'OWNER' in permissions:
+                _assign_perms('is_owner', auth_group, hosts=hosts, domains=domains, networks=networks)
+
+                # Assign users to this group
+                for user in group.user_groups.filter(permissions__name='OWNER'):
+                    user.user.groups.add(auth_group)
+
+            if 'ADD' in permissions:
+                # IF there is just ADD only then stick the permission on the group
+                if len(permissions) == 1:
+                    _assign_perms('add_records_to', auth_group, domains=domains, networks=networks, pools=pools)
+
+                    # Assign users to this group
+                    for user in group.user_groups.filter(permissions__name='ADD'):
+                        user.user.groups.add(auth_group)
+
+                # Otherwise if there are multiple groups, then we put ADD permission on user for now
+                else:
+                    pass
+                    users = group.user_groups.filter(permissions__name='ADD')
+                    for user in users:
+                        _assign_perms('add_records_to', user.user, domains=domains, networks=networks, pools=pools)
+
+
+def convert_min_permissions(user=None, username=None):
+    user_qs = User.objects.all()
+    if user:
+        user_qs = user_qs.filter(pk=user.pk)
+    elif username:
+        user_qs = user_qs.filter(username__iexact=username)
+
+    # Add admins to IPAM admins
+    ipam_admin_group = AuthGroup.objects.get(name=settings.IPAM_ADMIN_GROUP)
+    users_ipam_admins = user_qs.filter(min_permissions__name='ADMIN')
+    for user in users_ipam_admins:
+        user.groups.add(ipam_admin_group)
+
+    # Add DEITY users as super admins
+    users_deity = user_qs.filter(min_permissions__name='DEITY')
+    for user in users_deity:
+        user.is_superadmin = True
+        user.save()
+
+
+def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], pools=[]):
+
+    for host in hosts:
+        assign_perm('hosts.%s_host' % permission, user_or_group, host)
+    for domain in domains:
+        assign_perm('dns.%s_domain' % permission, user_or_group, domain)
+    for network in networks:
+        assign_perm('network.%s_network' % permission, user_or_group, network)
+    # print 'pools - %s' % len(pools)
+    # for pool in pools:
+    #     print pool
+    #     assign_perm('network.%s_pool' % permission, user_or_group, pool)
+
+    return
+
+
 def convert_host_permissions(delete=False, username=None):
     owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
     host_type = ContentType.objects.get(app_label='hosts', model='host')
@@ -44,55 +148,56 @@ def convert_host_permissions(delete=False, username=None):
         HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
 
     if username:
-        host_groups = (HostToGroup.objects.prefetch_related('group__group_users')
-                 .filter(mac__expires__gte=timezone.now, group__name__iexact='user_%s' % username))
+        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
+                 .filter(host__expires__gte=timezone.now, group__name__iexact='user_%s' % username))
     else:
-        host_groups = (HostToGroup.objects.prefetch_related('group__group_users')
-                 .filter(mac__expires__gte=timezone.now))
+        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
+                 .filter(host__expires__gte=timezone.now))
 
-    for host_group in queryset_iterator(host_groups):
-        # Convert User Permissions (Group = user_A0000000)
-        if host_group.group.name.lower().startswith('user_'):
-            users = host_group.group.group_users.select_related().all()
-            for user in users:
-                username = user.user.username
-                #is_anumber = True if username.split('a')[-1].isdigit() else False
+    if host_groups:
+        for host_group in queryset_iterator(host_groups):
+            # Convert User Permissions (Group = user_A0000000)
+            if host_group.group.name.lower().startswith('user_'):
+                users = host_group.group.user_groups.select_related().all()
+                for user in users:
+                    username = user.user.username
+                    #is_anumber = True if username.split('a')[-1].isdigit() else False
 
-                # Convert owner permissions becuase thats all there is
-                if user.host_permissions.name == 'OWNER':
-                    #ry:
-                    auth_user, created = User.objects.get_or_create(username__iexact=username)
-                    # except User.DoesNotExist:
-                    #     auth_user = User(username=username)
-                    #     auth_user.set_unusable_password()
-                    #     auth_user.save()
+                    # Convert owner permissions becuase thats all there is
+                    if user.host_permissions.name == 'OWNER':
+                        #ry:
+                        auth_user, created = User.objects.get_or_create(username__iexact=username)
+                        # except User.DoesNotExist:
+                        #     auth_user = User(username=username)
+                        #     auth_user.set_unusable_password()
+                        #     auth_user.save()
 
-                    # If these are local accounts, disable for now
-                    # if not is_anumber:
-                    #     auth_user.active = False
-                    #     auth_user.save()
-                    if not auth_user.has_perm('is_owner_host', host_group.mac):
-                        print 'Assigning owner permission to user %s for mac %s \n' % (auth_user, host_group.mac)
-                        UserObjectPermission.objects.get_or_create(
-                            user=auth_user,
-                            permission=owner_perm,
-                            object_pk=host_group.mac.pk,
-                            content_type=host_type,
-                        )
-                        #assign_perm('is_owner_host', auth_user, host_group.mac)
-                else:
-                    continue
-        else:
-            auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
-            if not auth_user.has_perm('is_owner_host', host_group.mac):
-                print 'Assigning owner permission to group %s for mac %s \n' % (auth_group, host_group.mac)
-                GroupObjectPermission.objects.get_or_create(
-                    group=auth_group,
-                    permission=owner_perm,
-                    object_pk=host_group.mac.pk,
-                    content_type=host_type,
-                )
-                #assign_perm('is_owner_host', auth_group, host_group.mac)
+                        # If these are local accounts, disable for now
+                        # if not is_anumber:
+                        #     auth_user.active = False
+                        #     auth_user.save()
+                        if not auth_user.has_perm('is_owner_host', host_group.host):
+                            print 'Assigning owner permission to user %s for host %s \n' % (auth_user, host_group.host)
+                            # UserObjectPermission.objects.get_or_create(
+                            #     user=auth_user,
+                            #     permission=owner_perm,
+                            #     object_pk=host_group.mac.pk,
+                            #     content_type=host_type,
+                            # )
+                            assign_perm('hosts.is_owner_host', auth_user, host_group.host)
+                    else:
+                        continue
+            else:
+                auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
+                if not auth_user.has_perm('is_owner_host', host_group.host):
+                    print 'Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host)
+                    # GroupObjectPermission.objects.get_or_create(
+                    #     group=auth_group,
+                    #     permission=owner_perm,
+                    #     object_pk=host_group.mac.pk,
+                    #     content_type=host_type,
+                    # )
+                    assign_perm('hosts.is_owner_host', auth_group, host_group.host)
 
 
 def populate_user_from_ldap():

@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView
-from django.views.generic import UpdateView, CreateView, FormView
 from django.views.generic import TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.template.defaultfilters import slugify
@@ -12,7 +11,6 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.db.models import Q
 from django.db.utils import DatabaseError
-from django.http import HttpResponseRedirect
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
@@ -21,8 +19,6 @@ from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRene
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
 from openipam.network.models import Lease
-
-from guardian.shortcuts import assign_perm
 
 
 class HostListJson(BaseDatatableView):

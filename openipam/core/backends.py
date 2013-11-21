@@ -28,7 +28,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 
 
 # Modified django auth ldap backend to allow mirroring of groups and still
-# keep static groups that and django only.
+# keep static groups that are django only.
 class IPAMLDAPBackend(LDAPBackend):
 
     def authenticate(self, username, password):
@@ -38,7 +38,6 @@ class IPAMLDAPBackend(LDAPBackend):
 
         ldap_user = _IPAMLDAPUser(self, username=username.strip())
         user = ldap_user.authenticate(password)
-
 
         return user
 

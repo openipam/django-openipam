@@ -8,6 +8,7 @@ from django.db.models.signals import m2m_changed, post_save
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager
 
 from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
+from guardian.managers import UserObjectPermissionManager, GroupObjectPermissionManager
 
 
 class Lease(models.Model):
@@ -184,15 +185,27 @@ class Network(models.Model):
         )
 
 
+class NetworkUserObjectPermissionManager(NetManager, UserObjectPermissionManager):
+    pass
+
+
 class NetworkUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey('Network', related_name='user_permissions')
+
+    objects = NetworkUserObjectPermissionManager()
 
     class Meta:
         verbose_name = 'Network User Permission'
 
 
+class NetworkGroupObjectPermissionManager(NetManager, GroupObjectPermissionManager):
+    pass
+
+
 class NetworkGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey('Network', related_name='group_permissions')
+
+    objects = NetworkGroupObjectPermissionManager()
 
     class Meta:
         verbose_name = 'Network Group Permission'
