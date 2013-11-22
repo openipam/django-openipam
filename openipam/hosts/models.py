@@ -210,11 +210,11 @@ class Host(models.Model):
         groups = self.group_permissions.filter(permission__codename='is_owner_host')
 
         if ids_only:
-            users = [user.user_id for user in users]
-            groups = [group.group_id for group in groups]
+            users = [user.user_id for user in users] if users else None
+            groups = [group.group_id for group in groups] if groups else None
         else:
-            users = [user.user for user in users]
-            groups = [group.group for group in groups]
+            users = [user.user for user in users] if users else None
+            groups = [group.group for group in groups] if groups else None
 
         return users, groups
 
