@@ -76,11 +76,11 @@
                 </thead>
                 <tbody>
                     {% if user_owners %}
-                        {% for owner in user_owners %}
+                        {% for user in user_owners %}
                         <tr>
-                            <td>{{ owner.user.username }}</td>
-                            <td>{{ owner.user.get_full_name }}</td>
-                            <td><a href="{{ owner.user.email }}">{{ owner.user.email }}</a></td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.get_full_name }}</td>
+                            <td><a href="{{ user.email }}">{{ user.email }}</a></td>
                         </tr>
                         {% endfor %}
                     {% else %}
@@ -105,10 +105,10 @@
                     </thead>
                     <tbody>
                         {% if group_owners %}
-                            {% for owner in group_owners %}
+                            {% for group in group_owners %}
                             <tr>
-                                <td>{{ owner.group.name }}</td>
-                                <td>{{ owner.group.description }}</td>
+                                <td>{{ group.name }}</td>
+                                <td>{{ group.description }}</td>
                             </tr>
                             {% endfor %}
                         {% else %}
