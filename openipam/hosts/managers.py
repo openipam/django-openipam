@@ -52,7 +52,7 @@ class HostManager(NetManager):
                 # Network Perms Join
                 Q(
                     addresses__network__user_permissions__user=user,
-                    addresses__network__user_permissions__permission__codename__in='is_owner_network'
+                    addresses__network__user_permissions__permission__codename='is_owner_network'
                 ) |
                 # Domain Perms Join
                 Q(
@@ -62,6 +62,10 @@ class HostManager(NetManager):
                 Q(
                     user_permissions__user=user,
                     user_permissions__permission__codename='is_owner_host'
+                ) |
+                Q(
+                    group_permissions__in=user.groups.all(),
+                    group_permissions__permission__codename='is_owner_host'
                 )
             )
 
