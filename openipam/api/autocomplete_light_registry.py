@@ -1,13 +1,14 @@
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
-from openipam.user.models import User
+from django.contrib.auth import get_user_model
 from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, Pool, DhcpGroup
 from guardian.shortcuts import get_objects_for_user, assign_perm
 import autocomplete_light
 
+User = get_user_model()
 
 # autocomplete_light.register(User,
 #     search_fields=['username', 'first_name', 'last_name', 'email'],
