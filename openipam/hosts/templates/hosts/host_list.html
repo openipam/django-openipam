@@ -34,7 +34,6 @@
 
 
 {% block contentbody %}
-    {{ request.COOKIES.owner_filter }}
     <form id="changelist-form" action="" method="post" class="quickbody">
         {% csrf_token %}
         <div id="actions">

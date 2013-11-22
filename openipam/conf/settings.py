@@ -97,7 +97,7 @@ FIXTURE_DIRS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = locals().pop(
     'LOCAL_SECRET_KEY',
-    hashlib.md5(socket.gethostname() + ')*)&8a36)6%74e@-ne5(-!8a(vv#tkv)(eyg&@0=zd^pl!7=y@').hexdigest()
+    hashlib.md5(socket.gethostname() + ')*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@').hexdigest()
 )
 
 # List of callables that know how to import templates from various sources.

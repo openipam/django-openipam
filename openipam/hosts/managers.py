@@ -1,7 +1,5 @@
-from django.db.models import Model, Manager, Q
+from django.db.models import Q
 
-from guardian.managers import UserObjectPermissionManager
-from guardian.models import UserObjectPermission
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, get_perms_for_model
 
 from netfields import NetManager
