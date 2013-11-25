@@ -63,6 +63,7 @@ class HostForm(forms.ModelForm):
         # Attach user to form and model
         self.user = user
         self.instance.user = user
+        self.is_allowed_host = False
 
         #Populate some fields if we are editing the record
         current_address_html = None
@@ -159,15 +160,16 @@ class HostForm(forms.ModelForm):
             )
         ]
 
+        accordion_groups.append(
+            AccordionGroup(
+                'Owners',
+                'user_owners',
+                'group_owners',
+            )
+        )
         # Add owners and groups if super user or ipam admin
         if user.is_ipamadmin:
-            accordion_groups.append(
-                AccordionGroup(
-                    'Owners',
-                    'user_owners',
-                    'group_owners',
-                )
-            )
+            pass
         else:
             # Customize address types for non super users
             user_pools = get_objects_for_user(
@@ -193,14 +195,22 @@ class HostForm(forms.ModelForm):
         # Add attributes
         accordion_groups.append(AccordionGroup(*attribute_field_keys))
 
+        form_actions = [
+            Submit('save', 'Save changes'),
+            Button('cancel', 'Cancel', onclick="javascript:location.href='%s';" % reverse('list_hosts')),
+        ]
+        if self.instance.pk and not self.is_allowed_host:
+            form_actions.pop(0)
+
+            for key in self.fields:
+                self.fields[key].widget.attrs.update({'disabled':'disabled', 'readonly': 'readonly'})
+
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Accordion(*accordion_groups),
 
-            FormActions(
-                Submit('save', 'Save changes'),
-                Button('cancel', 'Cancel', onclick="javascript:location.href='%s';" % reverse('list_hosts')),
-            )
+            FormActions(*form_actions)
         )
 
     def save(self, *args, **kwargs):

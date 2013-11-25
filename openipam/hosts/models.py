@@ -12,7 +12,6 @@ from django.utils.safestring import mark_safe
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
-from guardian.managers import UserObjectPermissionManager
 from guardian.models import UserObjectPermission, GroupObjectPermission, \
     UserObjectPermissionBase, GroupObjectPermissionBase
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
@@ -179,7 +178,7 @@ class Host(models.Model):
 
     @property
     def mac_is_disabled(self):
-        return True if Disabled.objects.filter(mac=self.mac) else False
+        return True if Disabled.objects.filter(host=self) else False
 
     @property
     def mac_last_seen(self):
@@ -187,7 +186,7 @@ class Host(models.Model):
         #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
 
         #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+        gul_mac = GulRecentArpBymac.objects.filter(host=self).order_by('-stopstamp')
 
         if gul_mac:
             return gul_mac[0].stopstamp
@@ -196,7 +195,7 @@ class Host(models.Model):
 
     @property
     def static_ip_last_seen(self):
-        gul_ip = GulRecentArpByaddress.objects.filter(mac=self.mac).order_by('-stopstamp')
+        gul_ip = GulRecentArpByaddress.objects.filter(host=self).order_by('-stopstamp')
 
         #ul_ip = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_byaddress)
 
@@ -332,8 +331,9 @@ class Host(models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
-    def user_has_perm(self, user):
-        return True if user.has_perm('hosts.is_owner_host', self) else False
+    def user_has_onwership(self, user):
+        allowed_host = Host.objects.get_host_with_owner_perms(user, self.pk)
+        return True if allowed_host else False
 
     def __unicode__(self):
         return self.hostname

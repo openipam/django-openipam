@@ -26,65 +26,76 @@ class HostManager(NetManager):
         hosts = self.filter(mac__in=host_macs)
         return hosts
 
-    def get_hosts_with_owner_perms(self, user, **kwargs):
+    def get_host_with_owner_perms(self, user, pk):
 
         if user.is_ipamadmin:
-            return self.filter(**kwargs)
+            qs = self.get(pk=pk)
+            return qs if qs else None
         else:
+            #user_groups = [group.pk for group in user.groups.all()]
 
-            domains_perms = self.raw('''
-                SELECT DISTINCT h.* from hosts h
+            allowed_hosts = self.raw('''
+                SELECT DISTINCT h.mac from hosts h
+                    LEFT OUTER JOIN domains d ON h.hostname LIKE '%%.' || d.name
+                    LEFT OUTER JOIN dns_domainuserobjectpermission dp ON d.id = dp.content_object_id
+                    LEFT OUTER JOIN auth_permission dap ON dp.permission_id = dap.id
+                    LEFT OUTER JOIN dns_domaingroupobjectpermission dgp ON d.id = dgp.content_object_id
+                    LEFT OUTER JOIN auth_permission dgap ON dgp.permission_id = dgap.id
+                    LEFT OUTER JOIN users_groups dug ON dgp.group_id = dug.group_id
 
-                WHERE h.mac IN (
-                    SELECT mac from hosts h
-                        INNER JOIN domains d ON h.hostname LIKE '%%.' || d.name
-                        INNER JOIN dns_domaingroupobjectpermission dg ON dg.content_object_id = d.id
-                        INNER JOIN users_groups ug ON ug.group_id = dg.group_id
-                        INNER JOIN dns_domainuserobjectpermission du ON du.content_object_id = d.id
-                        INNER JOIN auth_permission gp ON gp.id = dg.permission_id
-                        INNER JOIN auth_permission up ON up.id = du.permission_id
-                    WHERE
-                        (du.user_id = %s OR ug.user_id = %s) AND
-                        (gp.codename LIKE 'is_owner%%' OR up.codename LIKE 'is_owner%%')
-                )''', [user.pk, user.pk])
+                    LEFT OUTER JOIN addresses a ON h.mac = a.mac
+                    LEFT OUTER JOIN networks n ON a.network = n.network
+                    LEFT OUTER JOIN network_networkuserobjectpermission np ON n.network = np.content_object_id
+                    LEFT OUTER JOIN auth_permission nap ON np.permission_id = nap.id
+                    LEFT OUTER JOIN network_networkgroupobjectpermission ngp ON n.network = ngp.content_object_id
+                    LEFT OUTER JOIN auth_permission ngap ON ngp.permission_id = ngap.id
+                    LEFT OUTER JOIN users_groups nug ON ngp.group_id = nug.group_id
 
-            qs = self.filter(
-                # Network Perms Join
-                Q(
-                    addresses__network__user_permissions__user=user,
-                    addresses__network__user_permissions__permission__codename='is_owner_network'
-                ) |
-                # Domain Perms Join
-                Q(
-                    mac__in=[host.mac for host in domains_perms]
-                ) |
-                # Hosts Perm Join
-                Q(
-                    user_permissions__user=user,
-                    user_permissions__permission__codename='is_owner_host'
-                ) |
-                Q(
-                    group_permissions__in=user.groups.all(),
-                    group_permissions__permission__codename='is_owner_host'
-                )
-            )
+                    LEFT OUTER JOIN hosts_hostuserobjectpermission hp ON h.mac = hp.content_object_id
+                    LEFT OUTER JOIN auth_permission hap ON hp.permission_id = hap.id
+                    LEFT OUTER JOIN hosts_hostgroupobjectpermission hgp ON h.mac = hgp.content_object_id
+                    LEFT OUTER JOIN auth_permission hgap ON hgp.permission_id = hgap.id
+                    LEFT OUTER JOIN users_groups hug ON hgp.group_id = hug.group_id
+                WHERE
+                    h.mac = %(mac)s
 
-            return qs.filter(**kwargs)
+                    AND
+                    (
+                        (dp.user_id = %(user_id)s AND dap.codename = 'is_owner_domain')
+                        OR (dgap.codename = 'is_owner_domain' AND dug.user_id = %(user_id)s)
+
+                        OR (np.user_id = %(user_id)s AND nap.codename = 'is_owner_network')
+                        OR (ngap.codename = 'is_owner_network' AND nug.user_id = %(user_id)s)
+
+                        OR (hp.user_id = %(user_id)s AND hap.codename = 'is_owner_host')
+                        OR (hgap.codename = 'is_owner_host' AND hug.user_id = %(user_id)s)
+                    )
+            ''', {
+                'user_id': user.pk,
+                'mac': pk,
+            })
+
+            allowed_hosts = [host.mac for host in allowed_hosts]
+
+            return self.get(mac=allowed_hosts[0]) if allowed_hosts else None
 
     def get_hosts_owned_by_user(self, user):
-        return self.filter(
-            Q(
-                user_permissions__user=user,
-                user_permissions__permission__codename='is_owner_host'
-            ) |
-            Q(
-                group_permissions__in=user.groups.all(),
-                group_permissions__permission__codename='is_owner_host'
-            )
-        )
+        hosts = self.raw('''
+            SELECT h.mac FROM hosts h
+                INNER JOIN hosts_hostuserobjectpermission hup ON hup.content_object_id = h.mac AND hup.user_id = %s
+                INNER JOIN auth_permission huap ON hup.permission_id = huap.id AND huap.codename = 'is_owner_host'
 
+            UNION
 
-        #return self.filter(user_permissions__user=user, user_permissions__permission__codename='is_owner_host')
+            SELECT h.mac FROM hosts h
+                INNER JOIN hosts_hostgroupobjectpermission hgp ON hgp.content_object_id = h.mac
+                INNER JOIN auth_permission hgap ON hgp.permission_id = hgap.id AND hgap.codename = 'is_owner_host'
+                INNER JOIN users_groups ug ON hgp.group_id = ug.group_id and ug.user_id = %s
+        ''', [user.pk, user.pk])
+
+        hosts = [host.mac for host in hosts]
+
+        return self.filter(mac__in=hosts)
 
     def get_hosts_by_user(self, user):
         return self.filter(

@@ -49,10 +49,29 @@ input {
     position: fixed;
     bottom: 0px;
     right: 22px;
-    z-index: 999;
+    z-index: 100;
     webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
     box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
 }
 .fixed div {
     margin: 10px;
+}
+#search-help-button {
+    margin: 5px;
+}
+#search-help {
+    width: 250px;
+    font-size: 12px;
+    background: #eee;
+    position: fixed;
+    z-index: 200;
+    float: left;
+    right: 420px;
+    padding: 10px;
+    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+}
+#search-help pre {
+    padding: 4px;
+    font-size: 12px;
 }

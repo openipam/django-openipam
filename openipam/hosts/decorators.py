@@ -1,5 +1,4 @@
 from django.core.exceptions import PermissionDenied
-
 from openipam.hosts.models import Host
 
 
@@ -10,12 +9,16 @@ def permission_owner_required(view_func):
     """
     def wrap(request, pk, *args, **kwargs):
 
-        permited_host = Host.objects.get_hosts_with_owner_perms(request.user, pk=pk)
+        permited_host = Host.objects.get_host_with_owner_perms(request.user, pk=pk)
 
         if permited_host:
             return view_func(request, *args, **kwargs)
         else:
-            raise PermissionDenied
+            from openipam.hosts.views import HostDetailView
+
+            view_func = HostDetailView.as_view()
+            response = view_func(request, pk=pk, read_only=True, *args, **kwargs)
+            return response.render()
 
     return wrap
 

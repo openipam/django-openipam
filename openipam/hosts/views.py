@@ -44,7 +44,7 @@ class HostListJson(BaseDatatableView):
             qs = Host.objects.get_hosts_owned_by_user(self.request.user)
         # Otherwise get hosts based on permissions
         else:
-            qs = Host.objects.get_hosts_with_owner_perms(self.request.user)
+            qs = Host.objects.all()
 
         return qs
 
@@ -53,7 +53,6 @@ class HostListJson(BaseDatatableView):
 
         try:
 
-            # simple example:
             search = self.request.GET.get('sSearch', None)
             host_search = self.request.GET.get('sSearch_0', None)
             mac_search = self.request.GET.get('sSearch_1', None)
@@ -61,14 +60,47 @@ class HostListJson(BaseDatatableView):
             expired_search = self.request.GET.get('sSearch_3', None)
             group_filter = self.request.GET.get('group_filter', None)
 
+            search_list = search.strip().split(' ')
+            for search_item in search_list:
+                if search_item.startswith('desc:'):
+                    #assert False, search_item.split(':')[-1]
+                    qs = qs.filter(description__icontains=search_item.split(':')[-1])
+                elif search_item.startswith('user:'):
+                    qs = qs.filter(user_permissions__user__username__istartswith=search_item.split(':')[-1])
+                elif search_item.startswith('name:'):
+                    qs = qs.filter(hostname__startswith=search_item.split(':')[-1])
+                elif search_item.startswith('mac:'):
+                    mac_str = search_item.split(':')
+                    mac_str.pop(0)
+                    mac_str = ''.join(mac_str)
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
+                    except TypeError:
+                        pass
+                    qs = qs.filter(mac__istartswith=mac_str)
+                elif search_item.startswith('ip:'):
+                    qs = qs.filter(addresses__address__istartswith=search_item.split(':')[-1])
+                elif search_item.startswith('net:'):
+                    qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
+                else:
+                    qs = qs.filter(hostname__icontains=search_item)
+
             if host_search:
                 qs = qs.filter(hostname__icontains=host_search)
-            if search:
-                qs = qs.filter(Q(hostname__icontains=search) | Q(mac__icontains=search))
             if mac_search:
-                qs = qs.filter(mac__icontains=mac_search)
+                if ':' not in mac_search:
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_search.decode('hex'))
+                    except TypeError:
+                        mac_str = mac_search
+                else:
+                    mac_str = mac_search
+                qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
-                qs = qs.filter(addresses__address__icontains=ip_search)
+                if '/' in ip_search:
+                    qs = qs.filter(addresses__address__net_contained=ip_search)
+                else:
+                    qs = qs.filter(addresses__address__icontains=ip_search)
             if group_filter:
                 qs = qs.filter(group_permissions__group__pk=group_filter)
 
@@ -137,7 +169,7 @@ class HostListJson(BaseDatatableView):
                 get_last_mac_stamp(host.mac),
                 get_last_ip_stamp(host.mac),
                 '<a href="%s?mac=%s">DNS Records</a>' % (reverse_lazy('list_dns'), host.mac),
-                '<a href="%s">Edit</a>' % reverse_lazy('update_host', args=(slugify(host.mac),))
+                '<a href="%s">Edit</a>' % host_edit_href,
             ])
         return json_data
 
@@ -208,11 +240,11 @@ class HostListView(TemplateView):
                 if user.is_ipamadmin:
                     user_perms_check = True
                 else:
-                    user_perm_list = [host.user_has_perm(user) for host in selected_hosts]
+                    user_perm_list = [host.user_has_onwership(user) for host in selected_hosts]
                     if set(user_perm_list) == set([True]):
                         user_perms_check = True
                     else:
-                        messages.error(self.request, "You do not have permissions to perform this action on the selected hosts."
+                        messages.error(self.request, "You do not have permissions to perform this action on the selected hosts. "
                                        "Please content an IPAM administrator.")
 
                 # Continue if user has perms.
@@ -242,13 +274,16 @@ class HostListView(TemplateView):
 
 class HostDetailView(DetailView):
     model = Host
+    noaccess = False
 
     def get_context_data(self, **kwargs):
+
         context = super(HostDetailView, self).get_context_data(**kwargs)
         attributes = []
         attributes += self.object.freeform_attributes.values_list('attribute__description', 'value')
         attributes += self.object.structured_attributes.values_list('structured_attribute_value__attribute__description',
                                                                     'structured_attribute_value__value')
+        context['read_only'] = self.kwargs.get('read_only', False)
         context['attributes'] = attributes
         context['dns_records'] = self.object.get_dns_records()
         context['addresses'] = self.object.addresses.all()
@@ -258,9 +293,15 @@ class HostDetailView(DetailView):
 
         return context
 
-    @method_decorator(permission_owner_required)
-    def dispatch(self, *args, **kwargs):
-        return super(HostDetailView, self).dispatch(*args, **kwargs)
+    def get_template_names(self):
+        if self.request.is_ajax():
+            return ['hosts/inc/detail.html']
+        else:
+            return super(HostDetailView, self).get_template_names()
+
+    # @method_decorator(permission_owner_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(HostDetailView, self).dispatch(*args, **kwargs)
 
 
 class HostUpdateCreateView(object):
@@ -274,6 +315,10 @@ class HostUpdateCreateView(object):
 
         return form
 
+    # def get_context_data(self, **kwargs):
+    #     context = super(HostUpdateCreateView, self).get_context_data(**kwargs)
+    #     return context
+
     def form_valid(self, form):
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
         return super(HostUpdateCreateView, self).form_valid(form)
@@ -283,6 +328,7 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
     @method_decorator(permission_owner_required)
     def dispatch(self, *args, **kwargs):
         return super(HostUpdateView, self).dispatch(*args, **kwargs)
+
 
 
 class HostCreateView(HostUpdateCreateView, CreateView):

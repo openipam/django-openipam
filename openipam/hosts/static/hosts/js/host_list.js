@@ -84,7 +84,7 @@ $(function(){
                     });
 
                     $('#host-details').on('shown', function(){
-                        $("#myModalLabel").text("Details for: " + hostname);
+                        $("#host-detail-label").text("Details for: " + hostname);
                         $("#edit-host").prop("href", edit_href);
                     });
 
@@ -109,36 +109,35 @@ $(function(){
                     window.onscroll=onchange;
                     onchange();
                 }
-
             });
         }
     });
 
-    var pageOnchange = function(){
+    var pageOnchange = function() {
         var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
         if(s<height){page_bar.addClass('fixed');}
         else{page_bar.removeClass('fixed');}
     }
 
-    $("#changelist-filters-toggle").click(function(){
+    $("#changelist-filters-toggle").click(function() {
         $("#changelist-filter-actions").toggle();
         $(this).toggleClass('btn-inverse');
     });
 
 
-    $("#filter-close").click(function(){
+    $("#filter-close").click(function() {
         $("#changelist-filters-toggle").click();
     });
 
 
     // Trigger filtering on group
-    $("#id_groups").unbind('change').change(function(){
+    $("#id_groups").unbind('change').change(function() {
         $.cookie('group_filter', $(this).val(), {expires: 1, path: '/hosts/'});
         results.fnDraw();
     });
 
     //Triger filtering on owners
-    $("#filter-owners button").click(function(){
+    $("#filter-owners button").click(function() {
         $("#filter-owners button").removeClass('btn-inverse');
         $(this).addClass('btn-inverse');
         $.cookie('owner_filter', $(this).val(), {expires: 1, path: '/hosts/'});
@@ -148,7 +147,7 @@ $(function(){
     // JS Styling :/
     $("div.header").append($("#actions"));
     $("#actions").append($("#result_list_processing")).append('<div class="clear"><!-- --></div>');
-    $("#changelist-search").prepend($("#result_list_filter"));
+    $("#search-help-button").after($("#result_list_filter"));
     $("#result_list_filter input").prop('placeholder', 'Quick Search');
     //$("#changelist-search").prepend($("#result_list_length"));
 
@@ -158,7 +157,7 @@ $(function(){
     });
 
     // Clear all filters logic
-    $("#clear-filters").click(function(){
+    $("#clear-filters").click(function() {
         $(".dataTables_filter input[type='text']").val('');
         $(".search_init").val('');
         $("select.filter-select option").each(function(index, obj){
@@ -177,13 +176,18 @@ $(function(){
         return false;
     });
 
-    $(".search_init").bind('keyup change', function(){
+    $(".search_init").bind('keyup change', function() {
         /* Filter on the column (the index) of this element */
         results.fnFilter($(this).val(), $(".search_init").index($(this)));
     });
 
+    $("#search-help-button").click(function(){
+        $("#search-help").toggle();
+        return false;
+    });
+
     // Toggle all select for checkboxes
-    $("#action-toggle").click(function(){
+    $("#action-toggle").click(function() {
         if ($(this).is(":checked")) {
             $(".action-select").prop('checked', 'checked');
         }
@@ -193,7 +197,7 @@ $(function(){
     });
 
     // Action submit logic
-    $("#action-submit").click(function(){
+    $("#action-submit").click(function() {
         var action = $("#host-action").val();
         var hosts = $(".action-select:checked");
 

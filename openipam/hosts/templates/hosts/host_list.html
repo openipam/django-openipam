@@ -58,6 +58,7 @@
                     </div>
                 </div>
                 <div id="changelist-search" class="pull-right">
+                    <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
                     <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
 
                     <a id="changelist-filters-toggle" class="pull-right btn dropdown-toggle">
@@ -65,6 +66,19 @@
                         <span class="caret"></span>
                     </a>
                 </div>
+                <div id="search-help" class="hide">
+                    <p>Search for hostnames, IP addresses, MAC addresses, or networks (in
+                    CIDR notation).</p>
+                    <strong>For advanced searches...</strong>
+                    <p>Multiple search terms may be included separated spaces.</p>
+                    <p>Try these special query types:</p><p>
+                    </p><pre>user:<em>username</em></pre>
+                    <pre>name:<em>hostname</em></pre>
+                    <pre>desc:<em>description word</em></pre>
+                    <pre>ip:<em>IP address</em></pre>
+                    <pre>net:<em>network (CIDR notation)</em></pre>
+                    <pre>mac:<em>MAC address</em></pre>
+                    </div>
             {% endspaceless %}
         </div>
 
@@ -156,16 +170,16 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                     <h3>Renew for selected hosts</h3>
                 </div>
-                    <div class="modal-body">
-                        <div class="pull-left form-horizontal">
-                            {{ renew_form|crispy }}
-                        </div>
-                        <div class="clear"><!-- --></div>
+                <div class="modal-body">
+                    <div class="pull-left form-horizontal">
+                        {{ renew_form|crispy }}
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit">Save</button>
-                        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                    </div>
+                    <div class="clear"><!-- --></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                </div>
             </div>
 
             <div id="host-details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true">

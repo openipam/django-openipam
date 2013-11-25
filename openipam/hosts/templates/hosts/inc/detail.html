@@ -1,0 +1,320 @@
+<style type="text/css">
+    #host-details-nav {
+        {% if request.is_ajax %}
+        background: #fff;
+        width: 770px;
+        padding: 10px 0px;
+        {% else %}
+        margin-bottom: 0px;
+        {% endif %}
+    }
+    #host-details-container > div {
+        {% if request.is_ajax %}margin-top: 50px;{% endif %}
+        padding: 10px 20px;
+    }
+    #host-details-container h3 {
+        {% if request.is_ajax %}margin: 20px 0px 5px;{% endif %}
+    }
+</style>
+
+{% if read_only %}
+    <div class="alert alert-warning">
+        You do not have permissions to edit this host. Displaying host details only.
+    </div>
+{% endif %}
+
+<ul id="host-details-nav" class="{% if request.is_ajax %}affix affix-top{% endif %}well well-small nav nav-pills nav-tabs">
+    <li class="active"><a href="#info" data-toggle="pill">Info</a></li>
+    <li><a href="#owners" data-toggle="pill">Owners</a></li>
+    <li><a href="#address" data-toggle="pill">Addresses</a></li>
+    <li><a href="#dns-records" data-toggle="pill">DNS Records</a></li>
+    <li><a href="#dhcp-group" data-toggle="pill">DHCP Group</a></li>
+    <li><a href="#host-attributes" data-toggle="pill">Host Attributes</a></li>
+</ul>
+
+<div id="host-details-container" class="tab-content">
+    <div id="info" class="tab-pane active">
+        <h3>
+            Hostname
+        </h3>
+        <div>
+            {{ object.hostname }}
+        </div>
+        <h3>
+            Description
+        </h3>
+        <div>
+            {% if object.description %}
+                {{ object.description }}
+            {% else %}
+                N/A
+            {% endif %}
+        </div>
+        <h3>
+            MAC Address
+        </h3>
+        <div>
+            {{ object.mac }}
+        </div>
+        <h3>
+            Address Type
+        </h3>
+        <div>
+            {{ object.get_address_type }}
+        </div>
+        <h3>
+            Expires
+        </h3>
+        <div>
+            {{ object.expires }}
+        </div>
+    </div>
+
+    <div id="owners" class="tab-pane">
+        <h3>
+            User Owners
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if user_owners %}
+                        {% for user in user_owners %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.get_full_name }}</td>
+                            <td><a href="{{ user.email }}">{{ user.email }}</a></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">
+                                <span class="label label-important">None Assigned</span>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <h3>
+                Group Owners
+            </h3>
+            <div>
+                <table class="table table-striped table-condensed table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if group_owners %}
+                            {% for group in group_owners %}
+                            <tr>
+                                <td>{{ group.name }}</td>
+                                <td>{{ group.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3">
+                                    <span class="label label-important">None Assigned</span>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="address" class="tab-pane">
+        {% if pools %}
+        <h3>
+            Dynamic Address Type
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Pool</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pool in pools %}
+                        <tr>
+                            <td>{{ pool.name }}</td>
+                            <td>{{ pool.description }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <h3>
+            Static Addresses
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Address</th>
+                        <th>Network</th>
+                        <th>Gateway</th>
+                        <th>Last seen</th>
+                        <th>Last seen MAC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if addresses %}
+                        {% for address in addresses %}
+                            <tr>
+                                <td>{{ address.address }}</td>
+                                <td>{{ address.network }}</td>
+                                <td>{{ address.network.gateway }}</td>
+                                <td>{{ address.mac.static_ip_last_seen }}</td>
+                                <td>{{ address.mac.mac_last_seen }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <td colspan="5">
+                            <span class="label label-info">None Assigned</span>
+                        </td>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <h3>
+            Leased Addresses
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Address</th>
+                        <th>Expires</th>
+                        <th>Last seen</th>
+                        <th>Last seen MAC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leased_addresses %}
+                        {% for address in leased_addresses %}
+                            <tr>
+                                <td>{{ address.address }}</td>
+                                <td>{{ address.ends|date:"Y-m-d h:i:s A" }}</td>
+                                <td>{{ address.gul_last_seen|date:"Y-m-d h:i:s A" }}</td>
+                                <td>{{ address.gul_last_seen_mac }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <td colspan="5">
+                            <span class="label label-info">None Assigned</span>
+                        </td>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="dns-records" class="tab-pane">
+        <h3>
+            DNS Records
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>TTL</th>
+                        <th>Value</th>
+                        <th>View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if dns_records %}
+                    {% for record in dns_records %}
+                        <tr>
+                            <td>{{ record.name }}</td>
+                            <td>{{ record.dns_type.name }}</td>
+                            <td>{{ record.ttl }}</td>
+                            <td>{{ record.text_content }}</td>
+                            <td>{{ record.dns_view }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <td colspan="5">
+                        <span class="label label-info">None Assigned</span>
+                    </td>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="dhcp-group" class="tab-pane">
+        <h3>
+            DHCP Group
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if object.dhcp_group %}
+                        <tr>
+                            <td>{{  object.dhcp_group.name }}</td>
+                            <td>{{  object.dhcp_group.description }}</td>
+                        </tr>
+                    {% else %}
+                        <td colspan="2">
+                            <span class="label label-info">None Assigned</span>
+                        </td>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="host-attributes" class="tab-pane">
+        <h3>
+            Host Attributes
+        </h3>
+        <div>
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if attributes %}
+                    {% for attribute in attributes %}
+                        <tr>
+                            <td>{{ attribute.0 }}</td>
+                            <td>{{ attribute.1 }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <td colspan="2">
+                        <span class="label label-info">None Assigned</span>
+                    </td>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
