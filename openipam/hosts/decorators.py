@@ -11,9 +11,7 @@ def permission_owner_required(view_func):
 
         permited_host = Host.objects.get_host_with_owner_perms(request.user, pk=pk)
 
-        if permited_host:
-            return view_func(request, *args, **kwargs)
-        else:
+        if not permited_host:
             from openipam.hosts.views import HostDetailView
 
             view_func = HostDetailView.as_view()
