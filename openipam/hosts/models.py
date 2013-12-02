@@ -378,10 +378,9 @@ class Host(models.Model):
                 valid_network = get_objects_for_user(
                     self.user,
                     ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                    self.network,
                     any_perm=True
                 )
-                if not valid_network:
+                if self.network not in valid_network:
                     raise ValidationError('You do not have sufficient permissions to add hosts to '
                       'the assigned network. Please contact an IPAM Administrator.')
 
