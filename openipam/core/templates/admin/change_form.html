@@ -2,6 +2,7 @@
 {% load i18n admin_modify openipam %}
 
 {% block extrahead %}{{ block.super }}
+{% include 'autocomplete_light/static.html' %}
 <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
 {{ media }}
 {% endblock %}
