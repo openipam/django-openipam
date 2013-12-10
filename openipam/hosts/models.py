@@ -65,7 +65,7 @@ class Disabled(models.Model):
     disabled_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
     def __unicode__(self):
-        return self.mac
+        return self.host
 
     class Meta:
         db_table = 'disabled'
