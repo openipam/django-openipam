@@ -1,0 +1,43 @@
+.help-block {
+    margin: 0 10px 0 0;
+}
+#search-input {
+    margin: 0 10px 0 0;
+}
+span.label-delete {
+    margin: 5px;
+}
+#dnsupdate-form input, #dnsupdate-form select {
+    margin-bottom: 0;
+}
+table input, table select {
+    margin-bottom: 0px !important;
+}
+
+table select {
+    max-width: 80px;
+}
+
+.input-name, .input-content {
+    width: 95%;
+}
+
+table tr.info td {
+    background-color: #d9edf7 !important;
+}
+table tr.error td {
+    background-color: #f2dede !important;
+}
+
+#form-actions {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.pagination {
+    height: auto;
+}
+
+.pagination input {
+    margin: 0px;
+}
