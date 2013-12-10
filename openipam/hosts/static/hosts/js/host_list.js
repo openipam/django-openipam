@@ -60,7 +60,10 @@ $(function(){
         },
         "fnServerParams": function (aoData) {
             aoData.push(
-                { "name": "group_filter", "value": $("#id_groups").val() }
+                { "name": "group_filter", "value": $.cookie('group_filter') }
+            );
+            aoData.push(
+                { "name": "user_filter", "value": $.cookie('user_filter') }
             );
             aoData.push(
                 { "name": "owner_filter", "value": $.cookie('owner_filter') }
@@ -136,6 +139,12 @@ $(function(){
         results.fnDraw();
     });
 
+    // Trigger filtering on group
+    $("#id_users").unbind('change').change(function() {
+        $.cookie('user_filter', $(this).val(), {expires: 1, path: '/hosts/'});
+        results.fnDraw();
+    });
+
     //Triger filtering on owners
     $("#filter-owners button").click(function() {
         $("#filter-owners button").removeClass('btn-inverse');
@@ -150,7 +159,6 @@ $(function(){
     $("#search-help-button").after($("#result_list_filter"));
     $("#result_list_filter input").prop('placeholder', 'Quick Search');
     //$("#changelist-search").prepend($("#result_list_length"));
-
 
     $("tfoot input").each(function (i){
         asInitVals[i] = this.value;
@@ -168,10 +176,8 @@ $(function(){
                 $(obj).removeAttr('selected');
             }
         });
+        $("#id_users-deck .remove").click();
         $("#id_groups-deck .remove").click();
-        $("select.filter-select").val('').trigger("liszt:updated");
-        $("input[name='regex-search-type']").removeAttr('checked');
-        $("input[name='regex-search-type'][value='1']").attr('checked', 'checked');
         results.fnFilterClear();
         return false;
     });

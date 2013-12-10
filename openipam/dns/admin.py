@@ -8,6 +8,27 @@ from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionFo
 import autocomplete_light
 
 
+class BaseDNSAdmin(admin.ModelAdmin):
+    """
+        Hack override of methods to custimize app_label.
+    """
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        context.update({
+            'app_label': 'DNS'
+        })
+        return super(BaseDNSAdmin, self).render_change_form(request, context, add, change, form_url, obj)
+
+    def changelist_view(self, request, extra_context=None):
+        cl = super(BaseDNSAdmin, self).changelist_view(request, extra_context)
+        #assert False, cl.context_data
+        cl.context_data.update({
+            'app_label': 'DNS'
+        })
+
+        return cl
+
+
 class DomainGroupPermissionInline(admin.TabularInline):
     model = DomainGroupObjectPermission
     form = DomainGroupPermissionForm
@@ -20,14 +41,13 @@ class DomainUserPermissionInline(admin.TabularInline):
     extra = 1
 
 
-class OpjectPermissionAdmin(admin.ModelAdmin):
+class OpjectPermissionAdmin(BaseDNSAdmin):
     list_select_related = True
 
     def get_queryset(self, request):
         qs = super(OpjectPermissionAdmin, self).get_queryset(request)
         qs = qs.prefetch_related('group_permissions__group', 'user_permissions__user',
                                  'group_permissions__permission', 'user_permissions__permission')
-
         return qs
 
     def sgroup_permissions(self, obj):
@@ -74,7 +94,7 @@ class DomainAdmin(OpjectPermissionAdmin):
 #     change_form_template = 'admin/openipam/change_form.html'
 
 
-class DnsRecordAdmin(admin.ModelAdmin):
+class DnsRecordAdmin(BaseDNSAdmin):
     list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
     list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
@@ -111,6 +131,7 @@ class DnsTypeGroupPermissionInline(admin.TabularInline):
     extra = 1
     #fk_name = 'content_object'
 
+
 class DnsTypeUserPermissionInline(admin.TabularInline):
     model = DnsTypeUserObjectPermission
     form = DnsTypeUserPermissionForm
@@ -119,7 +140,7 @@ class DnsTypeUserPermissionInline(admin.TabularInline):
 
 
 class DnsTypeAdmin(OpjectPermissionAdmin):
-    list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions')
+    list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions',)
     list_filter = ('min_permissions__name',)
     inlines = [DnsTypeGroupPermissionInline, DnsTypeUserPermissionInline]
 

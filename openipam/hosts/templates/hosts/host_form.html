@@ -10,6 +10,7 @@
 {% block extrahead %}
     {{ block.super }}
 
+    {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript">
         $(function(){
             $('#id_hostname').yourlabsAutocomplete({
@@ -141,7 +142,11 @@
 {% block breadcrumbs %}
     {{ block.super }}
         ../|{% trans "Hosts" %}
-        *{% trans "Host" %}
+        {% if object %}
+            {{ object.pk }}
+        {% else %}
+            {% trans "Host" %}
+        {% endif %}
 {% endblock %}
 
 
@@ -163,11 +168,6 @@
             {% if not form.instance.mac_last_seen %}
                 <div class="alert alert-error">
                     Mac not seen: there is no data for this mac address and we have not seen it in over 3 months (if ever).
-                </div>
-            {% endif %}
-            {% if not allowed_host %}
-                <div class="alert alert-warning">
-                    You do not have permissions to edit this host.  Editing has been disabled.
                 </div>
             {% endif %}
         {% endif %}

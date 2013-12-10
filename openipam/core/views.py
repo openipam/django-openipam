@@ -1,12 +1,13 @@
 #from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
 from django.contrib.admin.sites import AdminSite
 from openipam.core.models import FeatureRequest
-from openipam.core.forms import ProfileForm, FeatureRequestAdminForm
+from openipam.core.forms import ProfileForm, FeatureRequestForm
 
 
 def index(request):
@@ -63,8 +64,20 @@ def password_forgot(request):
 
 
 class FeatureRequestView(CreateView):
-    form_class = FeatureRequestAdminForm
+    form_class = FeatureRequestForm
     model = FeatureRequest
     success_url = reverse_lazy('feature_request_complete')
 
-
+    def post(self, request, *args, **kwargs):
+        if request.is_ajax():
+            try:
+                FeatureRequest.objects.create(
+                    type=request.POST.get('type'),
+                    comment=request.POST.get('comment'),
+                    user=request.user
+                )
+                return HttpResponse(1)
+            except:
+                return HttpResponse(0, status=500)
+        else:
+            return super(FeatureRequestView, self).post(request, *args, **kwargs)

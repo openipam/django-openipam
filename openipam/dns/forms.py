@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 
 from openipam.dns.models import DnsRecord, DnsType
+from openipam.hosts.models import Host
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 
 import autocomplete_light
@@ -23,6 +24,15 @@ class DNSSearchForm(forms.Form):
         help_text='What DNS records would you like to see?',
         widget=forms.TextInput(attrs={'placeholder': 'Search DNS'})
     )
+
+
+class DNSListForm(forms.Form):
+    host = forms.ModelChoiceField(Host.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('HostFilterAutocomplete'))
+    groups = forms.ModelChoiceField(Group.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
+    users = forms.ModelChoiceField(User.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('UserFilterAutocomplete'))
 
 
 class BaseDNSUpdateFormset(BaseModelFormSet):

@@ -112,6 +112,11 @@ textarea {
   margin: 10px 15px;
   color: #b94a48;
 }
+
+.dataTables_info {
+  margin-right: 10px;
+}
+
 .pagination ul {
   margin-left: 1em;
 }
@@ -608,7 +613,6 @@ fieldset.module legend {
   font-size: 13px;
   padding-top: 0px;
   float: right;
-  margin-right: 10px;
   line-height: 30px;
 }
 

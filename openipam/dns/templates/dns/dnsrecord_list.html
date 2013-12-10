@@ -1,32 +1,228 @@
 {% extends "dns/base.html" %}
-{% load i18n static openipam openipam_host_extras  %}
+{% load i18n static openipam openipam_host_extras crispy_forms_tags %}
 
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+      DNS Records
+  </h3>
+{% endblock %}
 
 {% block breadcrumbs %}
     {{ block.super }}
-        *{% trans "DNS" %}
+        {% if host %}
+            ../|{% trans "DNS" %}
+            {{ host }}
+        {% else %}
+            {% trans "DNS" %}
+        {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'core/css/admin_filters.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
+    {% include 'autocomplete_light/static.html' %}
+    <script type="text/javascript">
+        $(function(){
+            {% if selected_records %}
+                $.selectedRecords = {{ selected_records|safe }};
+            {% endif %}
+            {% if form_data %}
+                $.formData = {{ form_data|safe }}
+            {% endif %}
+        });
+    </script>
+    <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
+    <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>
 {% endblock %}
 
 
-{% block extrahead %}
-    <style type="text/css">
-        .help-block {
-            margin: 0 10px 0 0;
-        }
-        #search-input {
-            margin: 0 10px 0 0;
-        }
-        .pagination {
-            margin: 0;
-        }
-        span.label-delete {
-            margin: 5px;
-        }
-        #dnsupdate-form input, #dnsupdate-form select {
-            margin-bottom: 0;
-        }
-    </style>
+{% block contentbody %}
+    <form id="changelist-form" action="" method="post" class="quickbody">
+        {% csrf_token %}
+        <div id="actions">
+            {% spaceless %}
+                <div class="actions changelist-actions pull-left">
+                    <div class="changelist-action" style="height: auto !important;">
+                        <div class="action-wrapper">
+                            <select id="host-action" name="action">
+                                <option value="">Choose an action...</option>
+                                <option value="">--------------</option>
+                                    <option value="delete">Delete selected DNS records</option>
+                            </select>
+                            <button id="action-submit" type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                                <span class="icon-play"></span>
+                                {% trans "Go" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="changelist-search" class="pull-right">
+                    <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
+                    <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
 
+                    <a id="changelist-filters-toggle" class="pull-right btn dropdown-toggle">
+                        Filters
+                        <span class="caret"></span>
+                    </a>
+                </div>
+                <div id="search-help" class="hide">
+                    <p>Search for hostnames, IP addresses, MAC addresses, or content of a DNS record.</p>
+                    <strong>For advanced searches...</strong>
+                    <p>Multiple search terms may be included separated spaces.</p>
+                    <p>Try these special query types:</p><p>
+                    <pre>name:<em>hostname</em></pre>
+                    <pre>content:<em>string</em></pre>
+                    <pre>ip:<em>IP address</em></pre>
+                    <pre>mac:<em>MAC address</em></pre>
+                </div>
+            {% endspaceless %}
+        </div>
+
+        <div id="changelist-filter-actions" class="hide well well-small action-wrapper">
+            <a id="filter-close" href="javascript:void(0);" class="icon-remove pull-right"></a>
+
+            <h4>Filter By Host:</h4>
+            <div id="filter-hosts">{{ form.host }}</div>
+            <div class="clear"><!-- --></div>
+
+            <h4>Filter By Group:</h4>
+            <div id="filter-groups">{{ form.groups }}</div>
+            <div class="clear"><!-- --></div>
+
+            <h4>Filter By User:</h4>
+            <div id="filter-users">{{ form.users }}</div>
+            <div class="clear"><!-- --></div>
+        </div>
+
+        <div class="results">
+            <table cellspacing="0" id="result_list" class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col" class="action-checkbox-column">
+                            <div class="text">
+                                <span><input type="checkbox" id="action-toggle" /></span>
+                            </div>
+                            <div class="clear"></div>
+                        </th>
+                        <th scope="col">Name</th>
+                        <th scope="col" style="width: 50px;">TTL</th>
+                        <th scope="col" style="width: 80px;">Type</th>
+                        <th scope="col" style="min-width: 500px;">Content</th>
+                        <th scope="col" style="width: 80px;">View</th>
+                        <th scope="col" style="width: 70px;">Edit</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <th><div><input type="text" class="search_init" placeholder="Search Name" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
+                        <th>&nbsp;</th>
+                        <th>
+                            <div>
+                                <select id="type-filter" style="max-width: 80px;" class="filter_init search_init">
+                                    <option value="">All</option>
+                                    {% for type in dns_types %}
+                                        <option value="{{ type.pk }}" {% ifequal aoSearchCols.1.sSearch type.pk %}selected="selected"{% endifequal %}>{{ type.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </th>
+                        <th><div><input type="text" class="search_init" placeholder="Search Content" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 300px;" /></div></th>
+                        <th>&nbsp;</th>
+                        <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td colspan="6">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table id="add-table" style="display: none;">
+                <tr class="add-row">
+                    <td><input type="hidden" name="new-records" value="1" /></td>
+                    <td><input type="text" name="name-new" /></td>
+                    <td>14400</td>
+                    <td>
+                        <select name="type-new" style="max-width: 80px;">
+                            <option value="">---</option>
+                            {% for type in dns_types %}
+                                <option value="{{ type.pk }}">{{ type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="text" name="content-new" /></td>
+                    <td>&nbsp;</td>
+                    <td>
+                        <a class="add-record" href="javascript:void(0);">Add Record</a>
+                        <a class="remove-record" href="javascript:void(0);" style="display:none;">Remove</a>
+                    </td>
+                </tr>
+            </table>
+            <div id="form-actions" class="hide">
+                <input type="submit" class="btn btn-primary" value="Save" />
+                <input id="cancel-edit" type="button" class="btn" value="Cancel" />
+            </div>
+            <br /><br />
+            <br /><br />
+            <br /><br />
+        </div>
+    </form>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %}
+
+{% block extrahead %}
     <script type="text/javascript">
     $(function(){
         $("#result_list input[type='checkbox']").click(function(){
@@ -183,9 +379,9 @@
                         </td>
                         {% endif %}
                     {% endfor %}
-                    {% endcomment %}
                 </tr>
             {% endfor %}
+                    {% endcomment %}
 
 
             {% comment %}
@@ -220,7 +416,6 @@
                         <td><input id="content_new_" name="content-new" type="text" value="" /></td>
                         <td>&nbsp;</td>
                     </tr>
-            {% endcomment %}
             </tbody>
 
         </table>
@@ -255,3 +450,4 @@
     </form>
 
 {% endblock %}
+{% endcomment %}

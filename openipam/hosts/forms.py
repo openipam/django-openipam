@@ -63,7 +63,6 @@ class HostForm(forms.ModelForm):
         # Attach user to form and model
         self.user = user
         self.instance.user = user
-        self.is_allowed_host = False
 
         #Populate some fields if we are editing the record
         current_address_html = None
@@ -199,12 +198,6 @@ class HostForm(forms.ModelForm):
             Submit('save', 'Save changes'),
             Button('cancel', 'Cancel', onclick="javascript:location.href='%s';" % reverse('list_hosts')),
         ]
-        if self.instance.pk and not self.is_allowed_host:
-            form_actions.pop(0)
-
-            for key in self.fields:
-                self.fields[key].widget.attrs.update({'disabled':'disabled', 'readonly': 'readonly'})
-
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -275,7 +268,6 @@ class HostForm(forms.ModelForm):
                     )
 
         return instance
-
 
     def clean(self):
         cleaned_data = super(HostForm, self).clean()
@@ -362,6 +354,8 @@ class HostRenewForm(forms.Form):
 class HostListForm(forms.Form):
     groups = forms.ModelChoiceField(Group.objects.all(),
         widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
+    users = forms.ModelChoiceField(User.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('UserFilterAutocomplete'))
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):

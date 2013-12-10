@@ -7,9 +7,20 @@
   </h3>
 {% endblock %}
 
-{% block extrahead %}
+{% block breadcrumbs %}
+    {{ block.super }}
+        {% trans "Hosts" %}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'core/css/admin_filters.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
     {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
@@ -26,12 +37,6 @@
   {% endblock %}
 </div>
 {% endblock %} #}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-        *{% trans "Hosts" %}
-{% endblock %}
-
 
 {% block contentbody %}
     <form id="changelist-form" action="" method="post" class="quickbody">
@@ -84,6 +89,7 @@
 
         <div id="changelist-filter-actions" class="hide well well-small action-wrapper">
             <a id="filter-close" href="javascript:void(0);" class="icon-remove pull-right"></a>
+
             <h4>Filter by Onwer:</h4>
             <div id="filter-owners" class="btn-group radio-btn-group" data-toggle="buttons-radio">
                 <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
@@ -92,6 +98,10 @@
 
             <h4>Filter By Group:</h4>
             <div id="filter-groups">{{ form.groups }}</div>
+            <div class="clear"><!-- --></div>
+
+            <h4>Filter By User:</h4>
+            <div id="filter-users">{{ form.users }}</div>
             <div class="clear"><!-- --></div>
         </div>
 

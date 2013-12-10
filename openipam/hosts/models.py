@@ -168,6 +168,9 @@ class Host(models.Model):
         self.ip_address = None
         self.network = None
 
+    def __unicode__(self):
+        return self.hostname
+
     @property
     def is_dynamic(self):
         return True if self.pools.all() else False
@@ -209,11 +212,11 @@ class Host(models.Model):
         groups = self.group_permissions.filter(permission__codename='is_owner_host')
 
         if ids_only:
-            users = [user.user_id for user in users] if users else None
-            groups = [group.group_id for group in groups] if groups else None
+            users = [user.user_id for user in users]
+            groups = [group.group_id for group in groups]
         else:
-            users = [user.user for user in users] if users else None
-            groups = [group.group for group in groups] if groups else None
+            users = [user.user for user in users]
+            groups = [group.group for group in groups]
 
         return users, groups
 
@@ -258,9 +261,9 @@ class Host(models.Model):
         from openipam.dns.models import DnsRecord
 
         addresses = self.addresses.all()
-        a_record_names = DnsRecord.objects.select_related().filter(address__in=addresses).values_list('name')
+        a_record_names = DnsRecord.objects.select_related().filter(ip_content__in=addresses).values_list('name')
         dns_records = DnsRecord.objects.select_related().filter(
-            Q(text_content__in=a_record_names) | Q(name__in=a_record_names) | Q(address__in=addresses)
+            Q(text_content__in=a_record_names) | Q(name__in=a_record_names) | Q(ip_content__in=addresses)
         ).order_by('dns_type__name')
 
         return dns_records
@@ -332,11 +335,11 @@ class Host(models.Model):
         return assign_perm('is_owner_host', user_or_group, self)
 
     def user_has_onwership(self, user):
-        allowed_host = Host.objects.get_host_with_owner_perms(user, self.pk)
-        return True if allowed_host else False
-
-    def __unicode__(self):
-        return self.hostname
+        if user.is_ipamadmin:
+            return True
+        else:
+            allowed_host = Host.objects.get_host_with_owner_perms(user, self.pk)
+            return True if allowed_host else False
 
     def clean(self):
 

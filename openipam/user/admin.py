@@ -270,7 +270,7 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     list_display = ('group', 'object_name', 'permission',)
     list_filter = (ObjectPermissionFilter, ObjectFilter)
     form = GroupObjectPermissionAdminForm
-    search_fields = ('group__name', '^object_pk')
+    search_fields = ('group__name', '^object_pk', 'group__user__username')
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList

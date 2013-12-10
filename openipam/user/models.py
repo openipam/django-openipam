@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, UserManager
+from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
@@ -11,7 +11,7 @@ from django.conf import settings
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from openipam.user.managers import UserToGroupManager
+from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
    remove_obj_perms_connected_with_user, add_direct_user_object_permission, \
    add_direct_group_object_permission, remove_direct_user_object_permission, \
@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                                         related_name='user_min_permissions', default=Bits('0x00'))
     source = models.ForeignKey('AuthSource', db_column='source', default=1)
 
-    objects = UserManager()
+    objects = IPAMUserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
@@ -54,7 +54,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             return True
         else:
-            return True if self.groups.filter(name='ipam-admins') else False
+            groups = [group.name for group in self.groups.all()]
+            return True if 'ipam-admins' in groups else False
+
+    def attach_permissions(self):
+        if (not hasattr(self, 'host_owner_permissions') or
+                not hasattr(self, 'domain_owner_permissions') or
+                not hasattr(self, 'network_owner_permissions')):
+
+            from openipam.hosts.models import Host
+            from openipam.dns.models import Domain
+            from openipam.network.models import Network
+
+            self.host_owner_permissions = Host.objects.get_hosts_owned_by_user(self, ids_only=True)
+            self.domain_owner_permissions = Domain.objects.get_domains_owned_by_user(self, names_only=True)
+            self.network_owner_permissions = Network.objects.get_networks_owned_by_user(self, ids_only=True)
 
     def get_auth_user(self):
         try:

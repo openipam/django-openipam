@@ -1,3 +1,6 @@
+#result_list_length select {
+    margin: 0px;
+}
 
 div.dataTables_length label {
 	float: left;
@@ -21,6 +24,27 @@ div.dataTables_paginate {
 	margin: 0;
 }
 
+.pagination {
+    height: 30px;
+}
+
+.pagination .ui-button {
+    margin-right: 0 !important;
+}
+
+.pagination.fixed {
+    height: auto;
+    position: fixed;
+    bottom: 0px;
+    right: 22px;
+    z-index: 100;
+    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+}
+.pagination.fixed div {
+    margin: 10px;
+}
+
 table.table {
 	clear: both;
 	margin-bottom: 6px !important;
@@ -42,6 +66,10 @@ table.table thead .sorting_desc { background: url('images/sort_desc.png') no-rep
 
 table.table thead .sorting_asc_disabled { background: url('images/sort_asc_disabled.png') no-repeat center right; }
 table.table thead .sorting_desc_disabled { background: url('images/sort_desc_disabled.png') no-repeat center right; }
+
+table.table tfoot {
+    display: table-header-group;
+}
 
 table.dataTable th:active {
 	outline: none;

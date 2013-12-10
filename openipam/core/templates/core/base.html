@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_tools_menu_tags openipam %}
+{% load i18n static admin_tools_menu_tags openipam crispy_forms_tags %}
 
 {% block coltype %}{% endblock %}
 
@@ -8,15 +8,15 @@
     /|{% trans "Home" %}
 {% endblock %}
 
+{% block extrastyle %}
+    {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+{% endblock %}
+
 
 {% block content %}
-    <div class="row-fluid">
-        {% comment %}
-        {% block quicklinks %}
-            {% include "core/includes/quicklinks.html" %}
-        {% endblock %}
-        {% endcomment %}
-
-        {% block contentbody %}{% endblock %}
-    </div>
+    {% block contentbody %}{% endblock %}
 {% endblock %}

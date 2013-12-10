@@ -5,14 +5,8 @@
 .modal-body {
     max-height: 600px;
 }
-tfoot {
-    display: table-header-group;
-}
 input {
     min-width: 50px;
-}
-.ui-button {
-    margin-right: 0 !important;
 }
 #id_groups_text {
     margin-bottom: 0px;
@@ -24,54 +18,8 @@ input {
 #id_groups-deck .remove {
     margin-top: 3px;
 }
-#result_list_length select {
-    margin: 0px;
-}
+
 #filter-groups {
     float: left;
     margin-right: 4px;
-}
-#changelist-filters-toggle {
-    margin-right: 4px;
-}
-#changelist-filter-actions {
-    min-width: 220px;
-    top: 110px;
-    right: 22px;
-    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-}
-.pagination {
-    height: 30px;
-}
-.fixed {
-    height: auto;
-    position: fixed;
-    bottom: 0px;
-    right: 22px;
-    z-index: 100;
-    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-}
-.fixed div {
-    margin: 10px;
-}
-#search-help-button {
-    margin: 5px;
-}
-#search-help {
-    width: 250px;
-    font-size: 12px;
-    background: #eee;
-    position: fixed;
-    z-index: 200;
-    float: left;
-    right: 420px;
-    padding: 10px;
-    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-}
-#search-help pre {
-    padding: 4px;
-    font-size: 12px;
 }

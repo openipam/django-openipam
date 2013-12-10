@@ -10,6 +10,30 @@ import random
 import re
 
 
+class NetworkManager(NetManager):
+
+    def get_networks_owned_by_user(self, user, ids_only=False):
+        networks = self.raw('''
+            SELECT n.network FROM networks n
+                INNER JOIN network_networkuserobjectpermission nup ON nup.content_object_id = n.network AND nup.user_id = %s
+                INNER JOIN auth_permission nuap ON nup.permission_id = nuap.id AND nuap.codename = 'is_owner_network'
+
+            UNION
+
+            SELECT n.network FROM networks n
+                INNER JOIN network_networkgroupobjectpermission ngp ON ngp.content_object_id = n.network
+                INNER JOIN auth_permission ngap ON ngp.permission_id = ngap.id AND ngap.codename = 'is_owner_network'
+                INNER JOIN users_groups ug ON ngp.group_id = ug.group_id and ug.user_id = %s
+        ''', [user.pk, user.pk])
+
+        networks = [str(network.network) for network in networks]
+
+        if ids_only:
+            return tuple(networks)
+        else:
+            return self.filter(network__in=networks)
+
+
 class PoolManager(Manager):
 
     def get_default_pool(self):

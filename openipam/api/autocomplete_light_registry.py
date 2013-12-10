@@ -39,12 +39,11 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
 autocomplete_light.register(IPAMObjectsAutoComplete,
-    autocomplete_js_attributes={'placeholder': 'Search Objects'},
-)
+    autocomplete_js_attributes={'placeholder': 'Search Objects'},)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields = ['username', 'first_name', 'last_name', 'email']
+    search_fields = ['^username', 'first_name', 'last_name', 'email']
     autocomplete_js_attributes = {'placeholder': 'Search Users'}
 
     def choice_label(self, choice):
@@ -55,9 +54,14 @@ class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
 autocomplete_light.register(User, UserAutocomplete)
 
 
+class UserFilterAutocomplete(UserAutocomplete):
+    autocomplete_js_attributes = {'placeholder': 'Filter Users'}
+autocomplete_light.register(User, UserFilterAutocomplete)
+
+
 class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields=['^name']
-    autocomplete_js_attributes={'placeholder': 'Search Domains'}
+    search_fields = ['^name']
+    autocomplete_js_attributes = {'placeholder': 'Search Domains'}
 
     def choices_for_request(self):
         #choices = super(DomainAutoComplete, self).choices_for_request()
@@ -127,6 +131,13 @@ autocomplete_light.register(Host,
     search_fields=['mac', 'hostname'],
     autocomplete_js_attributes={'placeholder': 'Search Hosts'},
 )
+
+
+class HostFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['mac', 'hostname']
+    autocomplete_js_attributes = {'placeholder': 'Filter Hosts'}
+autocomplete_light.register(Host, HostFilterAutocomplete)
+
 
 # autocomplete_light.register(Domain,
 #     search_fields=['name'],

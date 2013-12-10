@@ -1,11 +1,13 @@
   {% extends "admin/base.html" %}
-{% load static i18n admin_tools_menu_tags openipam %}
+{% load static i18n admin_tools_menu_tags openipam crispy_forms_tags %}
 {% load url from future %}
 
 {% block title %}{{ title }} | {% atb_site_name %}{% endblock %}
 
 {% block extrahead %}
-    {% include 'autocomplete_light/static.html' %}
+    {{ block.super }}
+    {# {% include 'autocomplete_light/static.html' %} #}
+    <script type="text/javascript" src="{% static 'core/js/feedback.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -17,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.css" %}" />
     <!--[if IE]><link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery.ui.1.8.16.ie.css" %}" /><![endif]-->
     <link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery-ui-1.8.16.custom.css" %}" />
+    <link rel="stylesheet" href="{% static 'core/css/feedback.css' %}" type="text/css" />
 {% endblock %}
 
 {% block nav-global %}
@@ -49,6 +52,29 @@
                   </li>
                   {% atb_site_link %}
                 {% endcomment %}
+                <li class="dropdown">
+                   <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
+                   Feature or Bug?
+                    <b class="caret"></b>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <form id="feedback-form" method="post">
+                      <h4>
+                      Please provide any feedback related to bugs and feature requests.
+                      </h4>
+                        {% csrf_token %}
+                          <div>
+                              {{ feature_form | crispy }}
+                              <div class="form-actions">
+                                  <input type="submit" value="Submit" class="btn btn-primary" />
+                                  <input type="button" value="Cancel" class="btn feedback-cancel" />
+                              </div>
+                          </div>
+                      </form>
+                    </li>
+                  </ul>
+                </li>
                 <li class="dropdown">
                   <a class="dropdown-toggle" href="#" data-toggle="dropdown">
                       <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />

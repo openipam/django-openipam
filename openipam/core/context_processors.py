@@ -1,3 +1,4 @@
+from openipam.core.forms import FeatureRequestForm
 from hashlib import md5
 
 
@@ -21,4 +22,10 @@ def root_path(request):
 
     return {
         'root_path': root_path
+    }
+
+
+def feature_form(request):
+    return {
+        'feature_form': FeatureRequestForm(request.POST or None)
     }

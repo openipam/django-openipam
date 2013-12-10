@@ -14,8 +14,8 @@ TYPE_CHOICES = (
 
 
 class FeatureRequest(models.Model):
-    comment = models.TextField('Comment Detail')
     type = models.CharField('Request Type', max_length=255, choices=TYPE_CHOICES)
+    comment = models.TextField('Comment Details')
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
 

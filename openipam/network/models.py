@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 from django.db.models.signals import m2m_changed, post_save
 
-from openipam.network.managers import LeaseManager, PoolManager, AddressManager
+from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
 
 from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
 from guardian.managers import UserObjectPermissionManager, GroupObjectPermissionManager
@@ -172,7 +172,7 @@ class Network(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    objects = NetManager()
+    objects = NetworkManager()
 
     def __unicode__(self):
         return '%s -- %s' % (self.network, self.name)

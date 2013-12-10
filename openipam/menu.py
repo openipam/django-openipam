@@ -61,7 +61,7 @@ class IPAMMenu(Menu):
 
         if user.is_superuser:
             self.children.append(
-                items.MenuItem('',
+                items.MenuItem('Admin',
                     children=[
                         items.ModelList('Users & Groups',
                             [
@@ -76,8 +76,13 @@ class IPAMMenu(Menu):
                                 'guardian.models.GroupObjectPermission',
                             ]
                         ),
+                        items.ModelList('Feature Requests',
+                            [
+                                'openipam.core.models.FeatureRequest'
+                            ]
+                        ),
                     ],
-                    icon='icon-user icon-white'
+                    #icon='icon-user icon-white'
                 )
             )
 

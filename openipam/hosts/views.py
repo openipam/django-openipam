@@ -59,6 +59,7 @@ class HostListJson(BaseDatatableView):
             ip_search = self.request.GET.get('sSearch_2', None)
             expired_search = self.request.GET.get('sSearch_3', None)
             group_filter = self.request.GET.get('group_filter', None)
+            user_filter = self.request.GET.get('user_filter', None)
 
             search_list = search.strip().split(' ')
             for search_item in search_list:
@@ -103,6 +104,8 @@ class HostListJson(BaseDatatableView):
                     qs = qs.filter(addresses__address__icontains=ip_search)
             if group_filter:
                 qs = qs.filter(group_permissions__group__pk=group_filter)
+            if user_filter:
+                qs = qs.filter(user_permissions__user__pk=user_filter)
 
             if expired_search and expired_search == '1':
                 qs = qs.filter(expires__gt=timezone.now())
@@ -149,14 +152,21 @@ class HostListJson(BaseDatatableView):
             else:
                 return expires.strftime('%Y-%m-%d')
 
+        def get_selector(host, has_permissions):
+            if has_permissions:
+                return '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host.mac
+            else:
+                return ''
+
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
         for host in qs:
+            has_permissions = host.user_has_onwership(self.request.user)
             host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
             host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
             json_data.append([
-                '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host.mac,
+                get_selector(host, has_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
                  ' class="host-details" data-toggle="modal">%(hostname)s</a>' % {
                                                                                     'hostname': host.hostname or 'N/A',
@@ -168,8 +178,8 @@ class HostListJson(BaseDatatableView):
                 get_expires(host.expires),
                 get_last_mac_stamp(host.mac),
                 get_last_ip_stamp(host.mac),
-                '<a href="%s?mac=%s">DNS Records</a>' % (reverse_lazy('list_dns'), host.mac),
-                '<a href="%s">Edit</a>' % host_edit_href,
+                '<a href="%s">DNS Records</a>' % reverse_lazy('list_dns', kwargs={'host': host.hostname}),
+                '<a href="%s">%s</a>' % (host_edit_href, 'Edit' if has_permissions else 'View'),
             ])
         return json_data
 

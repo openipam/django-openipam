@@ -190,15 +190,16 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     'openipam.core.context_processors.gravatar',
     'openipam.core.context_processors.root_path',
+    'openipam.core.context_processors.feature_form',
     'openipam.api.context_processors.api_version',
 )
 
 LOCAL_AUTHENTICATION_BACKENDS = locals().pop('LOCAL_AUTHENTICATION_BACKENDS', ())
-AUTHENTICATION_BACKENDS = LOCAL_AUTHENTICATION_BACKENDS + (
+AUTHENTICATION_BACKENDS = (
     #'django.contrib.auth.backends.ModelBackend',
     'openipam.core.backends.CaseInsensitiveModelBackend',
     'guardian.backends.ObjectPermissionBackend',
-)
+) + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = 'user.User'
 

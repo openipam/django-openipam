@@ -14,7 +14,7 @@ class ProfileForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'email')
 
 
-class FeatureRequestAdminForm(forms.ModelForm):
+class FeatureRequestForm(forms.ModelForm):
 
     class Meta:
         model = FeatureRequest
