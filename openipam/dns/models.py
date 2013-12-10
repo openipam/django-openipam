@@ -151,7 +151,7 @@ class DnsRecord(models.Model):
         if domains:
             self.domain = domains[0]
         else:
-            raise ValidationError({'name': 'Invalid domain name: %s' % self.name})
+            raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
 
     def clean_text_content(self):
         errors_list = []
@@ -210,7 +210,7 @@ class DnsRecord(models.Model):
                 error_list.append('Name and Text Content cannot match for records order than CNAME.')
 
         if self.dns_type.name == 'CNAME':
-            records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view)
+            records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
             if records:
                 error_list.append('Trying to create CNAME record while other records exist: %s' % records[0].name)
         else: # not CNAME

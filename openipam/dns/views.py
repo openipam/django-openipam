@@ -318,9 +318,14 @@ class DNSListView(TemplateView):
                     else:
                         dns_record.text_content = record_data['record_content']
 
+                    dns_record.name = record_data['record_name']
                     dns_record.dns_type = record_type
                     dns_record.changed_by = request.user
                     dns_record.full_clean()
+
+                    if not dns_record.user_has_ownership(request.user):
+                        raise ValidationError('Invalid credentials: user %s does not have permissions'
+                                              ' to add/modify this record.' % request.user)
                     if not error_list:
                         dns_record.save()
 
@@ -337,6 +342,9 @@ class DNSListView(TemplateView):
                     for key, errors in e.message_dict.items():
                         for error in errors:
                             error_list.append(error)
+
+                except:
+                    raise
 
             # New records
             for index, record in enumerate(new_records):

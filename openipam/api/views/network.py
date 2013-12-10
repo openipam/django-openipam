@@ -22,6 +22,7 @@ class NetworkList(generics.ListAPIView):
     filter_fields = ('network', 'name',)
     filter_class = NetworkFilter
     paginate_by = 10
+    paginate_by_param = 'page_size'
 
 
 class AddressList(generics.ListAPIView):
