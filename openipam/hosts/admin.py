@@ -1,22 +1,21 @@
 from django.contrib import admin
 
-from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute, Notification, \
-    HostGroupObjectPermission, HostUserObjectPermission
-from openipam.hosts.forms import HostGroupPermissionForm, HostUserPermissionForm
+from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute
+#from openipam.hosts.forms import HostGroupPermissionForm, HostUserPermissionForm
 
 import autocomplete_light
 
 
-class HostGroupPermissionInline(admin.TabularInline):
-    model = HostGroupObjectPermission
-    form = HostGroupPermissionForm
-    extra = 1
+# class HostGroupPermissionInline(admin.TabularInline):
+#     model = HostGroupObjectPermission
+#     form = HostGroupPermissionForm
+#     extra = 1
 
 
-class HostUserPermissionInline(admin.TabularInline):
-    model = HostUserObjectPermission
-    form = HostUserPermissionForm
-    extra = 1
+# class HostUserPermissionInline(admin.TabularInline):
+#     model = HostUserObjectPermission
+#     form = HostUserPermissionForm
+#     extra = 1
 
 
 class HostAdmin(admin.ModelAdmin):
@@ -24,7 +23,7 @@ class HostAdmin(admin.ModelAdmin):
     list_filter = ('dhcp_group',)
     readonly_fields = ('changed_by', 'changed')
     search_fields = ('hostname', 'mac')
-    inlines = [HostGroupPermissionInline, HostUserPermissionInline]
+    #inlines = [HostGroupPermissionInline, HostUserPermissionInline]
 
     # Null Foreign Keys dont get included by default
     def get_queryset(self, request):

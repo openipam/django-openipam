@@ -340,7 +340,6 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
         return super(HostUpdateView, self).dispatch(*args, **kwargs)
 
 
-
 class HostCreateView(HostUpdateCreateView, CreateView):
     pass
 

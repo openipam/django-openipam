@@ -249,6 +249,11 @@ $(function(){
         $("#id_host-deck .remove").click();
         $("#id_users-deck .remove").click();
         $("#id_groups-deck .remove").click();
+
+        $.removeCookie('host_filter', {path: '/dns/'});
+        $.removeCookie('user_filter', {path: '/dns/'});
+        $.removeCookie('group_filter', {path: '/dns/'});
+
         results.fnFilterClear();
         return false;
     });

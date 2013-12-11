@@ -1,9 +1,8 @@
 from django.contrib import admin
 
-from openipam.dns.models import DnsRecord, DnsType, Domain, DomainGroupObjectPermission, DomainUserObjectPermission, \
-    DnsTypeGroupObjectPermission, DnsTypeUserObjectPermission
-from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
-    DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
+from openipam.dns.models import DnsRecord, DnsType, Domain
+# from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
+#     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
 
 import autocomplete_light
 
@@ -29,16 +28,16 @@ class BaseDNSAdmin(admin.ModelAdmin):
         return cl
 
 
-class DomainGroupPermissionInline(admin.TabularInline):
-    model = DomainGroupObjectPermission
-    form = DomainGroupPermissionForm
-    extra = 1
+# class DomainGroupPermissionInline(admin.TabularInline):
+#     model = DomainGroupObjectPermission
+#     form = DomainGroupPermissionForm
+#     extra = 1
 
 
-class DomainUserPermissionInline(admin.TabularInline):
-    model = DomainUserObjectPermission
-    form = DomainUserPermissionForm
-    extra = 1
+# class DomainUserPermissionInline(admin.TabularInline):
+#     model = DomainUserObjectPermission
+#     form = DomainUserPermissionForm
+#     extra = 1
 
 
 class OpjectPermissionAdmin(BaseDNSAdmin):
@@ -74,7 +73,7 @@ class DomainAdmin(OpjectPermissionAdmin):
     form = autocomplete_light.modelform_factory(Domain)
     change_form_template = 'admin/openipam/change_form.html'
     search_fields = ('name',)
-    inlines = [DomainGroupPermissionInline, DomainUserPermissionInline]
+    #inlines = [DomainGroupPermissionInline, DomainUserPermissionInline]
 
 
 # class DomainGroupObjectPermissionAdmin(admin.ModelAdmin):
@@ -125,24 +124,24 @@ class DnsRecordAdmin(BaseDNSAdmin):
     edit_link.allow_tags = True
 
 
-class DnsTypeGroupPermissionInline(admin.TabularInline):
-    model = DnsTypeGroupObjectPermission
-    form = DnsTypeGroupPermissionForm
-    extra = 1
-    #fk_name = 'content_object'
+# class DnsTypeGroupPermissionInline(admin.TabularInline):
+#     model = DnsTypeGroupObjectPermission
+#     form = DnsTypeGroupPermissionForm
+#     extra = 1
+#     #fk_name = 'content_object'
 
 
-class DnsTypeUserPermissionInline(admin.TabularInline):
-    model = DnsTypeUserObjectPermission
-    form = DnsTypeUserPermissionForm
-    extra = 1
-    #fk_name = 'content_object'
+# class DnsTypeUserPermissionInline(admin.TabularInline):
+#     model = DnsTypeUserObjectPermission
+#     form = DnsTypeUserPermissionForm
+#     extra = 1
+#     #fk_name = 'content_object'
 
 
 class DnsTypeAdmin(OpjectPermissionAdmin):
     list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions',)
     list_filter = ('min_permissions__name',)
-    inlines = [DnsTypeGroupPermissionInline, DnsTypeUserPermissionInline]
+    #inlines = [DnsTypeGroupPermissionInline, DnsTypeUserPermissionInline]
 
     def min_permission(self, obj):
         return '%s' % obj.min_permissions.name

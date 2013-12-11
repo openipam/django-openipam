@@ -598,6 +598,11 @@ fieldset.module legend {
   float: left;
 }
 
+form div.alert-block ul li {
+  list-style: none;
+  font-weight: bold;
+}
+
 #result_list_processing {
   float: left;
   position: relative;
@@ -643,4 +648,8 @@ fieldset.module legend {
 .accordion-heading {
   font-size: 16px;
   font-weight: bold;
+}
+
+#filtered-label {
+  margin: 5px;
 }

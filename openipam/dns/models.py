@@ -39,18 +39,18 @@ class Domain(models.Model):
         )
 
 
-class DomainUserObjectPermission(UserObjectPermissionBase):
-    content_object = models.ForeignKey('Domain', related_name='user_permissions')
+# class DomainUserObjectPermission(UserObjectPermissionBase):
+#     content_object = models.ForeignKey('Domain', related_name='user_permissions')
 
-    class Meta:
-        verbose_name = 'Domain User Permission'
+#     class Meta:
+#         verbose_name = 'Domain User Permission'
 
 
-class DomainGroupObjectPermission(GroupObjectPermissionBase):
-    content_object = models.ForeignKey('Domain', related_name='group_permissions')
+# class DomainGroupObjectPermission(GroupObjectPermissionBase):
+#     content_object = models.ForeignKey('Domain', related_name='group_permissions')
 
-    class Meta:
-        verbose_name = 'Domain Group Permission'
+#     class Meta:
+#         verbose_name = 'Domain Group Permission'
 
 
 class DnsRecord(models.Model):
@@ -239,11 +239,9 @@ class DnsRecord(models.Model):
                 self.text_content = match.group(2)
 
     def user_has_ownership(self, user):
-        user.attach_permissions()
-
         if user.is_ipamadmin:
             return True
-        elif self.ip_content and self.ip_content.host.mac in user.host_owner_permissions:
+        if self.ip_content and self.ip_content.host.mac in user.host_owner_permissions:
             return True
         elif self.domain.name in user.domain_owner_permissions:
             return True
@@ -309,12 +307,12 @@ class DnsType(models.Model):
         verbose_name = 'DNS Type'
 
 
-class DnsTypeUserObjectPermission(UserObjectPermissionBase):
-    content_object = models.ForeignKey('DnsType', related_name='user_permissions')
+# class DnsTypeUserObjectPermission(UserObjectPermissionBase):
+#     content_object = models.ForeignKey('DnsType', related_name='user_permissions')
 
 
-class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
-    content_object = models.ForeignKey('DnsType', related_name='group_permissions')
+# class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
+#     content_object = models.ForeignKey('DnsType', related_name='group_permissions')
 
 
 class DnsView(models.Model):

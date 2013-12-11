@@ -113,6 +113,18 @@ $(function(){
                     onchange();
                 }
             });
+        },
+        "fnInfoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
+            if (iTotal < iMax){
+                $("#filtered-label").show();
+                return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries (filtered from " + iMax + " total entries)"
+            }
+            else {
+                $("#filtered-label").hide();
+                return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries"
+            }
+
+            //return iStart +" to "+ iEnd;
         }
     });
 

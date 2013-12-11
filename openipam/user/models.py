@@ -18,6 +18,7 @@ from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase,
    remove_direct_group_object_permission, add_user_object_permission, \
    add_group_object_permission, remove_user_object_permission, remove_group_object_permission, \
    convert_user_permissions
+from openipam.core.utils.propertycache import cached_property
 
 from django_postgres import Bits
 import django_postgres
@@ -49,7 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __unicode__(self):
         return self.username
 
-    @property
+    @cached_property
     def is_ipamadmin(self):
         if self.is_superuser:
             return True
@@ -57,18 +58,29 @@ class User(AbstractBaseUser, PermissionsMixin):
             groups = [group.name for group in self.groups.all()]
             return True if 'ipam-admins' in groups else False
 
-    def attach_permissions(self):
-        if (not hasattr(self, 'host_owner_permissions') or
-                not hasattr(self, 'domain_owner_permissions') or
-                not hasattr(self, 'network_owner_permissions')):
-
-            from openipam.hosts.models import Host
-            from openipam.dns.models import Domain
+    @cached_property
+    def network_owner_permissions(self):
+        if self.is_ipamadmin:
+            return True
+        else:
             from openipam.network.models import Network
+            return Network.objects.get_networks_owned_by_user(self, ids_only=True)
 
-            self.host_owner_permissions = Host.objects.get_hosts_owned_by_user(self, ids_only=True)
-            self.domain_owner_permissions = Domain.objects.get_domains_owned_by_user(self, names_only=True)
-            self.network_owner_permissions = Network.objects.get_networks_owned_by_user(self, ids_only=True)
+    @cached_property
+    def domain_owner_permissions(self):
+        if self.is_ipamadmin:
+            return True
+        else:
+            from openipam.dns.models import Domain
+            return Domain.objects.get_domains_owned_by_user(self, names_only=True)
+
+    @cached_property
+    def host_owner_permissions(self):
+        if self.is_ipamadmin:
+            return True
+        else:
+            from openipam.hosts.models import Host
+            return Host.objects.get_hosts_owned_by_user(self, ids_only=True)
 
     def get_auth_user(self):
         try:
@@ -251,14 +263,14 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
-post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)
-post_save.connect(add_direct_group_object_permission, sender=GroupObjectPermission)
-post_delete.connect(remove_direct_group_object_permission, sender=GroupObjectPermission)
-post_save.connect(add_user_object_permission)
-post_save.connect(add_group_object_permission)
-post_delete.connect(remove_user_object_permission)
-post_delete.connect(remove_group_object_permission)
+# post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
+# post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)
+# post_save.connect(add_direct_group_object_permission, sender=GroupObjectPermission)
+# post_delete.connect(remove_direct_group_object_permission, sender=GroupObjectPermission)
+# post_save.connect(add_user_object_permission)
+# post_save.connect(add_group_object_permission)
+# post_delete.connect(remove_user_object_permission)
+# post_delete.connect(remove_group_object_permission)
 
 # South Fixes for Bit string field
 try:

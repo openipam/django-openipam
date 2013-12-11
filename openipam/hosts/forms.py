@@ -166,10 +166,9 @@ class HostForm(forms.ModelForm):
                 'group_owners',
             )
         )
+
         # Add owners and groups if super user or ipam admin
-        if user.is_ipamadmin:
-            pass
-        else:
+        if not user.is_ipamadmin and self.fields.get('address_type', None):
             # Customize address types for non super users
             user_pools = get_objects_for_user(
                 user,
@@ -188,6 +187,7 @@ class HostForm(forms.ModelForm):
             user_address_types = AddressType.objects.filter(reduce(operator.or_, r_list))
             self.fields['address_type'].queryset = user_address_types
 
+        if not user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 

@@ -13,7 +13,7 @@ from django.utils import simplejson
 from django.db.utils import DatabaseError
 from django.contrib import messages
 
-from openipam.dns.models import DnsRecord, DnsType, DomainUserObjectPermission, DomainGroupObjectPermission
+from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Address
 from openipam.dns.forms import DNSListForm
@@ -181,7 +181,6 @@ class DNSListJson(BaseDatatableView):
 
         for dns_record in qs:
             has_permissions = dns_record.user_has_ownership(user)
-            print has_permissions
             dns_view_href = '' #reverse_lazy('view_dns', args=(slugify(dns_record.pk),))
             dns_edit_href = '' #reverse_lazy('update_dns', args=(slugify(dns_record.pk),))
             json_data.append([

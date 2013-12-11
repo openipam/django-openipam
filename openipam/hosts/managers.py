@@ -90,15 +90,17 @@ class HostManager(NetManager):
             else:
                 return self.all()
         else:
-            user.attach_permissions()
+            host_perms = user.host_owner_permissions
+            domain_perms = user.domain_owner_permissions
+            network_perms = user.network_owner_permissions
 
             qs = self.filter(
-                Q(mac__in=user.host_owner_permissions) |
-                Q(addresses__network__in=user.network_owner_permissions)
+                Q(mac__in=host_perms) |
+                Q(addresses__network__in=network_perms)
             )
 
             if user.domain_owner_permissions:
-                domain_q_list = [Q(hostname__iendswith=domain) for domain in user.domain_owner_permissions]
+                domain_q_list = [Q(hostname__iendswith=domain) for domain in domain_perms]
                 domain_qs = self.filter(reduce(operator.or_, domain_q_list))
                 qs = qs | domain_qs
 
@@ -108,27 +110,30 @@ class HostManager(NetManager):
             else:
                 return qs
 
-
     def get_hosts_owned_by_user(self, user, ids_only=False):
-        hosts = self.raw('''
-            SELECT h.mac FROM hosts h
-                INNER JOIN hosts_hostuserobjectpermission hup ON hup.content_object_id = h.mac AND hup.user_id = %s
-                INNER JOIN auth_permission huap ON hup.permission_id = huap.id AND huap.codename = 'is_owner_host'
 
-            UNION
+        hosts = get_objects_for_user(user, 'hosts.is_owner_host')
 
-            SELECT h.mac FROM hosts h
-                INNER JOIN hosts_hostgroupobjectpermission hgp ON hgp.content_object_id = h.mac
-                INNER JOIN auth_permission hgap ON hgp.permission_id = hgap.id AND hgap.codename = 'is_owner_host'
-                INNER JOIN users_groups ug ON hgp.group_id = ug.group_id and ug.user_id = %s
-        ''', [user.pk, user.pk])
+        # hosts = self.raw('''
+        #     SELECT h.mac FROM hosts h
+        #         INNER JOIN hosts_hostuserobjectpermission hup ON hup.content_object_id = h.mac AND hup.user_id = %s
+        #         INNER JOIN auth_permission huap ON hup.permission_id = huap.id AND huap.codename = 'is_owner_host'
 
-        hosts = [host.mac for host in hosts]
+        #     UNION
+
+        #     SELECT h.mac FROM hosts h
+        #         INNER JOIN hosts_hostgroupobjectpermission hgp ON hgp.content_object_id = h.mac
+        #         INNER JOIN auth_permission hgap ON hgp.permission_id = hgap.id AND hgap.codename = 'is_owner_host'
+        #         INNER JOIN users_groups ug ON hgp.group_id = ug.group_id and ug.user_id = %s
+        # ''', [user.pk, user.pk])
+
+        # hosts = [host.mac for host in hosts]
 
         if ids_only:
-            return tuple(hosts)
+            return tuple([host.pk for host in hosts])
         else:
-            return self.filter(mac__in=hosts)
+            #return self.filter(mac__in=hosts)
+            return hosts
 
 
 

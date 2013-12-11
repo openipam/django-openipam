@@ -185,30 +185,30 @@ class Network(models.Model):
         )
 
 
-class NetworkUserObjectPermissionManager(NetManager, UserObjectPermissionManager):
-    pass
+# class NetworkUserObjectPermissionManager(NetManager, UserObjectPermissionManager):
+#     pass
 
 
-class NetworkUserObjectPermission(UserObjectPermissionBase):
-    content_object = models.ForeignKey('Network', related_name='user_permissions')
+# class NetworkUserObjectPermission(UserObjectPermissionBase):
+#     content_object = models.ForeignKey('Network', related_name='user_permissions')
 
-    objects = NetworkUserObjectPermissionManager()
+#     objects = NetworkUserObjectPermissionManager()
 
-    class Meta:
-        verbose_name = 'Network User Permission'
-
-
-class NetworkGroupObjectPermissionManager(NetManager, GroupObjectPermissionManager):
-    pass
+#     class Meta:
+#         verbose_name = 'Network User Permission'
 
 
-class NetworkGroupObjectPermission(GroupObjectPermissionBase):
-    content_object = models.ForeignKey('Network', related_name='group_permissions')
+# class NetworkGroupObjectPermissionManager(NetManager, GroupObjectPermissionManager):
+#     pass
 
-    objects = NetworkGroupObjectPermissionManager()
 
-    class Meta:
-        verbose_name = 'Network Group Permission'
+# class NetworkGroupObjectPermission(GroupObjectPermissionBase):
+#     content_object = models.ForeignKey('Network', related_name='group_permissions')
+
+#     objects = NetworkGroupObjectPermissionManager()
+
+#     class Meta:
+#         verbose_name = 'Network Group Permission'
 
 
 class NetworkRange(models.Model):

@@ -208,15 +208,25 @@ class Host(models.Model):
             return None
 
     def get_owners(self, ids_only=True):
-        users = self.user_permissions.filter(permission__codename='is_owner_host')
-        groups = self.group_permissions.filter(permission__codename='is_owner_host')
+        # users = self.user_permissions.filter(permission__codename='is_owner_host')
+        # groups = self.group_permissions.filter(permission__codename='is_owner_host')
+
+        users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
+        groups_dict = get_groups_with_perms(self, attach_perms=True)
+
+        users = []
+        for user, permissions in users_dict.iteritems():
+            if 'is_owner_host' in permissions:
+                users.append(user)
+
+        groups = []
+        for group, permissions in groups_dict.iteritems():
+            if 'is_owner_host' in permissions:
+                groups.append(group)
 
         if ids_only:
-            users = [user.user_id for user in users]
-            groups = [group.group_id for group in groups]
-        else:
-            users = [user.user for user in users]
-            groups = [group.group for group in groups]
+            users = [user.pk for user in users]
+            groups = [group.pk for group in groups]
 
         return users, groups
 
@@ -338,8 +348,7 @@ class Host(models.Model):
         if user.is_ipamadmin:
             return True
         else:
-            allowed_host = Host.objects.get_host_with_owner_perms(user, self.pk)
-            return True if allowed_host else False
+            return True if self.mac in user.host_owner_permissions else False
 
     def clean(self):
 
@@ -416,18 +425,18 @@ class Host(models.Model):
         ordering = ('hostname',)
 
 
-class HostUserObjectPermission(UserObjectPermissionBase):
-    content_object = models.ForeignKey('Host', related_name='user_permissions')
+# class HostUserObjectPermission(UserObjectPermissionBase):
+#     content_object = models.ForeignKey('Host', related_name='user_permissions')
 
-    class Meta:
-        verbose_name = 'Host User Permission'
+#     class Meta:
+#         verbose_name = 'Host User Permission'
 
 
-class HostGroupObjectPermission(GroupObjectPermissionBase):
-    content_object = models.ForeignKey('Host', related_name='group_permissions')
+# class HostGroupObjectPermission(GroupObjectPermissionBase):
+#     content_object = models.ForeignKey('Host', related_name='group_permissions')
 
-    class Meta:
-        verbose_name = 'Host Group Permission'
+#     class Meta:
+#         verbose_name = 'Host Group Permission'
 
 
 # TODO:  What is this?

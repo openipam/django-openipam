@@ -11,7 +11,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from django_auth_ldap.backend import LDAPBackend
 
 from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup
-from openipam.hosts.models import HostGroupObjectPermission, HostUserObjectPermission
+from openipam.hosts.models import Host
 
 import gc
 
@@ -144,8 +144,9 @@ def convert_host_permissions(delete=False, username=None):
 
     # First delete to make a clean slate
     if delete:
-        HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
-        HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
+        remove_perm('hosts.is_owner_host', Host)
+        #HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
+        #HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
 
     if username:
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
