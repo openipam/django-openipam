@@ -270,10 +270,15 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     list_display = ('group', 'object_name', 'permission',)
     list_filter = (ObjectPermissionFilter, ObjectFilter)
     form = GroupObjectPermissionAdminForm
-    search_fields = ('group__name', '^object_pk', 'group__user__username')
+    search_fields = ('group__name', '^object_pk',)
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
+
+    def get_queryset(self, request):
+        qs = super(GroupObjectPermissionAdmin, self).queryset(request)
+        qs = qs.prefetch_related('permission', 'content_object').distinct()
+        return qs
 
     def save_model(self, request, obj, form, change):
         obj.content_type_id = form.cleaned_data['object_id'].split('-')[0]

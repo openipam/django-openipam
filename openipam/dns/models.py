@@ -136,9 +136,6 @@ class DnsRecord(models.Model):
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
 
     def clean_domain(self):
-        if self.domain.type == 'SLAVE':
-            raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
-
         names = self.name.split('.')[1:]
         names_list = []
         while names:
@@ -152,6 +149,9 @@ class DnsRecord(models.Model):
             self.domain = domains[0]
         else:
             raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
+
+        if self.domain.type == 'SLAVE':
+            raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
 
     def clean_text_content(self):
         errors_list = []

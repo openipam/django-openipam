@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 
-from openipam.network.models import Address, AddressType, DhcpGroup, Network
+from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
     FreeformAttributeToHost, StructuredAttributeToHost
@@ -180,11 +180,10 @@ class HostForm(forms.ModelForm):
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
+            n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
+            user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
 
-            r_list = [Q(pool__in=user_pools)]
-            for net in user_nets:
-                r_list.append(Q(ranges__range__net_contains_or_equals=net.network))
-            user_address_types = AddressType.objects.filter(reduce(operator.or_, r_list))
+            user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks))
             self.fields['address_type'].queryset = user_address_types
 
         if not user.is_ipamadmin:
