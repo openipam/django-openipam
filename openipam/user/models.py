@@ -9,8 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.conf import settings
 
-from guardian.models import UserObjectPermission, GroupObjectPermission
-
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
    remove_obj_perms_connected_with_user, add_direct_user_object_permission, \

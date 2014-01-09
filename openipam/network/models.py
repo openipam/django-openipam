@@ -7,9 +7,6 @@ from django.db.models.signals import m2m_changed, post_save
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
 
-from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
-from guardian.managers import UserObjectPermissionManager, GroupObjectPermissionManager
-
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address')
@@ -136,7 +133,7 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 
 class HostToPool(models.Model):
-    mac = models.ForeignKey('hosts.Host', db_column='mac')
+    host = models.ForeignKey('hosts.Host', db_column='mac')
     pool = models.ForeignKey('Pool')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
@@ -298,8 +295,8 @@ class Address(models.Model):
         # Get default pool if false
         if pool is False:
             pool = (DefaultPool.objects
-                .filter(cidr__net_contains_or_equals=self.address)
-                .extra(select={'masklen': "masklen(cidr)"}, order_by=['masklen']))
+                   .filter(cidr__net_contains_or_equals=self.address)
+                   .extra(select={'masklen': "masklen(cidr)"}, order_by=['masklen']))
         # Assume an int of not Model
         elif not isinstance(pool, models.Model):
             pool = DefaultPool.objects.get(pk=pool)
@@ -314,10 +311,10 @@ class Address(models.Model):
         self.save()
 
     # Signal to delete leases when an address is changed, if MAC is set to None.
-    @staticmethod
-    def release_leases(sender, instance, action, **kwargs):
-        if not instance.mac:
-            Lease.objects.filter(address=instance).delete()
+    # @staticmethod
+    # def release_leases(sender, instance, **kwargs):
+    #     if not instance.host.mac:
+    #         Lease.objects.filter(address=instance).delete()
 
     class Meta:
         db_table = 'addresses'
@@ -359,4 +356,4 @@ class AddressType(models.Model):
 
 # Register Signals
 m2m_changed.connect(AddressType.validate_address_type, sender=AddressType.ranges.through)
-post_save.connect(Address.release_leases, sender=Address)
+# post_save.connect(Address.release_leases, sender=Address)

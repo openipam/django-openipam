@@ -7,6 +7,8 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 from django.utils.http import urlunquote
 from django.utils.safestring import mark_safe
 from django.utils import simplejson
@@ -20,7 +22,11 @@ from openipam.dns.forms import DNSListForm
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from guardian.shortcuts import get_objects_for_user, get_objects_for_group
+
 from netaddr.core import AddrFormatError
+
+User = get_user_model()
 
 
 class DNSListJson(BaseDatatableView):
@@ -97,9 +103,21 @@ class DNSListJson(BaseDatatableView):
                     Q(text_content__icontains=hostname)
                 )
             if group_filter:
-                qs = qs.filter(domain__group_permissions__group__pk=group_filter)
+                group = Group.objects.get(pk=group_filter)
+                group_permited_domains = get_objects_for_group(
+                    group,
+                    ['dns.is_owner_domain', 'dns.add_records_to_domain'],
+                    any_perm=True
+                )
+                qs = qs.filter(domain__in=[group.id for group in group_permited_domains])
             if user_filter:
-                qs = qs.filter(domain__user_permissions__user__pk=user_filter)
+                user = User.objects.get(pk=user_filter)
+                user_permited_domains = get_objects_for_user(
+                    user,
+                    ['dns.is_owner_domain', 'dns.add_records_to_domain'],
+                    any_perm=True
+                )
+                qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
 
         except DatabaseError:
             pass
@@ -108,20 +126,20 @@ class DNSListJson(BaseDatatableView):
 
         return qs
 
-
     def prepare_results(self, qs):
 
         #user = self.request.user
         #group_perms = [domain.pk for domain in DomainGroupObjectPermission.objects.filter(group__in=user.groups.all())]
         #user_perms = [domain.pk for domain in DomainUserObjectPermission.objects.filter(user=user)]
 
-
         def get_dns_types(dtype):
             dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:
-                    types_html.append('<option selected="selected" value="%s">%s</option>' % (dns_type.pk, dns_type.name))
+                    types_html.append(
+                        '<option selected="selected" value="%s">%s</option>' % (dns_type.pk, dns_type.name)
+                    )
                 else:
                     types_html.append('<option value="%s">%s</option>' % (dns_type.pk, dns_type.name))
             return ''.join(types_html)
@@ -261,9 +279,19 @@ class DNSListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(DNSListView, self).get_context_data(**kwargs)
         context['dns_types'] = DnsType.objects.exclude(min_permissions__name='NONE')
-        context['form'] = DNSListForm()
-        #DNSUpdateFormset = modelformset_factory(DnsRecord, DNSUpdateForm, can_delete=True)
-        #context['formset'] = DNSUpdateFormset(queryset=context['object_list'])
+
+        group_initial = self.request.COOKIES.get('group_filter', None)
+        user_initial = self.request.COOKIES.get('user_filter', None)
+        host_initial = self.request.COOKIES.get('host_filter', None)
+        initial = {}
+        if group_initial:
+            initial['groups'] = group_initial
+        if user_initial:
+            initial['users'] = user_initial
+        if host_initial:
+            initial['host'] = urlunquote(host_initial)
+
+        context['form'] = DNSListForm(initial=initial)
 
         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
         if data_table_state:

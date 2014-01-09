@@ -9,6 +9,8 @@ from django.utils import simplejson
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db.utils import DatabaseError
 
@@ -18,8 +20,11 @@ from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
-from openipam.network.models import Lease
+from openipam.network.models import Lease, AddressType
 
+from guardian.shortcuts import get_objects_for_user, get_objects_for_group
+
+User = get_user_model()
 
 class HostListJson(BaseDatatableView):
     order_columns = (
@@ -103,9 +108,22 @@ class HostListJson(BaseDatatableView):
                 else:
                     qs = qs.filter(addresses__address__icontains=ip_search)
             if group_filter:
-                qs = qs.filter(group_permissions__group__pk=group_filter)
+                #qs = qs.filter(group_permissions__group__pk=group_filter)
+                group = Group.objects.get(pk=group_filter)
+                qs = get_objects_for_group(
+                    group,
+                    ['hosts.is_owner_host'],
+                    klass=qs
+                )
+
             if user_filter:
-                qs = qs.filter(user_permissions__user__pk=user_filter)
+                #qs = qs.filter(user_permissions__user__pk=user_filter)
+                user = User.objects.get(pk=user_filter)
+                qs = get_objects_for_user(
+                    user,
+                    ['hosts.is_owner_host'],
+                    klass=qs
+                )
 
             if expired_search and expired_search == '1':
                 qs = qs.filter(expires__gt=timezone.now())
@@ -192,10 +210,13 @@ class HostListView(TemplateView):
         #context['groups'] = Group.objects.all().order_by('name')
 
         group_initial = self.request.COOKIES.get('group_filter', None)
+        user_initial = self.request.COOKIES.get('user_filter', None)
+        initial = {}
         if group_initial:
-            context['form'] = HostListForm(initial={'groups': group_initial})
-        else:
-            context['form'] = HostListForm()
+            initial['groups'] = group_initial
+        if user_initial:
+            initial['users'] = user_initial
+        context['form'] = HostListForm(initial=initial)
 
         context['owner_filter'] = self.request.COOKIES.get('owner_filter', '')
         context['owners_form'] = HostOwnerForm()
@@ -325,13 +346,17 @@ class HostUpdateCreateView(object):
 
         return form
 
-    # def get_context_data(self, **kwargs):
-    #     context = super(HostUpdateCreateView, self).get_context_data(**kwargs)
-    #     return context
+    def get_context_data(self, **kwargs):
+        context = super(HostUpdateCreateView, self).get_context_data(**kwargs)
+        context['dynamic_address_types'] = simplejson.dumps(
+            [address_type.pk for address_type in AddressType.objects.filter(pool__isnull=False)]
+        )
+        return context
 
     def form_valid(self, form):
+        valid_form = super(HostUpdateCreateView, self).form_valid(form)
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
-        return super(HostUpdateCreateView, self).form_valid(form)
+        return valid_form
 
 
 class HostUpdateView(HostUpdateCreateView, UpdateView):

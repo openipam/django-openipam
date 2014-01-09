@@ -22,16 +22,18 @@
     <link rel="stylesheet" href="{% static 'core/css/admin_filters.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
     {% include 'autocomplete_light/static.html' %}
+    {% if selected_records or form_data %}
     <script type="text/javascript">
         $(function(){
             {% if selected_records %}
                 $.selectedRecords = {{ selected_records|safe }};
             {% endif %}
             {% if form_data %}
-                $.formData = {{ form_data|safe }}
+                $.formData = {{ form_data|safe }};
             {% endif %}
         });
     </script>
+    {% endif %}
     <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>

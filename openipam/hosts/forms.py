@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_ipv46_address
 from django.utils.safestring import mark_safe
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
@@ -30,7 +31,7 @@ NET_IP_CHOICES = (
 )
 
 ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
-    address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True))
+    address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True)).distinct()
 ]
 
 
@@ -40,7 +41,7 @@ class HostForm(forms.ModelForm):
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
     network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
-    ip_address = forms.GenericIPAddressField(required=False)
+    ip_address = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'style': 'width: 400px;'}))
     show_hide_dhcp_group = forms.BooleanField(label='Click to assign a DHCP Group', required=False)
     dhcp_group = forms.ModelChoiceField(
@@ -61,115 +62,58 @@ class HostForm(forms.ModelForm):
         super(HostForm, self).__init__(*args, **kwargs)
 
         # Attach user to form and model
-        self.user = user
-        self.instance.user = user
+        self.instance.user = self.user = user
 
         #Populate some fields if we are editing the record
-        current_address_html = None
-        expire_date = None
+        self.current_address_html = None
+        self.expire_date = None
+
+        # Set networks based on address type if form is bound
+        if self.data.get('address_type'):
+            self.fields['network'].queryset = (Network.objects.
+                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type'])))
 
         if self.instance.pk:
-            # Get owners
-            user_owners, group_owners = self.instance.get_owners()
 
-            self.fields['user_owners'].initial = user_owners
-            self.fields['group_owners'].initial = group_owners
+            # Init owners and groups
+            self._init_owners_groups()
 
-            # Set address_type
-            self.fields['address_type'].initial = self.instance.get_address_type()
+            # Init Exipre Date
+            self._init_expire_date()
 
-            # Get IP Address(es)
-            html_addresses = []
-            addresses = self.instance.addresses.all()
-            for address in addresses:
-                html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
-            if html_addresses:
-                change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
-                current_address_html = HTML('''
-                    <div class="control-group">
-                        <label class="control-label">Current IP Address:</label>
-                        <div class="controls" style="margin-top: 5px;">
-                            %s
-                            %s
-                            %s
-                        </div>
-                    </div>
-                ''' % ('<strong>Multiple IPs</strong><br />' if len(addresses) > 1 else '',
-                       ''.join(html_addresses),
-                       change_html if len(addresses) == 1 else ''))
+            # Set networks based on address type if form is not bound
+            if not self.data:
+                # Set address_type
+                address_type = self.instance.address_type
+                self.fields['network'].queryset = Network.objects.get_networks_from_address_type(address_type)
 
-                self.fields['address_type'].required = False
-                self.fields['address_type'].initial = 0
-                if len(addresses) > 1:
-                    del self.fields['address_type']
-                    del self.fields['network_or_ip']
-                    del self.fields['network']
-                    del self.fields['ip_address']
+                # Init IP Address(es) only if form is not bound
+                self._init_ip_address()
 
-            # Get Exipre Date
-            expire_date = HTML('''
-                <div class="control-group">
-                    <label class="control-label">Expire Date:</label>
-                    <div class="controls" style="margin-top: 5px;">
-                        <span class="label label-important">%s</span>
-                        <a href="#" id="host-renew" class="renew">Renew Host</a>
-                    </div>
-                </div>
-            ''' % self.instance.expires.strftime('%b %d %Y'))
-            self.fields['expire_days'].required = False
-
+            # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
                 del self.fields['show_hide_dhcp_group']
 
-        # Setup attributes.
-        attribute_fields = Attribute.objects.all()
-        attribute_initials = []
-        if self.instance.pk:
-            attribute_initials += self.instance.structured_attributes.values_list('structured_attribute_value__attribute',
-                                                                                  'structured_attribute_value')
-            attribute_initials += self.instance.freeform_attributes.values_list('attribute', 'value')
-        attribute_field_keys = ['Attributes']
-        for attribute_field in attribute_fields:
-            attribute_field_key = slugify(attribute_field.name)
-            attribute_field_keys.append(attribute_field_key)
-            if attribute_field.structured:
-                attribute_choices_qs = StructuredAttributeValue.objects.filter(attribute=attribute_field.id)
-                self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
-            else:
-                self.fields[attribute_field_key] = forms.CharField(required=False)
-            initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
-            if initial:
-                self.fields[attribute_field_key].initial = initial[0][1]
+        # Init attributes.
+        self._init_attributes()
 
-        accordion_groups = [
-            AccordionGroup(
-                'Host Details',
-                'mac',
-                'hostname',
-                current_address_html,
-                'address_type',
-                'network_or_ip',
-                'network',
-                'ip_address',
-                expire_date,
-                'expire_days',
-                'description',
-                'show_hide_dhcp_group',
-                'dhcp_group',
-            )
-        ]
+        # Init address types
+        self._init_address_type()
 
-        accordion_groups.append(
-            AccordionGroup(
-                'Owners',
-                'user_owners',
-                'group_owners',
-            )
-        )
+        # Init the form layout
+        self._init_form_layout()
 
-        # Add owners and groups if super user or ipam admin
-        if not user.is_ipamadmin and self.fields.get('address_type', None):
-            # Customize address types for non super users
+
+    def _init_owners_groups(self):
+        # Get owners
+        user_owners, group_owners = self.instance.get_owners()
+
+        self.fields['user_owners'].initial = user_owners
+        self.fields['group_owners'].initial = group_owners
+
+    def _init_address_type(self):
+        # Customize address types for non super users
+        if not self.user.is_ipamadmin and self.fields.get('address_type'):
             user_pools = get_objects_for_user(
                 user,
                 ['network.add_records_to_pool', 'network.change_pool'],
@@ -186,13 +130,114 @@ class HostForm(forms.ModelForm):
             user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks))
             self.fields['address_type'].queryset = user_address_types
 
-        if not user.is_ipamadmin:
+    def _init_attributes(self):
+
+        attribute_fields = Attribute.objects.all()
+        structured_attribute_values = StructuredAttributeValue.objects.all()
+
+        attribute_initials = []
+        if self.instance.pk:
+            attribute_initials += self.instance.structured_attributes.values_list('structured_attribute_value__attribute',
+                                                                                  'structured_attribute_value')
+            attribute_initials += self.instance.freeform_attributes.values_list('attribute', 'value')
+        self.attribute_field_keys = ['Attributes']
+        for attribute_field in attribute_fields:
+            attribute_field_key = slugify(attribute_field.name)
+            self.attribute_field_keys.append(attribute_field_key)
+            if attribute_field.structured:
+                attribute_choices_qs = StructuredAttributeValue.objects.filter(attribute=attribute_field.id)
+                self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
+            else:
+                self.fields[attribute_field_key] = forms.CharField(required=False)
+            initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
+            if initial:
+                self.fields[attribute_field_key].initial = initial[0][1]
+
+    def _init_ip_address(self):
+
+        html_addresses = []
+        addresses = self.instance.addresses.all()
+        for address in addresses:
+            html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
+        if html_addresses:
+            change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
+            self.current_address_html = HTML('''
+                <div class="control-group">
+                    <label class="control-label">Current IP Address:</label>
+                    <div class="controls" style="margin-top: 5px;">
+                        %s
+                        %s
+                        %s
+                    </div>
+                </div>
+            ''' % ('<strong>Multiple IPs</strong><br />' if len(addresses) > 1 else '',
+                   ''.join(html_addresses),
+                   change_html if len(addresses) == 1 else ''))
+
+            #self.fields['address_type'].required = False
+            #self.fields['address_type'].initial = 0
+            if len(addresses) > 1:
+                del self.fields['address_type']
+                del self.fields['network_or_ip']
+                del self.fields['network']
+                del self.fields['ip_address']
+            else:
+                self.fields['ip_address'].initial = addresses[0]
+                self.fields['ip_address'].label = 'New IP Address'
+                self.fields['network_or_ip'].initial = '1'
+
+    def _init_expire_date(self):
+
+        self.expire_date = HTML('''
+            <div class="control-group">
+                <label class="control-label">Expire Date:</label>
+                <div class="controls" style="margin-top: 5px;">
+                    <span class="label label-important">%s</span>
+                    <a href="#" id="host-renew" class="renew">Renew Host</a>
+                </div>
+            </div>
+        ''' % self.instance.expires.strftime('%b %d %Y'))
+        self.fields['expire_days'].required = False
+
+        if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
-        # Add attributes
-        accordion_groups.append(AccordionGroup(*attribute_field_keys))
+    def _init_form_layout(self):
 
+        # Add Details section
+        accordion_groups = [
+            AccordionGroup(
+                'Host Details',
+                'mac',
+                'hostname',
+                self.current_address_html,
+                'address_type',
+                'network_or_ip',
+                'network',
+                'ip_address',
+                self.expire_date,
+                'expire_days',
+                'description',
+                'show_hide_dhcp_group',
+                'dhcp_group',
+            )
+        ]
+
+        # Add owners and groups section
+        accordion_groups.append(
+            AccordionGroup(
+                'Owners',
+                'user_owners',
+                'group_owners',
+            )
+        )
+
+        # Add attributes section
+        #assert False, self.attribute_field_keys
+        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
+
+        # Create form actions
         form_actions = [
             Submit('save', 'Save changes'),
             Button('cancel', 'Cancel', onclick="javascript:location.href='%s';" % reverse('list_hosts')),
@@ -201,9 +246,9 @@ class HostForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Accordion(*accordion_groups),
-
-            FormActions(*form_actions)
+            #FormActions(*form_actions)
         )
+
 
     def save(self, *args, **kwargs):
 
@@ -216,7 +261,7 @@ class HostForm(forms.ModelForm):
         instance.save()
 
         # Assign Pool or Network based on conditions
-        instance.set_network_ip_or_pool
+        instance.set_network_ip_or_pool()
 
         # Remove all owners if there are any
         instance.remove_owners()
@@ -243,7 +288,6 @@ class HostForm(forms.ModelForm):
         # Delete all attributes so we can start over.
         instance.freeform_attributes.all().delete()
         instance.structured_attributes.all().delete()
-
 
         # Loop through potential values and add them
         for attribute in attribute_fields:
@@ -274,9 +318,11 @@ class HostForm(forms.ModelForm):
         return cleaned_data
 
     def clean_network_or_ip(self):
-        network_or_ip = self.cleaned_data['network_or_ip']
+        network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
 
+        #assert False, (address_type.pk, ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
+        #assert False, list(ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
         if address_type:
             if address_type.pk in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT and not network_or_ip:
                 raise ValidationError('This field is required.')
@@ -284,44 +330,89 @@ class HostForm(forms.ModelForm):
         return network_or_ip
 
     def clean_network(self):
-        network = self.cleaned_data['network']
-        network_or_ip = self.cleaned_data['network_or_ip']
-
-        if network_or_ip and network_or_ip == '0' and not network:
-            raise ValidationError('This field is required.')
+        network = self.cleaned_data.get('network', '')
+        network_or_ip = self.cleaned_data.get('network_or_ip', '')
+        address_type = self.cleaned_data.get('address_type', '')
 
         self.instance.network = network
 
-        return network
+        # If this is a dynamic address type, then bypass
+        if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
+            return network
 
-    def clean_ip_address(self):
-        ip_address = self.cleaned_data['ip_address']
-        network_or_ip = self.cleaned_data['network_or_ip']
+        if network_or_ip and network_or_ip == '0' and not network:
+            raise ValidationError('This field is required.')
+        elif network_or_ip and network_or_ip == '1':
+            # Clear value
+            network = ''
 
-        if network_or_ip:
-            if network_or_ip == '1' and not ip_address:
-                raise ValidationError('This field is required.')
-
-        if ip_address:
+        if network:
             user_pools = get_objects_for_user(
-                self.user,
+                self.instance.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
 
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
-                address=ip_address,
+                network=self.instance.network,
                 host__isnull=True,
-                reserved=False
-            )
-            is_available = True if address else False
+                reserved=False,
+            ).order_by('address')
 
-            if not is_available:
-                raise ValidationError('The IP Address requested is reserved, in use, please try again.')
-            else:
-                self.instance.ip_address = ip_address
-                self.instance.network = address.network
+            if not address:
+                raise ValidationError(mark_safe('There is no addresses available from this network.<br />'
+                                      'Please contact an IPAM Administrator.'))
+        return network
+
+    def clean_ip_address(self):
+        ip_address = self.cleaned_data.get('ip_address', '')
+        network_or_ip = self.cleaned_data.get('network_or_ip', '')
+        address_type = self.cleaned_data.get('address_type', '')
+        current_addresses = [str(address) for address in self.instance.addresses.all()]
+
+        # If this is a dynamic address type, then bypass
+        if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
+            return ip_address
+        # If this host has this IP already then stop (meaning its not changing)
+        elif ip_address in current_addresses:
+            self.instance.ip_address = ip_address
+            return ip_address
+
+        if network_or_ip and network_or_ip == '1':
+            if not ip_address:
+                raise ValidationError('This field is required.')
+
+            elif ip_address:
+                # Make sure this is valid.
+                validate_ipv46_address(ip_address)
+
+                user_pools = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_pool', 'network.change_pool'],
+                    any_perm=True
+                )
+                user_nets = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                    any_perm=True
+                )
+
+                address = Address.objects.filter(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                    address=ip_address,
+                    host__isnull=True,
+                    reserved=False
+                )
+                is_available = True if address else False
+
+                if not is_available:
+                    raise ValidationError('The IP Address is reserved, in use, or not allowed.')
+                else:
+                    self.instance.ip_address = ip_address
+        else:
+            # Clear values
+            ip_address = ''
 
         return ip_address
 

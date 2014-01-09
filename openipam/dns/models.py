@@ -7,8 +7,6 @@ from openipam.dns.managers import DnsManager, DomainManager
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
     validate_srv_content, validate_sshfp_content
 
-from guardian.models import UserObjectPermissionBase, GroupObjectPermissionBase
-
 from netaddr.core import AddrFormatError
 
 import re

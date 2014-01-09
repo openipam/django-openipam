@@ -9,24 +9,6 @@ from bitstring import Bits
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'HostUserObjectPermission'
-        db.create_table(u'hosts_hostuserobjectpermission', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['user.User'])),
-            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='user_permissions', to=orm['hosts.Host'])),
-        ))
-        db.send_create_signal(u'hosts', ['HostUserObjectPermission'])
-
-        # Adding model 'HostGroupObjectPermission'
-        db.create_table(u'hosts_hostgroupobjectpermission', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('permission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Permission'])),
-            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Group'])),
-            ('content_object', self.gf('django.db.models.fields.related.ForeignKey')(related_name='group_permissions', to=orm['hosts.Host'])),
-        ))
-        db.send_create_signal(u'hosts', ['HostGroupObjectPermission'])
-
         # Adding field 'Host.address_type'
         db.add_column('hosts', 'address_type',
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['network.AddressType'], null=True, blank=True),
@@ -42,12 +24,6 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'HostUserObjectPermission'
-        db.delete_table(u'hosts_hostuserobjectpermission')
-
-        # Deleting model 'HostGroupObjectPermission'
-        db.delete_table(u'hosts_hostgroupobjectpermission')
-
         # Deleting field 'Host.address_type'
         db.delete_column('hosts', 'address_type_id')
 

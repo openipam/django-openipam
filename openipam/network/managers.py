@@ -10,6 +10,7 @@ from guardian.shortcuts import get_objects_for_user
 
 import random
 import re
+import operator
 
 
 class NetworkManager(NetManager):
@@ -33,6 +34,26 @@ class NetworkManager(NetManager):
             return tuple([str(network.network) for network in networks])
         else:
             return networks
+
+    def get_networks_from_address_type(self, address_type):
+        from openipam.network.models import NetworkRange
+
+        # Get assigned ranges
+        assigned_ranges = NetworkRange.objects.filter(address_ranges__isnull=False)
+
+        # Get specific ranges on a address
+        net_range = address_type.ranges.all()
+
+        # If address has a range(s)
+        if net_range:
+            q_list = [Q(network__net_contained_or_equal=net.range) for net in net_range]
+            return self.filter(reduce(operator.or_, q_list))
+        # Otherwise try and get from default ranges
+        elif address_type.is_default:
+            q_list = [Q(network__net_contained_or_equal=net.range) for net in assigned_ranges]
+            return self.exclude(reduce(operator.or_, q_list))
+        else:
+            return self.none()
 
 
 class PoolManager(Manager):
@@ -108,7 +129,6 @@ class AddressManager(NetManager):
 
         return address
 
-
     def assign_static_address(self, mac, hostname=None, network=None, address=None):
 
         from openipam.network.models import Network, Pool
@@ -171,7 +191,8 @@ class AddressManager(NetManager):
                                               ' It may be in use or not contained by a network.' % (address, mac))
                     else:
                         raise ValidationError('Could not assign IP address %s to MAC address %s. '
-                                              ' There are no free addresses available with the criteria specified.' % mac)
+                                              ' There are no free addresses available with the'
+                                              ' criteria specified.' % mac)
 
                 # Select the first pool address to use
                 new_address = pool_addresses[0]
@@ -192,7 +213,7 @@ class AddressManager(NetManager):
             # FIXME: this is a sign that something wasn't deleted cleanly... maybe we shouldn't?
             #self.del_dns_record(name=openipam.iptypes.IP(address).reverseName()[:-1])
             # FIXME: is it safe to delete other DNS records here?
-            tid = 1 if ipv4 else 28
+            tid = 1 if is_ipv4 else 28
 
             DnsRecord.objects.create(
                 name=hostname,

@@ -34,12 +34,12 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 
     autocomplete_js_attributes = {
         'minimum_characters': 1,
+        'placeholder': 'Search Objects',
     }
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
-autocomplete_light.register(IPAMObjectsAutoComplete,
-    autocomplete_js_attributes={'placeholder': 'Search Objects'},)
+autocomplete_light.register(IPAMObjectsAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):

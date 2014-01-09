@@ -2,18 +2,11 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import utc
-from django.core.exceptions import ValidationError, PermissionDenied, NON_FIELD_ERRORS
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.dispatch import receiver
-from django.db.models.signals import post_save, post_delete
-from django.utils.safestring import mark_safe
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
-from guardian.models import UserObjectPermission, GroupObjectPermission, \
-    UserObjectPermissionBase, GroupObjectPermissionBase
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 
@@ -168,6 +161,34 @@ class Host(models.Model):
         self.ip_address = None
         self.network = None
 
+        # Get and Set address type if receord is not new.
+        if self.pk and not self.address_type:
+            from openipam.network.models import AddressType, NetworkRange
+
+            addresses = self.addresses.all()
+            pools = self.pools.all()
+
+            try:
+                # if (len(addresses) + len(pools)) > 1:
+                #     self.address_type = None
+                # elif addresses:
+                if addresses:
+                    try:
+                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
+                        if ranges:
+                            self.address_type = AddressType.objects.get(ranges__range__in=ranges)
+                        else:
+                            raise AddressType.DoesNotExist
+                    except AddressType.DoesNotExist:
+                        self.address_type = AddressType.objects.get(is_default=True)
+                elif pools:
+                    self.address_type = AddressType.objects.get(pool=pools[0])
+            except AddressType.DoesNotExist:
+                self.address_type = None
+            else:
+                self.save()
+
+
     def __unicode__(self):
         return self.hostname
 
@@ -237,35 +258,39 @@ class Host(models.Model):
         else:
             return None
 
-    def get_address_type(self):
-        from openipam.network.models import AddressType, NetworkRange
+    # def get_address_type(self):
+    #     from openipam.network.models import AddressType, NetworkRange
 
-        if self.address_type:
-            return self.address_type
-        else:
-            addresses = self.addresses.all()
-            pools = self.pools.all()
+    #     if self.address_type:
+    #         return self.address_type
+    #     elif not self.pk:
+    #         self.address_type = None
+    #     else:
+    #         addresses = self.addresses.all()
+    #         pools = self.pools.all()
 
-            try:
-                if (len(addresses) + len(pools)) > 1:
-                    self.address_type = None
-                elif addresses:
-                    try:
-                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
-                        if ranges:
-                            self.address_type = AddressType.objects.get(ranges__range__in=ranges)
-                        else:
-                            raise AddressType.DoesNotExist
-                    except AddressType.DoesNotExist:
-                        self.address_type = AddressType.objects.get(is_default=True)
-                elif pools:
-                    self.address_type = AddressType.objects.get(pool=pools[0])
-            except AddressType.DoesNotExist:
-                self.address_type = None
-            finally:
-                self.save()
-
-        return self.address_type
+    #         try:
+    #             # if (len(addresses) + len(pools)) > 1:
+    #             #     self.address_type = None
+    #             # elif addresses:
+    #             if addresses:
+    #                 try:
+    #                     ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
+    #                     if ranges:
+    #                         self.address_type = AddressType.objects.get(ranges__range__in=ranges)
+    #                     else:
+    #                         raise AddressType.DoesNotExist
+    #                 except AddressType.DoesNotExist:
+    #                     self.address_type = AddressType.objects.get(is_default=True)
+    #             elif pools:
+    #                 self.address_type = AddressType.objects.get(pool=pools[0])
+    #         except AddressType.DoesNotExist:
+    #             self.address_type = None
+    #         finally:
+    #             pass
+    #             #self.save()
+    #     #assert False, self.address_type
+    #     return self.address_type
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -283,8 +308,8 @@ class Host(models.Model):
         self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
 
     # TODO: Clean this up, I dont like where this is at.
-    def set_network_ip_or_pool(self, user=None):
-        from openipam.network.models import Address
+    def set_network_ip_or_pool(self, user=None, delete=True):
+        from openipam.network.models import Address, HostToPool
 
         if not user and self.user:
             user = self.user
@@ -300,12 +325,21 @@ class Host(models.Model):
         # If we have a pool, this dynamic and we assign
         if self.address_type.pool:
             # Remove all pools
-            self.pools.clear()
-            # Assign new pool
-            self.pools.add(self.address_type.pool)
+            if delete:
+                self.pools.clear()
+
+            # Assign new pool if it doesn't already exist
+            HostToPool.objects.get_or_create(
+                host=self,
+                pool=self.address_type.pool,
+                changed_by=user
+            )
 
         # If we have an IP address, then assign that address to host
         else:
+            if delete:
+                self.addresses.clear()
+
             if self.network:
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True),

@@ -12,7 +12,10 @@
 
     {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript">
+        var dynamicAddressTypes = {{ dynamic_address_types }};
+
         $(function(){
+
             $('#id_hostname').yourlabsAutocomplete({
                 url: '/api/web/DomainAutocomplete/',
                 choiceSelector: '[data-value]',
@@ -41,74 +44,87 @@
                 //alert("You have choosen: " + value);
             });
 
-            $("#id_address_type").change(function(){
-                if($(this).val()) {
-                    $.get('/api/web/networkselects/'+$(this).val(), function(data) {
+            $("#id_address_type").on('change', function(){
+                var aType = $("#id_address_type").val();
+
+                if (aType) {
+                    $.get('/api/web/networkselects/'+ $("#id_address_type").val(), function(data) {
                         $("#id_network").html(data);
-                        $.addressTypeTogge();
+                        $.networkIPToggle();
                     });
                 }
-                else {
-                    $.addressTypeTogge();
+                else{
+                    $.networkIPToggle();
                 }
             });
 
-            $.addressTypeTogge = function() {
-                if ($("#id_network option[value!='']").size() > 0) {
-                    $("#div_id_network_or_ip").show();
-                }
-                else {
-                    $("#div_id_network_or_ip").hide();
-                    $("#div_id_network_or_ip input:checked").prop('checked', false);
-                    $.networkIPToggle();
-                }
-            }
+            // Click hadlers for Network or IP fields
+            $(":radio[name='network_or_ip']").on('click', function(){
+                $.networkIPToggle();
+            });
 
-            $.networkIPToggle = function() {
-                if (!$("#id_address_type").val()) {
-                    $("#div_id_network_or_ip").hide();
-                }
+            // Click handlers for DHCP Group
+            $("#id_show_hide_dhcp_group").on('click', function(){
+                $("#div_id_dhcp_group").toggle();
+            });
 
-                if (!$(":radio[name='network_or_ip']:checked").length) {
-                    $("#div_id_network").hide();
-                    $("#div_id_ip_address").hide();
-                    //$("#div_id_network_or_ip").hide();
-                    $("#div_id_network select").empty();
-                    $("#div_id_ip_address input").val('');
-                }
-                else if ($(":radio[name='network_or_ip']:checked").val() === '0'){
-                    $("#div_id_network").show();
-                    $("#div_id_ip_address").hide();
-                    $("#div_id_ip_address input").val('');
-                }
-                else if ($(":radio[name='network_or_ip']:checked").val() === '1') {
-                    $("#div_id_ip_address").show();
-                    $("#div_id_network").hide();
-                    $("#div_id_network select").empty();
-                }
-            }
-
-            $("a#host-renew").click(function(){
+            $("a#host-renew").on('click', function(){
                 $("#div_id_expire_days").toggle();
                 return false;
             })
 
-            $("a#ip-change").click(function(){
+            $("a#ip-change").on('click', function(){
                 $("#div_id_address_type").toggle();
+                $.networkIPToggle();
+                $(this).remove();
                 return false;
                 //$("#div_id_network_or_ip").toggle();
                 //$("#div_id_ip_address").toggle();
             })
 
+            // $.addressTypeTogge = function() {
+            //     if ($("#id_network option[value!='']").size() > 0 || $("#id_ip_address").val()) {
+            //         $("#div_id_network_or_ip").show();
+            //     }
+            //     else {
+            //         $("#div_id_network_or_ip").hide();
+            //     }
+            //     $.networkIPToggle();
+            // }
+
+            $.networkIPToggle = function() {
+                var netSelect = $(":radio[name='network_or_ip']:checked").val();
+                var aType = parseInt($("#id_address_type").val());
+
+                if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
+                    $("#div_id_network_or_ip").hide();
+                    $("#div_id_ip_address").hide();
+                    $("#div_id_network").hide();
+                }
+                else {
+                    $("#div_id_network_or_ip").show();
+
+                    if (netSelect === '0') {
+                        $("#div_id_network").show();
+                        $("#div_id_ip_address").hide();
+                    }
+                    else if (netSelect === '1') {
+                        $("#div_id_network").hide();
+                        $("#div_id_ip_address").show();
+                    }
+                    else {
+                        $("#div_id_network").hide();
+                        $("#div_id_ip_address").hide();
+                    }
+                }
+            }
+
             $.pageInit = function() {
+                var netSelect = $(":radio[name='network_or_ip']:checked").val();
+                var aType = parseInt($("#id_address_type").val());
+                var dhcpGroup = $("#id_show_hide_dhcp_group");
 
-                // Click handlers for DHCP Group
-                $("#id_show_hide_dhcp_group").click(function(){
-                    $("#div_id_dhcp_group").toggle();
-                });
-
-
-                if ($("#id_show_hide_dhcp_group").length && $("#id_show_hide_dhcp_group").not('checked')) {
+                if (dhcpGroup.length && dhcpGroup.not('checked')) {
                     $("#div_id_dhcp_group").hide();
                 }
 
@@ -119,17 +135,31 @@
                 if ($("a#ip-change").length > 0) {
                     $("#div_id_address_type").hide();
                     $("#div_id_network_or_ip").hide();
+                    $("#div_id_network").hide();
                     $("#div_id_ip_address").hide();
                 }
-
-                // Click hadlers for Network or IP fields
-                $(":radio[name='network_or_ip']").click(function(){
+                else {
                     $.networkIPToggle();
-                    $("#id_address_type").change();
-                });
-
-                $.networkIPToggle();
-                $.addressTypeTogge();
+                    // if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
+                    //     $("#div_id_network_or_ip").hide();
+                    //     $("#div_id_ip_address").hide();
+                    //     $("#div_id_network").hide();
+                    // }
+                    // else {
+                    //     if (netSelect === '0') {
+                    //         $("#div_id_network").show();
+                    //         $("#div_id_ip_address").hide();
+                    //     }
+                    //     else if (netSelect === '1') {
+                    //         $("#div_id_network").hide();
+                    //         $("#div_id_ip_address").show();
+                    //     }
+                    //     else {
+                    //         $("#div_id_network").hide();
+                    //         $("#div_id_ip_address").hide();
+                    //     }
+                    // }
+                }
             }
 
             // Fire init
@@ -166,11 +196,12 @@
             {% if not form.instance.mac_last_seen %}
                 <div class="alert alert-error">
                     <h4>Mac not seen: there is no data for this mac address and we have not seen it in over 3 months (if ever).</h4>
+                    {{ form.non_field_errors }}
                 </div>
             {% endif %}
         {% endif %}
 
-        <form id="host-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px">
+        <form id="host-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px;">
             {% csrf_token %}
             <div class="margin10">
                 {% if form.instance.pk %}
@@ -179,6 +210,10 @@
                     <h2>Add Host</h2>
                 {% endif %}
                 {% crispy form %}
+                <div class="center">
+                    <input type="submit" value="Save Changes" class="btn btn-primary" />
+                    <input type="button" value="Cancel" class="btn" onclick="javascript:location.href='{% url 'list_hosts' %}';" />
+                </div>
             </div>
         </form>
     </div>

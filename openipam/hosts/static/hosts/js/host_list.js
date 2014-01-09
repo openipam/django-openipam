@@ -147,13 +147,15 @@ $(function(){
 
     // Trigger filtering on group
     $("#id_groups").unbind('change').change(function() {
-        $.cookie('group_filter', $(this).val(), {expires: 1, path: '/hosts/'});
+        var value = $(this).val() ? $(this).val() : '';
+        $.cookie('group_filter', value, {expires: 1, path: '/hosts/'});
         results.fnDraw();
     });
 
     // Trigger filtering on group
     $("#id_users").unbind('change').change(function() {
-        $.cookie('user_filter', $(this).val(), {expires: 1, path: '/hosts/'});
+        var value = $(this).val() ? $(this).val() : '';
+        $.cookie('user_filter', value, {expires: 1, path: '/hosts/'});
         results.fnDraw();
     });
 
