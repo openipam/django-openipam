@@ -62,7 +62,10 @@
       </form>
 
       <script type="text/javascript">
-        document.getElementById('id_username').focus()
+        $(function(){
+          $("#id_username").focus();
+          $("#footer").addClass('login');
+        });
       </script>
     </div>
   </div>

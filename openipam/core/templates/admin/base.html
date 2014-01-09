@@ -148,10 +148,14 @@ $(function(){
           <br class="clear" />
       </div>
       <!-- END Content -->
-
-      {% block footer %}<div id="footer"></div>{% endblock %}
     </div>
 </div>
+
+{% block footer %}
+  <div id="footer">
+    Powered by <a href="http://www.openipam.org">openIPAM</a> - Produced by <a href="http://www.usu.edu">Utah State University</a> - <a href="http://it.usu.edu/">Information Technology</a>
+  </div>
+{% endblock %}
 <!-- END Container -->
 
 {% block footer_scripts %}{% endblock %}
