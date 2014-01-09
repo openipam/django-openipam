@@ -171,6 +171,11 @@ class Network(models.Model):
 
     objects = NetworkManager()
 
+    # Forcing pk as string
+    @property
+    def pk(self):
+        return str(self.network)
+
     def __unicode__(self):
         return '%s -- %s' % (self.network, self.name)
 
