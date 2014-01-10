@@ -44,7 +44,7 @@ class DNSListJson(BaseDatatableView):
     max_display_length = 100
 
     def get_initial_queryset(self):
-        qs = DnsRecord.objects.all()
+        qs = DnsRecord.objects.select_related('ip_content', 'dns_type').all()
 
         host = self.kwargs.get('host', '')
         if host:
@@ -131,9 +131,10 @@ class DNSListJson(BaseDatatableView):
         #user = self.request.user
         #group_perms = [domain.pk for domain in DomainGroupObjectPermission.objects.filter(group__in=user.groups.all())]
         #user_perms = [domain.pk for domain in DomainUserObjectPermission.objects.filter(user=user)]
+        dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
 
         def get_dns_types(dtype):
-            dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
+            #dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:

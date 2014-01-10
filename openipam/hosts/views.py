@@ -47,10 +47,10 @@ class HostListJson(BaseDatatableView):
         is_owner = self.request.GET.get('owner_filter', '')
 
         if is_owner:
-            qs = Host.objects.select_related('addresstype').get_hosts_owned_by_user(self.request.user)
+            qs = Host.objects.get_hosts_owned_by_user(self.request.user)
         # Otherwise get hosts based on permissions
         else:
-            qs = Host.objects.select_related('addresstype').all()
+            qs = Host.objects.all()
 
         return qs
 
