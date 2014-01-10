@@ -138,7 +138,7 @@ class Host(models.Model):
     mac = MACAddressField('Mac Address', primary_key=True)
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname])
     description = models.TextField(blank=True, null=True)
-    address_type = models.ForeignKey('network.AddressType', blank=True, null=True)
+    address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id')
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
                                    related_name='pool_hosts',  blank=True, null=True)
     #freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
@@ -160,34 +160,6 @@ class Host(models.Model):
         self.user = None
         self.ip_address = None
         self.network = None
-
-        # Get and Set address type if receord is not new.
-        if self.pk and not self.address_type:
-            from openipam.network.models import AddressType, NetworkRange
-
-            addresses = self.addresses.all()
-            pools = self.pools.all()
-
-            try:
-                # if (len(addresses) + len(pools)) > 1:
-                #     self.address_type = None
-                # elif addresses:
-                if addresses:
-                    try:
-                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
-                        if ranges:
-                            self.address_type = AddressType.objects.get(ranges__range__in=ranges)
-                        else:
-                            raise AddressType.DoesNotExist
-                    except AddressType.DoesNotExist:
-                        self.address_type = AddressType.objects.get(is_default=True)
-                elif pools:
-                    self.address_type = AddressType.objects.get(pool=pools[0])
-            except AddressType.DoesNotExist:
-                self.address_type = None
-            else:
-                self.save()
-
 
     def __unicode__(self):
         return self.hostname
@@ -227,6 +199,37 @@ class Host(models.Model):
             return gul_ip[0].stopstamp
         else:
             return None
+
+    @property
+    def address_type(self):
+        # Get and Set address type if receord is not new.
+        if self.pk and not self.address_type_id:
+            from openipam.network.models import AddressType, NetworkRange
+
+            addresses = self.addresses.all()
+            pools = self.pools.all()
+
+            try:
+                # if (len(addresses) + len(pools)) > 1:
+                #     self.address_type = None
+                # elif addresses:
+                if addresses:
+                    try:
+                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
+                        if ranges:
+                            self.address_type_id = AddressType.objects.get(ranges__range__in=ranges)
+                        else:
+                            raise AddressType.DoesNotExist
+                    except AddressType.DoesNotExist:
+                        self.address_type_id = AddressType.objects.get(is_default=True)
+                elif pools:
+                    self.address_type_id = AddressType.objects.get(pool=pools[0])
+            except AddressType.DoesNotExist:
+                self.address_type_id = None
+            else:
+                self.save()
+
+        return self.address_type_id
 
     def get_owners(self, ids_only=True):
         # users = self.user_permissions.filter(permission__codename='is_owner_host')

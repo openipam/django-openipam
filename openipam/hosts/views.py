@@ -26,6 +26,7 @@ from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 User = get_user_model()
 
+
 class HostListJson(BaseDatatableView):
     order_columns = (
         'pk',
@@ -46,10 +47,10 @@ class HostListJson(BaseDatatableView):
         is_owner = self.request.GET.get('owner_filter', '')
 
         if is_owner:
-            qs = Host.objects.get_hosts_owned_by_user(self.request.user)
+            qs = Host.objects.select_related('addresstype').get_hosts_owned_by_user(self.request.user)
         # Otherwise get hosts based on permissions
         else:
-            qs = Host.objects.all()
+            qs = Host.objects.select_related('addresstype').all()
 
         return qs
 

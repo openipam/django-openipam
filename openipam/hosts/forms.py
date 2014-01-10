@@ -37,7 +37,7 @@ ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
 
 class HostForm(forms.ModelForm):
     expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
-    address_type = forms.ModelChoiceField(queryset=AddressType.objects.all())
+    address_type_id = forms.ModelChoiceField(label='Address Type', queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
     network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
@@ -69,9 +69,9 @@ class HostForm(forms.ModelForm):
         self.expire_date = None
 
         # Set networks based on address type if form is bound
-        if self.data.get('address_type'):
+        if self.data.get('address_type_id'):
             self.fields['network'].queryset = (Network.objects.
-                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type'])))
+                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type_id'])))
 
         if self.instance.pk:
 
@@ -113,7 +113,7 @@ class HostForm(forms.ModelForm):
 
     def _init_address_type(self):
         # Customize address types for non super users
-        if not self.user.is_ipamadmin and self.fields.get('address_type'):
+        if not self.user.is_ipamadmin and self.fields.get('address_type_id'):
             user_pools = get_objects_for_user(
                 user,
                 ['network.add_records_to_pool', 'network.change_pool'],
@@ -128,7 +128,7 @@ class HostForm(forms.ModelForm):
             user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
 
             user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks))
-            self.fields['address_type'].queryset = user_address_types
+            self.fields['address_type_id'].queryset = user_address_types
 
     def _init_attributes(self):
 
@@ -174,10 +174,8 @@ class HostForm(forms.ModelForm):
                    ''.join(html_addresses),
                    change_html if len(addresses) == 1 else ''))
 
-            #self.fields['address_type'].required = False
-            #self.fields['address_type'].initial = 0
             if len(addresses) > 1:
-                del self.fields['address_type']
+                del self.fields['address_type_id']
                 del self.fields['network_or_ip']
                 del self.fields['network']
                 del self.fields['ip_address']
@@ -212,7 +210,7 @@ class HostForm(forms.ModelForm):
                 'mac',
                 'hostname',
                 self.current_address_html,
-                'address_type',
+                'address_type_id',
                 'network_or_ip',
                 'network',
                 'ip_address',
@@ -319,7 +317,7 @@ class HostForm(forms.ModelForm):
 
     def clean_network_or_ip(self):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type', '')
+        address_type = self.cleaned_data.get('address_type_id', '')
 
         #assert False, (address_type.pk, ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
         #assert False, list(ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
@@ -332,7 +330,7 @@ class HostForm(forms.ModelForm):
     def clean_network(self):
         network = self.cleaned_data.get('network', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type', '')
+        address_type = self.cleaned_data.get('address_type_id', '')
 
         self.instance.network = network
 
@@ -368,7 +366,7 @@ class HostForm(forms.ModelForm):
     def clean_ip_address(self):
         ip_address = self.cleaned_data.get('ip_address', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type', '')
+        address_type = self.cleaned_data.get('address_type_id', '')
         current_addresses = [str(address) for address in self.instance.addresses.all()]
 
         # If this is a dynamic address type, then bypass
