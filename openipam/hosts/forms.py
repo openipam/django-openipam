@@ -115,12 +115,12 @@ class HostForm(forms.ModelForm):
         # Customize address types for non super users
         if not self.user.is_ipamadmin and self.fields.get('address_type_id'):
             user_pools = get_objects_for_user(
-                user,
+                self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
             user_nets = get_objects_for_user(
-                user,
+                self.user,
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
@@ -275,7 +275,7 @@ class HostForm(forms.ModelForm):
         if self.cleaned_data['group_owners']:
             for group in self.cleaned_data['group_owners']:
                 instance.assign_owner(group)
-
+nunoa990
         # Update all host attributes
         # Get all possible attributes
         attribute_fields = Attribute.objects.all()
