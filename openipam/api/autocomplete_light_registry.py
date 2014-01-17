@@ -134,7 +134,7 @@ autocomplete_light.register(Host,
 
 
 class HostFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields = ['mac', 'hostname']
+    search_fields = ['^hostname']
     autocomplete_js_attributes = {'placeholder': 'Filter Hosts'}
 autocomplete_light.register(Host, HostFilterAutocomplete)
 
