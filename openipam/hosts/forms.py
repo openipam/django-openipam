@@ -275,7 +275,7 @@ class HostForm(forms.ModelForm):
         if self.cleaned_data['group_owners']:
             for group in self.cleaned_data['group_owners']:
                 instance.assign_owner(group)
-nunoa990
+
         # Update all host attributes
         # Get all possible attributes
         attribute_fields = Attribute.objects.all()
