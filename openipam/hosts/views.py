@@ -108,7 +108,7 @@ class HostListJson(BaseDatatableView):
                 if '/' in ip_search:
                     qs = qs.filter(addresses__address__net_contained=ip_search)
                 else:
-                    qs = qs.filter(addresses__address__contains=ip_search)
+                    qs = qs.filter(addresses__address__startswith=ip_search)
             if group_filter:
                 #qs = qs.filter(group_permissions__group__pk=group_filter)
                 group = Group.objects.get(pk=group_filter)
