@@ -5,7 +5,6 @@ from django.views.generic import TemplateView
 from django.core.urlresolvers import reverse_lazy
 from django.template.defaultfilters import slugify
 from django.utils.http import urlunquote
-from django.utils import simplejson
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.contrib import messages
@@ -23,6 +22,8 @@ from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
 from openipam.network.models import Lease, AddressType
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
+
+import json
 
 User = get_user_model()
 
@@ -89,7 +90,7 @@ class HostListJson(BaseDatatableView):
                     qs = qs.filter(addresses__address__istartswith=search_item.split(':')[-1])
                 elif search_item.startswith('net:'):
                     qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
-                else:
+                elif search_item:
                     qs = qs.filter(hostname__icontains=search_item)
 
             if host_search:
@@ -225,7 +226,7 @@ class HostListView(TemplateView):
 
         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
         if data_table_state:
-            context.update(simplejson.loads(data_table_state))
+            context.update(json.loads(data_table_state))
 
         return context
 
@@ -349,7 +350,7 @@ class HostUpdateCreateView(object):
 
     def get_context_data(self, **kwargs):
         context = super(HostUpdateCreateView, self).get_context_data(**kwargs)
-        context['dynamic_address_types'] = simplejson.dumps(
+        context['dynamic_address_types'] = json.dumps(
             [address_type.pk for address_type in AddressType.objects.filter(pool__isnull=False)]
         )
         return context
