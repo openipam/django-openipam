@@ -85,16 +85,16 @@ class HostListJson(BaseDatatableView):
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
                         pass
-                    qs = qs.filter(mac__istartswith=mac_str)
+                    qs = qs.filter(mac__startswith=mac_str)
                 elif search_item.startswith('ip:'):
-                    qs = qs.filter(addresses__address__istartswith=search_item.split(':')[-1])
+                    qs = qs.filter(addresses__address__startswith=search_item.split(':')[-1])
                 elif search_item.startswith('net:'):
                     qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
                 elif search_item:
-                    qs = qs.filter(hostname__icontains=search_item)
+                    qs = qs.filter(hostname__contains=search_item)
 
             if host_search:
-                qs = qs.filter(hostname__icontains=host_search)
+                qs = qs.filter(hostname__contains=host_search)
             if mac_search:
                 if ':' not in mac_search:
                     try:
@@ -103,12 +103,12 @@ class HostListJson(BaseDatatableView):
                         mac_str = mac_search
                 else:
                     mac_str = mac_search
-                qs = qs.filter(mac__icontains=mac_str)
+                qs = qs.filter(mac__contains=mac_str)
             if ip_search:
                 if '/' in ip_search:
                     qs = qs.filter(addresses__address__net_contained=ip_search)
                 else:
-                    qs = qs.filter(addresses__address__icontains=ip_search)
+                    qs = qs.filter(addresses__address__contains=ip_search)
             if group_filter:
                 #qs = qs.filter(group_permissions__group__pk=group_filter)
                 group = Group.objects.get(pk=group_filter)
