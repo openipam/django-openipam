@@ -80,7 +80,7 @@ $(function(){
                 if ($.selectedRecords && $.formData) {
                     $.each($.selectedRecords, function(index, value) {
                         $("a.edit-dns[rel='"+ value +"']").click();
-                        $("a.edit-dns[rel='"+ value +"']").parents('tr').removeClass('info').addClass('error');
+                        $("a.edit-dns[rel='"+ value +"']").parents('tr').removeClass('info').addClass('warning');
                         $("input[name='name-"+ value +"'").val($.formData['name-'+ value]);
                         $("input[name='content-"+ value +"'").val($.formData['content-'+ value]);
                         $("input[name='type-"+ value +"'").val($.formData['type-'+ value]);
@@ -128,7 +128,7 @@ $(function(){
     // Cancel DNS reocrd edit for a row
     $("#result_list").on('click', 'a.cancel-dns', function() {
         var row = $(this).parents('tr');
-        row.removeClass('info error').find("input[type='text'], select").hide();
+        row.removeClass('info warning').find("input[type='text'], select").hide();
         row.find('input.action-select').removeAttr('checked');
         row.find("span").show();
         $(this).hide();

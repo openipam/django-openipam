@@ -11,7 +11,6 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.utils.http import urlunquote
 from django.utils.safestring import mark_safe
-from django.utils import simplejson
 from django.db.utils import DatabaseError
 from django.contrib import messages
 
@@ -25,6 +24,8 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 from netaddr.core import AddrFormatError
+
+import json
 
 User = get_user_model()
 
@@ -44,7 +45,7 @@ class DNSListJson(BaseDatatableView):
     max_display_length = 100
 
     def get_initial_queryset(self):
-        qs = DnsRecord.objects.select_related('ip_content', 'dns_type').all()
+        qs = DnsRecord.objects.select_related('ip_content', 'dns_type', 'ip_content__host', 'domain').all()
 
         host = self.kwargs.get('host', '')
         if host:
@@ -296,12 +297,29 @@ class DNSListView(TemplateView):
 
         data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
         if data_table_state:
-            context.update(simplejson.loads(data_table_state))
+            context.update(json.loads(data_table_state))
 
         selected_records = self.request.POST.getlist('selected-records', [])
         if selected_records:
-            context['selected_records'] = simplejson.dumps(selected_records)
-            context['form_data'] = simplejson.dumps(self.request.POST)
+            context['selected_records'] = json.dumps(selected_records)
+            context['form_data'] = json.dumps(self.request.POST)
+        new_records = self.request.POST.getlist('new-records', [])
+        if new_records:
+            context['form_data_new'] = []
+
+            for index, value in enumerate(new_records):
+                name_new = self.request.POST.getlist('name-new')[index]
+                content_new = self.request.POST.getlist('content-new')[index]
+                type_new = self.request.POST.getlist('type-new')[index]
+
+                if name_new or content_new or type_new:
+                    context['form_data_new'].append({
+                        'name': name_new,
+                        'content': content_new,
+                        'type': type_new,
+                    })
+
+            #assert False, context['form_data_new']
 
         #self.request.COOKIES['host_filter'] = self.host
 
@@ -341,8 +359,11 @@ class DNSListView(TemplateView):
                     record_type = DnsType.objects.get(pk=record_type)
 
                     if record_type.is_a_record:
-                        address = Address.objects.get(address=record_data['record_content'])
-                        dns_record.ip_content = address
+                        if not record_data['record_content']:
+                            error_list.append('IP content for A records connot be blank.')
+                        else:
+                            address = Address.objects.get(address=record_data['record_content'])
+                            dns_record.ip_content = address
                     else:
                         dns_record.text_content = record_data['record_content']
 
@@ -361,7 +382,7 @@ class DNSListView(TemplateView):
                     error_list.append('Invalid IP for content: %s' % record_data['record_content'])
 
                 except DnsType.DoesNotExist:
-                    error_list.append('Invalid DNS Type: %s' % record_data['record_content'])
+                    error_list.append('Invalid DNS Type for %s' % record_data['record_name'])
 
                 except Address.DoesNotExist:
                     error_list.append('IP does not exist for content: %s' % record_data['record_content'])

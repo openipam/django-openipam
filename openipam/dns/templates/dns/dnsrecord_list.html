@@ -116,6 +116,7 @@
                         <th scope="col" style="width: 70px;">Edit</th>
                     </tr>
                 </thead>
+                {% if not host %}
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
@@ -136,6 +137,7 @@
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
                 </tfoot>
+                {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
@@ -144,6 +146,26 @@
                 </tbody>
             </table>
             <table id="add-table" style="display: none;">
+                {% for row in form_data_new %}
+                    <tr class="add-row warning">
+                        <td><input type="hidden" name="new-records" value="1" /></td>
+                        <td><input type="text" name="name-new" value="{{ row.name }}" /></td>
+                        <td>14400</td>
+                        <td>
+                            <select name="type-new" style="max-width: 80px;">
+                                <option value="">---</option>
+                                {% for type in dns_types %}
+                                    <option value="{{ type.pk }}" {% if row.type == type.pk %}selected="selected"{% endif %}>{{ type.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="text" name="content-new" value="{{ row.content }}" /></td>
+                        <td>&nbsp;</td>
+                        <td>
+                            <a class="remove-record" href="javascript:void(0);">Remove</a>
+                        </td>
+                    </tr>
+                {% endfor %}
                 <tr class="add-row">
                     <td><input type="hidden" name="new-records" value="1" /></td>
                     <td><input type="text" name="name-new" /></td>
@@ -163,6 +185,7 @@
                         <a class="remove-record" href="javascript:void(0);" style="display:none;">Remove</a>
                     </td>
                 </tr>
+
             </table>
             <div id="form-actions" class="hide">
                 <input type="submit" class="btn btn-primary" value="Save" />
