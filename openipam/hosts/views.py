@@ -20,6 +20,7 @@ from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRene
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
 from openipam.network.models import Lease, AddressType
+from openipam.user.utils.user_utils import convert_host_permissions
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
@@ -53,6 +54,7 @@ class HostListJson(BaseDatatableView):
         else:
             qs = Host.objects.all()
 
+        #return qs.prefetch_related('addresses').all()
         return qs
 
     def filter_queryset(self, qs):
@@ -165,6 +167,10 @@ class HostListJson(BaseDatatableView):
                 return str(filtered_list[0].address)
             else:
                 return 'No Data'
+
+        # def get_ips():
+        #     ips = [str(address) for address in host.addresses.all()]
+        #     return ' '.join(ips)
 
         def get_expires(expires):
             if expires < timezone.now():
@@ -309,8 +315,11 @@ class HostDetailView(DetailView):
     model = Host
     noaccess = False
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
+        convert_host_permissions(host_pk=self.kwargs.get('pk'))
+        return super(HostDetailView, self).get(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
         context = super(HostDetailView, self).get_context_data(**kwargs)
         attributes = []
         attributes += self.object.freeform_attributes.values_list('attribute__description', 'value')
@@ -362,6 +371,10 @@ class HostUpdateCreateView(object):
 
 
 class HostUpdateView(HostUpdateCreateView, UpdateView):
+    def get(self, request, *args, **kwargs):
+        convert_host_permissions(host_pk=self.kwargs.get('pk'))
+        return super(HostUpdateView, self).get(request, *args, **kwargs)
+
     @method_decorator(permission_owner_required)
     def dispatch(self, *args, **kwargs):
         return super(HostUpdateView, self).dispatch(*args, **kwargs)
