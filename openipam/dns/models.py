@@ -55,7 +55,7 @@ class DnsRecord(models.Model):
     domain = models.ForeignKey('Domain', db_column='did', verbose_name='Domain')
     dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type')
     dns_view = models.ForeignKey('DnsView', db_column='vid', verbose_name='View', blank=True, null=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, error_messages={'blank': 'Name fields for DNS records cannot be blank.'})
     text_content = models.CharField(max_length=255, blank=True, null=True)
     ip_content = models.ForeignKey('network.Address', db_column='ip_content', verbose_name='IP Content', blank=True, null=True)
     ttl = models.IntegerField(default=86400, blank=True, null=True)
@@ -134,22 +134,23 @@ class DnsRecord(models.Model):
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
 
     def clean_domain(self):
-        names = self.name.split('.')[1:]
-        names_list = []
-        while names:
-            names_list.append(Q(name='.'.join(names)))
-            names.pop(0)
+        if self.name:
+            names = self.name.split('.')[1:]
+            names_list = []
+            while names:
+                names_list.append(Q(name='.'.join(names)))
+                names.pop(0)
 
-        domains = Domain.objects.filter(reduce(operator.or_, names_list))
-        domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
+            domains = Domain.objects.filter(reduce(operator.or_, names_list))
+            domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
 
-        if domains:
-            self.domain = domains[0]
-        else:
-            raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
+            if domains:
+                self.domain = domains[0]
+            else:
+                raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
 
-        if self.domain.type == 'SLAVE':
-            raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
+            if self.domain.type == 'SLAVE':
+                raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
 
     def clean_text_content(self):
         errors_list = []
