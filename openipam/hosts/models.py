@@ -136,7 +136,7 @@ class GulRecentArpBymac(models.Model):
 
 class Host(models.Model):
     mac = MACAddressField('Mac Address', primary_key=True)
-    hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname])
+    hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname], db_index=True)
     description = models.TextField(blank=True, null=True)
     address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id')
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
