@@ -59,8 +59,8 @@ def convert_permissions(delete=False, groups=None, user=None, username=None):
         GroupObjectPermission.objects.all().delete()
 
     # Base groups queryset, dont take user groups and the default group
-    groups = (Group.objects.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups')
-        .exclude(name__istartswith='user_').exclude(name__in=['default', 'guests']))
+    groups = (Group.objects.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups', 'user_groups__permissions')
+              .exclude(name__istartswith='user_').exclude(name__in=['default', 'guests']))
 
     if user:
         groups = groups.filter(user_groups__user=user)
@@ -138,7 +138,7 @@ def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], 
     return
 
 
-def convert_host_permissions(delete=False, username=None):
+def convert_host_permissions(delete=False, username=None, host_pk=None):
     owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
     host_type = ContentType.objects.get(app_label='hosts', model='host')
 
@@ -147,13 +147,14 @@ def convert_host_permissions(delete=False, username=None):
         remove_perm('hosts.is_owner_host', Host)
         #HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
         #HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
-
-    if username:
+    if host_pk:
+        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups').filter(host__pk=host_pk))
+    elif username:
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
-                 .filter(host__expires__gte=timezone.now, group__name__iexact='user_%s' % username))
+                       .filter(group__name__iexact='user_%s' % username))
     else:
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
-                 .filter(host__expires__gte=timezone.now))
+                       .filter(host__expires__gte=timezone.now))
 
     if host_groups:
         for host_group in queryset_iterator(host_groups):
@@ -190,15 +191,15 @@ def convert_host_permissions(delete=False, username=None):
                         continue
             else:
                 auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
-                if not auth_user.has_perm('is_owner_host', host_group.host):
-                    print 'Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host)
-                    # GroupObjectPermission.objects.get_or_create(
-                    #     group=auth_group,
-                    #     permission=owner_perm,
-                    #     object_pk=host_group.mac.pk,
-                    #     content_type=host_type,
-                    # )
-                    assign_perm('hosts.is_owner_host', auth_group, host_group.host)
+                #if not auth_group.has_perm('is_owner_host', host_group.host):
+                print 'Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host)
+                # GroupObjectPermission.objects.get_or_create(
+                #     group=auth_group,
+                #     permission=owner_perm,
+                #     object_pk=host_group.mac.pk,
+                #     content_type=host_type,
+                # )
+                assign_perm('hosts.is_owner_host', auth_group, host_group.host)
 
 
 def populate_user_from_ldap():
