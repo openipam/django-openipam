@@ -228,14 +228,14 @@ td.action-checkbox {
 .results .sortoptions a {
   padding: 0px !important;
 }
-#result_list tr.expired td , #result_list tr.expired th {
+#result_list tr.flagged td , #result_list tr.flagged th {
   background-color: #FFEB84;
 }
 
-#result_list tr.expired td.sorting_1, #result_list tr.expired th.sorting_1 {
+#result_list tr.flagged td.sorting_1, #result_list tr.flagged th.sorting_1 {
   background-color: #FFDF69 !important;
 }
-#result_list tr.expired td span.expired-date, #result_list tr.expired th span.expired-date {
+#result_list tr.flagged td span.flagged, #result_list tr.flagged th span.flagged {
   color: #ff0000;
 }
 code, pre {

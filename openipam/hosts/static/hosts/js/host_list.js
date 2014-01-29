@@ -75,7 +75,7 @@ $(function(){
                 // Populate Table
                 fnCallback(json);
 
-                $("#result_list span.expired-date").parents('tr').addClass('expired');
+                $("#result_list span.flagged").parents('tr').addClass('flagged');
 
                 $(".host-details").click(function(){
                     var hostname = $(this).prop("rel");

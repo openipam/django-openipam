@@ -152,21 +152,21 @@ class HostListJson(BaseDatatableView):
             if filtered_list:
                 return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
-                return '<span class="expired-date">No Data</span>'
+                return None
 
         def get_last_ip_stamp(mac):
             filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
             if filtered_list:
                 return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
-                return '<span class="expired-date">No Data</span>'
+                return None
 
         def get_last_ip(mac):
             filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
             if filtered_list:
                 return str(filtered_list[0].address)
             else:
-                return 'No Data'
+                return None
 
         # def get_ips():
         #     ips = [str(address) for address in host.addresses.all()]
@@ -174,7 +174,7 @@ class HostListJson(BaseDatatableView):
 
         def get_expires(expires):
             if expires < timezone.now():
-                return '<span class="expired-date">%s</span>' % expires.strftime('%Y-%m-%d')
+                return '<span class="flagged">%s</span>' % expires.strftime('%Y-%m-%d')
             else:
                 return expires.strftime('%Y-%m-%d')
 
@@ -184,6 +184,10 @@ class HostListJson(BaseDatatableView):
             else:
                 return ''
 
+        def render_cell(value, is_flagged=False):
+            no_data = '<span class="%s">No Data</span>' % 'flagged' if is_flagged else ''
+            return value if value else no_data
+
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
@@ -191,6 +195,16 @@ class HostListJson(BaseDatatableView):
             has_permissions = host.user_has_onwership(self.request.user)
             host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
             host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
+            last_ip = get_last_ip(host.mac)
+            expires = get_expires(host.expires)
+            last_mac_stamp = get_last_mac_stamp(host.mac)
+            last_ip_stamp = get_last_ip_stamp(host.mac)
+
+            if not last_ip:
+                is_flagged = True
+            else:
+                is_flagged = False if last_ip_stamp or last_mac_stamp else True
+
             json_data.append([
                 get_selector(host, has_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
@@ -200,10 +214,10 @@ class HostListJson(BaseDatatableView):
                                                                                     'update_href': host_edit_href
                                                                                 }),
                 host.mac,
-                get_last_ip(host.mac),
-                get_expires(host.expires),
-                get_last_mac_stamp(host.mac),
-                get_last_ip_stamp(host.mac),
+                render_cell(last_ip, is_flagged),
+                expires,
+                render_cell(last_mac_stamp, is_flagged),
+                render_cell(last_ip_stamp, is_flagged),
                 '<a href="%s">DNS Records</a>' % reverse_lazy('list_dns', kwargs={'host': host.hostname}) if host.hostname else '',
                 '<a href="%s">%s</a>' % (host_edit_href, 'Edit' if has_permissions else 'View'),
             ])
