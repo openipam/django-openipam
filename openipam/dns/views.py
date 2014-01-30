@@ -42,7 +42,7 @@ class DNSListJson(BaseDatatableView):
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
-    max_display_length = 100
+    max_display_length = 300
 
     def get_initial_queryset(self):
         qs = DnsRecord.objects.select_related('ip_content', 'dns_type', 'ip_content__host', 'domain').all()
@@ -51,7 +51,7 @@ class DNSListJson(BaseDatatableView):
         if host:
             qs = qs.filter(
                 Q(ip_content__host__hostname=host) |
-                Q(text_content__icontains=host)
+                Q(text_content=host)
             )
 
         return qs
@@ -85,7 +85,7 @@ class DNSListJson(BaseDatatableView):
                     qs = qs.filter(ip_content__host__mac__istartswith=mac_str)
                 elif search_item.startswith('ip:'):
                     qs = qs.filter(ip_content__address__istartswith=search_item.split(':')[-1])
-                else:
+                elif search_item:
                     qs = qs.filter(name__icontains=search_item)
 
             if name_search:
