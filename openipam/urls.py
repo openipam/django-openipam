@@ -12,6 +12,14 @@ autocomplete_light.autodiscover()
 admin.autodiscover()
 
 urlpatterns = patterns('',
+
+)
+
+urlpatterns += patterns('',
+    # Testing 404 and 500 pages
+    (r'^500/$', 'django.views.defaults.server_error'),
+    (r'^404/$', 'django.views.defaults.page_not_found'),
+
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
@@ -25,6 +33,8 @@ urlpatterns = patterns('',
     url(r'^admin_tools/', include('admin_tools.urls')),
 )
 
+
 # Serve Static and Media on development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()
+

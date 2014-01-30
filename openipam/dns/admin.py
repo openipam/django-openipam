@@ -3,7 +3,7 @@ from django.contrib import admin
 from openipam.dns.models import DnsRecord, DnsType, Domain
 # from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
 #     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
-
+from guardian.models import GroupObjectPermission, UserObjectPermission
 import autocomplete_light
 
 
@@ -45,13 +45,13 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
 
     def get_queryset(self, request):
         qs = super(OpjectPermissionAdmin, self).get_queryset(request)
-        qs = qs.prefetch_related('group_permissions__group', 'user_permissions__user',
-                                 'group_permissions__permission', 'user_permissions__permission')
+        self.group_permissions = GroupObjectPermission.objects.filter(content_type__model=self.model._meta.model_name).cache()
+        self.user_permissions = UserObjectPermission.objects.filter(content_type__model=self.model._meta.model_name).cache()
         return qs
 
     def sgroup_permissions(self, obj):
         perms_list = []
-        perms = obj.group_permissions.all()
+        perms = self.group_permissions.filter(object_pk=obj.pk)
         for perm in perms:
             perms_list.append('<span class="label label-info">%s: %s</span>' % (perm.group.name, perm.permission.codename))
         return '%s' % ' '.join(perms_list)
@@ -60,7 +60,7 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
 
     def suser_permissions(self, obj):
         perms_list = []
-        perms = obj.user_permissions.all()
+        perms = self.user_permissions.filter(object_pk=obj.pk)
         for perm in perms:
             perms_list.append('<span class="label label-info">%s: %s</span>' % (perm.user.username, perm.permission.codename))
         return '%s' % ' '.join(perms_list)
@@ -139,7 +139,7 @@ class DnsRecordAdmin(BaseDNSAdmin):
 
 
 class DnsTypeAdmin(OpjectPermissionAdmin):
-    list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions',)
+    list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions')
     list_filter = ('min_permissions__name',)
     #inlines = [DnsTypeGroupPermissionInline, DnsTypeUserPermissionInline]
 

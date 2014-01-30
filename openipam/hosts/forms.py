@@ -124,8 +124,11 @@ class HostForm(forms.ModelForm):
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
-            n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
-            user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
+            if user_nets:
+                n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
+                user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
+            else:
+                user_networks = NetworkRange.objects.none()
 
             user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks))
             self.fields['address_type_id'].queryset = user_address_types

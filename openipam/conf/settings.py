@@ -154,6 +154,7 @@ INSTALLED_APPS = (
     'south',
     'rest_framework',
     'guardian',
+    'cacheops',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -260,6 +261,44 @@ LOGGING = {
 #         'rest_framework.renderers.BrowsableAPIRenderer',
 #     )
 # }
+
+CACHEOPS_DEGRADE_ON_FAILURE=True
+
+CACHEOPS_REDIS = {
+    'host': 'localhost', # redis-server is on same machine
+    'port': 6379,        # default redis port
+    'db': 1,             # SELECT non-default redis database
+                         # using separate redis db or redis instance
+                         # is highly recommended
+    'socket_timeout': 3,
+}
+
+
+CACHEOPS = {
+    # Automatically cache any User.objects.get() calls for 15 minutes
+    # This includes request.user or post.author access,
+    # where Post.author is a foreign key to auth.User
+    'auth.user': ('get', 60*15),
+
+    # Automatically cache all gets, queryset fetches and counts
+    # to other django.contrib.auth models for an hour
+    'auth.*': ('all', 60*60),
+
+    # Auto Cache guadian models
+    'guardian.*': ('all', 60*60),
+
+    # Enable manual caching on all news models with default timeout of an hour
+    # Use News.objects.cache().get(...)
+    #  or Tags.objects.filter(...).order_by(...).cache()
+    # to cache particular ORM request.
+    # Invalidation is still automatic
+    #'news.*': ('just_enable', 60*60),
+    '*.*': ('just_enable', 60*60),
+
+    # Automatically cache count requests for all other models for 15 min
+    #'*.*': ('count', 60*15),
+}
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
