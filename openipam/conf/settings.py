@@ -155,6 +155,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'guardian',
     'cacheops',
+    'django_pickling',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -262,7 +263,7 @@ LOGGING = {
 #     )
 # }
 
-CACHEOPS_DEGRADE_ON_FAILURE=True
+
 
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine
@@ -282,7 +283,7 @@ CACHEOPS = {
 
     # Automatically cache all gets, queryset fetches and counts
     # to other django.contrib.auth models for an hour
-    'auth.*': ('all', 60*60),
+    # 'auth.*': ('all', 60*60),
 
     # Auto Cache guadian models
     'guardian.*': ('all', 60*60),
@@ -296,8 +297,11 @@ CACHEOPS = {
     '*.*': ('just_enable', 60*60),
 
     # Automatically cache count requests for all other models for 15 min
-    #'*.*': ('count', 60*15),
+    'dns.dnsrecord': ('count', 60*15),
+    #'hosts.host': ('count', 60*15),
 }
+
+CACHEOPS_DEGRADE_ON_FAILURE = True
 
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
