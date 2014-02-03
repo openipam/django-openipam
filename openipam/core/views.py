@@ -76,7 +76,9 @@ def page_error(request, template_name='404.html'):
     template = loader.get_template(template_name)
     context = {
         'request_path': request.path,
-        'kitty': kitty
+        'kitty': kitty,
+        'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
+        'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
     }
     body = template.render(RequestContext(request, context))
     return HttpResponseNotFound(body, content_type='text/html')

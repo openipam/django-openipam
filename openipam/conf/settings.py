@@ -279,11 +279,11 @@ CACHEOPS = {
     # Automatically cache any User.objects.get() calls for 15 minutes
     # This includes request.user or post.author access,
     # where Post.author is a foreign key to auth.User
-    #'user.user': ('all', 60*15),
+    #'user.*': ('all', 60*15),
 
     # Automatically cache all gets, queryset fetches and counts
     # to other django.contrib.auth models for an hour
-    # 'auth.*': ('all', 60*60),
+    'auth.*': ('all', 60*60),
 
     # Auto Cache guadian models
     'guardian.*': ('all', 60*60),

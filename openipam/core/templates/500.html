@@ -6,10 +6,15 @@
 {% block content %}
     <div id="error-page">
         <h2>Whoops!  500, Server Error</h2>
-        <h4>The page you requested has a bug!  The IPAM team has been notified of this and will be addressing the problem soon.
+        <h3>The page you requested has a bug!</h3>
+        <h4>The IPAM team has been notified of this and will be addressing the problem soon.</h4>
         <h4>To offset your anger and fustration, we have provided you with a LOLCat.</h4>
-        <h4>You can also contant an <a href="">IPAM admin</a> if you need further consoling.</h4>
-        <h4>If you are revieving these errors often, you can continue using the old IPAM interface by going here: <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a></h4>
+        {% if email %}
+            <h4>You can also contant an <a href="mailto:{{ email }}">IPAM admin</a> if you need further consoling.</h4>
+        {% endif %}
+        {% if legacy_domain %}
+            <h4>If you are revieving these errors often, you can continue using the old IPAM interface by going here: <a href="{{ legacy_domain }}">{{ legacy_domain }}</a></h4>
+        {% endif %}
         <img class="cat" src="{% static 'core/img/error_cats/' %}{{ kitty }}" alt="Lolcats" />
     </div>
 {% endblock %}
