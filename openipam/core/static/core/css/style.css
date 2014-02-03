@@ -616,6 +616,20 @@ fieldset.module legend {
   float: left;
 }
 
+#error-page {
+  text-align: center;
+  margin: 30px 0px;
+}
+
+
+.cat {
+  margin-top: 20px;
+  border: 5px solid #000;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
 form div.alert-block ul li {
   list-style: none;
   font-weight: bold;

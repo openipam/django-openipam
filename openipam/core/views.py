@@ -1,13 +1,19 @@
 #from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
 from django.contrib.admin.sites import AdminSite
+from django.views.decorators.csrf import requires_csrf_token
+from django.template import RequestContext, loader
+from django.conf import settings
+
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
+
+import os, random
 
 
 def index(request):
@@ -63,6 +69,18 @@ def password_forgot(request):
     pass
 
 
+def page_error(request, template_name='404.html'):
+    kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
+    kitty = random.choice(os.listdir(kitty_dir))
+    template = loader.get_template(template_name)
+    context = {
+        'request_path': request.path,
+        'kitty': kitty
+    }
+    body = template.render(RequestContext(request, context))
+    return HttpResponseNotFound(body, content_type='text/html')
+
+
 class FeatureRequestView(CreateView):
     form_class = FeatureRequestForm
     model = FeatureRequest
@@ -81,3 +99,6 @@ class FeatureRequestView(CreateView):
                 return HttpResponse(0, status=500)
         else:
             return super(FeatureRequestView, self).post(request, *args, **kwargs)
+
+
+

@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block page_nav %}{% endblock %}
+
+{% block content %}
+    <div id="error-page">
+        <h2>Whoops!  404, Not Found!</h2>
+        <h4>The page you requested wasn't found.  To offset your anger and fustration, we have provided you with a LOLCat.</h4>
+        <h4>You can also contant an <a href="">IPAM admin</a> if you need further consoling.</h4>
+        <img class="cat" src="{% static 'core/img/error_cats/' %}{{ kitty }}" alt="Lolcats" />
+    </div>
+{% endblock %}

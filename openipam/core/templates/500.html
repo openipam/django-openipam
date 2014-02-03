@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block page_nav %}{% endblock %}
+
+{% block content %}
+    <div id="error-page">
+        <h2>Whoops!  500, Server Error</h2>
+        <h4>The page you requested has a bug!  The IPAM team has been notified of this and will be addressing the problem soon.
+        <h4>To offset your anger and fustration, we have provided you with a LOLCat.</h4>
+        <h4>You can also contant an <a href="">IPAM admin</a> if you need further consoling.</h4>
+        <h4>If you are revieving these errors often, you can continue using the old IPAM interface by going here: <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a></h4>
+        <img class="cat" src="{% static 'core/img/error_cats/' %}{{ kitty }}" alt="Lolcats" />
+    </div>
+{% endblock %}
