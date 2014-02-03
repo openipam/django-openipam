@@ -31,7 +31,8 @@ def convert_user_permissions(sender, request, user, **kwargs):
     from openipam.user.models import Group
 
     user_utils.convert_permissions(user=user)
-    user_utils.convert_host_permissions(username=user.username)
+    # We do this on the host view instead for performance
+    #user_utils.convert_host_permissions(username=user.username)
     user_utils.convert_min_permissions(user=user)
 
 

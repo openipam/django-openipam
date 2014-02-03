@@ -36,6 +36,7 @@ def convert_groups():
             AuthGroup.objects.get_or_create(name=group.name)
 
 
+#TODO: This is not finished!
 def convert_user_permissions(delete=False, user=None):
     """
         Converts user permissions from old IPAM permission system.

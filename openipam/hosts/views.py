@@ -71,48 +71,47 @@ class HostListJson(BaseDatatableView):
             user_filter = self.request.GET.get('user_filter', None)
 
             search_list = search.strip().split(' ')
-            # for search_item in search_list:
-            #     if search_item.startswith('desc:'):
-            #         #assert False, search_item.split(':')[-1]
-            #         qs = qs.filter(description__icontains=search_item.split(':')[-1])
-            #     elif search_item.startswith('user:'):
-            #         qs = qs.filter(user_permissions__user__username__istartswith=search_item.split(':')[-1])
-            #     elif search_item.startswith('name:'):
-            #         qs = qs.filter(hostname__startswith=search_item.split(':')[-1])
-            #     elif search_item.startswith('mac:'):
-            #         mac_str = search_item.split(':')
-            #         mac_str.pop(0)
-            #         mac_str = ''.join(mac_str)
-            #         try:
-            #             mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
-            #         except TypeError:
-            #             pass
-            #         qs = qs.filter(mac__startswith=mac_str)
-            #     elif search_item.startswith('ip:'):
-            #         qs = qs.filter(addresses__address__startswith=search_item.split(':')[-1])
-            #     elif search_item.startswith('net:'):
-            #         qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
-            #     elif search_item:
-            #         qs = qs.filter(hostname__contains=search_item)
+            for search_item in search_list:
+                if search_item.startswith('desc:'):
+                    #assert False, search_item.split(':')[-1]
+                    qs = qs.filter(description__icontains=search_item.split(':')[-1])
+                elif search_item.startswith('user:'):
+                    qs = qs.filter(user_permissions__user__username__istartswith=search_item.split(':')[-1])
+                elif search_item.startswith('name:'):
+                    qs = qs.filter(hostname__startswith=search_item.split(':')[-1])
+                elif search_item.startswith('mac:'):
+                    mac_str = search_item.split(':')
+                    mac_str.pop(0)
+                    mac_str = ''.join(mac_str)
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
+                    except TypeError:
+                        pass
+                    qs = qs.filter(mac__startswith=mac_str)
+                elif search_item.startswith('ip:'):
+                    qs = qs.filter(addresses__address__startswith=search_item.split(':')[-1])
+                elif search_item.startswith('net:'):
+                    qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
+                elif search_item:
+                    qs = qs.filter(hostname__contains=search_item)
 
             if host_search:
                 qs = qs.filter(hostname__contains=host_search)
-            # if mac_search:
-            #     if ':' not in mac_search:
-            #         try:
-            #             mac_str = ':'.join(s.encode('hex') for s in mac_search.decode('hex'))
-            #         except TypeError:
-            #             mac_str = mac_search
-            #     else:
-            #         mac_str = mac_search
-            #     qs = qs.filter(mac__contains=mac_str)
-            # if ip_search:
-            #     if '/' in ip_search:
-            #         qs = qs.filter(addresses__address__net_contained=ip_search)
-            #     else:
-            #         qs = qs.filter(addresses__address__startswith=ip_search)
+            if mac_search:
+                if ':' not in mac_search:
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_search.decode('hex'))
+                    except TypeError:
+                        mac_str = mac_search
+                else:
+                    mac_str = mac_search
+                qs = qs.filter(mac__contains=mac_str)
+            if ip_search:
+                if '/' in ip_search:
+                    qs = qs.filter(addresses__address__net_contained=ip_search)
+                else:
+                    qs = qs.filter(addresses__address__startswith=ip_search)
             if group_filter:
-                #qs = qs.filter(group_permissions__group__pk=group_filter)
                 group = Group.objects.get(pk=group_filter)
                 qs = get_objects_for_group(
                     group,
@@ -121,7 +120,6 @@ class HostListJson(BaseDatatableView):
                 )
 
             if user_filter:
-                #qs = qs.filter(user_permissions__user__pk=user_filter)
                 user = User.objects.get(pk=user_filter)
                 qs = get_objects_for_user(
                     user,
