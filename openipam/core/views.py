@@ -69,6 +69,7 @@ def password_forgot(request):
     pass
 
 
+@requires_csrf_token
 def page_error(request, template_name='404.html'):
     kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
     kitty = random.choice(os.listdir(kitty_dir))
