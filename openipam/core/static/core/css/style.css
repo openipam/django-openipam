@@ -694,3 +694,15 @@ form div.alert-block ul li {
 #filtered-label {
   margin: 5px;
 }
+
+
+#new-interface-list {
+  margin: normal !important;
+  padding: 0px 25px !important;
+}
+
+#new-interface-list li {
+  list-style: disc !important;
+  margin: normal !important;
+  padding: 0px !important;
+}

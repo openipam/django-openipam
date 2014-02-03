@@ -20,7 +20,11 @@ def index(request):
     if not request.user.get_full_name() or not request.user.email:
         return redirect('profile')
     else:
-        return AdminSite().index(request)
+        context = {
+            'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
+            'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
+        }
+        return AdminSite().index(request, extra_context=context)
 
 
 def profile(request):
