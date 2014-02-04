@@ -36,24 +36,6 @@ def convert_groups():
             AuthGroup.objects.get_or_create(name=group.name)
 
 
-#TODO: This is not finished!
-def convert_user_permissions(delete=False, user=None):
-    """
-        Converts user permissions from old IPAM permission system.
-        This function will take all permissions from the groups table and
-        explicitly set permission on the user level.
-
-        This is a temporary fix until new groups get sorted out.
-    """
-    pass
-    users = UserToGroup.objects.exclude(group__name__istartswith='user_')
-
-    for group in groups:
-
-        # Convert domain permissions
-        domain_perms = group.domains.all()
-
-
 def convert_permissions(delete=False, groups=None, user=None, username=None):
 
     if delete:
