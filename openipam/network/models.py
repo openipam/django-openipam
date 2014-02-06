@@ -116,7 +116,7 @@ class DhcpOption(models.Model):
 
     class Meta:
         db_table = 'dhcp_options'
-
+        verbose_name = 'DHCP Option'
 
 class DhcpOptionToDhcpGroup(models.Model):
     group = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
