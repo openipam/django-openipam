@@ -50,7 +50,7 @@ pathtools==0.1.2
 pip-tools==0.3.4
 #psycopg2==2.5.2
 #pycrypto==2.6.1
-python-ldap==2.4.14
+#python-ldap==2.4.14
 pytz==2013.9
 redis==2.9.1
 requests==2.2.1
