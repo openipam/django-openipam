@@ -298,7 +298,7 @@ CACHEOPS = {
 
     # Automatically cache count requests for all other models for 15 min
     'dns.dnsrecord': ('count', 60*15),
-    #'hosts.host': ('count', 60*15),
+    'hosts.host': ('count', 60*15),
 }
 
 CACHEOPS_DEGRADE_ON_FAILURE = True
