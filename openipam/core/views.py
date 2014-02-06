@@ -1,7 +1,7 @@
 #from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
@@ -74,7 +74,7 @@ def password_forgot(request):
 
 
 @requires_csrf_token
-def page_error(request, template_name='404.html'):
+def page_not_found(request, template_name='404.html'):
     kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
     kitty = random.choice(os.listdir(kitty_dir))
     template = loader.get_template(template_name)
@@ -83,9 +83,26 @@ def page_error(request, template_name='404.html'):
         'kitty': kitty,
         'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
         'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
+        'request_path': request.path
     }
     body = template.render(RequestContext(request, context))
     return HttpResponseNotFound(body, content_type='text/html')
+
+
+@requires_csrf_token
+def server_error(request, template_name='500.html'):
+    kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
+    kitty = random.choice(os.listdir(kitty_dir))
+    template = loader.get_template(template_name)
+    context = {
+        'request_path': request.path,
+        'kitty': kitty,
+        'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
+        'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
+        'request_path': request.path
+    }
+    body = template.render(RequestContext(request, context))
+    return HttpResponseServerError(body, content_type='text/html')
 
 
 class FeatureRequestView(CreateView):
