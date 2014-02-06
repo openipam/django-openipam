@@ -22,7 +22,7 @@ django-appconf==0.6
 django-auth-ldap==1.1.8
 django-autocomplete-light==1.4.10
 #django-cacheops==1.2.1
--e https://github.com/jmacul2/django-cacheops/zipball/master#egg=django-cacheops-ipam
+-e git+https://github.com/jmacul2/django-cacheops#egg=django-cacheops-ipam
 django-celery==3.1.1
 django-crispy-forms==1.4.0
 django-csvimport==1.0
@@ -33,7 +33,7 @@ django-filter==0.7
 django-guardian==1.1.1
 django-mptt==0.6.0
 #django-netfields==0.2.1
--e https://github.com/jmacul2/django-postgresql-netfields/zipball/master#egg=django-netfields-ipam
+-e git+https://github.com/jmacul2/django-postgresql-netfields#egg=django-netfields-ipam
 django-pickling==0.1
 django-postgres-pebble==0.0.6
 django-supervisor==0.3.2
