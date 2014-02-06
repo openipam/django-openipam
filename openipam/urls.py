@@ -17,8 +17,8 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('',
     # Testing 404 and 500 pages
-    (r'^500/$', 'openipam.core.views.page_error', {'template_name': '500.html'}),
-    (r'^404/$', 'openipam.core.views.page_error'),
+    (r'^500/$', 'openipam.core.views.server_error'),
+    (r'^404/$', 'openipam.core.views.page_not_found'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
@@ -38,5 +38,5 @@ urlpatterns += patterns('',
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()
 
-handler404 = 'openipam.core.views.page_error'
-handler500 = 'openipam.core.views.page_error'
+handler404 = 'openipam.core.views.page_not_found'
+handler500 = 'openipam.core.views.server_error'
