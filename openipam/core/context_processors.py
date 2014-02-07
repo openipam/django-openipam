@@ -9,7 +9,7 @@ def gravatar(request):
 
     if email:
         gravatar_hash = md5(email.lower()).hexdigest()
-        gravatar = 'http://www.gravatar.com/avatar/%s/' % gravatar_hash
+        gravatar = 'https://www.gravatar.com/avatar/%s/' % gravatar_hash
 
     return {
         'gravatar_hash': gravatar_hash,
