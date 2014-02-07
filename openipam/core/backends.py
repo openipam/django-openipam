@@ -2,6 +2,9 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
+from cacheops import invalidate_model
+
+
 # Dont require this.
 try:
     from django_auth_ldap.backend import LDAPBackend, _LDAPUser
@@ -55,9 +58,21 @@ class _IPAMLDAPUser(_LDAPUser):
         Mirrors the user's LDAP groups in the Django database and updates the
         user's membership.
         """
+        # groups = set([Group.objects.get_or_create(name=group_name)[0] for group_name
+        #     in group_names] + [group for group in self._user.groups.all()])
+
         group_names = self._get_groups().get_group_names()
-        groups = set([Group.objects.get_or_create(name=group_name)[0] for group_name
-            in group_names] + [group for group in self._user.groups.all()])
+        user_groups = self._user.groups.all()
+
+        db_groups_names = set([group.name for group in Group.objects.all()])
+        groups_to_add = list(group_names - db_groups_names)
+
+        new_groups = []
+        if groups_to_add:
+            invalidate_model(Group)
+            new_groups = Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
+
+        groups = set(new_groups + [group for group in user_groups])
 
         self._user.groups = groups
 
