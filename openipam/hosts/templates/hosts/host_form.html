@@ -212,7 +212,7 @@
                 {% crispy form %}
                 <div class="center">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
-                    <input type="button" value="Cancel" class="btn" onclick="javascript:location.href='{% url 'list_hosts' %}';" />
+                    <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
                 </div>
             </div>
         </form>
