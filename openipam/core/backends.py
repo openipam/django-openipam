@@ -56,17 +56,8 @@ class _IPAMLDAPUser(_LDAPUser):
         user's membership.
         """
         group_names = self._get_groups().get_group_names()
-        db_groups_names = set([group.name for group in Group.objects.all()])
-        group_to_add = list(group_names - db_groups_names)
-        #assert False, group_to_add
-
-        new_groups = []
-        for group in group_to_add:
-            new_groups.append(Group(name=group))
-        if new_groups:
-            Group.objects.bulk_create(new_groups)
-
-        groups = set(new_groups + [group for group in self._user.groups.all()])
+        groups = set([Group.objects.get_or_create(name=group_name)[0] for group_name
+            in group_names] + [group for group in self._user.groups.all()])
 
         self._user.groups = groups
 
