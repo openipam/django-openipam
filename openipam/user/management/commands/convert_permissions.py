@@ -24,6 +24,6 @@ class Command(BaseCommand):
         delete = options['delete']
         username = options['username'] or None
         self.stdout.write('Converting Host Permissions...')
-        convert_host_permissions(delete, username)
+        convert_host_permissions(delete=delete, username=username)
         self.stdout.write('Converting Group Permissions...')
-        convert_permissions(delete, username)
+        convert_permissions(delete=delete, username=username)
