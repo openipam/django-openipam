@@ -48,7 +48,8 @@ def convert_permissions(delete=False, groups=None, user=None, username=None):
     if user:
         groups = groups.filter(user_groups__user=user)
     elif username:
-        groups = groups.filter(user_groups__user__username__iexact=user)
+        groups = groups.filter(user_groups__user__username__iexact=username)
+
 
     for group in groups:
         permissions = set([ug.permissions.name for ug in group.user_groups.all()])
@@ -58,30 +59,38 @@ def convert_permissions(delete=False, groups=None, user=None, username=None):
         domains = group.domains.all()
         networks = group.networks.all()
         pools = group.pools.all()
+        user_groups = group.user_groups.all()
+
+        if user:
+            user_groups = user_groups.filter(user=user)
+        elif username:
+            user_groups = user_groups.filter(user__username__iexact=username)
 
         if permissions:
             # Only owner permission is needed for hosts
             if 'OWNER' in permissions:
+                print 'Assigning owner permission on group %s for hosts \n' % auth_group
                 _assign_perms('is_owner', auth_group, hosts=hosts, domains=domains, networks=networks)
 
                 # Assign users to this group
-                for user in group.user_groups.filter(permissions__name='OWNER'):
+                for user in user_groups.filter(permissions__name='OWNER'):
                     user.user.groups.add(auth_group)
 
             if 'ADD' in permissions:
                 # IF there is just ADD only then stick the permission on the group
                 if len(permissions) == 1:
+                    print 'Assigning add records permission on group %s for domains \n' % auth_group
                     _assign_perms('add_records_to', auth_group, domains=domains, networks=networks, pools=pools)
 
                     # Assign users to this group
-                    for user in group.user_groups.filter(permissions__name='ADD'):
+                    for user in user_groups.filter(permissions__name='ADD'):
                         user.user.groups.add(auth_group)
 
                 # Otherwise if there are multiple groups, then we put ADD permission on user for now
                 else:
-                    pass
-                    users = group.user_groups.filter(permissions__name='ADD')
+                    users = user_groups.filter(permissions__name='ADD')
                     for user in users:
+                        print 'Assigning add records permission on user %s for domains, networks, and pools \n' % user.user
                         _assign_perms('add_records_to', user.user, domains=domains, networks=networks, pools=pools)
 
 
