@@ -56,6 +56,8 @@ $(function() {
             success: function() {
                 $('div.feedback-sending').fadeOut(400, function() {
                     $('#feedback-form').prepend(successMsg).fadeIn();
+                    $("#id_type").val('');
+                    $("#id_comment").val('');
                     $(this).remove();
                 });
                 return false;
