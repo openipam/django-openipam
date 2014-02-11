@@ -157,6 +157,8 @@ INSTALLED_APPS = (
     'cacheops',
     'django_pickling',
 
+    'openipam.user',
+
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -165,7 +167,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
-    'openipam.user',
     'openipam.hosts',
     'openipam.network',
     'openipam.dns',
@@ -302,7 +303,6 @@ CACHEOPS = {
 }
 
 CACHEOPS_DEGRADE_ON_FAILURE = True
-
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
