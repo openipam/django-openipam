@@ -2,9 +2,15 @@ from django import forms
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.conf import settings
+from django.db.models import Q
+
 from openipam.user.models import User
+
 from guardian.models import UserObjectPermission, GroupObjectPermission
+
 import autocomplete_light
+
+import operator
 
 
 class AuthUserCreateAdminForm(UserCreationForm):
@@ -51,12 +57,17 @@ class AuthGroupAdminForm(forms.ModelForm):
         model = Group
 
 
+PERMISSION_FILTER = [
+    Q(codename__startswith='add_records_to'),
+    Q(codename__startswith='is_owner'),
+]
+
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
-    user = forms.ModelChoiceField(User.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
-    permission = forms.ModelChoiceField(Permission.objects.filter(content_type__app_label__in=settings.IPAM_APPS),
-        widget=autocomplete_light.ChoiceWidget('PermissionAutocomplete'), label='Permission')
+    user = forms.ModelChoiceField(User.objects.all(), widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
+    permission = forms.ModelChoiceField(Permission.objects.filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
+    # permission = forms.ModelChoiceField(Permission.objects.filter(content_type__app_label__in=settings.IPAM_APPS),
+    #     widget=autocomplete_light.ChoiceWidget('PermissionAutocomplete'), label='Permission')
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     # def __init__(self, *args, **kwargs):
@@ -64,7 +75,6 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 
     #     if self.instance:
     #        self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
-
 
     class Meta:
         model = UserObjectPermission
@@ -72,10 +82,8 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 
 
 class GroupObjectPermissionAdminForm(forms.ModelForm):
-    group = forms.ModelChoiceField(Group.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('GroupAutocomplete'))
-    permission = forms.ModelChoiceField(Permission.objects.filter(content_type__app_label__in=settings.IPAM_APPS),
-        widget=autocomplete_light.ChoiceWidget('PermissionAutocomplete'), label='Permission')
+    group = forms.ModelChoiceField(Group.objects.all(), widget=autocomplete_light.ChoiceWidget('GroupAutocomplete'))
+    permission = forms.ModelChoiceField(Permission.objects.filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     # def __init__(self, *args, **kwargs):
@@ -84,7 +92,6 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
     #     if self.instance:
     #        self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
 
-
     class Meta:
-        model = UserObjectPermission
+        model = GroupObjectPermission
         exclude = ('content_type', 'object_pk')
