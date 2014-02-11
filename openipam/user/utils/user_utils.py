@@ -29,14 +29,18 @@ def get_objects_for_owner(user, app_label):
 
 
 def convert_groups():
-    groups = Group.objects.all()
+    groups = Group.objects.exclude(name__istartswith='user_')
 
+    converted_groups = []
     for group in groups:
-        if not group.name.lower().startswith('user_'):
-            AuthGroup.objects.get_or_create(name=group.name)
+        converted_groups.append(AuthGroup.objects.get_or_create(name=group.name))
+
+    for group in converted_groups:
+        if group[1]:
+            convert_permissions(groupname=group[0].name)
 
 
-def convert_permissions(delete=False, groups=None, user=None, username=None):
+def convert_permissions(delete=False, groupname=None, user=None, username=None):
 
     if delete:
         GroupObjectPermission.objects.all().delete()
@@ -45,11 +49,12 @@ def convert_permissions(delete=False, groups=None, user=None, username=None):
     groups = (Group.objects.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups', 'user_groups__permissions')
               .exclude(name__istartswith='user_').exclude(name__in=['default', 'guests']))
 
-    if user:
+    if groupname:
+        groups = groups.filter(name_iexact=groupname)
+    elif user:
         groups = groups.filter(user_groups__user=user)
     elif username:
         groups = groups.filter(user_groups__user__username__iexact=username)
-
 
     for group in groups:
         permissions = set([ug.permissions.name for ug in group.user_groups.all()])
