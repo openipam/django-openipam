@@ -9,7 +9,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.conf.urls import patterns, url
 from django.db.models import Q
 from django.shortcuts import redirect
-
+from django.contrib import messages
 
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
@@ -21,6 +21,8 @@ from openipam.user.forms import AuthUserCreateAdminForm, AuthUserChangeAdminForm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import autocomplete_light
+
+from datetime import date
 
 
 class IPAMAdminFilter(SimpleListFilter):
@@ -60,13 +62,28 @@ class AuthUserAdmin(UserAdmin):
     )
 
     def full_name(self, obj):
-        return '%s %s' % (obj.first_name, obj.last_name)
+        first_name = '' if obj.first_name is None else obj.first_name
+        last_name = '' if obj.last_name is None else obj.last_name
+        return '%s %s' % (first_name, last_name)
     full_name.admin_order_field = 'last_name'
 
     def is_ipamadmin(self, obj):
         return obj.is_ipamadmin
     is_ipamadmin.short_description = 'IPAM Admin Status'
     is_ipamadmin.boolean = True
+
+    def changelist_view(self, request, extra_context=None):
+
+        if not request.GET.has_key('last_login__gte') and not request.GET.has_key('last_login__lt'):
+            q = request.GET.copy()
+            q['last_login__gte'] = date(date.today().year, 1, 1)
+            q['last_login__lt'] = date(date.today().year+1, 1, 1)
+            request.GET = q
+            request.META['QUERY_STRING'] = request.GET.urlencode()
+
+            messages.info(request, "Only showing usings who have logged in this year.")
+
+        return super(AuthUserAdmin,self).changelist_view(request, extra_context=extra_context)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
