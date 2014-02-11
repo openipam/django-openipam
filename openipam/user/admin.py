@@ -35,8 +35,47 @@ class AuthUserAdmin(UserAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
 
-    # def save_formset(self, request, form, formset, change):
-    #     assert False, change
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
+
+        if user_add_form.is_valid():
+            instance = user_add_form.save(commit=False)
+            content_object = user_add_form.cleaned_data['object_id'].split('-')
+            instance.content_type_id = content_object[0]
+            instance.object_pk = content_object[1]
+            instance.save()
+
+            return redirect('admin:user_user_change', object_id)
+
+        user_object_permissions = UserObjectPermission.objects.prefetch_related('content_object', 'permission', 'permission__content_type').filter(user__pk=object_id)
+        host_permissions = user_object_permissions.filter(content_type__model='host')
+        domain_permissions = user_object_permissions.filter(content_type__model='domain')
+        # Prefetch related doesn't seem to work here.
+        network_permissions = UserObjectPermission.objects.filter(user__pk=object_id, content_type__model='network')
+
+        extra_context = {
+            'group_object_permissions': user_object_permissions,
+            'host_permissions': host_permissions,
+            'domain_permissions': domain_permissions,
+            'network_permissions': network_permissions,
+            'user_add_form': user_add_form
+        }
+        return super(AuthUserAdmin, self).change_view(request, object_id,
+            form_url, extra_context=extra_context)
+
+
+    def get_urls(self):
+        urls = super(AuthUserAdmin, self).get_urls()
+        new_urls = patterns('',
+            url(r'^perm_delete/(\d+)/$', self.admin_site.admin_view(self.delete_perm_view),
+                name='user_perm_delete'),
+        )
+        return new_urls + urls
+
+    def delete_perm_view(self, request, permid):
+        next = request.GET.get('next')
+        UserObjectPermission.objects.get(pk=permid).delete()
+        return redirect(next)
 
 
 class AuthGroupAdmin(GroupAdmin):
