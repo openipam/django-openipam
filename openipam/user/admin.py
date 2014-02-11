@@ -23,9 +23,33 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 import autocomplete_light
 
 
+class IPAMAdminFilter(SimpleListFilter):
+    title = 'IPAM admin status'
+    parameter_name = 'ipamadmin'
+
+    def lookups(self, request, model_admin):
+
+        return (
+            ('1', 'Yes'),
+            ('0', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+
+        if self.value():
+            if self.value() == '1':
+                queryset = queryset.filter(groups__name='ipam-admins')
+            elif self.value() == '0':
+                queryset = queryset.exclude(groups__name='ipam-admins')
+
+        return queryset
+
+
 class AuthUserAdmin(UserAdmin):
     add_form = AuthUserCreateAdminForm
     form = AuthUserChangeAdminForm
+    list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'last_login')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', IPAMAdminFilter, 'groups', 'last_login')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -34,6 +58,15 @@ class AuthUserAdmin(UserAdmin):
                                        'groups', 'user_permissions',)}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
+
+    def full_name(self, obj):
+        return '%s %s' % (obj.first_name, obj.last_name)
+    full_name.admin_order_field = 'last_name'
+
+    def is_ipamadmin(self, obj):
+        return obj.is_ipamadmin
+    is_ipamadmin.short_description = 'IPAM Admin Status'
+    is_ipamadmin.boolean = True
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
