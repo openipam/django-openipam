@@ -6,7 +6,10 @@ from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Per
 from django.contrib.admin import SimpleListFilter
 from django.utils.encoding import force_text
 from django.contrib.admin.views.main import ChangeList
+from django.conf.urls import patterns, url
 from django.db.models import Q
+from django.shortcuts import redirect
+
 
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
@@ -37,8 +40,49 @@ class AuthUserAdmin(UserAdmin):
 
 
 class AuthGroupAdmin(GroupAdmin):
-    pass
+    list_display = ('name',)
     #form = AuthGroupAdminForm
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
+
+        if group_add_form.is_valid():
+            instance = group_add_form.save(commit=False)
+            content_object = group_add_form.cleaned_data['object_id'].split('-')
+            instance.content_type_id = content_object[0]
+            instance.object_pk = content_object[1]
+            instance.save()
+
+            return redirect('admin:auth_group_change', object_id)
+
+        group_object_permissions = GroupObjectPermission.objects.prefetch_related('content_object').filter(group__pk=object_id)
+        host_permissions = group_object_permissions.filter(content_type__model='host')
+        domain_permissions = group_object_permissions.filter(content_type__model='domain')
+        # Prefetch related doesn't seem to work here.
+        network_permissions = GroupObjectPermission.objects.filter(group__pk=object_id, content_type__model='network')
+
+        extra_context = {
+            'group_object_permissions': group_object_permissions,
+            'host_permissions': host_permissions,
+            'domain_permissions': domain_permissions,
+            'network_permissions': network_permissions,
+            'group_add_form': group_add_form
+        }
+        return super(AuthGroupAdmin, self).change_view(request, object_id,
+            form_url, extra_context=extra_context)
+
+    def get_urls(self):
+        urls = super(AuthGroupAdmin, self).get_urls()
+        new_urls = patterns('',
+            url(r'^perm_delete/(\d+)/$', self.admin_site.admin_view(self.delete_perm_view),
+                name='auth_group_perm_delete'),
+        )
+        return new_urls + urls
+
+    def delete_perm_view(self, request, permid):
+        next = request.GET.get('next')
+        GroupObjectPermission.objects.get(pk=permid).delete()
+        return redirect(next)
 
 
 class AuthPermissionAdmin(admin.ModelAdmin):
