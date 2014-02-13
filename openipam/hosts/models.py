@@ -226,8 +226,6 @@ class Host(models.Model):
                     self.address_type_id = AddressType.objects.get(pool=pools[0])
             except AddressType.DoesNotExist:
                 self.address_type_id = None
-            else:
-                self.save()
 
         return self.address_type_id
 
