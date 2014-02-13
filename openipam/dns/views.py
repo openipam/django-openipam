@@ -98,10 +98,10 @@ class DNSListJson(BaseDatatableView):
                     Q(ip_content__address__icontains=content_search)
                 )
             if host_filter:
-                hostname = Host.objects.get(pk=host_filter)
+                host_filter = Host.objects.get(pk=host_filter)
                 qs = qs.filter(
                     Q(ip_content__host=host_filter) |
-                    Q(text_content__icontains=hostname)
+                    Q(text_content__icontains=host_filter.hostname)
                 )
             if group_filter:
                 group = Group.objects.get(pk=group_filter)
@@ -149,7 +149,7 @@ class DNSListJson(BaseDatatableView):
         def get_name(dns_record, has_permissions):
             html = '''
                 <span>
-                    <a href="%(view_href)s" rel="%(name)s" id="%(update_href)s">
+                    <a href="%(view_href)s" rel="%(name)s">
                         %(name)s
                     </a>
                 </span>
@@ -161,7 +161,6 @@ class DNSListJson(BaseDatatableView):
                 'id': dns_record.pk,
                 'name': dns_record.name,
                 'view_href': dns_view_href,
-                'update_href': dns_edit_href
             },
 
         def get_type(dns_record, has_permissions):
@@ -194,6 +193,14 @@ class DNSListJson(BaseDatatableView):
             else:
                 return ''
 
+        def get_dns_view_href(dns_record):
+            name_list = dns_record.name.split('.')
+            if len(name_list) > 1:
+                if name_list[0] == "*":
+                    name_list.pop(0)
+            href = '.'.join(name_list)
+            return reverse_lazy('list_dns', args=(href,))
+
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
@@ -201,8 +208,7 @@ class DNSListJson(BaseDatatableView):
 
         for dns_record in qs:
             has_permissions = dns_record.user_has_ownership(user)
-            dns_view_href = '' #reverse_lazy('view_dns', args=(slugify(dns_record.pk),))
-            dns_edit_href = '' #reverse_lazy('update_dns', args=(slugify(dns_record.pk),))
+            dns_view_href = get_dns_view_href(dns_record)
             json_data.append([
                 ('<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
                     % dns_record.pk) if has_permissions else '',
@@ -214,65 +220,6 @@ class DNSListJson(BaseDatatableView):
                 get_links(dns_record, has_permissions),
             ])
         return json_data
-
-
-
-# def dns_list_edit(request):
-
-#     search_string = request.GET.get('q', None)
-#     mac_string = request.GET.get('mac', None)
-#     page = request.GET.get('page', None)
-#     queryset = DnsRecord.objects.none()
-#     page_objects = None
-#     DNSUpdateFormset = modelformset_factory(DnsRecord, DNSUpdateForm, formset=BaseDNSUpdateFormset, can_delete=True, extra=0)
-#     host = None
-
-#     if mac_string:
-#         queryset = DnsRecord.objects.select_related('dns_type').filter(
-#             address__host__mac=mac_string
-#         )
-#         host = Host.objects.get(mac=mac_string)
-
-#     elif search_string:
-#         queryset = DnsRecord.objects.select_related('dns_type').filter(
-#             #Q(domain__name__istartswith=search_string) |
-#             Q(name__istartswith=search_string) |
-#             Q(text_content__istartswith=search_string)
-#         )
-
-#         paginator = Paginator(queryset, 50)
-#         try:
-#             page_objects = paginator.page(page)
-#         except PageNotAnInteger:
-#             page_objects = paginator.page(1)
-#         except EmptyPage:
-#             page_objects = paginator.page(paginator.num_pages)
-
-#         # Paginated queryset for formset
-#         queryset = queryset.filter(id__in=[object.id for object in page_objects])
-#     else:
-#         DNSUpdateFormset.extra = 1
-
-#     formset = DNSUpdateFormset(user=request.user, data=request.POST or None, queryset=queryset)
-
-#     if formset.is_valid():
-#         instances = formset.save(commit=False)
-#         for instance in instances:
-#             instance.changed_by = request.user
-#             instance.save()
-
-#         messages.add_message(request, messages.INFO, 'DNS Entries have been saved.')
-
-#         return redirect('%s?q=%s' % (reverse('list_dns'), search_string))
-
-#     context = {
-#         'host': host,
-#         'queryset': queryset,
-#         'page_objects': page_objects,
-#         'formset': formset,
-#     }
-
-#     return render(request, 'dns/dnsrecord_list.html', context)
 
 
 class DNSListView(TemplateView):
@@ -325,10 +272,10 @@ class DNSListView(TemplateView):
 
         return context
 
-    def dispatch(self, *args, **kwargs):
-        host = self.kwargs.get('host', None)
-        host = get_object_or_404(Host, hostname=host) if host else None
-        return super(DNSListView, self).dispatch(*args, **kwargs)
+    # def dispatch(self, *args, **kwargs):
+    #     host = self.kwargs.get('host', None)
+    #     host = get_object_or_404(Host, hostname=host) if host else None
+    #     return super(DNSListView, self).dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
 
