@@ -211,60 +211,12 @@ LOGIN_URL = reverse_lazy('django.contrib.auth.views.login')
 LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-        # 'sentry': {
-        #     'level': 'ERROR',
-        #     'class': 'raven.contrib.django.handlers.SentryHandler',
-        # },
-    },
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            #'handlers': ['mail_admins', 'sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        # 'sentry.errors': {
-        #     'level': 'ERROR',
-        #     'handlers': ['sentry'],
-        #     'propagate': True,
-        #     'formatters': ['verbose'],
-        # },
-    }
-}
-
-
 # REST_FRAMEWORK = {
 #     'DEFAULT_RENDERER_CLASSES': (
 #         'rest_framework.renderers.JSONRenderer',
 #         'rest_framework.renderers.BrowsableAPIRenderer',
 #     )
 # }
-
-
 
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine
