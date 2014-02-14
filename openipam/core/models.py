@@ -3,7 +3,11 @@ from django.conf import settings
 from django.contrib.admin import widgets
 from django import forms
 from django.db import models
+from django.contrib.auth import get_user_model
+
 from admin_tools.menu import items
+
+User = get_user_model()
 
 
 TYPE_CHOICES = (
@@ -16,7 +20,7 @@ TYPE_CHOICES = (
 class FeatureRequest(models.Model):
     type = models.CharField('Request Type', max_length=255, choices=TYPE_CHOICES)
     comment = models.TextField('Comment Details')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(User)
     submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
 
     def __unicode__(self):
