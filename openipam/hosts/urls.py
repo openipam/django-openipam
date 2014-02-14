@@ -8,6 +8,7 @@ from openipam.hosts.views import HostListView, HostUpdateView, HostCreateView, \
 
 urlpatterns = patterns('openipam.hosts.views',
 
+    url(r'^host/add/$', RedirectView.as_view(url=reverse_lazy('add_hosts'))),
     url(r'^host/\w*$', RedirectView.as_view(url=reverse_lazy('list_hosts'))),
     url(r'^$', HostListView.as_view(), name='list_hosts'),
     #url(r'^$', 'index', name='hosts'),
