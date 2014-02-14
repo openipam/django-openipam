@@ -236,7 +236,9 @@ CACHEOPS = {
 
     # Automatically cache all gets, queryset fetches and counts
     # to other django.contrib.auth models for an hour
-    'auth.*': ('all', 60*60),
+    #'auth.*': ('get', 60*60),
+    'auth.group': ('all', 60*60),
+    'auth.permission': ('get', 60*60),
 
     # Auto Cache guadian models
     'guardian.*': ('all', 60*60),
