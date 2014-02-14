@@ -79,19 +79,7 @@
                 $.networkIPToggle();
                 $(this).remove();
                 return false;
-                //$("#div_id_network_or_ip").toggle();
-                //$("#div_id_ip_address").toggle();
             })
-
-            // $.addressTypeTogge = function() {
-            //     if ($("#id_network option[value!='']").size() > 0 || $("#id_ip_address").val()) {
-            //         $("#div_id_network_or_ip").show();
-            //     }
-            //     else {
-            //         $("#div_id_network_or_ip").hide();
-            //     }
-            //     $.networkIPToggle();
-            // }
 
             $.networkIPToggle = function() {
                 var netSelect = $(":radio[name='network_or_ip']:checked").val();
@@ -125,7 +113,7 @@
                 var aType = parseInt($("#id_address_type_id").val());
                 var dhcpGroup = $("#id_show_hide_dhcp_group");
 
-                if (dhcpGroup.length && dhcpGroup.not('checked')) {
+                if (!dhcpGroup.prop('checked')) {
                     $("#div_id_dhcp_group").hide();
                 }
 
@@ -141,25 +129,6 @@
                 }
                 else {
                     $.networkIPToggle();
-                    // if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
-                    //     $("#div_id_network_or_ip").hide();
-                    //     $("#div_id_ip_address").hide();
-                    //     $("#div_id_network").hide();
-                    // }
-                    // else {
-                    //     if (netSelect === '0') {
-                    //         $("#div_id_network").show();
-                    //         $("#div_id_ip_address").hide();
-                    //     }
-                    //     else if (netSelect === '1') {
-                    //         $("#div_id_network").hide();
-                    //         $("#div_id_ip_address").show();
-                    //     }
-                    //     else {
-                    //         $("#div_id_network").hide();
-                    //         $("#div_id_ip_address").hide();
-                    //     }
-                    // }
                 }
             }
 
