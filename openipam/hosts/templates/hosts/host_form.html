@@ -44,11 +44,12 @@
                 //alert("You have choosen: " + value);
             });
 
-            $("#id_address_type").on('change', function(){
-                var aType = $("#id_address_type").val();
+            $("#id_address_type_id").on('change', function(){
+                console.log('hi');
+                var aType = $("#id_address_type_id").val();
 
                 if (aType) {
-                    $.get('/api/web/networkselects/'+ $("#id_address_type").val(), function(data) {
+                    $.get('/api/web/networkselects/'+ $("#id_address_type_id").val(), function(data) {
                         $("#id_network").html(data);
                         $.networkIPToggle();
                     });
@@ -74,7 +75,7 @@
             })
 
             $("a#ip-change").on('click', function(){
-                $("#div_id_address_type").toggle();
+                $("#div_id_address_type_id").toggle();
                 $.networkIPToggle();
                 $(this).remove();
                 return false;
@@ -94,7 +95,7 @@
 
             $.networkIPToggle = function() {
                 var netSelect = $(":radio[name='network_or_ip']:checked").val();
-                var aType = parseInt($("#id_address_type").val());
+                var aType = parseInt($("#id_address_type_id").val());
 
                 if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
                     $("#div_id_network_or_ip").hide();
@@ -121,7 +122,7 @@
 
             $.pageInit = function() {
                 var netSelect = $(":radio[name='network_or_ip']:checked").val();
-                var aType = parseInt($("#id_address_type").val());
+                var aType = parseInt($("#id_address_type_id").val());
                 var dhcpGroup = $("#id_show_hide_dhcp_group");
 
                 if (dhcpGroup.length && dhcpGroup.not('checked')) {
@@ -133,7 +134,7 @@
                 }
 
                 if ($("a#ip-change").length > 0) {
-                    $("#div_id_address_type").hide();
+                    $("#div_id_address_type_id").hide();
                     $("#div_id_network_or_ip").hide();
                     $("#div_id_network").hide();
                     $("#div_id_ip_address").hide();
