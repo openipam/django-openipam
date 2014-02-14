@@ -379,6 +379,11 @@ class HostUpdateCreateView(object):
     def form_valid(self, form):
         valid_form = super(HostUpdateCreateView, self).form_valid(form)
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
+
+        is_continue = self.request.POST.get('_continue')
+        if is_continue:
+            return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
+
         return valid_form
 
 
