@@ -1,7 +1,7 @@
 #from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
@@ -110,19 +110,16 @@ class FeatureRequestView(CreateView):
     model = FeatureRequest
     success_url = reverse_lazy('feature_request_complete')
 
-    def post(self, request, *args, **kwargs):
-        if request.is_ajax():
-            try:
-                FeatureRequest.objects.create(
-                    type=request.POST.get('type'),
-                    comment=request.POST.get('comment'),
-                    user=request.user
-                )
-                return HttpResponse(1)
-            except:
-                return HttpResponse(0, status=500)
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+        if self.request.is_ajax():
+            return HttpResponse(1)
         else:
-            return super(FeatureRequestView, self).post(request, *args, **kwargs)
+            return HttpResponseRedirect(self.get_success_url())
+
+
 
 
 
