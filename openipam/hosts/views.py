@@ -78,7 +78,7 @@ class HostListJson(BaseDatatableView):
                 elif search_item.startswith('user:'):
                     qs = qs.filter(user_permissions__user__username__istartswith=search_item.split(':')[-1])
                 elif search_item.startswith('name:'):
-                    qs = qs.filter(hostname__startswith=search_item.split(':')[-1])
+                    qs = qs.filter(hostname__istartswith=search_item.split(':')[-1])
                 elif search_item.startswith('mac:'):
                     mac_str = search_item.split(':')
                     mac_str.pop(0)
@@ -93,10 +93,10 @@ class HostListJson(BaseDatatableView):
                 elif search_item.startswith('net:'):
                     qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
                 elif search_item:
-                    qs = qs.filter(hostname__contains=search_item)
+                    qs = qs.filter(hostname__icontains=search_item)
 
             if host_search:
-                qs = qs.filter(hostname__contains=host_search)
+                qs = qs.filter(hostname__icontains=host_search)
             if mac_search:
                 if ':' not in mac_search:
                     try:
@@ -105,7 +105,7 @@ class HostListJson(BaseDatatableView):
                         mac_str = mac_search
                 else:
                     mac_str = mac_search
-                qs = qs.filter(mac__contains=mac_str)
+                qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
                 if '/' in ip_search:
                     qs = qs.filter(addresses__address__net_contained=ip_search)
