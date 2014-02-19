@@ -269,6 +269,7 @@ class HostForm(forms.ModelForm):
             instance.set_expiration(self.cleaned_data['expire_days'].expiration)
         instance.changed_by = self.user
 
+        instance.hostname = self.cleaned_data['hostname']
         instance.set_mac_address(self.cleaned_data['mac_address'])
 
         # Save
@@ -348,6 +349,8 @@ class HostForm(forms.ModelForm):
             hostname_exists = Host.objects.exclude(hostname=self.instance.hostname).filter(hostname=hostname)
             if hostname_exists:
                 raise ValidationError('The hostname entered already exists for host %s.' % hostname_exists.hostname)
+
+        return hostname
 
     def clean_network_or_ip(self):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
