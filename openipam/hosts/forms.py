@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
+from openipam.hosts.validators import validate_hostname
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
     FreeformAttributeToHost, StructuredAttributeToHost
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
@@ -17,6 +18,8 @@ from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPer
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
 from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup
+
+from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
@@ -36,6 +39,8 @@ ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
 
 
 class HostForm(forms.ModelForm):
+    mac_address = MACAddressFormField()
+    hostname = forms.CharField(validators=[validate_hostname])
     expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
     address_type_id = forms.ModelChoiceField(label='Address Type', queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
@@ -74,6 +79,11 @@ class HostForm(forms.ModelForm):
                 get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type_id'])))
 
         if self.instance.pk:
+
+            # Populate the hostname for this record if in edit mode.
+            self.fields['hostname'].initial = self.instance.hostname
+            # Populate the mac for this record if in edit mode.
+            self.fields['mac_address'].initial = self.instance.mac
 
             # Init owners and groups
             self._init_owners_groups()
@@ -210,7 +220,7 @@ class HostForm(forms.ModelForm):
         accordion_groups = [
             AccordionGroup(
                 'Host Details',
-                'mac',
+                'mac_address',
                 'hostname',
                 self.current_address_html,
                 'address_type_id',
@@ -254,9 +264,12 @@ class HostForm(forms.ModelForm):
     def save(self, *args, **kwargs):
 
         instance = super(HostForm, self).save(commit=False)
+
         if self.cleaned_data['expire_days']:
             instance.set_expiration(self.cleaned_data['expire_days'].expiration)
         instance.changed_by = self.user
+
+        instance.set_mac_address(self.cleaned_data['mac_address'])
 
         # Save
         instance.save()
@@ -317,6 +330,24 @@ class HostForm(forms.ModelForm):
         cleaned_data = super(HostForm, self).clean()
 
         return cleaned_data
+
+    def clean_mac_address(self):
+        mac = self.cleaned_data.get('mac_address', '')
+
+        if self.instance.pk:
+            host_exists = Host.objects.exclude(mac=self.instance.pk).filter(mac=mac)
+            if host_exists:
+                raise ValidationError('The mac address entered already exists for host %s.' % host_exists.hostname)
+
+        return mac
+
+    def clean_hostname(self):
+        hostname = self.cleaned_data.get('hostname', '')
+
+        if self.instance.pk:
+            hostname_exists = Host.objects.exclude(hostname=self.instance.hostname).filter(hostname=hostname)
+            if hostname_exists:
+                raise ValidationError('The hostname entered already exists for host %s.' % hostname_exists.hostname)
 
     def clean_network_or_ip(self):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
@@ -419,7 +450,7 @@ class HostForm(forms.ModelForm):
 
     class Meta:
         model = Host
-        exclude = ('expires', 'changed', 'changed_by',)
+        exclude = ('mac', 'hostname', 'expires', 'changed', 'changed_by',)
 
 
 class HostOwnerForm(forms.Form):
