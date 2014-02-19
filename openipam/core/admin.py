@@ -14,7 +14,7 @@ class FeatureRequestAdmin(admin.ModelAdmin):
         obj.save()
 
     def full_user(self, obj):
-        return '%s (%s)' % (obj.user.get_full_name, obj.user.username)
+        return '%s (%s)' % (obj.user.get_full_name(), obj.user.username)
     full_user.short_description = 'user'
 
 
