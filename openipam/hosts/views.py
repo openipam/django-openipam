@@ -76,7 +76,13 @@ class HostListJson(BaseDatatableView):
                     #assert False, search_item.split(':')[-1]
                     qs = qs.filter(description__icontains=search_item.split(':')[-1])
                 elif search_item.startswith('user:'):
-                    qs = qs.filter(user_permissions__user__username__istartswith=search_item.split(':')[-1])
+                    user = User.objects.filter(username=search_item.split(':')[-1])
+                    if user:
+                        qs = get_objects_for_user(
+                            user[0],
+                            ['hosts.is_owner_host'],
+                            klass=qs
+                        )
                 elif search_item.startswith('name:'):
                     qs = qs.filter(hostname__istartswith=search_item.split(':')[-1])
                 elif search_item.startswith('mac:'):
@@ -112,21 +118,21 @@ class HostListJson(BaseDatatableView):
                 else:
                     qs = qs.filter(addresses__address__startswith=ip_search)
             if group_filter:
-                group = Group.objects.get(pk=group_filter)
-                qs = get_objects_for_group(
-                    group,
-                    ['hosts.is_owner_host'],
-                    klass=qs
-                )
-
+                group = Group.objects.filter(pk=group_filter)
+                if group:
+                    qs = get_objects_for_group(
+                        group[0],
+                        ['hosts.is_owner_host'],
+                        klass=qs
+                    )
             if user_filter:
-                user = User.objects.get(pk=user_filter)
-                qs = get_objects_for_user(
-                    user,
-                    ['hosts.is_owner_host'],
-                    klass=qs
-                )
-
+                user = User.objects.filter(pk=user_filter)
+                if user:
+                    qs = get_objects_for_user(
+                        user[0],
+                        ['hosts.is_owner_host'],
+                        klass=qs
+                    )
             if expired_search and expired_search == '1':
                 qs = qs.filter(expires__gt=timezone.now())
             elif expired_search and expired_search == '0':
