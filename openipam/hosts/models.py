@@ -236,6 +236,7 @@ class Host(models.Model):
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
 
+
         users = []
         for user, permissions in users_dict.iteritems():
             if 'is_owner_host' in permissions:
@@ -308,6 +309,12 @@ class Host(models.Model):
         now = timezone.now()
         self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
 
+    def set_mac_address(self, new_mac_address):
+        if self.pk and self.pk != new_mac_address:
+            Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
+
+        self.pk = new_mac_address
+
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=True):
         from openipam.network.models import Address, HostToPool
@@ -365,6 +372,8 @@ class Host(models.Model):
             else:
                 raise Exception('A Network or IP Address must be given to assign this host.')
 
+            # Make sure pool is clear.
+            address.pool_id = None
             address.host = self
             address.changed_by = self.user
             address.save()
@@ -438,6 +447,8 @@ class Host(models.Model):
 
         self.clean_hostname()
 
+        self.clean_mac()
+
         # # Check user permissions
         # if hasattr(self, 'changed_by'):
         #     try:
@@ -447,10 +458,13 @@ class Host(models.Model):
 
         # Check if domain exists
 
-
     def clean_hostname(self):
         # Make sure hostname is lowercase
         self.hostname = self.hostname.lower()
+
+    def clean_mac(self):
+        # Make sure mac is lowercase
+        self.mac = self.mac.lower()
 
     class Meta:
         db_table = 'hosts'
