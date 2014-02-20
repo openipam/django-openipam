@@ -78,6 +78,10 @@ class HostForm(forms.ModelForm):
             self.fields['network'].queryset = (Network.objects.
                 get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type_id'])))
 
+        if not self.user.is_ipamadmin:
+            # Remove 10950 days from expires as this is only for admins.
+            self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
+
         if self.instance.pk:
 
             # Populate the hostname for this record if in edit mode.
@@ -209,10 +213,6 @@ class HostForm(forms.ModelForm):
             </div>
         ''' % self.instance.expires.strftime('%b %d %Y'))
         self.fields['expire_days'].required = False
-
-        if not self.user.is_ipamadmin:
-            # Remove 10950 days from expires as this is only for admins.
-            self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
     def _init_form_layout(self):
 
