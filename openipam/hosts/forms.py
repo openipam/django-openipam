@@ -144,7 +144,7 @@ class HostForm(forms.ModelForm):
             else:
                 user_networks = NetworkRange.objects.none()
 
-            user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks))
+            user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks)).distinct()
             self.fields['address_type_id'].queryset = user_address_types
 
     def _init_attributes(self):
