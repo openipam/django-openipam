@@ -62,18 +62,19 @@ class _IPAMLDAPUser(_LDAPUser):
         #     in group_names] + [group for group in self._user.groups.all()])
 
         group_names = self._get_groups().get_group_names()
-        user_groups = self._user.groups.all()
+        existing_groups = self._user.groups.all()
 
         db_groups_names = set([group.name for group in Group.objects.all()])
         groups_to_add = list(group_names - db_groups_names)
 
-        new_groups = []
+        new_groups_to_assign = Group.objects.none()
         if groups_to_add:
             invalidate_model(Group)
             Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
-            new_groups = Group.objects.filter(name__in=groups_to_add)
+            new_groups_to_assign = Group.objects.filter(name__in=groups_to_add)
 
-        groups = set(new_groups + [group for group in user_groups])
+        existing_groups_to_assign = Group.objects.filter(name__in=group_names)
+        groups = new_groups_to_assign | existing_groups | existing_groups_to_assign
 
         self._user.groups = groups
 
