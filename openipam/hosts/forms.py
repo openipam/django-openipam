@@ -131,12 +131,14 @@ class HostForm(forms.ModelForm):
             user_pools = get_objects_for_user(
                 self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
-                any_perm=True
+                any_perm=True,
+                use_groups=True
             )
             user_nets = get_objects_for_user(
                 self.user,
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True
+                any_perm=True,
+                use_groups=True
             )
             if user_nets:
                 n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
