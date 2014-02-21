@@ -194,7 +194,7 @@ class HostListJson(BaseDatatableView):
 
         def get_ips(host):
             if host.is_dynamic:
-                addresses = filter(lambda x: x.mac == host.mac, self.dynamic_addresses)
+                addresses = filter(lambda x: x.host == host, self.dynamic_addresses)
             else:
                 addresses = host.addresses.all()
 
