@@ -9,7 +9,7 @@ from openipam.network.managers import LeaseManager, PoolManager, AddressManager,
 
 
 class Lease(models.Model):
-    address = models.ForeignKey('Address', primary_key=True, db_column='address')
+    address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
     mac = MACAddressField(unique=True, blank=True, null=True)
     abandoned = models.BooleanField()
     server = models.CharField(max_length=255, blank=True, null=True)
