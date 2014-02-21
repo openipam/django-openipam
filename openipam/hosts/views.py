@@ -46,7 +46,7 @@ class HostListJson(BaseDatatableView):
         # return queryset used as base for futher sorting/filtering
         # these are simply objects displayed in datatable
         # Get my hosts /hosts/mine
-        is_owner = self.request.GET.get('owner_filter', '')
+        is_owner = self.request.GET.get('owner_filter', None)
 
         if is_owner:
             qs = Host.objects.get_hosts_owned_by_user(self.request.user)
@@ -76,13 +76,25 @@ class HostListJson(BaseDatatableView):
                     #assert False, search_item.split(':')[-1]
                     qs = qs.filter(description__icontains=search_item.split(':')[-1])
                 elif search_item.startswith('user:'):
-                    user = User.objects.filter(username=search_item.split(':')[-1])
+                    user = User.objects.filter(username__iexact=search_item.split(':')[-1])
                     if user:
                         qs = get_objects_for_user(
                             user[0],
                             ['hosts.is_owner_host'],
-                            klass=qs
+                            klass=qs,
                         )
+                    else:
+                        qs = qs.none()
+                elif search_item.startswith('group:'):
+                    group = Group.objects.filter(name__iexact=search_item.split(':')[-1])
+                    if group:
+                        qs = get_objects_for_group(
+                            group[0],
+                            ['hosts.is_owner_host'],
+                            klass=qs,
+                        )
+                    else:
+                        qs = qs.none()
                 elif search_item.startswith('name:'):
                     qs = qs.filter(hostname__istartswith=search_item.split(':')[-1])
                 elif search_item.startswith('mac:'):
@@ -165,12 +177,19 @@ class HostListJson(BaseDatatableView):
             else:
                 return None
 
-        def get_last_ip(mac):
-            filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
-            if filtered_list:
-                return str(filtered_list[0].address)
+        def get_last_ip(host):
+            if host.is_dynamic:
+                filtered_list = filter(lambda x: x.mac == host.mac, self.gul_recent_arp_byaddress)
+                if filtered_list:
+                    return str(filtered_list[0].address)
+                else:
+                    return None
             else:
-                return None
+                addresses = host.addresses.all()
+                if addresses:
+                    return str(addresses[0])
+                else:
+                    return None
 
         # def get_ips():
         #     ips = [str(address) for address in host.addresses.all()]
@@ -199,7 +218,7 @@ class HostListJson(BaseDatatableView):
             has_permissions = host.user_has_onwership(self.request.user)
             host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
             host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
-            last_ip = get_last_ip(host.mac)
+            last_ip = get_last_ip(host)
             expires = get_expires(host.expires)
             last_mac_stamp = get_last_mac_stamp(host.mac)
             last_ip_stamp = get_last_ip_stamp(host.mac)
@@ -237,6 +256,7 @@ class HostListView(TemplateView):
 
         group_initial = self.request.COOKIES.get('group_filter', None)
         user_initial = self.request.COOKIES.get('user_filter', None)
+
         initial = {}
         if group_initial:
             initial['groups'] = group_initial
@@ -244,7 +264,7 @@ class HostListView(TemplateView):
             initial['users'] = user_initial
         context['form'] = HostListForm(initial=initial)
 
-        context['owner_filter'] = self.request.COOKIES.get('owner_filter', '')
+        context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
 
