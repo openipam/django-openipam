@@ -55,7 +55,7 @@ class HostListJson(BaseDatatableView):
             qs = Host.objects.all()
 
         #return qs.prefetch_related('addresses').all()
-        return qs
+        return qs.prefetch_related('pools', 'addresses').all()
 
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
@@ -162,6 +162,7 @@ class HostListJson(BaseDatatableView):
         qs_macs = [q.mac for q in qs]
         self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
         self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
+        self.dynamic_addresses = Address.objects.filter(leases__mac__in=qs_macs)
 
         def get_last_mac_stamp(mac):
             filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_bymac)
@@ -193,7 +194,7 @@ class HostListJson(BaseDatatableView):
 
         def get_ips(host):
             if host.is_dynamic:
-                addresses = Address.objects.filter(leases__mac=host.mac)
+                addresses = filter(lambda x: x.mac == host.mac, self.dynamic_addresses)
             else:
                 addresses = host.addresses.all()
 
