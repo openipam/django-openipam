@@ -19,7 +19,7 @@ from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
     StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
-from openipam.network.models import Lease, AddressType
+from openipam.network.models import Lease, AddressType, Address
 from openipam.user.utils.user_utils import convert_host_permissions
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
@@ -191,9 +191,23 @@ class HostListJson(BaseDatatableView):
                 else:
                     return None
 
-        # def get_ips():
-        #     ips = [str(address) for address in host.addresses.all()]
-        #     return ' '.join(ips)
+        def get_ips(host):
+            if host.is_dynamic:
+                addresses = Address.objects.filter(leases__mac=host.mac)
+            else:
+                addresses = host.addresses.all()
+
+            if addresses:
+                addresses = [str(address) for address in addresses]
+                if len(addresses) == 1:
+                    return '<span>%s</span>' % addresses[0]
+                else:
+                    return '''
+                        <span>%s</span>
+                        <span>(<a href="javascript:void(0);" title="%s">%s</a>)</span>
+                    ''' % (addresses[0], '\n'.join(addresses), len(addresses))
+            else:
+                return '<span class="flagged">No Data</span>'
 
         def get_expires(expires):
             if expires < timezone.now():
@@ -218,12 +232,12 @@ class HostListJson(BaseDatatableView):
             has_permissions = host.user_has_onwership(self.request.user)
             host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
             host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
-            last_ip = get_last_ip(host)
+            host_ips = get_ips(host)
             expires = get_expires(host.expires)
             last_mac_stamp = get_last_mac_stamp(host.mac)
             last_ip_stamp = get_last_ip_stamp(host.mac)
 
-            if not last_ip:
+            if not host_ips:
                 is_flagged = True
             else:
                 is_flagged = False if last_ip_stamp or last_mac_stamp else True
@@ -237,7 +251,7 @@ class HostListJson(BaseDatatableView):
                                                                                     'update_href': host_edit_href
                                                                                 }),
                 host.mac,
-                render_cell(last_ip, is_flagged),
+                render_cell(host_ips, is_flagged),
                 expires,
                 render_cell(last_mac_stamp, is_flagged),
                 render_cell(last_ip_stamp, is_flagged),
