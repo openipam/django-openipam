@@ -118,35 +118,10 @@ class HostManager(NetManager):
         perm_user = deepcopy(user)
         perm_user.is_superuser = False
 
-        hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host')
-
-        # hosts = self.raw('''
-        #     SELECT h.mac FROM hosts h
-        #         INNER JOIN hosts_hostuserobjectpermission hup ON hup.content_object_id = h.mac AND hup.user_id = %s
-        #         INNER JOIN auth_permission huap ON hup.permission_id = huap.id AND huap.codename = 'is_owner_host'
-
-        #     UNION
-
-        #     SELECT h.mac FROM hosts h
-        #         INNER JOIN hosts_hostgroupobjectpermission hgp ON hgp.content_object_id = h.mac
-        #         INNER JOIN auth_permission hgap ON hgp.permission_id = hgap.id AND hgap.codename = 'is_owner_host'
-        #         INNER JOIN users_groups ug ON hgp.group_id = ug.group_id and ug.user_id = %s
-        # ''', [user.pk, user.pk])
-
-        # hosts = [host.mac for host in hosts]
+        hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host', use_groups=True)
 
         if ids_only:
             return tuple([host.pk for host in hosts])
         else:
-            #return self.filter(mac__in=hosts)
             return hosts
-
-
-
-    # def get_hosts_by_user(self, user):
-    #     return self.filter(
-    #         user_permissions__user=user,
-    #         user_permissions__permission__codename__in=['is_owner_host', 'change_host']
-    #     )
-
 
