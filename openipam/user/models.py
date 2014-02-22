@@ -8,15 +8,13 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, add_direct_user_object_permission, \
-   add_direct_group_object_permission, remove_direct_user_object_permission, \
-   remove_direct_group_object_permission, add_user_object_permission, \
-   add_group_object_permission, remove_user_object_permission, remove_group_object_permission, \
-   convert_user_permissions
-from openipam.core.utils.propertycache import cached_property
+   remove_obj_perms_connected_with_user, convert_user_permissions, remove_old_group_permissions
+
+#from guardian.models import GroupObjectPermission, UserObjectPermission
 
 from django_postgres import Bits
 import django_postgres
@@ -261,14 +259,8 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-# post_save.connect(add_direct_user_object_permission, sender=UserObjectPermission)
-# post_delete.connect(remove_direct_user_object_permission, sender=UserObjectPermission)
-# post_save.connect(add_direct_group_object_permission, sender=GroupObjectPermission)
-# post_delete.connect(remove_direct_group_object_permission, sender=GroupObjectPermission)
-# post_save.connect(add_user_object_permission)
-# post_save.connect(add_group_object_permission)
-# post_delete.connect(remove_user_object_permission)
-# post_delete.connect(remove_group_object_permission)
+#pre_delete.connect(remove_old_group_permissions, sender=GroupObjectPermission)
+
 
 # South Fixes for Bit string field
 try:
