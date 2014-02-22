@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.utils.functional import cached_property
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
@@ -107,28 +108,28 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    mac = MACAddressField(primary_key=True)
+    host = models.ForeignKey('Host', db_column='mac', related_name='ip_history', primary_key=True)
     address = InetAddressField()
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s - %s' % (self.mac, self.address)
+        return '%s - %s' % (self.pk, self.address)
 
     class Meta:
         db_table = 'gul_recent_arp_byaddress'
 
 
 class GulRecentArpBymac(models.Model):
-    mac = MACAddressField(primary_key=True)
+    host = models.ForeignKey('Host', db_column='mac', related_name='mac_history', primary_key=True)
     address = InetAddressField()
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s - %s' % (self.mac, self.address)
+        return '%s - %s' % (self.pk, self.address)
 
     class Meta:
         db_table = 'gul_recent_arp_bymac'
@@ -164,7 +165,7 @@ class Host(models.Model):
     def __unicode__(self):
         return self.hostname
 
-    @property
+    @cached_property
     def is_dynamic(self):
         return True if self.pools.all() else False
 
@@ -182,21 +183,10 @@ class Host(models.Model):
         #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
 
         #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
-        gul_mac = GulRecentArpBymac.objects.filter(host=self).order_by('-stopstamp')
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
 
         if gul_mac:
             return gul_mac[0].stopstamp
-        else:
-            return None
-
-    @property
-    def static_ip_last_seen(self):
-        gul_ip = GulRecentArpByaddress.objects.filter(host=self).order_by('-stopstamp')
-
-        #ul_ip = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_byaddress)
-
-        if gul_ip:
-            return gul_ip[0].stopstamp
         else:
             return None
 
