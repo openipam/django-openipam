@@ -10,7 +10,7 @@ from openipam.network.managers import LeaseManager, PoolManager, AddressManager,
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
-    mac = MACAddressField(unique=True, blank=True, null=True)
+    host = models.ForeignKey('hosts.Host', db_column='mac', related_name='leases', unique=True, null=True)
     abandoned = models.BooleanField()
     server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()
@@ -19,7 +19,7 @@ class Lease(models.Model):
     objects = LeaseManager()
 
     def __unicode__(self):
-        return self.address
+        return '%s' % self.pk
 
     @property
     def gul_last_seen(self):
@@ -133,8 +133,8 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 
 class HostToPool(models.Model):
-    host = models.ForeignKey('hosts.Host', db_column='mac')
-    pool = models.ForeignKey('Pool')
+    host = models.ForeignKey('hosts.Host', db_column='mac', db_index=True)
+    pool = models.ForeignKey('Pool',  db_index=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
