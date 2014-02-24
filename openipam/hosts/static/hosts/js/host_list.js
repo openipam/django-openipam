@@ -27,6 +27,14 @@ $(function(){
         oSettings.oApi._fnReDraw(oSettings);
     };
 
+    var delay = (function(){
+        var timer = 0;
+        return function(callback, ms){
+          clearTimeout (timer);
+          timer = setTimeout(callback, ms);
+        };
+    })();
+
     var asInitVals = new Array();
 
     var results = $("#result_list").dataTable({
@@ -38,7 +46,7 @@ $(function(){
         "bAutoWidth": false,
         "bStateSave": true,
         "bJQueryUI": true,
-        "sDom": '<"header well well-small"rf>t<"pagination well well-small"lpi><"clear">',
+        "sDom": '<"header well well-small"r>t<"pagination well well-small"lpi><"clear">',
         "aaSorting": [[ 1, "asc" ]],
         "oLanguage": {
             "sLengthMenu": "Show _MENU_ records",
@@ -57,6 +65,60 @@ $(function(){
         ],
         "fnInitComplete": function() {
             this.fnAdjustColumnSizing(true);
+
+            $('#id_search').yourlabsAutocomplete({
+                url: '/api/web/IPAMHostSearchAutoComplete',
+                choiceSelector: '[data-value]',
+                minimumCharacters: 2,
+                placeholder: 'Advanced Search',
+                getQuery: function() {
+                    var value = this.input.val();
+                    return value.substr(value.lastIndexOf(':') + 1);
+                },
+                refresh: function() {
+                    var value = this.input.val();
+                    this.current_search = value.substr(0, value.lastIndexOf(':'));
+                    this.search_type = value.split(" ");
+                    this.search_type = this.search_type[this.search_type.length - 1];
+                    this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
+
+                    var searches = ['user:', 'group:', 'net:']
+                    var do_search = false;
+
+                    if (searches.indexOf(this.search_type) != -1) {
+                        var do_search = true;
+                        this.value = this.getQuery();
+                    }
+                    else {
+                        this.hide();
+                        do_search = false;
+                    }
+
+                    if (do_search) {
+                        // If the input doesn't contain enought characters then abort, else fetch.
+                        this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
+                    }
+                },
+            }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                var value = choice.attr('data-value');
+                this.value = autocomplete.current_search + ':' + value;
+
+
+                results.fnDraw();
+            });
+
+            $('#id_search').on('keyup change', function(){
+                var value = $(this).val() ? $(this).val() : '';
+                console.log('hi');
+
+                delay(function(){
+                    $.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
+                    results.fnDraw();
+                }, 300);
+
+                //return false;
+            });
+
         },
         "fnServerParams": function (aoData) {
             aoData.push(
@@ -67,6 +129,9 @@ $(function(){
             );
             aoData.push(
                 { "name": "owner_filter", "value": $.cookie('owner_filter') }
+            );
+            aoData.push(
+                { "name": "search_filter", "value": $.cookie('search_filter') }
             );
         },
         "fnServerData": function(sSource, aoData, fnCallback) {
@@ -134,14 +199,22 @@ $(function(){
         else{page_bar.removeClass('fixed');}
     }
 
+    $('#changelist-form').bind("keyup keypress", function(e) {
+      var code = e.keyCode || e.which;
+      if (code  == 13) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
     $("#changelist-filters-toggle").click(function() {
         $("#changelist-filter-actions").toggle();
         $(this).toggleClass('btn-inverse');
     });
 
 
-    $("#filter-close").click(function() {
-        $("#changelist-filters-toggle").click();
+    $("#search-info-close").click(function() {
+        $("#search-help").hide();
     });
 
 
@@ -190,15 +263,21 @@ $(function(){
                 $(obj).removeAttr('selected');
             }
         });
-        $("#id_users-deck .remove").click();
-        $("#id_groups-deck .remove").click();
+        $.removeCookie('search_filter', {path: '/hosts/'});
+        $("#id_search").val('');
+        //$("#id_users-deck .remove").click();
+        //$("#id_groups-deck .remove").click();
         results.fnFilterClear();
         return false;
     });
 
-    $(".search_init").bind('keyup change', function() {
+    $(".search_init").on('keyup change', function() {
         /* Filter on the column (the index) of this element */
-        results.fnFilter($(this).val(), $(".search_init").index($(this)));
+        var self = this;
+        delay(function(){
+            results.fnFilter($(self).val(), $(".search_init").index($(self)));
+        }, 300);
+
     });
 
     $("#search-help-button").click(function(){
