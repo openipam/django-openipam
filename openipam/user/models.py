@@ -12,7 +12,7 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions, remove_old_group_permissions
+   remove_obj_perms_connected_with_user, convert_user_permissions#, remove_old_group_permissions
 
 #from guardian.models import GroupObjectPermission, UserObjectPermission
 
