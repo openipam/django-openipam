@@ -42,6 +42,38 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 autocomplete_light.register(IPAMObjectsAutoComplete)
 
 
+class IPAMHostSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+    choices = (
+        Network.objects.all(),
+        User.objects.all(),
+        Group.objects.all(),
+    )
+
+    search_fields = (
+        ('network',),
+        ('username', '^first_name', '^last_name'),
+        ('name',),
+    )
+
+    autocomplete_js_attributes = {
+        'minimum_characters': 2,
+        'placeholder': 'Advanced Search',
+    }
+
+    def choice_label(self, choice):
+        return '%s | %s' % (choice.__class__.__name__, choice)
+
+    def choice_value(self, choice):
+        if choice.__class__.__name__ == 'User':
+            return choice.username
+        elif choice.__class__.__name__ == 'Group':
+            return choice.name
+        elif choice.__class__.__name__ == 'Network':
+            return choice.network
+
+autocomplete_light.register(IPAMHostSearchAutoComplete)
+
+
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^username', 'first_name', 'last_name', 'email']
     autocomplete_js_attributes = {'placeholder': 'Search Users'}
@@ -54,9 +86,23 @@ class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
 autocomplete_light.register(User, UserAutocomplete)
 
 
+class UsernameAutocomplete(UserAutocomplete):
+    def choice_value(self, choice):
+        return choice.username
+autocomplete_light.register(User, UsernameAutocomplete)
+
+
 class UserFilterAutocomplete(UserAutocomplete):
     autocomplete_js_attributes = {'placeholder': 'Filter Users'}
 autocomplete_light.register(User, UserFilterAutocomplete)
+
+
+class GroupnameAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['name']
+
+    def choice_value(self, choice):
+        return choice.name
+autocomplete_light.register(Group, GroupnameAutocomplete)
 
 
 class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
