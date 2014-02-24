@@ -28,12 +28,15 @@ def force_usernames_uppercase(sender, instance, **kwargs):
 # Convert Host permissions on login.
 def convert_user_permissions(sender, request, user, **kwargs):
     from openipam.user.utils import user_utils
-    from openipam.user.models import Group
 
     user_utils.convert_permissions(user=user)
     # We do this on the host view instead for performance
     #user_utils.convert_host_permissions(username=user.username)
     user_utils.convert_min_permissions(user=user)
+
+    # Convert groups for IPAM admins.
+    if user.is_ipamadmin:
+        user_utils.convert_groups()
 
 
 # Automatically assign new users to IPAM_USER_GROUP
@@ -57,129 +60,7 @@ def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
     GroupObjectPermission.objects.filter(filters).delete()
 
 
-# Automatically add permissions to master Guardian user table from direct relations
-# Used in the admin UI
-def add_user_object_permission(sender, instance, created, **kwargs):
-    if sender.__name__.lower() in DIRECT_USER_PERM_RELATIONS and created:
-        content_type = ContentType.objects.get_for_model(instance.content_object)
+# def remove_old_group_permissions(sender, instance, **kwargs):
+#     from openipam.user.models import Group, HostToGroup, DomainToGroup, NetworkToGroup
 
-        UserObjectPermission.objects.get_or_create(
-            object_pk=instance.content_object_id,
-            content_type=content_type,
-            user=instance.user,
-            permission=instance.permission
-        )
-
-
-# Automatically add permissions to master Guardian group table from direct relations
-# Used in the admin UI
-def add_group_object_permission(sender, instance, created, **kwargs):
-    if sender.__name__.lower() in DIRECT_GROUP_PERM_RELATIONS and created:
-        content_type = ContentType.objects.get_for_model(instance.content_object)
-
-        GroupObjectPermission.objects.get_or_create(
-            object_pk=instance.content_object_id,
-            content_type=content_type,
-            group=instance.group,
-            permission=instance.permission
-        )
-
-
-# Automatically remove permissions to master Guardian user table from direct relations
-# Used in the admin UI
-def remove_user_object_permission(sender, instance, **kwargs):
-    if sender.__name__.lower() in DIRECT_USER_PERM_RELATIONS:
-        content_type = ContentType.objects.get_for_model(instance.content_object)
-
-        try:
-            UserObjectPermission.objects.get(
-                object_pk=instance.content_object_id,
-                content_type=content_type,
-                user=instance.user,
-                permission=instance.permission
-            ).delete()
-        except UserObjectPermission.DoesNotExist:
-            pass
-
-
-# Automatically remove permissions to master Guardian group table from direct relations
-# Used in the admin UI
-def remove_group_object_permission(sender, instance, **kwargs):
-    if sender.__name__.lower() in DIRECT_GROUP_PERM_RELATIONS:
-        content_type = ContentType.objects.get_for_model(instance.content_object)
-
-        try:
-            GroupObjectPermission.objects.get(
-                object_pk=instance.content_object_id,
-                content_type=content_type,
-                group=instance.group,
-                permission=instance.permission
-            ).delete()
-        except GroupObjectPermission.DoesNotExist:
-            pass
-
-
-def add_direct_user_object_permission(sender, instance, created, **kwargs):
-    content_types = ContentType.objects.filter(
-        app_label__in=DIRECT_PERM_APPS,
-        model__in=DIRECT_PERM_MODELS
-    )
-
-    if created and instance.content_type in content_types:
-        ModelObject = instance.content_type.model_class()
-        model_object = ModelObject.objects.get(pk=instance.object_pk)
-        model_object.user_permissions.get_or_create(
-            user=instance.user,
-            permission=instance.permission
-        )
-
-
-def add_direct_group_object_permission(sender, instance, created, **kwargs):
-    content_types = ContentType.objects.filter(
-        app_label__in=DIRECT_PERM_APPS,
-        model__in=DIRECT_PERM_MODELS
-    )
-
-    if created and instance.content_type in content_types:
-        ModelObject = instance.content_type.model_class()
-        model_object = ModelObject.objects.get(pk=instance.object_pk)
-        model_object.group_permissions.get_or_create(
-            group=instance.group,
-            permission=instance.permission
-        )
-
-
-def remove_direct_user_object_permission(sender, instance, **kwargs):
-    content_types = ContentType.objects.filter(
-        app_label__in=DIRECT_PERM_APPS,
-        model__in=DIRECT_PERM_MODELS
-    )
-
-    if instance.content_type in content_types:
-        ModelObject = instance.content_type.model_class()
-        try:
-            model_object = ModelObject.objects.get(pk=instance.object_pk)
-            model_object.user_permissions.filter(
-                user=instance.user,
-                permission=instance.permission
-            ).delete()
-        except ModelObject.DoesNotExist:
-            pass
-
-
-def remove_direct_group_object_permission(sender, instance, **kwargs):
-    content_types = ContentType.objects.filter(
-        app_label__in=DIRECT_PERM_APPS,
-        model__in=DIRECT_PERM_MODELS
-    )
-
-    if instance.content_type in content_types:
-        ModelObject = instance.content_type.model_class()
-        try:
-            model_object = ModelObject.objects.get(pk=instance.object_pk)
-            model_object.group_permissions.filter(
-                group=instance.group,
-                permission=instance.permission
-            ).delete()
-        except ModelObject.DoesNotExist:
-            pass
+#     assert False, instance.__dict__
