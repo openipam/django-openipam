@@ -269,7 +269,7 @@ class HostListView(TemplateView):
         context = super(HostListView, self).get_context_data(**kwargs)
 
         context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
-        context['search_filter'] = self.request.COOKIES.get('search_filter', '')
+        context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
 
