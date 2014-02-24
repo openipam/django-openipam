@@ -61,49 +61,30 @@
                             </button>
                         </div>
                     </div>
+
                 </div>
+                    <div id="filter-owners" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
+                        <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
+                        <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
+                    </div>
                 <div id="changelist-search" class="pull-right">
                     <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
                     <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
+                    <div class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" /></label></div>
                     <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
-
-                    <a id="changelist-filters-toggle" class="pull-right btn dropdown-toggle">
-                        Filters
-                        <span class="caret"></span>
-                    </a>
                 </div>
                 <div id="search-help" class="hide">
+                    <a id="search-info-close" href="javascript:void(0);" class="icon-remove pull-right"></a>
                     <p>Search for hostnames, IP addresses, MAC addresses, or networks (in
                     CIDR notation).</p>
                     <strong>For advanced searches...</strong>
                     <p>Multiple search terms may be included separated spaces.</p>
-                    <p>Try these special query types:</p><p>
-                    </p><pre>user:<em>username</em></pre>
-                    <pre>name:<em>hostname</em></pre>
-                    <pre>desc:<em>description word</em></pre>
-                    <pre>ip:<em>IP address</em></pre>
+                    <p>Try these special query types:</p>
+                    <pre>user:<em>username</em></pre>
+                    <pre>group:<em>groupname</em></pre>
                     <pre>net:<em>network (CIDR notation)</em></pre>
-                    <pre>mac:<em>MAC address</em></pre>
-                    </div>
+                </div>
             {% endspaceless %}
-        </div>
-
-        <div id="changelist-filter-actions" class="hide well well-small action-wrapper">
-            <a id="filter-close" href="javascript:void(0);" class="icon-remove pull-right"></a>
-
-            <h4>Filter by Onwer:</h4>
-            <div id="filter-owners" class="btn-group radio-btn-group" data-toggle="buttons-radio">
-                <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
-                <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
-            </div>
-
-            <h4>Filter By Group:</h4>
-            <div id="filter-groups">{{ form.groups }}</div>
-            <div class="clear"><!-- --></div>
-
-            <h4>Filter By User:</h4>
-            <div id="filter-users">{{ form.users }}</div>
-            <div class="clear"><!-- --></div>
         </div>
 
         <div class="results">
@@ -131,12 +112,12 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input type="text" class="search_init" placeholder="Search Host" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
-                        <th><div><input type="text" class="search_init" placeholder="Search MAC" value="{{ aoSearchCols.1.sSearch }}" style="max-width: 100px;" /></div></th>
-                        <th><div><input type="text" class="search_init" placeholder="Search IP" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 100px;" /></div></th>
+                        <th><div><input type="text" id="s_host" class="search_init" placeholder="Search Host" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
+                        <th><div><input type="text" id="s_mac" class="search_init" placeholder="Search MAC" value="{{ aoSearchCols.1.sSearch }}" style="max-width: 100px;" /></div></th>
+                        <th><div><input type="text" id="s_ip" class="search_init" placeholder="Search IP" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 100px;" /></div></th>
                         <th>
                             <div>
-                                <select style="max-width: 80px;" class="filter_init search_init">
+                                <select style="max-width: 80px;" id="s_expires" class="filter_init search_init">
                                     <option value="">All</option>
                                     <option value="1" {% ifequal aoSearchCols.3.sSearch '1' %}selected="selected"{% endifequal %}>Active</option>
                                     <option value="0" {% ifequal aoSearchCols.3.sSearch '0' %}selected="selected"{% endifequal %}>Expired</option>
