@@ -660,7 +660,7 @@ form div.alert-block ul li {
   top: 5px;
 }
 
-#result_list_filter {
+#result_list_filter, #advanced-search-div {
   float: left;
   margin-right: 4px;
 }
@@ -705,4 +705,8 @@ form div.alert-block ul li {
   list-style: disc !important;
   margin: normal !important;
   padding: 0px !important;
+}
+
+#id_search {
+  margin-right: 5px;
 }
