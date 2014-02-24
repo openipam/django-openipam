@@ -373,7 +373,7 @@ class HostDetailView(DetailView):
         context['dns_records'] = self.object.get_dns_records()
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
-        context['leased_addresses'] = Lease.objects.filter(mac=self.object.mac)
+        context['leased_addresses'] = self.object.leases.all()
         context['user_owners'], context['group_owners'] = self.object.get_owners(ids_only=False)
 
         return context
