@@ -55,18 +55,18 @@ class HostListJson(BaseDatatableView):
             qs = Host.objects.all()
 
         #return qs.prefetch_related('addresses').all()
-        return qs.prefetch_related('pools', 'addresses').all()
+        return qs.prefetch_related('ip_history', 'mac_history', 'pools', 'addresses', 'leases').all()
 
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
 
         try:
 
-            search = self.request.GET.get('sSearch', None)
             host_search = self.request.GET.get('sSearch_0', None)
             mac_search = self.request.GET.get('sSearch_1', None)
             ip_search = self.request.GET.get('sSearch_2', None)
             expired_search = self.request.GET.get('sSearch_3', None)
+            search = self.request.GET.get('search_filter', None)
             group_filter = self.request.GET.get('group_filter', None)
             user_filter = self.request.GET.get('user_filter', None)
 
@@ -159,30 +159,30 @@ class HostListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
 
-        qs_macs = [q.mac for q in qs]
-        self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-        self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
-        self.dynamic_addresses = Address.objects.filter(leases__mac__in=qs_macs)
+        #qs_macs = [q.mac for q in qs]
+        #self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
+        #self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
+        #self.dynamic_addresses = Address.objects.filter(leases__mac__in=qs_macs)
 
         def get_last_mac_stamp(mac):
-            filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_bymac)
-            if filtered_list:
-                return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
+            macs = host.mac_history.all()
+            if macs:
+                return timezone.localtime(macs[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
                 return None
 
         def get_last_ip_stamp(mac):
-            filtered_list = filter(lambda x: x.mac == mac, self.gul_recent_arp_byaddress)
-            if filtered_list:
-                return timezone.localtime(filtered_list[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
+            ips = host.ip_history.all()
+            if ips:
+                return timezone.localtime(ips[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
                 return None
 
         def get_last_ip(host):
             if host.is_dynamic:
-                filtered_list = filter(lambda x: x.mac == host.mac, self.gul_recent_arp_byaddress)
-                if filtered_list:
-                    return str(filtered_list[0].address)
+                leases = host.leases.all()
+                if leases:
+                    return str(leases[0].address)
                 else:
                     return None
             else:
@@ -194,7 +194,7 @@ class HostListJson(BaseDatatableView):
 
         def get_ips(host):
             if host.is_dynamic:
-                addresses = filter(lambda x: x.host == host, self.dynamic_addresses)
+                addresses = [lease.pk for lease in host.leases.all()]
             else:
                 addresses = host.addresses.all()
 
@@ -267,19 +267,9 @@ class HostListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
-        #context['groups'] = Group.objects.all().order_by('name')
-
-        group_initial = self.request.COOKIES.get('group_filter', None)
-        user_initial = self.request.COOKIES.get('user_filter', None)
-
-        initial = {}
-        if group_initial:
-            initial['groups'] = group_initial
-        if user_initial:
-            initial['users'] = user_initial
-        context['form'] = HostListForm(initial=initial)
 
         context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
+        context['search_filter'] = self.request.COOKIES.get('search_filter', '')
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
 
