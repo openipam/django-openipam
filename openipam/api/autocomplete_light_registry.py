@@ -70,8 +70,34 @@ class IPAMHostSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
             return choice.name
         elif choice.__class__.__name__ == 'Network':
             return choice.network
-
 autocomplete_light.register(IPAMHostSearchAutoComplete)
+
+
+class IPAMDNSSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+    choices = (
+        User.objects.all(),
+        Group.objects.all(),
+    )
+
+    search_fields = (
+        ('username', '^first_name', '^last_name'),
+        ('name',),
+    )
+
+    autocomplete_js_attributes = {
+        'minimum_characters': 2,
+        'placeholder': 'Advanced Search',
+    }
+
+    def choice_label(self, choice):
+        return '%s | %s' % (choice.__class__.__name__, choice)
+
+    def choice_value(self, choice):
+        if choice.__class__.__name__ == 'User':
+            return choice.username
+        elif choice.__class__.__name__ == 'Group':
+            return choice.name
+autocomplete_light.register(IPAMDNSSearchAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
