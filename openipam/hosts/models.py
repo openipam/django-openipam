@@ -5,12 +5,14 @@ from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.functional import cached_property
+from django.db.models.signals import post_save, pre_delete
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 
+from openipam.hosts.signals import create_dns_record_for_static_host, delete_dns_record_for_static_host
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager
 
@@ -548,6 +550,11 @@ class StructuredAttributeToHost(models.Model):
 
     class Meta:
         db_table = 'structured_attributes_to_hosts'
+
+
+# Host signals
+post_save.connect(create_dns_record_for_static_host, sender=Host)
+pre_delete.connect(delete_dns_record_for_static_host, sender=Host)
 
 
 try:
