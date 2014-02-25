@@ -218,6 +218,13 @@ LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 #     )
 # }
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.BasicAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#     )
+# }
+
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine
     'port': 6379,        # default redis port
