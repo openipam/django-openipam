@@ -63,14 +63,14 @@
                     </div>
 
                 </div>
-                    <div id="filter-owners" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
-                        <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
-                        <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
-                    </div>
+                <div id="filter-owners" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
+                    <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
+                    <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
+                </div>
                 <div id="changelist-search" class="pull-right">
                     <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
                     <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
-                    <div class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" /></label></div>
+                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" /></label></div>
                     <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="hide">
