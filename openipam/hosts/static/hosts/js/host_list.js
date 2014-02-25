@@ -170,10 +170,16 @@ $(function(){
         "fnInfoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
             if (iTotal < iMax){
                 $("#filtered-label").show();
+                $(".search_init, #id_search").each(function(){
+                    if ($(this).val() != '') {
+                        $(this).addClass('red-highlight');
+                    }
+                });
                 return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries (filtered from " + iMax + " total entries)"
             }
             else {
                 $("#filtered-label").hide();
+                $(".search_init, #id_search").removeClass('red-highlight');
                 return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries"
             }
         }
