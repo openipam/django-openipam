@@ -102,31 +102,19 @@ $(function(){
             }).input.bind('selectChoice', function(event, choice, autocomplete) {
                 var value = choice.attr('data-value');
                 this.value = autocomplete.current_search + ':' + value;
-
-
-                results.fnDraw();
             });
 
             $('#id_search').on('keyup change', function(){
                 var value = $(this).val() ? $(this).val() : '';
-                console.log('hi');
 
                 delay(function(){
                     $.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
                     results.fnDraw();
                 }, 300);
-
-                //return false;
             });
 
         },
         "fnServerParams": function (aoData) {
-            aoData.push(
-                { "name": "group_filter", "value": $.cookie('group_filter') }
-            );
-            aoData.push(
-                { "name": "user_filter", "value": $.cookie('user_filter') }
-            );
             aoData.push(
                 { "name": "owner_filter", "value": $.cookie('owner_filter') }
             );
@@ -188,8 +176,6 @@ $(function(){
                 $("#filtered-label").hide();
                 return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries"
             }
-
-            //return iStart +" to "+ iEnd;
         }
     });
 
@@ -215,21 +201,6 @@ $(function(){
 
     $("#search-info-close").click(function() {
         $("#search-help").hide();
-    });
-
-
-    // Trigger filtering on group
-    $("#id_groups").unbind('change').change(function() {
-        var value = $(this).val() ? $(this).val() : '';
-        $.cookie('group_filter', value, {expires: 1, path: '/hosts/'});
-        results.fnDraw();
-    });
-
-    // Trigger filtering on group
-    $("#id_users").unbind('change').change(function() {
-        var value = $(this).val() ? $(this).val() : '';
-        $.cookie('user_filter', value, {expires: 1, path: '/hosts/'});
-        results.fnDraw();
     });
 
     //Triger filtering on owners
@@ -265,8 +236,6 @@ $(function(){
         });
         $.removeCookie('search_filter', {path: '/hosts/'});
         $("#id_search").val('');
-        //$("#id_users-deck .remove").click();
-        //$("#id_groups-deck .remove").click();
         results.fnFilterClear();
         return false;
     });
