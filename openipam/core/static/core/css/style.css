@@ -248,6 +248,11 @@ code, pre {
   font-weight: bold;
 }
 
+.red-highlight {
+  border: 1px solid #cc0000 !important;
+  background-color: #fcf8e3 !important;
+}
+
 .module textarea {
   width: 90%;
   height: 5em;
@@ -709,4 +714,9 @@ form div.alert-block ul li {
 
 #id_search {
   margin-right: 5px;
+  margin-bottom: 0px;
+}
+
+#advanced-search label {
+  margin-bottom: 0px;
 }
