@@ -386,6 +386,14 @@ class Host(models.Model):
         else:
             return True if self.mac in user.host_owner_permissions else False
 
+    def save(self, *args, **kwargs):
+        # Make sure hostname is lowercase
+        self.hostname = self.hostname.lower()
+        # Make sure mac is lowercase
+        self.mac = self.mac.lower()
+
+        super(Host, self).save(*args, **kwargs)
+
     def clean(self):
 
         # Perform permission checks if user is attached to this instance
@@ -431,32 +439,6 @@ class Host(models.Model):
                 if self.network not in valid_network:
                     raise ValidationError('You do not have sufficient permissions to add hosts to '
                       'the assigned network. Please contact an IPAM Administrator.')
-
-    # Do hostname checks to make sure there is a FQDN
-    # and that the user has permissions to add on that domain
-    def clean_fields(self, exclude=None):
-        super(Host, self).clean_fields(exclude)
-
-        self.clean_hostname()
-
-        self.clean_mac()
-
-        # # Check user permissions
-        # if hasattr(self, 'changed_by'):
-        #     try:
-        #         domains = get_objects_for_user(self.changed_by, 'dns.add_within')
-        #     except ContentType.DoesNotExist:
-        #         return
-
-        # Check if domain exists
-
-    def clean_hostname(self):
-        # Make sure hostname is lowercase
-        self.hostname = self.hostname.lower()
-
-    def clean_mac(self):
-        # Make sure mac is lowercase
-        self.mac = self.mac.lower()
 
     class Meta:
         db_table = 'hosts'
