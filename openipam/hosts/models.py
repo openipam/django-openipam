@@ -390,7 +390,7 @@ class Host(models.Model):
         # Make sure hostname is lowercase
         self.hostname = self.hostname.lower()
         # Make sure mac is lowercase
-        self.mac = self.mac.lower()
+        self.mac = str(self.mac).lower()
 
         super(Host, self).save(*args, **kwargs)
 
