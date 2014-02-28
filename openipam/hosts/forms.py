@@ -42,7 +42,7 @@ class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
     hostname = forms.CharField(validators=[validate_hostname])
     expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
-    address_type_id = forms.ModelChoiceField(label='Address Type', queryset=AddressType.objects.all())
+    address_type = forms.ModelChoiceField(queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
     network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
@@ -74,9 +74,9 @@ class HostForm(forms.ModelForm):
         self.expire_date = None
 
         # Set networks based on address type if form is bound
-        if self.data.get('address_type_id'):
+        if self.data.get('address_type'):
             self.fields['network'].queryset = (Network.objects.
-                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type_id'])))
+                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type'])))
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
@@ -88,6 +88,8 @@ class HostForm(forms.ModelForm):
             self.fields['hostname'].initial = self.instance.hostname
             # Populate the mac for this record if in edit mode.
             self.fields['mac_address'].initial = self.instance.mac
+            # Populate the address type if in edit mode.
+            self.fields['address_type'].initial = self.instance.address_type
 
             # Init owners and groups
             self._init_owners_groups()
@@ -98,8 +100,7 @@ class HostForm(forms.ModelForm):
             # Set networks based on address type if form is not bound
             if not self.data:
                 # Set address_type
-                address_type = self.instance.address_type
-                self.fields['network'].queryset = Network.objects.get_networks_from_address_type(address_type)
+                self.fields['network'].queryset = Network.objects.get_networks_from_address_type(self.instance.address_type)
 
                 # Init IP Address(es) only if form is not bound
                 self._init_ip_address()
@@ -116,7 +117,6 @@ class HostForm(forms.ModelForm):
 
         # Init the form layout
         self._init_form_layout()
-
 
     def _init_owners_groups(self):
         # Get owners
@@ -147,12 +147,11 @@ class HostForm(forms.ModelForm):
                 user_networks = NetworkRange.objects.none()
 
             user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks)).distinct()
-            self.fields['address_type_id'].queryset = user_address_types
+            self.fields['address_type'].queryset = user_address_types
 
     def _init_attributes(self):
-
         attribute_fields = Attribute.objects.all()
-        structured_attribute_values = StructuredAttributeValue.objects.all()
+        #structured_attribute_values = StructuredAttributeValue.objects.all()
 
         attribute_initials = []
         if self.instance.pk:
@@ -173,7 +172,6 @@ class HostForm(forms.ModelForm):
                 self.fields[attribute_field_key].initial = initial[0][1]
 
     def _init_ip_address(self):
-
         html_addresses = []
         addresses = self.instance.addresses.all()
         for address in addresses:
@@ -194,7 +192,7 @@ class HostForm(forms.ModelForm):
                    change_html if len(addresses) == 1 else ''))
 
             if len(addresses) > 1:
-                del self.fields['address_type_id']
+                del self.fields['address_type']
                 del self.fields['network_or_ip']
                 del self.fields['network']
                 del self.fields['ip_address']
@@ -217,7 +215,6 @@ class HostForm(forms.ModelForm):
         self.fields['expire_days'].required = False
 
     def _init_form_layout(self):
-
         # Add Details section
         accordion_groups = [
             AccordionGroup(
@@ -225,7 +222,7 @@ class HostForm(forms.ModelForm):
                 'mac_address',
                 'hostname',
                 self.current_address_html,
-                'address_type_id',
+                'address_type',
                 'network_or_ip',
                 'network',
                 'ip_address',
@@ -247,7 +244,6 @@ class HostForm(forms.ModelForm):
         )
 
         # Add attributes section
-        #assert False, self.attribute_field_keys
         accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
 
         # Create form actions
@@ -262,9 +258,7 @@ class HostForm(forms.ModelForm):
             #FormActions(*form_actions)
         )
 
-
     def save(self, *args, **kwargs):
-
         instance = super(HostForm, self).save(commit=False)
 
         if self.cleaned_data['expire_days']:
@@ -273,6 +267,7 @@ class HostForm(forms.ModelForm):
 
         instance.hostname = self.cleaned_data['hostname']
         instance.set_mac_address(self.cleaned_data['mac_address'])
+        instance.address_type_id = self.cleaned_data['address_type']
 
         # Save
         instance.save()
@@ -356,10 +351,8 @@ class HostForm(forms.ModelForm):
 
     def clean_network_or_ip(self):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type_id', '')
+        address_type = self.cleaned_data.get('address_type', '')
 
-        #assert False, (address_type.pk, ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
-        #assert False, list(ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT)
         if address_type:
             if address_type.pk in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT and not network_or_ip:
                 raise ValidationError('This field is required.')
@@ -369,7 +362,7 @@ class HostForm(forms.ModelForm):
     def clean_network(self):
         network = self.cleaned_data.get('network', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type_id', '')
+        address_type = self.cleaned_data.get('address_type', '')
 
         self.instance.network = network
 
@@ -405,7 +398,7 @@ class HostForm(forms.ModelForm):
     def clean_ip_address(self):
         ip_address = self.cleaned_data.get('ip_address', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
-        address_type = self.cleaned_data.get('address_type_id', '')
+        address_type = self.cleaned_data.get('address_type', '')
         current_addresses = [str(address) for address in self.instance.addresses.all()]
 
         # If this is a dynamic address type, then bypass
