@@ -50,7 +50,7 @@ def convert_permissions(delete=False, groupname=None, user=None, username=None):
               .exclude(name__istartswith='user_').exclude(name__in=['default', 'guests']))
 
     if groupname:
-        groups = groups.filter(name_iexact=groupname)
+        groups = groups.filter(name__iexact=groupname)
     elif user:
         groups = groups.filter(user_groups__user=user)
     elif username:
