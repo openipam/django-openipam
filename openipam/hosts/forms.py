@@ -342,10 +342,12 @@ class HostForm(forms.ModelForm):
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
+        hostname_exists = Host.objects.filter(hostname=hostname)
         if self.instance.pk:
-            hostname_exists = Host.objects.exclude(hostname=self.instance.hostname).filter(hostname=hostname)
-            if hostname_exists:
-                raise ValidationError('The hostname entered already exists for host %s.' % hostname_exists.hostname)
+            hostname_exists = hostname_exists.exclude(hostname=self.instance.hostname)
+
+        if hostname_exists:
+            raise ValidationError('The hostname entered already exists for host %s.' % hostname_exists[0].mac)
 
         return hostname
 
