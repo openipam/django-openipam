@@ -9,10 +9,9 @@ def create_dns_record_for_static_host(sender, instance, created, *args, **kwargs
 
         #assert False, addresses
         if addresses:
+            from openipam.dns.models import DnsRecord, DnsType
+
             for address in addresses:
-
-                from openipam.dns.models import DnsRecord, DnsType
-
                 # We only create if these record do not exist.  Is this good?
                 existing_ptr = DnsRecord.objects.filter(name=address.address.reverse_dns[:-1])
                 existing_a = DnsRecord.objects.filter(ip_content=address.address.format())
@@ -51,10 +50,9 @@ def delete_dns_record_for_static_host(sender, instance, *args, **kwargs):
         addresses = instance.addresses.all()
 
         if addresses:
+            from openipam.dns.models import DnsRecord
+
             for address in addresses:
-
-                from openipam.dns.models import DnsRecord
-
                 # Delete PTR records
                 DnsRecord.objects.filter(name=address.address.reverse_dns[:-1]).delete()
                 # Delete A or AAAA records
