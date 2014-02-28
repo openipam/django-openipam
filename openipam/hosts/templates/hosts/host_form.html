@@ -112,7 +112,11 @@
                 var aType = parseInt($("#id_address_type").val());
                 var dhcpGroup = $("#id_show_hide_dhcp_group");
 
-                if (!dhcpGroup.prop('checked')) {
+                if ($("#id_dhcp_group").val()) {
+                    $("#div_id_dhcp_group").show();
+                    dhcpGroup.prop('checked', 'checked');
+                }
+                else {
                     $("#div_id_dhcp_group").hide();
                 }
 
