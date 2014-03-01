@@ -27,6 +27,14 @@ $(function(){
         oSettings.oApi._fnReDraw(oSettings);
     };
 
+    var delay = (function(){
+        var timer = 0;
+        return function(callback, ms){
+          clearTimeout (timer);
+          timer = setTimeout(callback, ms);
+        };
+    })();
+
     var asInitVals = new Array();
 
     var results = $("#result_list").dataTable({
@@ -38,7 +46,7 @@ $(function(){
         "bAutoWidth": false,
         "bStateSave": true,
         "bJQueryUI": true,
-        "sDom": '<"header well well-small"rf>t<"pagination well well-small"lpi><"clear">',
+        "sDom": '<"header well well-small"r>t<"pagination well well-small"lpi><"clear">',
         "aaSorting": [[ 1, "asc" ]],
         "oLanguage": {
             "sLengthMenu": "Show _MENU_ records",
@@ -55,16 +63,62 @@ $(function(){
         ],
         "fnInitComplete": function() {
             this.fnAdjustColumnSizing(true);
+
+            $('#id_search').yourlabsAutocomplete({
+                url: '/api/web/IPAMDNSSearchAutoComplete',
+                choiceSelector: '[data-value]',
+                minimumCharacters: 2,
+                placeholder: 'Advanced Search',
+                getQuery: function() {
+                    var value = this.input.val();
+                    return value.substr(value.lastIndexOf(':') + 1);
+                },
+                refresh: function() {
+                    var value = this.input.val();
+                    this.current_search = value.substr(0, value.lastIndexOf(':'));
+                    this.search_type = value.split(" ");
+                    this.search_type = this.search_type[this.search_type.length - 1];
+                    this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
+
+                    var searches = ['user:', 'group:', 'net:']
+                    var do_search = false;
+
+                    if (searches.indexOf(this.search_type) != -1) {
+                        var do_search = true;
+                        this.value = this.getQuery();
+                    }
+                    else {
+                        this.hide();
+                        do_search = false;
+                    }
+
+                    if (do_search) {
+                        // If the input doesn't contain enought characters then abort, else fetch.
+                        this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
+                    }
+                },
+            }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                var value = choice.attr('data-value');
+                this.value = autocomplete.current_search + ':' + value;
+            });
+
+            $('#id_search').on('keyup change', function(){
+                var value = $(this).val() ? $(this).val() : '';
+
+                delay(function(){
+                    $.cookie('search_filter', value, {expires: 1, path: '/dns/'});
+                    results.fnDraw();
+                }, 300);
+            });
+
+
         },
         "fnServerParams": function (aoData) {
             aoData.push(
-                { "name": "host_filter", "value": $.cookie('host_filter') }
+                { "name": "owner_filter", "value": $.cookie('owner_filter') }
             );
             aoData.push(
-                { "name": "group_filter", "value": $.cookie('group_filter') }
-            );
-            aoData.push(
-                { "name": "user_filter", "value": $.cookie('user_filter') }
+                { "name": "search_filter", "value": $.cookie('search_filter') }
             );
         },
         "fnServerData": function(sSource, aoData, fnCallback) {
@@ -88,7 +142,8 @@ $(function(){
                 }
 
                 // Clone html for add row and attach it to datatable
-                $("#add-table tr.add-row").clone().appendTo("#result_list");
+                $("#add-table tr.add-row:not(.extra)").appendTo("#result_list");
+                $("#add-table tr.add-row.extra").clone().appendTo("#result_list");
 
                 // Set pagination to stick when scrolling
                 var page_bar = $('.pagination');
@@ -103,19 +158,25 @@ $(function(){
                     window.onscroll=onchange;
                     onchange();
                 }
+
+                formActionCheck();
             });
         },
         "fnInfoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
             if (iTotal < iMax){
                 $("#filtered-label").show();
+                $(".search_init, #id_search").each(function(){
+                    if ($(this).val() != '') {
+                        $(this).addClass('red-highlight');
+                    }
+                });
                 return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries (filtered from " + iMax + " total entries)"
             }
             else {
                 $("#filtered-label").hide();
+                $(".search_init, #id_search").removeClass('red-highlight');
                 return "Showing " + iStart + " to " + iEnd + " of " + iTotal + " entries"
             }
-
-            //return iStart +" to "+ iEnd;
         }
     });
 
@@ -124,6 +185,26 @@ $(function(){
         if(s<height){page_bar.addClass('fixed');}
         else{page_bar.removeClass('fixed');}
     }
+
+    var formActionCheck = function() {
+        var selectedRecords = $.selectedRecords ? $.selectedRecords : []
+        var anyEditable = $("a.cancel-dns:visible")
+
+        if (selectedRecords.length > 0 || $("tr.add-row:not(.extra)").length > 0 || anyEditable.length > 0) {
+            $("#form-actions").show();
+        }
+        else {
+            $("#form-actions").hide();
+        }
+    }
+
+    $('#changelist-form').bind("keyup keypress", function(e) {
+      var code = e.keyCode || e.which;
+      if (code  == 13) {
+        e.preventDefault();
+        return false;
+      }
+    });
 
     // Edit DNS record for a row
     $("#result_list").on('click', 'a.edit-dns', function() {
@@ -140,16 +221,17 @@ $(function(){
     // Cancel DNS reocrd edit for a row
     $("#result_list").on('click', 'a.cancel-dns', function() {
         var row = $(this).parents('tr');
+        var actionSelect = row.find('input.action-select');
         row.removeClass('info error').find("input[type='text'], select").hide();
-        row.find('input.action-select').removeAttr('checked');
+        actionSelect.removeAttr('checked');
         row.find("span").show();
         $(this).hide();
         row.find('a.edit-dns').show();
 
-        var anyEditable = $("a.cancel-dns:visible")
-        if (anyEditable.length == 0) {
-            $("#form-actions").hide();
+        if ($.selectedRecords) {
+            $.selectedRecords = $.selectedRecords.splice(actionSelect.val(), 1)
         }
+        formActionCheck();
     });
 
     // Cancel selection and form fields
@@ -172,6 +254,8 @@ $(function(){
     // Remove row from table
     $("#result_list").on('click', "a.remove-record", function() {
         $(this).parents('tr').remove();
+
+        formActionCheck();
     });
 
     $("#result_list").on('change', ".add-row input, .add-row select", function() {
@@ -212,24 +296,11 @@ $(function(){
         $("#changelist-filters-toggle").click();
     });
 
-    // Trigger filtering on group
-    $("#id_groups").unbind('change').change(function() {
-        var value = $(this).val() ? $(this).val() : '';
-        $.cookie('group_filter', value, {expires: 1, path: '/dns/'});
-        results.fnDraw();
-    });
-
-    // Trigger filtering on group
-    $("#id_users").unbind('change').change(function() {
-        var value = $(this).val() ? $(this).val() : '';
-        $.cookie('user_filter', value, {expires: 1, path: '/dns/'});
-        results.fnDraw();
-    });
-
-    // Trigger filtering on group
-    $("#id_host").unbind('change').change(function() {
-        var value = $(this).val() ? $(this).val() : '';
-        $.cookie('host_filter', value, {expires: 1, path: '/dns/'});
+    //Triger filtering on owners
+    $("#filter-owners button").click(function() {
+        $("#filter-owners button").removeClass('btn-inverse');
+        $(this).addClass('btn-inverse');
+        $.cookie('owner_filter', $(this).val(), {expires: 1, path: '/dns/'});
         results.fnDraw();
     });
 
@@ -261,21 +332,19 @@ $(function(){
                 $(obj).removeAttr('selected');
             }
         });
-        $("#id_host-deck .remove").click();
-        $("#id_users-deck .remove").click();
-        $("#id_groups-deck .remove").click();
 
-        $.removeCookie('host_filter', {path: '/dns/'});
-        $.removeCookie('user_filter', {path: '/dns/'});
-        $.removeCookie('group_filter', {path: '/dns/'});
+        $.removeCookie('search_filter', {path: '/dns/'});
+        $("#id_search").val('');
 
         results.fnFilterClear();
         return false;
     });
 
     $(".search_init").bind('keyup change', function() {
-        /* Filter on the column (the index) of this element */
-        results.fnFilter($(this).val(), $(".search_init").index($(this)));
+        var self = this;
+        delay(function(){
+            results.fnFilter($(self).val(), $(".search_init").index($(self)));
+        }, 300);
     });
 
     $("#search-help-button").click(function(){
