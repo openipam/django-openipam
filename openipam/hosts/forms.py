@@ -69,6 +69,9 @@ class HostForm(forms.ModelForm):
         # Attach user to form and model
         self.instance.user = self.user = user
 
+        # Get addresses of instance
+        self.addresses = self.instance.addresses.all()
+
         #Populate some fields if we are editing the record
         self.current_address_html = None
         self.expire_date = None
@@ -102,8 +105,8 @@ class HostForm(forms.ModelForm):
                 # Set address_type
                 self.fields['network'].queryset = Network.objects.get_networks_from_address_type(self.instance.address_type)
 
-                # Init IP Address(es) only if form is not bound
-                self._init_ip_address()
+            # Init IP Address(es) only if form is not bound
+            self._init_ip_address()
 
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
@@ -173,8 +176,7 @@ class HostForm(forms.ModelForm):
 
     def _init_ip_address(self):
         html_addresses = []
-        addresses = self.instance.addresses.all()
-        for address in addresses:
+        for address in self.addresses:
             html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
         if html_addresses:
             change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
@@ -187,17 +189,17 @@ class HostForm(forms.ModelForm):
                         %s
                     </div>
                 </div>
-            ''' % ('<strong>Multiple IPs</strong><br />' if len(addresses) > 1 else '',
+            ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
                    ''.join(html_addresses),
-                   change_html if len(addresses) == 1 else ''))
+                   change_html if len(self.addresses) == 1 else ''))
 
-            if len(addresses) > 1:
+            if len(self.addresses) > 1:
                 del self.fields['address_type']
                 del self.fields['network_or_ip']
                 del self.fields['network']
                 del self.fields['ip_address']
             else:
-                self.fields['ip_address'].initial = addresses[0]
+                self.fields['ip_address'].initial = self.addresses[0]
                 self.fields['ip_address'].label = 'New IP Address'
                 self.fields['network_or_ip'].initial = '1'
 
@@ -267,13 +269,15 @@ class HostForm(forms.ModelForm):
 
         instance.hostname = self.cleaned_data['hostname']
         instance.set_mac_address(self.cleaned_data['mac_address'])
-        instance.address_type_id = self.cleaned_data['address_type']
+        if self.cleaned_data.get('address_type'):
+            instance.address_type_id = self.cleaned_data['address_type']
 
         # Save
         instance.save()
 
         # Assign Pool or Network based on conditions
-        instance.set_network_ip_or_pool()
+        if len(self.addresses) == 1:
+            instance.set_network_ip_or_pool()
 
         # Remove all owners if there are any
         instance.remove_owners()
