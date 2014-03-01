@@ -37,23 +37,9 @@ class Domain(models.Model):
         )
 
 
-# class DomainUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('Domain', related_name='user_permissions')
-
-#     class Meta:
-#         verbose_name = 'Domain User Permission'
-
-
-# class DomainGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('Domain', related_name='group_permissions')
-
-#     class Meta:
-#         verbose_name = 'Domain Group Permission'
-
-
 class DnsRecord(models.Model):
     domain = models.ForeignKey('Domain', db_column='did', verbose_name='Domain')
-    dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type')
+    dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type', error_messages={'blank': 'Type fields for DNS records cannot be blank.'})
     dns_view = models.ForeignKey('DnsView', db_column='vid', verbose_name='View', blank=True, null=True)
     name = models.CharField(max_length=255, error_messages={'blank': 'Name fields for DNS records cannot be blank.'})
     text_content = models.CharField(max_length=255, blank=True, null=True)
@@ -98,10 +84,10 @@ class DnsRecord(models.Model):
             errors = e.update_error_dict(errors)
 
         # Clean the domain
-        try:
-            self.clean_domain()
-        except ValidationError as e:
-            errors = e.update_error_dict(errors)
+        # try:
+        #     self.clean_domain()
+        # except ValidationError as e:
+        #     errors = e.update_error_dict(errors)
 
         # Clean the text_content
         try:
@@ -132,25 +118,6 @@ class DnsRecord(models.Model):
         if self.dns_type.name == 'PTR' and self.domain:
             if 'in-addr.arpa' not in self.name and 'ip6.arpa' not in self.name:
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
-
-    def clean_domain(self):
-        if self.name:
-            names = self.name.split('.')[1:]
-            names_list = []
-            while names:
-                names_list.append(Q(name='.'.join(names)))
-                names.pop(0)
-
-            domains = Domain.objects.filter(reduce(operator.or_, names_list))
-            domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
-
-            if domains:
-                self.domain = domains[0]
-            else:
-                raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
-
-            if self.domain.type == 'SLAVE':
-                raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
 
     def clean_text_content(self):
         errors_list = []
@@ -220,22 +187,45 @@ class DnsRecord(models.Model):
         if error_list:
             raise ValidationError({'dns_type': error_list})
 
+    def set_domain_from_name(self):
+        if self.name:
+            names = self.name.split('.')[1:]
+            names_list = []
+            while names:
+                names_list.append(Q(name='.'.join(names)))
+                names.pop(0)
+
+            if names_list:
+                domains = Domain.objects.filter(reduce(operator.or_, names_list))
+                domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
+            else:
+                domains = Domain.objects.none()
+
+            if domains:
+                self.domain = domains[0]
+            else:
+                raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
+
+            if self.domain.type == 'SLAVE':
+                raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
+        else:
+            raise ValidationError({'name': ['Domain name cannot be blank.']})
+
     def set_priority(self):
         """
         Checks for priority and sets it if it exists
         """
         # Make sure that priority was set, or set it if they passed it
         match = None
-        if self.dns_type.name != 'A':
-            if self.dns_type.name == 'MX': # MX
-                match = re.compile('^([0-9]{1,2}) (.*)$').search(self.text_content)
-            elif self.dns_type.name == 'SRV': # SRV
-                match = re.compile('^([0-9]{1,2}) (\d+ \d+ .*)$').search(self.text_content)
+        if self.dns_type.is_mx_record: # MX
+            match = re.compile('^([0-9]{1,2}) (.*)$').search(self.text_content)
+        elif self.dns_type.is_srv_record: # SRV
+            match = re.compile('^([0-9]{1,2}) (\d+ \d+ .*)$').search(self.text_content)
 
-            if match:
-                # We have priority in the content
-                self.priority = match.group(1)
-                self.text_content = match.group(2)
+        if match:
+            # We have priority in the content
+            self.priority = match.group(1)
+            self.text_content = match.group(2)
 
     def user_has_ownership(self, user):
         if user.is_ipamadmin:
@@ -296,6 +286,14 @@ class DnsType(models.Model):
     @property
     def is_a_record(self):
         return True if self.name in ['A', 'AAAA'] else False
+
+    @property
+    def is_mx_record(self):
+        return True if self.name == 'MX' else False
+
+    @property
+    def is_srv_record(self):
+        return True if self.name == 'SRV' else False
 
     class Meta:
         db_table = 'dns_types'
