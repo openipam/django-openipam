@@ -76,6 +76,11 @@ class IPAMMenu(Menu):
                                 'guardian.models.GroupObjectPermission',
                             ]
                         ),
+                        items.ModelList('Logs',
+                            [
+                                'django.contrib.admin.models.LogEntry'
+                            ]
+                        ),
                         items.ModelList('Feature Requests',
                             [
                                 'openipam.core.models.FeatureRequest'
