@@ -76,6 +76,7 @@ class IPAMIndexDashboard(Dashboard):
             'openipam.user.models.User',
             'django.contrib.*',
             'guardian.*',
+            'auditlog.*',
             'openipam.core.*',
             ),
         ))
