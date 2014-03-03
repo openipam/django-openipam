@@ -10,10 +10,13 @@ from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.utils.http import urlunquote
+from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.db.utils import DatabaseError
 from django.contrib import messages
 from django.db import transaction
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.contenttypes.models import ContentType
 
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
@@ -301,6 +304,7 @@ class DNSListView(TemplateView):
     #     host = get_object_or_404(Host, hostname=host) if host else None
     #     return super(DNSListView, self).dispatch(*args, **kwargs)
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
 
         user = request.user
@@ -315,7 +319,19 @@ class DNSListView(TemplateView):
         error_list = []
 
         if action == 'delete':
+
+            for record in selected_records:
+                LogEntry.objects.log_action(
+                    user_id=self.request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
+                    object_id=record,
+                    object_repr=force_unicode(DnsRecord.objects.get(pk=record)),
+                    action_flag=DELETION
+                )
+
             DnsRecord.objects.filter(pk__in=selected_records).delete()
+            messages.success(self.request, "Selected DNS records have been deleted.")
+
             return redirect('list_dns')
 
         else:
@@ -356,6 +372,7 @@ class DNSListView(TemplateView):
                                               ' to add/modify this record.' % request.user)
                     if not error_list:
                         dns_record.save()
+                        return dns_record
 
                 except AddrFormatError:
                     error_list.append('Invalid IP for content: %s' % record_data['record_content'])
@@ -375,31 +392,45 @@ class DNSListView(TemplateView):
                 except:
                     raise
 
-            # Make sure this is in one transaction
-            with transaction.atomic():
-                # New records
-                for index, record in enumerate(new_records):
-                    if not new_names[index] and not new_contents[index] and not new_types[index]:
-                        continue
+            # New records
+            for index, record in enumerate(new_records):
+                if not new_names[index] and not new_contents[index] and not new_types[index]:
+                    continue
 
-                    record_data = {
-                        'record_name': new_names[index],
-                        'record_content': new_contents[index],
-                        'record_type': new_types[index],
-                    }
-                    add_or_update_record(record_data)
+                record_data = {
+                    'record_name': new_names[index],
+                    'record_content': new_contents[index],
+                    'record_type': new_types[index],
+                }
+                dns_resond = add_or_update_record(record_data)
 
-                # Updated records
-                for record in selected_records:
+                LogEntry.objects.log_action(
+                    user_id=self.request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(dns_resond).pk,
+                    object_id=dns_resond.pk,
+                    object_repr=force_unicode(dns_resond),
+                    action_flag=ADDITION
+                )
 
-                    record_type = request.POST.get('type-%s' % record, '')
-                    record_type = int(record_type) if record_type else 0
-                    record_data = {
-                        'record_name': request.POST.get('name-%s' % record, ''),
-                        'record_content': request.POST.get('content-%s' % record, ''),
-                        'record_type': request.POST.get('type-%s' % record, ''),
-                    }
-                    add_or_update_record(record_data, record)
+            # Updated records
+            for record in selected_records:
+
+                record_type = request.POST.get('type-%s' % record, '')
+                record_type = int(record_type) if record_type else 0
+                record_data = {
+                    'record_name': request.POST.get('name-%s' % record, ''),
+                    'record_content': request.POST.get('content-%s' % record, ''),
+                    'record_type': request.POST.get('type-%s' % record, ''),
+                }
+                dns_resond = add_or_update_record(record_data, record)
+
+                LogEntry.objects.log_action(
+                    user_id=self.request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(dns_resond).pk,
+                    object_id=dns_resond.pk,
+                    object_repr=force_unicode(dns_resond),
+                    action_flag=CHANGE
+                )
 
             if error_list:
                 error_list.append('Please try again.')

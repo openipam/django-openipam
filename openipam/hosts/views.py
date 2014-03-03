@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.encoding import force_unicode
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
@@ -283,6 +284,7 @@ class HostListView(TemplateView):
 
         return context
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
 
         user = request.user
@@ -341,11 +343,11 @@ class HostListView(TemplateView):
                         # Log Deletion
                         for host in selected_hosts:
                             LogEntry.objects.log_action(
-                                user_id = self.request.user.pk,
-                                content_type_id = ContentType.objects.get_for_model(host).pk,
-                                object_id = host.pk,
-                                object_repr = force_unicode(host),
-                                action_flag = DELETION
+                                user_id=self.request.user.pk,
+                                content_type_id=ContentType.objects.get_for_model(host).pk,
+                                object_id=host.pk,
+                                object_repr=force_unicode(host),
+                                action_flag=DELETION
                             )
 
                         # Delete hosts
@@ -423,6 +425,10 @@ class HostUpdateCreateView(object):
         )
         return context
 
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        return super(HostUpdateCreateView, self).post(request, *args, **kwargs)
+
 
 class HostUpdateView(HostUpdateCreateView, UpdateView):
     def get(self, request, *args, **kwargs):
@@ -433,11 +439,11 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
         valid_form = super(HostUpdateView, self).form_valid(form)
 
         LogEntry.objects.log_action(
-            user_id = self.object.user.pk,
-            content_type_id = ContentType.objects.get_for_model(self.object).pk,
-            object_id = self.object.pk,
-            object_repr = force_unicode(self.object),
-            action_flag = CHANGE
+            user_id=self.object.user.pk,
+            content_type_id=ContentType.objects.get_for_model(self.object).pk,
+            object_id=self.object.pk,
+            object_repr=force_unicode(self.object),
+            action_flag=CHANGE
         )
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
 
@@ -456,11 +462,11 @@ class HostCreateView(HostUpdateCreateView, CreateView):
         valid_form = super(HostCreateView, self).form_valid(form)
 
         LogEntry.objects.log_action(
-            user_id = self.object.user.pk,
-            content_type_id = ContentType.objects.get_for_model(self.object).pk,
-            object_id = self.object.pk,
-            object_repr = force_unicode(self.object),
-            action_flag = ADDITION
+            user_id=self.object.user.pk,
+            content_type_id=ContentType.objects.get_for_model(self.object).pk,
+            object_id=self.object.pk,
+            object_repr=force_unicode(self.object),
+            action_flag=ADDITION
         )
         messages.success(self.request, "Host %s was successfully added." % form.cleaned_data['hostname'],)
 
