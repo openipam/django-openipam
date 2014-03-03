@@ -339,7 +339,7 @@ class HostForm(forms.ModelForm):
         if self.instance.pk:
             host_exists = Host.objects.exclude(mac=self.instance.pk).filter(mac=mac)
             if host_exists:
-                raise ValidationError('The mac address entered already exists for host %s.' % host_exists.hostname)
+                raise ValidationError(mark_safe('The mac address entered already exists for host:<br /> %s.' % host_exists[0].hostname))
 
         return mac
 
