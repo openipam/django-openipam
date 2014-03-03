@@ -204,6 +204,10 @@ autocomplete_light.register(Host,
     autocomplete_js_attributes={'placeholder': 'Search Hosts'},
 )
 
+autocomplete_light.register(ContentType,
+    search_fields=['model'],
+    autocomplete_js_attributes={'placeholder': 'Search Content Types'},
+)
 
 class HostFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^hostname']
