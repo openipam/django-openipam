@@ -6,12 +6,16 @@ from django.core.urlresolvers import reverse_lazy
 from django.template.defaultfilters import slugify
 from django.utils.http import urlunquote
 from django.utils import timezone
+from django.utils.encoding import force_unicode
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db.utils import DatabaseError
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.contenttypes.models import ContentType
+
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
@@ -333,8 +337,20 @@ class HostListView(TemplateView):
                 if user_perms_check:
                     # If action is to delete hosts
                     if action == 'delete':
+
+                        # Log Deletion
+                        for host in selected_hosts:
+                            LogEntry.objects.log_action(
+                                user_id = self.request.user.pk,
+                                content_type_id = ContentType.objects.get_for_model(host).pk,
+                                object_id = host.pk,
+                                object_repr = force_unicode(host),
+                                action_flag = DELETION
+                            )
+
                         # Delete hosts
                         selected_hosts.delete()
+
                         messages.success(self.request, "Seleted hosts have been deleted.")
 
                     elif action == 'renew':
@@ -407,21 +423,28 @@ class HostUpdateCreateView(object):
         )
         return context
 
-    def form_valid(self, form):
-        valid_form = super(HostUpdateCreateView, self).form_valid(form)
-        messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
-
-        is_continue = self.request.POST.get('_continue')
-        if is_continue:
-            return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
-
-        return valid_form
-
 
 class HostUpdateView(HostUpdateCreateView, UpdateView):
     def get(self, request, *args, **kwargs):
         convert_host_permissions(host_pk=self.kwargs.get('pk'))
         return super(HostUpdateView, self).get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        valid_form = super(HostUpdateView, self).form_valid(form)
+
+        LogEntry.objects.log_action(
+            user_id = self.object.user.pk,
+            content_type_id = ContentType.objects.get_for_model(self.object).pk,
+            object_id = self.object.pk,
+            object_repr = force_unicode(self.object),
+            action_flag = CHANGE
+        )
+        messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
+
+        if self.request.POST.get('_continue'):
+            return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
+
+        return valid_form
 
     @method_decorator(permission_owner_required)
     def dispatch(self, *args, **kwargs):
@@ -429,7 +452,22 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
 
 
 class HostCreateView(HostUpdateCreateView, CreateView):
-    pass
+    def form_valid(self, form):
+        valid_form = super(HostCreateView, self).form_valid(form)
+
+        LogEntry.objects.log_action(
+            user_id = self.object.user.pk,
+            content_type_id = ContentType.objects.get_for_model(self.object).pk,
+            object_id = self.object.pk,
+            object_repr = force_unicode(self.object),
+            action_flag = ADDITION
+        )
+        messages.success(self.request, "Host %s was successfully added." % form.cleaned_data['hostname'],)
+
+        if self.request.POST.get('_continue'):
+            return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
+
+        return valid_form
 
 
 def change_owners(request):
