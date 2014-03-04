@@ -23,6 +23,8 @@ from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
+from cacheops import invalidate_model
+
 import autocomplete_light
 import operator
 
@@ -288,12 +290,16 @@ class HostForm(forms.ModelForm):
             instance.assign_owner(self.user)
 
         # Add Owners and Groups specified
-        if self.cleaned_data['user_owners']:
+        if self.cleaned_data.get('user_owners'):
             for user in self.cleaned_data['user_owners']:
                 instance.assign_owner(user)
-        if self.cleaned_data['group_owners']:
+        if self.cleaned_data.get('group_owners'):
             for group in self.cleaned_data['group_owners']:
                 instance.assign_owner(group)
+
+        # Invalidate Cache
+        invalidate_model(User)
+        invalidate_model(Group)
 
         # Update all host attributes
         # Get all possible attributes
