@@ -398,7 +398,7 @@ class Host(models.Model):
 
         # Perform permission checks if user is attached to this instance
         # and user is not an IPAM admin
-        if self.user:
+        if self.user and not self.user.is_ipamadmin:
 
             # Domain permission checks
             if self.hostname:
