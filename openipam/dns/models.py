@@ -120,7 +120,7 @@ class DnsRecord(models.Model):
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
 
     def clean_text_content(self):
-        errors_list = []
+        error = None
 
         # Validate text content based on dns type
         # TODO: more of these need to be added
@@ -130,30 +130,28 @@ class DnsRecord(models.Model):
             if self.dns_type.name in ['NS', 'CNAME', 'PTR', 'MX']:
                 re_fqdn = re.compile("^"+fqdn+"$")
                 if not re_fqdn.search(self.text_content):
-                    errors_list.append('Invalid Name: %s' % self.text_content)
+                    error = 'Invalid Content: %s'
+
             elif self.dns_type.name == 'SOA':
                 validate_soa_content(self.text_content)
                 re_soa = re.compile('^%s [A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$' % fqdn)
                 if not re_soa.search(self.text_content):
-                    errors_list.append('Invalid SOA Content: %s' % self.text_content)
+                    error = 'Invalid SOA Content: %s'
+
             elif self.dns_type.name == 'SRV':
                 re_srv = re.compile('^(\d+ \d+ %s)$' % fqdn)
                 if not re_srv.search(self.text_content):
-                    errors_list.append('Invalid SRV Content: %s' % self.text_content)
+                    error = 'Invalid SRV Content: %s'
+
             elif self.dns_type.name == 'SSHFP':
                 if not re.match('^[12] 1 [0-9A-F]{40}', self.text_content):
-                    errors_list.append('Invalid SSHFP Content: %s' % self.text_content)
+                    error = 'Invalid SSHFP Content: %s'
 
-            try:
-                if self.dns_type.name == 'A':
-                    validate_ipv4_address(self.text_content)
-                elif self.dns_type.name == 'AAAA':
-                    validate_ipv6_address(self.text_content)
-            except ValidationError as e:
-                errors_list += e.error_list
+            elif self.dns_type.is_a_record:
+                error = 'Text Content should not be assigned with A records.'
 
-        if errors_list:
-            raise ValidationError({'text_content': errors_list})
+        if error:
+            raise ValidationError({'text_content': (error % self.text_content,)})
 
     def clean_priority(self):
         # Priority must exist for MX and SRV records
@@ -161,35 +159,34 @@ class DnsRecord(models.Model):
             raise ValidationError({'priority': ['Prority must exist for MX and SRV records.']})
 
     def clean_dns_type(self):
-        error_list = []
+        error = None
 
         # Text content cannot exist for A records and IP must exist for A records
-        if self.dns_type_id in ['A', 'AAAA']:
+        if self.dns_type.is_a_record:
             if self.text_content:
-                error_list.append('Text Content must not exist for A records.')
+                error = 'Text Content must not exist for A records.'
             if not self.ip_content:
-                error_list.append('IP Content must exist for A records.')
+                error = 'IP Content must exist for A records.'
 
         # Name and text content cannot be the same if its not an CNAME
-        if self.dns_type.name != 'CNAME':
-            if self.name == self.text_content:
-                error_list.append('Name and Text Content cannot match for records order than CNAME.')
+        if self.dns_type.name != 'CNAME' and self.name == self.text_content:
+            error = 'Name and Text Content cannot match for records order than CNAME.'
 
         if self.dns_type.name == 'CNAME':
             records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
             if records:
-                error_list.append('Trying to create CNAME record while other records exist: %s' % records[0].name)
+                error = 'Trying to create CNAME record while other records exist: %s' % records[0].name
         else: # not CNAME
             records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5)
             if records:
-                error_list.append('Trying to create record while CNAME record exists:  %s' % records[0].name)
+                error = 'Trying to create record while CNAME record exists:  %s' % records[0].name
 
-        if error_list:
-            raise ValidationError({'dns_type': error_list})
+        if error:
+            raise ValidationError({'dns_type': (error,)})
 
     def set_domain_from_name(self):
         if self.name:
-            names = self.name.split('.')[1:]
+            names = self.name.split('.')
             names_list = []
             while names:
                 names_list.append(Q(name='.'.join(names)))
@@ -226,6 +223,10 @@ class DnsRecord(models.Model):
             # We have priority in the content
             self.priority = match.group(1)
             self.text_content = match.group(2)
+
+    def clear_content(self):
+        self.ip_content = None
+        self.text_content = None
 
     def user_has_ownership(self, user):
         if user.is_ipamadmin:
@@ -286,6 +287,10 @@ class DnsType(models.Model):
     @property
     def is_a_record(self):
         return True if self.name in ['A', 'AAAA'] else False
+
+    @property
+    def is_cname_record(self):
+        return True if self.name == 'CNAME' else False
 
     @property
     def is_mx_record(self):

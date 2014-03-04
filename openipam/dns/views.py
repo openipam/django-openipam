@@ -212,16 +212,22 @@ class DNSListJson(BaseDatatableView):
                 content = dns_record.ip_content.address
             elif dns_record.dns_type.is_mx_record or dns_record.dns_type.is_srv_record:
                 content = '%s %s' % (dns_record.priority, dns_record.text_content)
+
             else:
                 content = dns_record.text_content
 
+            if len(content) > 100:
+                s_content = content[:100] + '...'
+            else:
+                s_content = content
+
             if not has_permissions:
-                return '<span>%s</span>' % content
+                return '<span title="%s">%s</span>' % (content, s_content)
             else:
                 return '''
-                <span>%s</span>
+                <span title="%s">%s</span>
                 <input type="text" class="dns-content" name="content-%s" value="%s" style="display:none;" />
-            ''' % (content, dns_record.pk, content)
+            ''' % (content, s_content, dns_record.pk, content)
 
         def get_links(dns_record, has_permissions):
             if has_permissions:
@@ -335,102 +341,68 @@ class DNSListView(TemplateView):
             return redirect('list_dns')
 
         else:
-            def add_or_update_record(record_data, record=None):
-                try:
-                    if record:
-                        dns_record = DnsRecord.objects.get(pk=record)
-                    else:
-                        dns_record = DnsRecord()
-
-                    record_type = int(record_data['record_type']) if record_data['record_type'] else 0
-                    record_type = DnsType.objects.get(pk=record_type)
-                    dns_record.dns_type = record_type
-
-                    if record_type.is_a_record:
-                        if not record_data['record_content']:
-                            error_list.append('IP content for A records connot be blank.')
-                        else:
-                            address = Address.objects.get(address=record_data['record_content'])
-                            dns_record.ip_content = address
-                    else:
-                        dns_record.text_content = record_data['record_content']
-                        if record_type.is_mx_record or record_type.is_srv_record:
-                            parsed_content = record_data['record_content'].strip().split(' ')
-                            if len(parsed_content) != 2:
-                                error_list.append('Content for MX records need to only have a priority and FQDN.')
-                            else:
-                                dns_record.set_priority()
-
-                    dns_record.name = record_data['record_name']
-                    dns_record.set_domain_from_name()
-                    dns_record.changed_by = request.user
-
-                    dns_record.full_clean()
-
-                    if not dns_record.user_has_ownership(request.user):
-                        raise ValidationError('Invalid credentials: user %s does not have permissions'
-                                              ' to add/modify this record.' % request.user)
-                    if not error_list:
-                        dns_record.save()
-                        return dns_record
-
-                except AddrFormatError:
-                    error_list.append('Invalid IP for content: %s' % record_data['record_content'])
-
-                except DnsType.DoesNotExist:
-                    error_list.append('Invalid DNS Type for %s' % record_data['record_name'])
-
-                except Address.DoesNotExist:
-                    error_list.append('IP does not exist for content: %s' % record_data['record_content'])
-
-                except ValidationError, e:
-                    #assert False, dns_record.domain
-                    for key, errors in e.message_dict.items():
-                        for error in errors:
-                            error_list.append(error)
-
-                except:
-                    raise
 
             # New records
             for index, record in enumerate(new_records):
                 if not new_names[index] and not new_contents[index] and not new_types[index]:
                     continue
 
-                record_data = {
-                    'record_name': new_names[index],
-                    'record_content': new_contents[index],
-                    'record_type': new_types[index],
-                }
-                dns_resond = add_or_update_record(record_data)
+                try:
 
-                LogEntry.objects.log_action(
-                    user_id=self.request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(dns_resond).pk,
-                    object_id=dns_resond.pk,
-                    object_repr=force_unicode(dns_resond),
-                    action_flag=ADDITION
-                )
+                    dns_record, created = DnsRecord.objects.add_or_update_record(
+                        user=self.request.user,
+                        name=new_names[index],
+                        content=new_contents[index],
+                        dns_type=DnsType.objects.get(pk=int(new_types[index]))
+                    )
+
+                    if dns_record:
+                        LogEntry.objects.log_action(
+                            user_id=self.request.user.pk,
+                            content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
+                            object_id=dns_record.pk,
+                            object_repr=force_unicode(dns_record),
+                            action_flag=ADDITION
+                        )
+
+                except ValidationError, e:
+                    if hasattr(e, 'error_dict'):
+                        for key, errors in e.message_dict.items():
+                            for error in errors:
+                                error_list.append(error)
+                    else:
+                        error_list.append(e.message)
+                    continue
 
             # Updated records
             for record in selected_records:
+                try:
 
-                record_type = request.POST.get('type-%s' % record, '')
-                record_type = int(record_type) if record_type else 0
-                record_data = {
-                    'record_name': request.POST.get('name-%s' % record, ''),
-                    'record_content': request.POST.get('content-%s' % record, ''),
-                    'record_type': request.POST.get('type-%s' % record, ''),
-                }
-                dns_resond = add_or_update_record(record_data, record)
+                    dns_record, created = DnsRecord.objects.add_or_update_record(
+                        user=self.request.user,
+                        name=request.POST.get('name-%s' % record, ''),
+                        content=request.POST.get('content-%s' % record, ''),
+                        dns_type=DnsType.objects.get(pk=int(request.POST.get('type-%s' % record, ''))),
+                        record=record
+                    )
 
-                LogEntry.objects.log_action(
-                    user_id=self.request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(dns_resond).pk,
-                    object_id=dns_resond.pk,
-                    object_repr=force_unicode(dns_resond),
-                    action_flag=CHANGE
-                )
+                    if dns_record:
+                        LogEntry.objects.log_action(
+                            user_id=self.request.user.pk,
+                            content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
+                            object_id=dns_record.pk,
+                            object_repr=force_unicode(dns_record),
+                            action_flag=CHANGE
+                        )
+
+                except ValidationError, e:
+                    if hasattr(e, 'error_dict'):
+                        for key, errors in e.message_dict.items():
+                            for error in errors:
+                                error_list.append(error)
+                    else:
+                        error_list.append(e.message)
+                    continue
 
             if error_list:
                 error_list.append('Please try again.')
