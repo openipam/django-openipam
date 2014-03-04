@@ -276,7 +276,8 @@ class HostForm(forms.ModelForm):
         instance.save()
 
         # Assign Pool or Network based on conditions
-        if len(self.addresses) == 1:
+        # TODO: We dont assign if Host has multiple addresses.
+        if len(self.addresses) <= 1:
             instance.set_network_ip_or_pool()
 
         # Remove all owners if there are any
