@@ -65,11 +65,13 @@ class HostForm(forms.ModelForm):
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, request, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
 
         # Attach user to form and model
-        self.instance.user = self.user = user
+        self.instance.user = self.user = request.user
+
+        self.previous_form_data = request.session.get('host_form_add')
 
         # Get addresses of instance
         self.addresses = self.instance.addresses.all()
@@ -96,23 +98,23 @@ class HostForm(forms.ModelForm):
             # Populate the address type if in edit mode.
             self.fields['address_type'].initial = self.instance.address_type
 
-            # Init owners and groups
-            self._init_owners_groups()
-
-            # Init Exipre Date
-            self._init_expire_date()
-
             # Set networks based on address type if form is not bound
             if not self.data:
                 # Set address_type
                 self.fields['network'].queryset = Network.objects.get_networks_from_address_type(self.instance.address_type)
 
-            # Init IP Address(es) only if form is not bound
-            self._init_ip_address()
-
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
                 del self.fields['show_hide_dhcp_group']
+
+        # Init IP Address(es) only if form is not bound
+        self._init_ip_address()
+
+        # Init Exipre Date
+        self._init_expire_date()
+
+        # Init owners and groups
+        self._init_owners_groups()
 
         # Init attributes.
         self._init_attributes()
@@ -124,11 +126,18 @@ class HostForm(forms.ModelForm):
         self._init_form_layout()
 
     def _init_owners_groups(self):
-        # Get owners
-        user_owners, group_owners = self.instance.get_owners()
+        if self.instance.pk:
+            # Get owners
+            user_owners, group_owners = self.instance.get_owners()
 
-        self.fields['user_owners'].initial = user_owners
-        self.fields['group_owners'].initial = group_owners
+            self.fields['user_owners'].initial = user_owners
+            self.fields['group_owners'].initial = group_owners
+
+        elif self.previous_form_data:
+            if 'user_owners' in self.previous_form_data:
+                self.fields['user_owners'].initial = self.previous_form_data.get('user_owners')
+            if 'group_owners' in self.previous_form_data:
+                self.fields['group_owners'].initial = self.previous_form_data.get('group_owners')
 
     def _init_address_type(self):
         # Customize address types for non super users
@@ -154,6 +163,9 @@ class HostForm(forms.ModelForm):
             user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks)).distinct()
             self.fields['address_type'].queryset = user_address_types
 
+        if self.previous_form_data and 'address_type' in self.previous_form_data:
+            self.fields['address_type'].initial = self.previous_form_data.get('address_type')
+
     def _init_attributes(self):
         attribute_fields = Attribute.objects.all()
         #structured_attribute_values = StructuredAttributeValue.objects.all()
@@ -175,48 +187,60 @@ class HostForm(forms.ModelForm):
             initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
             if initial:
                 self.fields[attribute_field_key].initial = initial[0][1]
+            elif self.previous_form_data and attribute_field_key in self.previous_form_data:
+                self.fields[attribute_field_key].initial = self.previous_form_data.get(attribute_field_key)
 
     def _init_ip_address(self):
-        html_addresses = []
-        for address in self.addresses:
-            html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
-        if html_addresses:
-            change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
-            self.current_address_html = HTML('''
-                <div class="control-group">
-                    <label class="control-label">Current IP Address:</label>
-                    <div class="controls" style="margin-top: 5px;">
-                        %s
-                        %s
-                        %s
+        if self.instance.pk:
+            html_addresses = []
+            for address in self.addresses:
+                html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
+            if html_addresses:
+                change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
+                self.current_address_html = HTML('''
+                    <div class="control-group">
+                        <label class="control-label">Current IP Address:</label>
+                        <div class="controls" style="margin-top: 5px;">
+                            %s
+                            %s
+                            %s
+                        </div>
                     </div>
-                </div>
-            ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
-                   ''.join(html_addresses),
-                   change_html if len(self.addresses) == 1 else ''))
+                ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
+                       ''.join(html_addresses),
+                       change_html if len(self.addresses) == 1 else ''))
 
-            if len(self.addresses) > 1:
-                del self.fields['address_type']
-                del self.fields['network_or_ip']
-                del self.fields['network']
-                del self.fields['ip_address']
-            else:
-                self.fields['ip_address'].initial = self.addresses[0]
-                self.fields['ip_address'].label = 'New IP Address'
-                self.fields['network_or_ip'].initial = '1'
+                if len(self.addresses) > 1:
+                    del self.fields['address_type']
+                    del self.fields['network_or_ip']
+                    del self.fields['network']
+                    del self.fields['ip_address']
+                else:
+                    self.fields['ip_address'].initial = self.addresses[0]
+                    self.fields['ip_address'].label = 'New IP Address'
+                    self.fields['network_or_ip'].initial = '1'
+
+        elif self.previous_form_data:
+            if 'network_or_ip' in self.previous_form_data:
+                self.fields['network_or_ip'].initial = self.previous_form_data.get('network_or_ip')
+            if 'network' in self.previous_form_data:
+                self.fields['network'].initial = self.previous_form_data.get('network')
 
     def _init_expire_date(self):
-
-        self.expire_date = HTML('''
-            <div class="control-group">
-                <label class="control-label">Expire Date:</label>
-                <div class="controls" style="margin-top: 5px;">
-                    <span class="label label-important">%s</span>
-                    <a href="#" id="host-renew" class="renew">Renew Host</a>
+        if self.instance.pk:
+            self.expire_date = HTML('''
+                <div class="control-group">
+                    <label class="control-label">Expire Date:</label>
+                    <div class="controls" style="margin-top: 5px;">
+                        <span class="label label-important">%s</span>
+                        <a href="#" id="host-renew" class="renew">Renew Host</a>
+                    </div>
                 </div>
-            </div>
-        ''' % self.instance.expires.strftime('%b %d %Y'))
-        self.fields['expire_days'].required = False
+            ''' % self.instance.expires.strftime('%b %d %Y'))
+            self.fields['expire_days'].required = False
+
+        elif self.previous_form_data and 'expire_days' in self.previous_form_data:
+            self.fields['expire_days'].initial = self.previous_form_data.get('expire_days')
 
     def _init_form_layout(self):
         # Add Details section

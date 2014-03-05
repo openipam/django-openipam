@@ -413,8 +413,12 @@ class HostUpdateCreateView(object):
     success_url = reverse_lazy('list_hosts')
 
     def get_form(self, form_class):
+        is_bulk = self.kwargs.get('bulk', False)
+        if not is_bulk and self.request.session.get('host_form_add'):
+            del self.request.session['host_form_add']
+
         # passing the user object to the form here.
-        form = form_class(user=self.request.user, **self.get_form_kwargs())
+        form = form_class(request=self.request, **self.get_form_kwargs())
 
         return form
 
@@ -425,7 +429,6 @@ class HostUpdateCreateView(object):
         )
         return context
 
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
         return super(HostUpdateCreateView, self).post(request, *args, **kwargs)
 
@@ -435,6 +438,7 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
         convert_host_permissions(host_pk=self.kwargs.get('pk'))
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
+    @transaction.atomic
     def form_valid(self, form):
         valid_form = super(HostUpdateView, self).form_valid(form)
 
@@ -458,6 +462,8 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
 
 
 class HostCreateView(HostUpdateCreateView, CreateView):
+
+    @transaction.atomic
     def form_valid(self, form):
         valid_form = super(HostCreateView, self).form_valid(form)
 
@@ -472,6 +478,10 @@ class HostCreateView(HostUpdateCreateView, CreateView):
 
         if self.request.POST.get('_continue'):
             return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
+        elif self.request.POST.get('_add'):
+            # Get fields that would carry over
+            self.request.session['host_form_add'] = form.data
+            return redirect(reverse_lazy('add_hosts_bulk'))
 
         return valid_form
 

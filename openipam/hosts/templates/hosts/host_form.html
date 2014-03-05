@@ -186,7 +186,11 @@
                 <div class="center">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
                     {% if request.user.is_ipamadmin %}
-                        <input type="submit" name="_continue" value="Save and continue editing" class="btn" />
+                        {% url 'add_hosts' as add_url %}
+                        {% if request.get_full_path = add_url %}
+                            <input type="submit" name="_add" value="Save and add another" class="btn btn-success" />
+                        {% endif %}
+                        <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info" />
                     {% endif %}
                     <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
                 </div>
