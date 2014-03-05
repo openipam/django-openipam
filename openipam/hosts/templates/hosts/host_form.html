@@ -187,7 +187,8 @@
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
                     {% if request.user.is_ipamadmin %}
                         {% url 'add_hosts' as add_url %}
-                        {% if request.get_full_path = add_url %}
+                        {% url 'add_hosts_bulk' as add_url_bulk %}
+                        {% if request.get_full_path = add_url or request.get_full_path = add_url_bulk %}
                             <input type="submit" name="_add" value="Save and add another" class="btn btn-success" />
                         {% endif %}
                         <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info" />
