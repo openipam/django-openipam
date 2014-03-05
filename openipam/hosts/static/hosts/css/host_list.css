@@ -26,7 +26,9 @@ input {
 }
 #host-details-container {
     margin: 0px 0px 0px 25px;
+    max-width: 800px;
 }
+
 .host-detail {
     padding-top: 5px;
     background-color: #eee;
@@ -52,4 +54,12 @@ input {
     border-top: 5px solid #ff0000;
     font-size: 0;
     line-height: 0;
+}
+.well-white {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding: 5px;
 }
