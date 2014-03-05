@@ -130,22 +130,53 @@ $(function(){
 
                 $("#result_list span.flagged").parents('tr').addClass('flagged');
 
-                $(".host-details").click(function(){
+                // $(".host-details").click(function(){
+                //     var hostname = $(this).prop("rel");
+                //     var href = $(this).prop("href");
+                //     var edit_href = $(this).prop("id");
+
+                //     $('#host-details').modal({
+                //           remote: href
+                //     });
+
+                //     $('#host-details').on('shown', function(){
+                //         $("#host-detail-label").text("Details for: " + hostname);
+                //         $("#edit-host").prop("href", edit_href);
+                //     });
+
+                //     return false;
+                // });
+
+                $(".host-details").on('click', function() {
+                    var a = $(this);
+                    var tr = $(this).parents('tr')[0];
                     var hostname = $(this).prop("rel");
                     var href = $(this).prop("href");
                     var edit_href = $(this).prop("id");
+                    var detail_html = $(tr).next("tr").has("td.host-detail");
 
-                    $('#host-details').modal({
-                          remote: href
-                    });
-
-                    $('#host-details').on('shown', function(){
-                        $("#host-detail-label").text("Details for: " + hostname);
-                        $("#edit-host").prop("href", edit_href);
-                    });
+                    if (detail_html.length > 0) {
+                        detail_html.toggle();
+                        $(this).find('span').toggleClass('icon-contract').toggleClass('icon-expand');
+                    }
+                    else {
+                        $.ajax({
+                            url: href,
+                            beforeSend: function() {
+                                $("#result_list_processing").css('visibility', 'visible').show();
+                            },
+                            complete: function() {
+                                $("#result_list_processing").css('visibility', 'hidden').hide();
+                            },
+                            success: function(data) {
+                                $(a).find('span').removeClass('icon-expand').addClass('icon-contract');
+                                results.fnOpen(tr, data, 'host-detail');
+                            }
+                        });
+                    }
 
                     return false;
-                });
+                } );
 
                 $('#host-details').on('hidden', function() {
                     $(this).data('modal').$element.removeData();

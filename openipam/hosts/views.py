@@ -251,7 +251,7 @@ class HostListJson(BaseDatatableView):
             json_data.append([
                 get_selector(host, has_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
-                 ' class="host-details" data-toggle="modal">%(hostname)s</a>' % {
+                 ' class="host-details" data-toggle="modal"><span class="icon-expand"></span> %(hostname)s</a>' % {
                                                                                     'hostname': host.hostname or 'N/A',
                                                                                     'view_href': host_view_href,
                                                                                     'update_href': host_edit_href
