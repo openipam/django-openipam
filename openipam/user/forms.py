@@ -20,7 +20,7 @@ class AuthUserCreateAdminForm(UserCreationForm):
         if User.objects.filter(username=username):
             raise forms.ValidationError('Username already exists.')
 
-        super(self, AuthUserCreateAdminForm).clean_username()
+        return super(self, AuthUserCreateAdminForm).clean_username()
 
 
     class Meta:
