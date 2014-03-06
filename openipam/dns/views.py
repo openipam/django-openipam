@@ -209,7 +209,7 @@ class DNSListJson(BaseDatatableView):
 
         def get_content(dns_record, has_permissions):
             if dns_record.dns_type.is_a_record:
-                content = dns_record.ip_content.address
+                content = str(dns_record.ip_content.address)
             elif dns_record.dns_type.is_mx_record or dns_record.dns_type.is_srv_record:
                 content = '%s %s' % (dns_record.priority, dns_record.text_content)
 
