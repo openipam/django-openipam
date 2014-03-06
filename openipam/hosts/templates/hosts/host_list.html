@@ -27,7 +27,7 @@
     <script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 
-{# {% block object-tools %}
+{% block object-tools %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
     <a href="{% url 'add_hosts' %}" class="btn btn-primary">
@@ -36,7 +36,7 @@
     </a>
   {% endblock %}
 </div>
-{% endblock %} #}
+{% endblock %}
 
 {% block contentbody %}
     <form id="changelist-form" action="" method="post" class="quickbody">

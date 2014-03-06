@@ -4,10 +4,9 @@ def create_dns_record_for_static_host(sender, instance, created, *args, **kwargs
     """
         Creates A or AAAA and PTR records for newely created hosts.
     """
-    if not instance.is_dynamic:
+    if instance.is_dynamic is False:
         addresses = instance.addresses.all()
 
-        #assert False, addresses
         if addresses:
             from openipam.dns.models import DnsRecord, DnsType
 
@@ -46,7 +45,7 @@ def delete_dns_record_for_static_host(sender, instance, *args, **kwargs):
     """
         Deletes A or AAAA and PTR records hosts that are deleted.
     """
-    if not instance.is_dynamic:
+    if instance.is_dynamic is False:
         addresses = instance.addresses.all()
 
         if addresses:

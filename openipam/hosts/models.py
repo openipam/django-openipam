@@ -167,7 +167,7 @@ class Host(models.Model):
     def __unicode__(self):
         return self.hostname
 
-    @cached_property
+    @property
     def is_dynamic(self):
         return True if self.pools.all() else False
 
@@ -322,12 +322,14 @@ class Host(models.Model):
             any_perm=True
         )
 
+        if delete:
+            # Remove all pools
+            self.pools.clear()
+            # Remove all addresses
+            self.addresses.clear()
+
         # If we have a pool, this dynamic and we assign
         if self.address_type.pool:
-            # Remove all pools
-            if delete:
-                self.pools.clear()
-
             # Assign new pool if it doesn't already exist
             HostToPool.objects.get_or_create(
                 host=self,
@@ -337,9 +339,6 @@ class Host(models.Model):
 
         # If we have an IP address, then assign that address to host
         else:
-            if delete:
-                self.addresses.clear()
-
             if self.network:
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True),
