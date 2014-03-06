@@ -15,13 +15,12 @@ import operator
 
 class AuthUserCreateAdminForm(UserCreationForm):
     def clean_username(self):
-        username = self.cleaned_data['username'].lower()
+        username = self.cleaned_data['username']
 
-        if User.objects.filter(username=username):
+        if User.objects.filter(username__iexact=username):
             raise forms.ValidationError('Username already exists.')
 
-        return super(self, AuthUserCreateAdminForm).clean_username()
-
+        return super(AuthUserCreateAdminForm, self).clean_username()
 
     class Meta:
         model = User
