@@ -7,7 +7,8 @@ def create_dns_record_for_static_host(sender, instance, created, *args, **kwargs
     if instance.is_dynamic is False:
         addresses = instance.addresses.all()
 
-        if addresses:
+        # Only auto add DNS for first IP.  Multiple need to be done manually.
+        if addresses and len(addresses) == 1:
             from openipam.dns.models import DnsRecord, DnsType
 
             for address in addresses:
