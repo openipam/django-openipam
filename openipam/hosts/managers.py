@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, get_perms_for_model
 
@@ -7,6 +8,8 @@ from netfields import NetManager
 import operator
 
 from copy import deepcopy
+
+User = get_user_model()
 
 
 class HostManager(NetManager):
@@ -115,7 +118,7 @@ class HostManager(NetManager):
     def get_hosts_owned_by_user(self, user, ids_only=False):
 
         # Temporarily set superuser to false so we can get only permission relations
-        perm_user = deepcopy(user)
+        perm_user = User.objects.get(pk=user.pk)
         perm_user.is_superuser = False
 
         hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host', use_groups=True)
