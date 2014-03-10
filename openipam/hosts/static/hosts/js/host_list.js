@@ -56,7 +56,7 @@ $(function(){
             { "bSortable": false },
             null,
             null,
-            { "bSortable": false },
+            null,
             null,
             { "bSortable": false },
             { "bSortable": false },
