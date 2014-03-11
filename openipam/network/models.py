@@ -121,12 +121,12 @@ class DhcpOption(models.Model):
 class DhcpOptionToDhcpGroup(models.Model):
     group = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
     option = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
-    value = models.BinaryField(blank=True, null=True)
+    value = models.CharField(blank=True, null=True, max_length='255')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s:%s=%r' % (self.gid, self.oid, str(self.value))
+        return '%s:%s=%r' % (self.group, self.option, str(self.value))
 
     class Meta:
         db_table = 'dhcp_options_to_dhcp_groups'
