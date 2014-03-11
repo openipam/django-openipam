@@ -35,6 +35,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
     show_ranges.allow_tags = True
 
 
+class DhcpGroupAdmin(admin.ModelAdmin):
+    form = autocomplete_light.modelform_factory(DhcpGroup)
+
+
 class PoolAdmin(admin.ModelAdmin):
     pass
 
@@ -52,4 +56,4 @@ admin.site.register(Network, NetworkAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(Address, AddressAdmin)
 admin.site.register(Pool, PoolAdmin)
-admin.site.register(DhcpGroup)
+admin.site.register(DhcpGroup, DhcpGroupAdmin)
