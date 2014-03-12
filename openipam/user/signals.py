@@ -44,9 +44,12 @@ def assign_ipam_groups(sender, instance, created, **kwargs):
     # Get user group
     ipam_user_group = Group.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
     # Check to make sure Admin Group exists
-    ipam_admin_group = Group.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
+    # ipam_admin_group = Group.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
 
-    if created:
+    # Get user groups
+    user_groups = instance.groups.all()
+
+    if ipam_user_group not in user_groups:
         instance.groups.add(ipam_user_group)
 
 
