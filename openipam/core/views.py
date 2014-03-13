@@ -9,11 +9,14 @@ from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import RequestContext, loader
 from django.conf import settings
+from django.contrib.auth.views import login as auth_login
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
+from openipam.user.forms import IPAMAuthenticationForm
 
-import os, random
+import os
+import random
 
 
 def index(request):
@@ -25,6 +28,10 @@ def index(request):
             'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
         }
         return AdminSite().index(request, extra_context=context)
+
+
+def login(request, **kwargs):
+    return auth_login(request, authentication_form=IPAMAuthenticationForm, **kwargs)
 
 
 def profile(request):
@@ -67,10 +74,6 @@ def password_change(request, *args, **kwargs):
         return auth_password_change(request, *args, **kwargs)
     else:
         return redirect('admin:index')
-
-
-def password_forgot(request):
-    pass
 
 
 @requires_csrf_token
@@ -118,8 +121,5 @@ class FeatureRequestView(CreateView):
             return HttpResponse(1)
         else:
             return HttpResponseRedirect(self.get_success_url())
-
-
-
 
 
