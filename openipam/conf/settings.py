@@ -248,7 +248,7 @@ CACHEOPS = {
     'auth.permission': ('get', 60*60),
 
     # Auto Cache guadian models
-    'guardian.*': ('all', 60*60),
+    'guardian.*': ('all', 60*15),
 
     # Enable manual caching on all news models with default timeout of an hour
     # Use News.objects.cache().get(...)
