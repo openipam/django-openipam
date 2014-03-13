@@ -53,6 +53,7 @@ def assign_ipam_groups(sender, instance, created, **kwargs):
         instance.groups.add(ipam_user_group)
 
 
+
 # Automatically remove permissions when user is deleted.
 # This is only used when there are row level permissions defined using
 # guadian tables.  Right now Host, Domain, DnsType, etc have explicit perm tables.
