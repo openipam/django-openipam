@@ -74,7 +74,11 @@ class AuthUserAdmin(UserAdmin):
 
     def changelist_view(self, request, extra_context=None):
 
-        if not request.GET.has_key('last_login__gte') and not request.GET.has_key('last_login__lt'):
+        login_gte = request.GET.get('last_login__gte', '')
+        login_lt = request.GET.get('last_login__lt', '')
+        search = request.GET.get('q', '')
+
+        if not login_gte and not login_lt and not search:
             q = request.GET.copy()
             q['last_login__gte'] = date(date.today().year, 1, 1)
             q['last_login__lt'] = date(date.today().year+1, 1, 1)
