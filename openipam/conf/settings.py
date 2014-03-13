@@ -207,7 +207,7 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = 'user.User'
 
 ANONYMOUS_USER_ID = -1
-LOGIN_URL = reverse_lazy('django.contrib.auth.views.login')
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 
