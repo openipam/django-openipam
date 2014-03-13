@@ -309,14 +309,14 @@ class HostForm(forms.ModelForm):
         # Remove all owners if there are any
         instance.remove_owners()
 
-        # If not admin, assign as owner
-        if not self.user.is_ipamadmin:
-            instance.assign_owner(self.user)
-
         # Add Owners and Groups specified
         if self.cleaned_data.get('user_owners'):
             for user in self.cleaned_data['user_owners']:
                 instance.assign_owner(user)
+        else:
+            # If not admin, assign as owner
+            instance.assign_owner(self.user)
+
         if self.cleaned_data.get('group_owners'):
             for group in self.cleaned_data['group_owners']:
                 instance.assign_owner(group)
