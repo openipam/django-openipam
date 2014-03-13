@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import Group, Permission
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
@@ -64,6 +64,14 @@ PERMISSION_FILTER = [
     Q(codename__startswith='add_records_to'),
     Q(codename__startswith='is_owner'),
 ]
+
+
+class IPAMAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        'invalid_login': "Please enter a correct %(username)s and password. "
+                           "Note that passwords are case-sensitive.",
+        'inactive': "This account is inactive.",
+    }
 
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
