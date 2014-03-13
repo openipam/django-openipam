@@ -22,7 +22,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
-from openipam.network.models import AddressType
+from openipam.network.models import AddressType, Address
 from openipam.user.utils.user_utils import convert_host_permissions
 
 import json
@@ -112,7 +112,8 @@ class HostListJson(BaseDatatableView):
                             Q(leases__address__address=search_item.split(':')[-1])
                         )
                 elif search_item.startswith('net:'):
-                    qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
+                    net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item.split(':')[-1])
+                    qs = qs.filter(addresses__in=net_addresses)
                 elif search_item:
                     qs = qs.filter(hostname__icontains=search_item)
 
@@ -129,7 +130,8 @@ class HostListJson(BaseDatatableView):
                 qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
                 if '/' in ip_search:
-                    qs = qs.filter(addresses__address__net_contained=ip_search)
+                    ip_addresses = Address.objects.filter(address__net_contained_or_equal=ip_search)
+                    qs = qs.filter(addresses__in=ip_addresses)
                 else:
                     ip = search_item.split(':')[-1]
                     ip_blocks = ip.split('.')
