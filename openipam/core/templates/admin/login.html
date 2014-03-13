@@ -31,8 +31,8 @@
           {% blocktrans count form.errors.items|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
           </p>
         {% endif %}
-        {% if form.non_field_errors or form.this_is_the_login_form.errors %}
-          {% for error in form.non_field_errors|add:form.this_is_the_login_form.errors %}
+        {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
           <p class="errornote">
               {{ error }}
           </p>
@@ -51,12 +51,11 @@
             {{ form.password }}
             {% if form.password.errors %}<div class="help-div">{{ form.password.errors }}</div>{% endif %}
           </div>
-          <input type="hidden" name="this_is_the_login_form" value="1" />
           <input type="hidden" name="next" value="{{ next }}" />
         </div>
         <div class="pull-right">
           <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
-          <a href="{% url 'password_forgot' %}" class="btn btn-info">{% trans 'Forgot Password' %}</a>
+          <a href="{% url 'password_forgot' %}" class="btn btn-info">{% trans 'Forgot Password?' %}</a>
         </div>
         <div class="clear"><!-- --></div>
       </form>

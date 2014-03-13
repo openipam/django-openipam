@@ -183,7 +183,10 @@ td.action-checkbox {
   margin-left: 90px;
   color: #b94a48;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 24px;
+  float: right;
+  width: 310px;
 }
 
 .login label {
