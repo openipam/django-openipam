@@ -63,11 +63,11 @@ class DnsRecord(models.Model):
 
         # Make sure we have text or ip content
         if not self.text_content and not self.ip_content:
-            raise ValidationError('Either Text Content or IP Content must exist for %s.' % self.name)
+            raise ValidationError('Either Text Content or IP Content must exist for %s.' % (self.name if self.name else 'record',))
 
         # But we cannot have both text and ip content
         if self.text_content and self.ip_content:
-            raise ValidationError('Text Content and IP Content cannot both exist for %s.' % self.name)
+            raise ValidationError('Text Content and IP Content cannot both exist for %s.' % (self.name if self.name else 'record',))
 
     def clean_fields(self, exclude=None):
         errors = {}
@@ -115,7 +115,7 @@ class DnsRecord(models.Model):
         self.name = self.name.lower()
 
         # Clean name if PTR record
-        if self.dns_type.name == 'PTR' and self.domain:
+        if hasattr(self, 'dns_type') and self.dns_type.name == 'PTR' and self.domain:
             if 'in-addr.arpa' not in self.name and 'ip6.arpa' not in self.name:
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
 
@@ -155,34 +155,35 @@ class DnsRecord(models.Model):
 
     def clean_priority(self):
         # Priority must exist for MX and SRV records
-        if self.dns_type.name in ['MX', 'SRV'] and not self.priority:
+        if hasattr(self, 'dns_type') and self.dns_type.name in ['MX', 'SRV'] and not self.priority:
             raise ValidationError({'priority': ['Prority must exist for MX and SRV records.']})
 
     def clean_dns_type(self):
         error = None
 
-        # Text content cannot exist for A records and IP must exist for A records
-        if self.dns_type.is_a_record:
-            if self.text_content:
-                error = 'Text Content must not exist for A records.'
-            if not self.ip_content:
-                error = 'IP Content must exist for A records.'
+        if hasattr(self, 'dns_type'):
+            # Text content cannot exist for A records and IP must exist for A records
+            if self.dns_type.is_a_record:
+                if self.text_content:
+                    error = 'Text Content must not exist for A records.'
+                if not self.ip_content:
+                    error = 'IP Content must exist for A records.'
 
-        # Name and text content cannot be the same if its not an CNAME
-        if self.dns_type.name != 'CNAME' and self.name == self.text_content:
-            error = 'Name and Text Content cannot match for records order than CNAME.'
+            # Name and text content cannot be the same if its not an CNAME
+            if self.dns_type.name != 'CNAME' and self.name == self.text_content:
+                error = 'Name and Text Content cannot match for records order than CNAME.'
 
-        if self.dns_type.name == 'CNAME':
-            records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
-            if records:
-                error = 'Trying to create CNAME record while other records exist: %s' % records[0].name
-        else: # not CNAME
-            records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5)
-            if records:
-                error = 'Trying to create record while CNAME record exists:  %s' % records[0].name
+            if self.dns_type.name == 'CNAME':
+                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
+                if records:
+                    error = 'Trying to create CNAME record while other records exist: %s' % records[0].name
+            else: # not CNAME
+                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5)
+                if records:
+                    error = 'Trying to create record while CNAME record exists:  %s' % records[0].name
 
-        if error:
-            raise ValidationError({'dns_type': (error,)})
+            if error:
+                raise ValidationError({'dns_type': (error,)})
 
     def set_domain_from_name(self):
         if self.name:
