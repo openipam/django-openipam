@@ -120,7 +120,6 @@ def convert_min_permissions(user=None, username=None):
 
 
 def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], pools=[]):
-
     for host in hosts:
         assign_perm('hosts.%s_host' % permission, user_or_group, host)
     for domain in domains:
