@@ -129,7 +129,7 @@ class HostListJson(BaseDatatableView):
                     mac_str = mac_search
                 qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
-                if '/' in ip_search:
+                if '/' in ip_search and ip_search.split('/')[1]:
                     ip_addresses = Address.objects.filter(address__net_contained_or_equal=ip_search)
                     qs = qs.filter(addresses__in=ip_addresses)
                 else:
