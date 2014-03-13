@@ -21,13 +21,9 @@ from django.contrib.contenttypes.models import ContentType
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from openipam.hosts.decorators import permission_owner_required
-from openipam.hosts.forms import HostForm, HostListForm, HostOwnerForm, HostRenewForm
-from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress, Attribute, \
-    StructuredAttributeToHost, FreeformAttributeToHost, StructuredAttributeValue
-from openipam.network.models import Lease, AddressType, Address
+from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
+from openipam.hosts.models import Host
 from openipam.user.utils.user_utils import convert_host_permissions
-
-from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 import json
 
@@ -54,7 +50,7 @@ class HostListJson(BaseDatatableView):
         is_owner = self.request.GET.get('owner_filter', None)
 
         if is_owner:
-            qs = Host.objects.get_hosts_owned_by_user(self.request.user)
+            qs = Host.objects.by_owner(self.request.user)
         # Otherwise get hosts based on permissions
         else:
             qs = Host.objects.all()
@@ -78,26 +74,17 @@ class HostListJson(BaseDatatableView):
             search_list = search.strip().split(' ')
             for search_item in search_list:
                 if search_item.startswith('desc:'):
-                    #assert False, search_item.split(':')[-1]
                     qs = qs.filter(description__icontains=search_item.split(':')[-1])
                 elif search_item.startswith('user:'):
                     user = User.objects.filter(username__iexact=search_item.split(':')[-1])
                     if user:
-                        qs = get_objects_for_user(
-                            user[0],
-                            ['hosts.is_owner_host'],
-                            klass=qs,
-                        )
+                        qs = qs.by_owner(user[0])
                     else:
                         qs = qs.none()
                 elif search_item.startswith('group:'):
                     group = Group.objects.filter(name__iexact=search_item.split(':')[-1])
                     if group:
-                        qs = get_objects_for_group(
-                            group[0],
-                            ['hosts.is_owner_host'],
-                            klass=qs,
-                        )
+                        qs = qs.by_group(group[0])
                     else:
                         qs = qs.none()
                 elif search_item.startswith('name:'):
@@ -112,7 +99,18 @@ class HostListJson(BaseDatatableView):
                         pass
                     qs = qs.filter(mac__startswith=mac_str)
                 elif search_item.startswith('ip:'):
-                    qs = qs.filter(addresses__address__startswith=search_item.split(':')[-1])
+                    ip = search_item.split(':')[-1]
+                    ip_blocks = ip.split('.')
+                    if len(ip_blocks) < 4 or not ip_blocks[3]:
+                        qs = qs.filter(
+                            Q(addresses__address__startswith=search_item.split(':')[-1]) |
+                            Q(leases__address__address__startswith=search_item.split(':')[-1])
+                        )
+                    else:
+                        qs = qs.filter(
+                            Q(addresses__address=search_item.split(':')[-1]) |
+                            Q(leases__address__address=search_item.split(':')[-1])
+                        )
                 elif search_item.startswith('net:'):
                     qs = qs.filter(addresses__address__net_contained=search_item.split(':')[-1])
                 elif search_item:
@@ -133,23 +131,20 @@ class HostListJson(BaseDatatableView):
                 if '/' in ip_search:
                     qs = qs.filter(addresses__address__net_contained=ip_search)
                 else:
-                    qs = qs.filter(addresses__address__startswith=ip_search)
+                    ip = search_item.split(':')[-1]
+                    ip_blocks = ip.split('.')
+                    if len(ip_blocks) < 4 or not ip_blocks[3]:
+                        qs = qs.filter(addresses__address__startswith=ip_search)
+                    else:
+                        qs = qs.filter(addresses__address=ip_search)
             if group_filter:
                 group = Group.objects.filter(pk=group_filter)
                 if group:
-                    qs = get_objects_for_group(
-                        group[0],
-                        ['hosts.is_owner_host'],
-                        klass=qs
-                    )
+                    qs = qs.by_group(group)
             if user_filter:
                 user = User.objects.filter(pk=user_filter)
                 if user:
-                    qs = get_objects_for_user(
-                        user[0],
-                        ['hosts.is_owner_host'],
-                        klass=qs
-                    )
+                    qs = qs.by_owner(user)
             if expired_search and expired_search == '1':
                 qs = qs.filter(expires__gt=timezone.now())
             elif expired_search and expired_search == '0':
