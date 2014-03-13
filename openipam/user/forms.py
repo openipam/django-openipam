@@ -1,10 +1,8 @@
 from django import forms
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from django.conf import settings
 from django.db.models import Q
-
-from openipam.user.models import User
+from django.contrib.auth import get_user_model
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
@@ -12,15 +10,22 @@ import autocomplete_light
 
 import operator
 
+User = get_user_model()
+
 
 class AuthUserCreateAdminForm(UserCreationForm):
     def clean_username(self):
-        username = self.cleaned_data['username']
-
-        if User.objects.filter(username__iexact=username):
-            raise forms.ValidationError('Username already exists.')
-
-        return super(AuthUserCreateAdminForm, self).clean_username()
+        # Since User.username is unique, this check is redundant,
+        # but it sets a nicer error message than the ORM. See #13147.
+        username = self.cleaned_data["username"]
+        try:
+            User._default_manager.get(username__iexact=username)
+        except User.DoesNotExist:
+            return username
+        raise forms.ValidationError(
+            self.error_messages['duplicate_username'],
+            code='duplicate_username',
+        )
 
     class Meta:
         model = User
@@ -29,7 +34,6 @@ class AuthUserCreateAdminForm(UserCreationForm):
 class AuthUserChangeAdminForm(UserChangeForm):
 
     def clean_username(self):
-        #assert False, self.instance.username
         username = self.cleaned_data['username']
         db_user = User.objects.filter(username__iexact=username)
 
