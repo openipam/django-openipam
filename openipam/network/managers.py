@@ -78,8 +78,6 @@ class AddressManager(NetManager):
         if not address.mac:
             raise ValidationError('This address "%s" has already been released.' % address)
 
-        #host = hos
-
     def assign_ip6_address(self, mac, network):
     #def assign_ip6_address(self, mac, network, dhcp_server_id=0, use_lowest=False, is_server=False):
 
