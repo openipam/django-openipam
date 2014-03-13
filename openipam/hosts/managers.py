@@ -1,18 +1,40 @@
+from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
-from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, get_perms_for_model
+from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
 
 from netfields import NetManager
 
 import operator
 
-from copy import deepcopy
-
 User = get_user_model()
 
 
+class HostMixin(object):
+    def by_owner(self, user):
+
+        # Temporarily set superuser to false so we can get only permission relations
+        perm_user = User.objects.get(pk=user.pk)
+        perm_user.is_superuser = False
+
+        return get_objects_for_user(perm_user, 'hosts.is_owner_host', klass=self, use_groups=True)
+
+    def by_group(self, group):
+        return get_objects_for_group(group, 'hosts.is_owner_host', klass=self)
+
+
+class HostQuerySet(QuerySet, HostMixin):
+    pass
+
+
 class HostManager(NetManager):
+
+    def __getattr__(self, name):
+        return getattr(self.get_query_set(), name)
+
+    def get_query_set(self):
+        return HostQuerySet(self.model, using=self._db)
 
     def get_owners_of_host(self, mac):
         host = self.get(mac=mac)
