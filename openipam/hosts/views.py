@@ -17,12 +17,12 @@ from django.db.utils import DatabaseError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
+from openipam.network.models import AddressType
 from openipam.user.utils.user_utils import convert_host_permissions
 
 import json
