@@ -3,7 +3,11 @@
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-    Host
+    {% if form.instance.pk %}
+        Edit Host: {{ form.instance.mac }}
+    {% else %}
+        Add Host
+    {% endif %}
   </h3>
 {% endblock %}
 
@@ -177,11 +181,6 @@
         <form id="host-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px;">
             {% csrf_token %}
             <div class="margin10">
-                {% if form.instance.pk %}
-                    <h2>Edit Host: {{ form.instance.mac }}</h2>
-                {% else %}
-                    <h2>Add Host</h2>
-                {% endif %}
                 {% crispy form %}
                 <div class="center">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
