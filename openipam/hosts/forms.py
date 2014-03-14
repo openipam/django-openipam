@@ -141,7 +141,7 @@ class HostForm(forms.ModelForm):
 
     def _init_address_type(self):
         # Customize address types for non super users
-        if not self.user.is_ipamadmin and self.fields.get('address_type_id'):
+        if not self.user.is_ipamadmin and self.fields.get('address_type'):
             user_pools = get_objects_for_user(
                 self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
