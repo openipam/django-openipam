@@ -1,0 +1,49 @@
+{% extends "dns/base.html" %}
+{% load i18n static crispy_forms_tags %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+    Add DNS Record
+  </h3>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style type="text/css">
+        .controls {
+            margin-left: 100px !important;
+        }
+        .control-label {
+            width: 80px !important;
+        }
+    </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+        ../|{% trans "DNS" %}
+        {% if object %}
+            {{ object.pk }}
+        {% else %}
+            {% trans "Add Record" %}
+        {% endif %}
+{% endblock %}
+
+
+{% block contentbody %}
+    <div class="well well-small quickbody">
+        <form id="dns-form" action="" method="post" class="pull-left form-horizontal" style="min-width: 400px;">
+            {% csrf_token %}
+            <div class="margin10">
+                <div class="accordion">
+                    {% crispy form %}
+                </div>
+                <div class="controls">
+                    <input type="submit" value="Save Changes" class="btn btn-primary" />
+                    <input type="submit" name="_add" value="Save and add another" class="btn btn-success" />
+                    <a href="{% url 'list_dns' %}" class="btn">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
