@@ -42,7 +42,7 @@ class DomainManager(Manager):
 
 class DnsManager(Manager):
 
-     def add_or_update_record(self, user, name, content, dns_type, record=None):
+     def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
         try:
             if record:
                 created = False
@@ -69,6 +69,9 @@ class DnsManager(Manager):
                     raise ValidationError('Content for SRV records need to only have a priority, weight, port, and FQDN.')
                 else:
                     dns_record.set_priority()
+
+            if ttl:
+                dns_record.ttl = ttl
 
             dns_record.name = name
             dns_record.set_domain_from_name()

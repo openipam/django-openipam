@@ -39,6 +39,16 @@
     <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>
 {% endblock %}
 
+{% block object-tools %}
+<div class="pull-right object-tools">
+  {% block object-tools-items %}
+    <a href="{% url 'add_dns' %}" class="btn btn-primary">
+      <i class="icon-plus icon-white"></i>
+      Add DNS Record
+    </a>
+  {% endblock %}
+</div>
+{% endblock %}
 
 {% block contentbody %}
     <form id="changelist-form" action="" method="post" class="quickbody">
@@ -138,7 +148,7 @@
                     <tr class="add-row warning">
                         <td><input type="hidden" name="new-records" value="1" /></td>
                         <td><input type="text" name="name-new" value="{{ row.name }}" /></td>
-                        <td>86400</td>
+                        <td><input type="text" name="ttl-new" value="{{ row.ttl }}" class="dns-ttl" /></td>
                         <td>
                             <select name="type-new" style="max-width: 80px;">
                                 <option value="">---</option>
@@ -157,7 +167,7 @@
                 <tr class="add-row extra">
                     <td><input type="hidden" name="new-records" value="1" /></td>
                     <td><input type="text" name="name-new" /></td>
-                    <td>86400</td>
+                    <td><input type="text" name="ttl-new" value="14400" class="dns-ttl" /></td>
                     <td>
                         <select name="type-new" style="max-width: 80px;">
                             <option value="">---</option>
@@ -169,7 +179,7 @@
                     <td><input type="text" name="content-new" /></td>
                     <td>&nbsp;</td>
                     <td>
-                        <a class="add-record" href="javascript:void(0);">Add Record</a>
+                        <a class="add-record" href="javascript:void(0);">Quick add</a>
                         <a class="remove-record" href="javascript:void(0);" style="display:none;">Remove</a>
                     </td>
                 </tr>

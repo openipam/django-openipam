@@ -1,10 +1,7 @@
-from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic.edit import FormView
 from django.views.generic import TemplateView
-from django.shortcuts import render, redirect, get_object_or_404
-from django.core.urlresolvers import reverse, reverse_lazy
-from django.template.defaultfilters import slugify
+from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth.models import Group
@@ -14,14 +11,14 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.db.utils import DatabaseError
 from django.contrib import messages
+from django.forms.util import ErrorList
 from django.db import transaction
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
-from openipam.network.models import Address
-from openipam.dns.forms import DNSListForm
+from openipam.dns.forms import DNSListForm, DSNCreateFrom
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
@@ -122,7 +119,7 @@ class DNSListJson(BaseDatatableView):
                     qs = qs.filter(name__icontains=search_item)
 
             if name_search:
-                qs = qs.filter(name__icontains=name_search).distinct()
+                qs = qs.filter(name__istartswith=name_search).distinct()
             if type_search:
                 qs = qs.filter(dns_type=type_search)
             if content_search:
@@ -134,7 +131,7 @@ class DNSListJson(BaseDatatableView):
                 host_filter = Host.objects.get(pk=host_filter)
                 qs = qs.filter(
                     Q(ip_content__host=host_filter) |
-                    Q(text_content__icontains=host_filter.hostname)
+                    Q(text_content__istartswith=host_filter.hostname)
                 )
             if group_filter:
                 group = Group.objects.get(pk=group_filter)
@@ -229,6 +226,16 @@ class DNSListJson(BaseDatatableView):
                 <input type="text" class="dns-content" name="content-%s" value="%s" style="display:none;" />
             ''' % (content, s_content, dns_record.pk, content)
 
+        def get_ttl(dns_record, has_permissions):
+            if not has_permissions:
+                return '<span>%s</span>' % dns_record.ttl
+            else:
+                return '''
+                <span>%s</span>
+                <input type="text" class="dns-ttl" name="ttl-%s" value="%s" style="display:none;" />
+            ''' % (dns_record.ttl, dns_record.pk, dns_record.ttl)
+
+
         def get_links(dns_record, has_permissions):
             if has_permissions:
                 return '''
@@ -259,7 +266,7 @@ class DNSListJson(BaseDatatableView):
                 ('<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
                     % dns_record.pk) if has_permissions else '',
                 get_name(dns_record, has_permissions),
-                dns_record.ttl,
+                get_ttl(dns_record, has_permissions),
                 get_type(dns_record, has_permissions),
                 get_content(dns_record, has_permissions),
                 dns_record.dns_view.name if dns_record.dns_view else '',
@@ -321,6 +328,7 @@ class DNSListView(TemplateView):
         new_names = request.POST.getlist('name-new', [])
         new_contents = request.POST.getlist('content-new', [])
         new_types = request.POST.getlist('type-new', [])
+        new_ttls = request.POST.getlist('ttl-new', [])
 
         error_list = []
 
@@ -353,7 +361,8 @@ class DNSListView(TemplateView):
                         user=self.request.user,
                         name=new_names[index],
                         content=new_contents[index],
-                        dns_type=DnsType.objects.get(pk=int(new_types[index]))
+                        dns_type=DnsType.objects.get(pk=int(new_types[index])),
+                        ttl=new_ttls[index]
                     )
 
                     if dns_record:
@@ -383,6 +392,7 @@ class DNSListView(TemplateView):
                         name=request.POST.get('name-%s' % record, ''),
                         content=request.POST.get('content-%s' % record, ''),
                         dns_type=DnsType.objects.get(pk=int(request.POST.get('type-%s' % record, ''))),
+                        ttl=request.POST.get('ttl-%s' % record, ''),
                         record=record
                     )
 
@@ -414,8 +424,44 @@ class DNSListView(TemplateView):
         return self.get(request, *args, **kwargs)
 
 
-class DNSCreateView(CreateView):
-    pass
+class DNSCreateView(FormView):
+    template_name = 'dns/dnsrecord_form.html'
+    form_class = DSNCreateFrom
+    success_url = reverse_lazy('list_dns')
+
+    def post(self, request, *args, **kwargs):
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():
+            error_list = []
+            try:
+                DnsRecord.objects.add_or_update_record(
+                    user=self.request.user,
+                    name=form.cleaned_data['name'],
+                    content=form.cleaned_data['content'],
+                    dns_type=form.cleaned_data['dns_type'],
+                    ttl=form.cleaned_data['ttl']
+                )
+            except ValidationError, e:
+                if hasattr(e, 'error_dict'):
+                    for key, errors in e.message_dict.items():
+                        for error in errors:
+                            error_list.append(error)
+                else:
+                    error_list.append(e.message)
+
+            if error_list:
+                errors = form._errors.setdefault("__all__", ErrorList(error_list))
+                return self.form_invalid(form)
+            else:
+                messages.success(self.request, "DNS record has been added.")
+                if request.POST.get('_add'):
+                    return redirect('add_dns')
+                else:
+                    return redirect('list_dns')
+        else:
+            return self.form_invalid(form)
 
 
 def index(request):

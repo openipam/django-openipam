@@ -102,6 +102,13 @@ class DNSUpdateForm(forms.ModelForm):
         fields = ('name', 'ttl', 'text_content')
 
 
+class DSNCreateFrom(forms.Form):
+    name = forms.CharField(required=True)
+    dns_type = forms.ModelChoiceField(queryset=DnsType.objects.exclude(min_permissions__name='NONE'), required=True)
+    ttl = forms.IntegerField(label='TTL', required=True, initial=14400)
+    content = forms.CharField(required=True)
+
+
 class DomainGroupPermissionForm(BaseGroupObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='domain'))
 

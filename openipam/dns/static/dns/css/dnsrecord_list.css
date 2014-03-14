@@ -41,3 +41,7 @@ table tr.error td {
 .pagination input {
     margin: 0px;
 }
+
+.dns-ttl {
+    max-width: 50px;
+}

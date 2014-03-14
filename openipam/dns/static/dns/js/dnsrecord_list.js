@@ -136,6 +136,7 @@ $(function(){
                         $("a.edit-dns[rel='"+ value +"']").click();
                         $("a.edit-dns[rel='"+ value +"']").parents('tr').removeClass('info').addClass('error');
                         $("input[name='name-"+ value +"'").val($.formData['name-'+ value]);
+                        $("input[name='ttl-"+ value +"'").val($.formData['ttl-'+ value]);
                         $("input[name='content-"+ value +"'").val($.formData['content-'+ value]);
                         $("input[name='type-"+ value +"'").val($.formData['type-'+ value]);
                     });
