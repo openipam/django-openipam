@@ -367,9 +367,14 @@ class HostForm(forms.ModelForm):
     def clean_mac_address(self):
         mac = self.cleaned_data.get('mac_address', '')
 
+        host_exists = Host.objects.filter(mac=mac)
         if self.instance.pk:
-            host_exists = Host.objects.exclude(mac=self.instance.pk).filter(mac=mac)
-            if host_exists:
+            host_exists = host_exists.exclude(mac=self.instance.pk)
+
+        if host_exists:
+            if host_exists[0].is_expired:
+                host_exists[0].delete()
+            else:
                 raise ValidationError(mark_safe('The mac address entered already exists for host:<br /> %s.' % host_exists[0].hostname))
 
         return mac
@@ -377,12 +382,15 @@ class HostForm(forms.ModelForm):
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
-        hostname_exists = Host.objects.filter(hostname=hostname)
+        host_exists = Host.objects.filter(hostname=hostname)
         if self.instance.pk:
-            hostname_exists = hostname_exists.exclude(hostname=self.instance.hostname)
+            host_exists = host_exists.exclude(hostname=self.instance.hostname)
 
-        if hostname_exists:
-            raise ValidationError('The hostname entered already exists for host %s.' % hostname_exists[0].mac)
+        if host_exists:
+            if host_exists[0].is_expired:
+                host_exists[0].delete()
+            else:
+                raise ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
 
         return hostname
 

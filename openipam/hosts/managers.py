@@ -23,6 +23,12 @@ class HostMixin(object):
     def by_group(self, group):
         return get_objects_for_group(group, 'hosts.is_owner_host', klass=self)
 
+    def get_or_none(self, **kwargs):
+        try:
+            return self.get(**kwargs)
+        except self.model.DoesNotExist:
+            return None
+
 
 class HostQuerySet(QuerySet, HostMixin):
     pass
