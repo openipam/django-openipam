@@ -26,6 +26,7 @@ from openipam.network.models import AddressType, Address
 from openipam.user.utils.user_utils import convert_host_permissions
 
 import json
+import re
 
 User = get_user_model()
 
@@ -120,13 +121,12 @@ class HostListJson(BaseDatatableView):
             if host_search:
                 qs = qs.filter(hostname__icontains=host_search)
             if mac_search:
+                mac_str = re.sub('[.:-]', ':', mac_search)
                 if ':' not in mac_search:
                     try:
-                        mac_str = ':'.join(s.encode('hex') for s in mac_search.decode('hex'))
+                        mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
-                        mac_str = mac_search
-                else:
-                    mac_str = mac_search
+                        pass
                 qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
                 if '/' in ip_search and ip_search.split('/')[1]:
