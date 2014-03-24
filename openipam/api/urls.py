@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url, include
 from openipam.api.views.network import NetworkList, AddressList, DhcpGroupList
-from openipam.api.views.hosts import HostList, HostDetail, HostCreate
+from openipam.api.views.hosts import HostList, HostDetail#, HostCreate
 from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = patterns('openipam.api.views',
@@ -9,7 +9,7 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^web/', include('autocomplete_light.urls')),
 
     url(r'^hosts/(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/$', HostDetail.as_view(), name='api_host_view'),
-    url(r'^hosts/add/$', HostCreate.as_view(), name='api_host_add'),
+    #url(r'^hosts/add/$', HostCreate.as_view(), name='api_host_add'),
     url(r'^hosts/$', HostList.as_view(), name='api_host_list'),
 
     url(r'^network/$', NetworkList.as_view(), name='api_network_list'),
