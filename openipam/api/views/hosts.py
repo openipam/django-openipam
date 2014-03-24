@@ -6,7 +6,7 @@ from rest_framework import filters
 from rest_framework import permissions
 
 from openipam.hosts.models import Host
-from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer, HostCreateUpdateSerializer
+from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer#, HostCreateUpdateSerializer
 from openipam.api.filters.hosts import HostFilter
 
 from django_filters import FilterSet, CharFilter, Filter
@@ -25,10 +25,10 @@ class HostList(generics.ListAPIView):
     paginate_by = 50
 
 
-# class HostDetail(generics.RetrieveAPIView):
-#     permission_classes = (permissions.IsAuthenticated,)
-#     serializer_class = HostDetailSerializer
-#     model = Host
+class HostDetail(generics.RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = HostDetailSerializer
+    model = Host
 
 
 # class HostCreate(generics.CreateAPIView):
