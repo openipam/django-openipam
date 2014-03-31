@@ -95,6 +95,8 @@ def convert_permissions(delete=False, groupname=None, user=None, username=None):
                 else:
                     users = user_groups.filter(permissions__name='ADD')
                     for user in users:
+                        # Force superuser to false to force insert
+                        user.is_superuser = False
                         print 'Assigning add records permission on user %s for domains, networks, and pools \n' % user.user
                         _assign_perms('add_records_to', user.user, domains=domains, networks=networks, pools=pools)
 
@@ -165,6 +167,8 @@ def convert_host_permissions(delete=False, username=None, host_pk=None):
                     if user.host_permissions.name == 'OWNER':
                         #ry:
                         auth_user, created = User.objects.get_or_create(username__iexact=username)
+                        # Force superuser to false to force an insert
+                        auth_user.is_superuser = False
                         # except User.DoesNotExist:
                         #     auth_user = User(username=username)
                         #     auth_user.set_unusable_password()
