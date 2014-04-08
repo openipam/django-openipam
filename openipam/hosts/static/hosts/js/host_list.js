@@ -104,7 +104,7 @@ $(function(){
                 this.value = autocomplete.current_search + ':' + value;
             });
 
-            $('#id_search').on('keyup change', function(){
+            $('#id_search').on('input selectChoice', function(){
                 var value = $(this).val() ? $(this).val() : '';
 
                 delay(function(){
@@ -277,7 +277,16 @@ $(function(){
         return false;
     });
 
-    $(".search_init").on('keyup change', function() {
+    $(".search_init").on('input', function() {
+        /* Filter on the column (the index) of this element */
+        var self = this;
+        delay(function(){
+            results.fnFilter($(self).val(), $(".search_init").index($(self)));
+        }, 300);
+
+    });
+
+    $(".filter_init").on('change', function() {
         /* Filter on the column (the index) of this element */
         var self = this;
         delay(function(){
