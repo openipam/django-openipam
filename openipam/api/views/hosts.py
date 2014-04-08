@@ -18,7 +18,6 @@ from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttri
 from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer, HostCreateUpdateSerializer, \
     HostOwnerSerializer, HostUpdateAttributeSerializer, HostDeleteAttributeSerializer
 from openipam.api.filters.hosts import HostFilter
-from openipam.api.serializers.pagination import NoLimitPaginationSerializer
 
 from django_filters import FilterSet, CharFilter, Filter
 
