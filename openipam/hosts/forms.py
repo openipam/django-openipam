@@ -409,8 +409,6 @@ class HostForm(forms.ModelForm):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
 
-        self.instance.network = network.network
-
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
             return network
@@ -422,6 +420,8 @@ class HostForm(forms.ModelForm):
             network = ''
 
         if network:
+            self.instance.network = network.network
+
             user_pools = get_objects_for_user(
                 self.instance.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
