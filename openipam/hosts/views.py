@@ -116,7 +116,14 @@ class HostListJson(BaseDatatableView):
                     net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item.split(':')[-1])
                     qs = qs.filter(addresses__in=net_addresses)
                 elif search_item:
-                    qs = qs.filter(hostname__icontains=search_item)
+                    like_search_term = search_item + '%'
+                    dns_hosts = Host.objects.raw('''
+                        SELECT hosts.* from hosts
+                            INNER JOIN addresses ON hosts.mac = addresses.mac
+                            INNER JOIN dns_records ON addresses.address = dns_records.ip_content
+                        WHERE dns_records.name LIKE %s OR hosts.hostname LIKE %s
+                    ''', [like_search_term, like_search_term])
+                    qs = qs.filter(mac__in=[host.mac for host in dns_hosts])
 
             if host_search:
                 qs = qs.filter(hostname__icontains=host_search)
