@@ -301,8 +301,11 @@ class Host(models.Model):
         return dns_records
 
     def get_expire_days(self):
-        delta = self.expires - timezone.now()
-        return delta.days if delta.days > 0 else None
+        if self.expires:
+            delta = self.expires - timezone.now()
+            return delta.days if delta.days > 0 else None
+        else:
+            return None
 
     def set_expiration(self, expire_days):
         now = timezone.now()
