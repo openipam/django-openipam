@@ -327,7 +327,7 @@ class Host(models.Model):
             raise Exception('A User must be given to set a network or pool')
 
         # Set the pool if attached to model otherwise find it by address type
-        if hasattr(self, 'pool'):
+        if getattr(self, 'pool', None):
             pool = self.pool
         else:
             pool = self.address_type.pool
