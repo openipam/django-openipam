@@ -409,7 +409,7 @@ class HostForm(forms.ModelForm):
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
 
-        self.instance.network = network
+        self.instance.network = network.network
 
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
@@ -344,7 +345,11 @@ class AddressType(models.Model):
         return self.description
 
     def clean(self):
-        if self.is_default and AddressType.objects.filter(is_default=True):
+        default = AddressType.objects.filter(is_default=True)
+        if self.pk:
+            default = default.exclude(pk=self.pk)
+
+        if default:
             raise ValidationError(_('There can only be one default Address Type'))
 
     # Signal to make sure Address Types can only have a range OR pool.

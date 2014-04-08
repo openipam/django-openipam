@@ -2,6 +2,7 @@
 from django.core.urlresolvers import reverse_lazy
 import hashlib
 import socket
+import datetime
 
 
 DEBUG = True
@@ -218,12 +219,20 @@ LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 #     )
 # }
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework.authentication.BasicAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     )
-# }
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 25,
+    'PAGINATE_BY_PARAM': 'limit',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    ),
+}
+
+JWT_AUTH = {
+    'JWT_LEEWAY': 60,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=4)
+}
 
 CACHEOPS_REDIS = {
     'host': 'localhost', # redis-server is on same machine

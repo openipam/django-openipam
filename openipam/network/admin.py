@@ -21,7 +21,7 @@ class NetworkAdmin(admin.ModelAdmin):
 
 
 class AddressTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'show_pool', 'show_ranges')
+    list_display = ('name', 'description', 'show_pool', 'show_ranges', 'is_default')
     form = AddressTypeAdminForm
     list_select_related = True
 

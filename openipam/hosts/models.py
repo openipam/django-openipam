@@ -89,7 +89,7 @@ class FreeformAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s %s' % (self.mac, self.aid, self.value)
+        return '%s %s %s' % (self.host, self.attribute, self.value)
 
     class Meta:
         db_table = 'freeform_attributes_to_hosts'
@@ -162,7 +162,10 @@ class Host(models.Model):
         # Adding dummy fields that come from form or web service
         self.user = None
         self.ip_address = None
+        self.ip_addresses = []
         self.network = None
+        self.pool = None
+        self.expire_days = self.get_expire_days()
 
     def __unicode__(self):
         return self.hostname
@@ -297,6 +300,10 @@ class Host(models.Model):
 
         return dns_records
 
+    def get_expire_days(self):
+        delta = self.expires - timezone.now()
+        return delta.days if delta.days > 0 else None
+
     def set_expiration(self, expire_days):
         now = timezone.now()
         self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
@@ -316,11 +323,11 @@ class Host(models.Model):
         else:
             raise Exception('A User must be given to set a network or pool')
 
-        user_pools = get_objects_for_user(
-            user,
-            ['network.add_records_to_pool', 'network.change_pool'],
-            any_perm=True
-        )
+        # Set the pool if attached to model otherwise find it by address type
+        if hasattr(self, 'pool'):
+            pool = self.pool
+        else:
+            pool = self.address_type.pool
 
         if delete:
             # Remove all pools
@@ -329,7 +336,7 @@ class Host(models.Model):
             self.addresses.clear()
 
         # If we have a pool, this dynamic and we assign
-        if self.address_type.pool:
+        if pool:
             # Assign new pool if it doesn't already exist
             HostToPool.objects.get_or_create(
                 host=self,
@@ -339,10 +346,16 @@ class Host(models.Model):
 
         # If we have an IP address, then assign that address to host
         else:
+            user_pools = get_objects_for_user(
+                user,
+                ['network.add_records_to_pool', 'network.change_pool'],
+                any_perm=True
+            )
+
             if self.network:
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True),
-                    network=self.network,
+                    network__network=self.network,
                     host__isnull=True,
                     reserved=False,
                 ).order_by('address')
@@ -352,14 +365,30 @@ class Host(models.Model):
 
                 # Get only one
                 address = address[0]
+                # Make sure pool is clear.
+                address.pool_id = None
+                address.host = self
+                address.changed_by = self.user
+                address.save()
 
-            elif self.ip_address:
-                address = Address.objects.get(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True),
-                    address=self.ip_address,
-                    host__isnull=True,
-                    reserved=False,
-                )
+            elif self.ip_address or self.ip_addresses:
+                if self.ip_address:
+                    self.ip_addresses.append(self.ip_address)
+                    self.ip_addresses = list(set(self.ip_addresses))
+
+                for ip_address in self.ip_addresses:
+                    address = Address.objects.get(
+                        Q(pool__in=user_pools) | Q(pool__isnull=True),
+                        address=ip_address,
+                        host__isnull=True,
+                        reserved=False,
+                    )
+
+                    # Make sure pool is clear.
+                    address.pool_id = None
+                    address.host = self
+                    address.changed_by = self.user
+                    address.save()
             else:
                 raise Exception('A Network or IP Address must be given to assign this host.')
 
@@ -507,7 +536,7 @@ class NotificationToHost(models.Model):
 
 
 class StructuredAttributeValue(models.Model):
-    attribute = models.ForeignKey('Attribute', db_column='aid')
+    attribute = models.ForeignKey('Attribute', db_column='aid', related_name='choices')
     value = models.TextField()
     is_default = models.BooleanField()
     changed = models.DateTimeField(auto_now=True)
@@ -527,7 +556,7 @@ class StructuredAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.mac, self.avid)
+        return '%s %s' % (self.host, self.structured_attribute_value)
 
     class Meta:
         db_table = 'structured_attributes_to_hosts'

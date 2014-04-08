@@ -20,7 +20,7 @@ class IsExpiredFilter(NumberFilter):
         return qs
 
 
-class OwnerFilter(CharFilter):
+class UserFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             user = User.objects.filter(username__iexact=value)
@@ -58,7 +58,7 @@ class HostFilter(FilterSet):
     hostname = CharFilter(lookup_type='icontains')
     is_expired = IsExpiredFilter()
     group = GroupFilter()
-    owner = OwnerFilter()
+    user = UserFilter()
 
     class Meta:
         model = Host
