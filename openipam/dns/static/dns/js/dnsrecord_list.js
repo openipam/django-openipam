@@ -65,25 +65,25 @@ $(function(){
             this.fnAdjustColumnSizing(true);
 
             $('#id_search').yourlabsAutocomplete({
-                url: '/api/web/IPAMDNSSearchAutoComplete',
+                url: '/api/web/IPAMSearchAutoComplete',
                 choiceSelector: '[data-value]',
                 minimumCharacters: 2,
                 placeholder: 'Advanced Search',
                 getQuery: function() {
                     var value = this.input.val();
-                    return value.substr(value.lastIndexOf(':') + 1);
+                    return value
                 },
                 refresh: function() {
                     var value = this.input.val();
-                    this.current_search = value.substr(0, value.lastIndexOf(':'));
+                    var current_search = value.substr(value.lastIndexOf(':') + 1);
                     this.search_type = value.split(" ");
                     this.search_type = this.search_type[this.search_type.length - 1];
                     this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
 
-                    var searches = ['user:', 'group:', 'net:']
+                    var searches = ['user:', 'group:']
                     var do_search = false;
 
-                    if (searches.indexOf(this.search_type) != -1) {
+                    if (searches.indexOf(this.search_type) != -1 && current_search != "") {
                         var do_search = true;
                         this.value = this.getQuery();
                     }
@@ -94,15 +94,15 @@ $(function(){
 
                     if (do_search) {
                         // If the input doesn't contain enought characters then abort, else fetch.
-                        this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
+                        current_search < this.minimumCharacters ? this.hide() : this.fetch();
                     }
                 },
             }).input.bind('selectChoice', function(event, choice, autocomplete) {
                 var value = choice.attr('data-value');
-                this.value = autocomplete.current_search + ':' + value;
+                this.value = value;
             });
 
-            $('#id_search').on('keyup change', function(){
+            $('#id_search').on('input selectChoice', function(){
                 var value = $(this).val() ? $(this).val() : '';
 
                 delay(function(){
@@ -199,7 +199,7 @@ $(function(){
         }
     }
 
-    $('#changelist-form').bind("keyup keypress", function(e) {
+    $('#changelist-form').bind("input", function(e) {
       var code = e.keyCode || e.which;
       if (code  == 13) {
         e.preventDefault();
@@ -341,11 +341,20 @@ $(function(){
         return false;
     });
 
-    $(".search_init").bind('keyup change', function() {
+    $(".search_init").bind('input', function() {
         var self = this;
         delay(function(){
             results.fnFilter($(self).val(), $(".search_init").index($(self)));
         }, 300);
+    });
+
+    $(".filter_init").on('change', function() {
+        /* Filter on the column (the index) of this element */
+        var self = this;
+        delay(function(){
+            results.fnFilter($(self).val(), $(".search_init").index($(self)));
+        }, 300);
+
     });
 
     $("#search-help-button").click(function(){

@@ -42,7 +42,7 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 autocomplete_light.register(IPAMObjectsAutoComplete)
 
 
-class IPAMHostSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
     choices = (
         Network.objects.all(),
         User.objects.all(),
@@ -60,44 +60,56 @@ class IPAMHostSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         'placeholder': 'Advanced Search',
     }
 
+    def choices_for_request(self):
+        """
+        Propose local results and fill the autocomplete with remote
+        suggestions.
+        """
+        assert self.choices, 'autocomplete.choices should be a queryset list'
+
+        q = self.request.GET.get('q', '')
+        choice_q = q.split(':')[0]
+        q = ''.join(q.split(':')[1:])
+
+        if choice_q == 'net':
+            self.choices = (Network.objects.all(),)
+            self.search_fields = (('network',),)
+        elif choice_q == 'user':
+            self.choices = (User.objects.all(),)
+            self.search_fields = (('username', '^first_name', '^last_name'),)
+        elif choice_q == 'group':
+            self.choices = (Group.objects.all(),)
+            self.search_fields = (('name',),)
+
+        request_choices = []
+        querysets_left = len(self.choices)
+
+        i = 0
+        for queryset in self.choices:
+            conditions = self._choices_for_request_conditions(q,
+                    self.search_fields[i])
+
+            limit = ((self.limit_choices - len(request_choices)) /
+                querysets_left)
+            for choice in queryset.filter(conditions)[:limit]:
+                request_choices.append(choice)
+
+            querysets_left -= 1
+            i += 1
+
+        return request_choices
+
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
 
     def choice_value(self, choice):
         if choice.__class__.__name__ == 'User':
-            return choice.username
+            return 'user:%s' % choice.username
         elif choice.__class__.__name__ == 'Group':
-            return choice.name
+            return 'group:%s' % choice.name
         elif choice.__class__.__name__ == 'Network':
-            return choice.network
-autocomplete_light.register(IPAMHostSearchAutoComplete)
-
-
-class IPAMDNSSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
-    choices = (
-        User.objects.all(),
-        Group.objects.all(),
-    )
-
-    search_fields = (
-        ('username', '^first_name', '^last_name'),
-        ('name',),
-    )
-
-    autocomplete_js_attributes = {
-        'minimum_characters': 2,
-        'placeholder': 'Advanced Search',
-    }
-
-    def choice_label(self, choice):
-        return '%s | %s' % (choice.__class__.__name__, choice)
-
-    def choice_value(self, choice):
-        if choice.__class__.__name__ == 'User':
-            return choice.username
-        elif choice.__class__.__name__ == 'Group':
-            return choice.name
-autocomplete_light.register(IPAMDNSSearchAutoComplete)
+            return 'net:%s' % choice.network
+autocomplete_light.register(IPAMSearchAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):

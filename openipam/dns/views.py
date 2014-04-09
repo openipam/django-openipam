@@ -80,21 +80,21 @@ class DNSListJson(BaseDatatableView):
 
             search_list = search.strip().split(' ')
             for search_item in search_list:
+                if not ''.join(search_item.split(':')[1:]):
+                    continue
                 if search_item.startswith('host:'):
-                    qs = qs.filter(ip_content__host__hostname__istartswith=search_item.split(':')[-1])
+                    qs = qs.filter(ip_content__host__hostname__istartswith=search_item[5:])
                 elif search_item.startswith('mac:'):
-                    mac_str = search_item.split(':')
-                    mac_str.pop(0)
-                    mac_str = ''.join(mac_str)
+                    mac_str = search_item[4:]
                     try:
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
                         pass
                     qs = qs.filter(ip_content__host__mac__istartswith=mac_str)
                 elif search_item.startswith('ip:'):
-                    qs = qs.filter(ip_content__address__istartswith=search_item.split(':')[-1])
+                    qs = qs.filter(ip_content__address__istartswith=search_item[3:])
                 elif search_item.startswith('user:'):
-                    user = User.objects.filter(username__iexact=search_item.split(':')[-1])
+                    user = User.objects.filter(username__iexact=search_item[5:])
                     if user:
                         user_permited_domains = get_objects_for_user(
                             user[0],
@@ -105,7 +105,7 @@ class DNSListJson(BaseDatatableView):
                     else:
                         qs = qs.none()
                 elif search_item.startswith('group:'):
-                    group = Group.objects.filter(name__iexact=search_item.split(':')[-1])
+                    group = Group.objects.filter(name__iexact=search_item[6:])
                     if group:
                         group_permited_domains = get_objects_for_group(
                             group[0],

@@ -13,7 +13,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.utils import DatabaseError
+from django.db.utils import DatabaseError, DataError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 
@@ -74,26 +74,26 @@ class HostListJson(BaseDatatableView):
 
             search_list = search.strip().split(' ')
             for search_item in search_list:
+                if not ''.join(search_item.split(':')[1:]):
+                    continue
                 if search_item.startswith('desc:'):
-                    qs = qs.filter(description__icontains=search_item.split(':')[-1])
+                    qs = qs.filter(description__icontains=search_item[5:])
                 elif search_item.startswith('user:'):
-                    user = User.objects.filter(username__iexact=search_item.split(':')[-1])
+                    user = User.objects.filter(username__iexact=search_item[5:])
                     if user:
                         qs = qs.by_owner(user[0])
                     else:
                         qs = qs.none()
                 elif search_item.startswith('group:'):
-                    group = Group.objects.filter(name__iexact=search_item.split(':')[-1])
+                    group = Group.objects.filter(name__iexact=search_item[6:])
                     if group:
                         qs = qs.by_group(group[0])
                     else:
                         qs = qs.none()
                 elif search_item.startswith('name:'):
-                    qs = qs.filter(hostname__istartswith=search_item.split(':')[-1])
+                    qs = qs.filter(hostname__istartswith=search_item[5:])
                 elif search_item.startswith('mac:'):
-                    mac_str = search_item.split(':')
-                    mac_str.pop(0)
-                    mac_str = ''.join(mac_str)
+                    mac_str = search_item[4:]
                     try:
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
@@ -113,8 +113,12 @@ class HostListJson(BaseDatatableView):
                             Q(leases__address__address=search_item.split(':')[-1])
                         )
                 elif search_item.startswith('net:'):
-                    net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item.split(':')[-1])
-                    qs = qs.filter(addresses__in=net_addresses)
+                    try:
+                        net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item[4:])
+                    except DataError:
+                        net_addresses = None
+                    if net_addresses:
+                        qs = qs.filter(addresses__in=net_addresses)
                 elif search_item:
                     like_search_term = search_item + '%'
                     dns_hosts = Host.objects.raw('''
