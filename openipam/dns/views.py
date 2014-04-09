@@ -80,20 +80,19 @@ class DNSListJson(BaseDatatableView):
 
             search_list = search.strip().split(' ')
             for search_item in search_list:
-                if not ''.join(search_item.split(':')[1:]):
-                    continue
-                if search_item.startswith('host:'):
+                search_str = ''.join(search_item.split(':')[1:])
+                if search_item.startswith('host:') and search_str:
                     qs = qs.filter(ip_content__host__hostname__istartswith=search_item[5:])
-                elif search_item.startswith('mac:'):
+                elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
                     try:
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
                         pass
                     qs = qs.filter(ip_content__host__mac__istartswith=mac_str)
-                elif search_item.startswith('ip:'):
+                elif search_item.startswith('ip:') and search_str:
                     qs = qs.filter(ip_content__address__istartswith=search_item[3:])
-                elif search_item.startswith('user:'):
+                elif search_item.startswith('user:') and search_str:
                     user = User.objects.filter(username__iexact=search_item[5:])
                     if user:
                         user_permited_domains = get_objects_for_user(
@@ -104,7 +103,7 @@ class DNSListJson(BaseDatatableView):
                         qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
                     else:
                         qs = qs.none()
-                elif search_item.startswith('group:'):
+                elif search_item.startswith('group:') and search_str:
                     group = Group.objects.filter(name__iexact=search_item[6:])
                     if group:
                         group_permited_domains = get_objects_for_group(

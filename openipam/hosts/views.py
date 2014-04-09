@@ -74,9 +74,8 @@ class HostListJson(BaseDatatableView):
 
             search_list = search.strip().split(' ')
             for search_item in search_list:
-                if not ''.join(search_item.split(':')[1:]):
-                    continue
-                if search_item.startswith('desc:'):
+                search_str = ''.join(search_item.split(':')[1:])
+                if search_item.startswith('desc:') and search_str:
                     qs = qs.filter(description__icontains=search_item[5:])
                 elif search_item.startswith('user:'):
                     user = User.objects.filter(username__iexact=search_item[5:])
@@ -84,22 +83,22 @@ class HostListJson(BaseDatatableView):
                         qs = qs.by_owner(user[0])
                     else:
                         qs = qs.none()
-                elif search_item.startswith('group:'):
+                elif search_item.startswith('group:') and search_str:
                     group = Group.objects.filter(name__iexact=search_item[6:])
                     if group:
                         qs = qs.by_group(group[0])
                     else:
                         qs = qs.none()
-                elif search_item.startswith('name:'):
+                elif search_item.startswith('name:') and search_str:
                     qs = qs.filter(hostname__istartswith=search_item[5:])
-                elif search_item.startswith('mac:'):
+                elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
                     try:
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
                         pass
                     qs = qs.filter(mac__startswith=mac_str)
-                elif search_item.startswith('ip:'):
+                elif search_item.startswith('ip:') and search_str:
                     ip = search_item.split(':')[-1]
                     ip_blocks = ip.split('.')
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
@@ -112,7 +111,7 @@ class HostListJson(BaseDatatableView):
                             Q(addresses__address=search_item.split(':')[-1]) |
                             Q(leases__address__address=search_item.split(':')[-1])
                         )
-                elif search_item.startswith('net:'):
+                elif search_item.startswith('net:') and search_str:
                     try:
                         net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item[4:])
                     except DataError:
