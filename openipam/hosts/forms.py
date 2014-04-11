@@ -357,6 +357,9 @@ class HostForm(forms.ModelForm):
                         changed_by=self.user
                     )
 
+        # Call save again to fire signal.
+        instance.save()
+
         return instance
 
     def clean(self):
