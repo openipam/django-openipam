@@ -154,6 +154,7 @@ INSTALLED_APPS = (
     'autocomplete_light',
     'south',
     'rest_framework',
+    'rest_framework.authtoken',
     'guardian',
     'cacheops',
     'django_pickling',
