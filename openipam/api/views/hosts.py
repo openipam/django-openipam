@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.db.models import Q
 
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -13,6 +14,7 @@ from rest_framework.decorators import action, link
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute
 from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer, HostCreateUpdateSerializer, \
@@ -23,6 +25,8 @@ from django_filters import FilterSet, CharFilter, Filter
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
+
+from netaddr import AddrFormatError
 
 User = get_user_model()
 
@@ -74,7 +78,7 @@ class HostList(generics.ListAPIView):
     #model = Host
     serializer_class = HostListSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired')
+    filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
@@ -88,6 +92,23 @@ class HostList(generics.ListAPIView):
             return self.max_paginate_by
         else:
             return super(HostList, self).get_paginate_by()
+
+
+class HostMac(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, format=None, **kwargs):
+        ip_address = request.GET.get('ip_address')
+        assert False, ip_address
+        if ip_address:
+            hosts = Host.objects.filter(leases__address__address=ip_address)
+        else:
+            hosts = None
+
+        if hosts:
+            return Response({'mac': hosts[0].mac})
+        else:
+            return Response({})
 
 
 class HostDetail(generics.RetrieveAPIView):
@@ -348,5 +369,7 @@ class HostDeleteAttribute(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
