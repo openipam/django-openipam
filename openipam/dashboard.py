@@ -73,10 +73,11 @@ class IPAMIndexDashboard(Dashboard):
         self.children.append(modules.ModelList(
             _('Administration'),
             models=(
-            'openipam.user.models.User',
-            'django.contrib.*',
-            'guardian.*',
-            'openipam.core.*',
+                'openipam.user.models.User',
+                'rest_framework.authtoken.models.Token',
+                'django.contrib.*',
+                'guardian.*',
+                'openipam.core.*',
             ),
         ))
 
