@@ -22,6 +22,7 @@ class LogEntryAdminForm(forms.ModelForm):
 
 class LogEntryAdmin(admin.ModelAdmin):
     list_display = ('object_name', 'object_id', 'action_name', 'user')
+    search_fields = ('object_repr', 'object_id', 'user__username')
     form = LogEntryAdminForm
 
     def get_queryset(self, request):
