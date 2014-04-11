@@ -67,6 +67,7 @@ class IPAMMenu(Menu):
                             [
                                 'openipam.user.models.User',
                                 'django.contrib.auth.models.Group',
+                                'rest_framework.authtoken.models.Token',
                             ]
                         ),
                         items.ModelList('Permissions',

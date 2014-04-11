@@ -20,6 +20,9 @@ from openipam.user.forms import AuthUserCreateAdminForm, AuthUserChangeAdminForm
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.admin import TokenAdmin
+
 import autocomplete_light
 
 from datetime import date
@@ -130,6 +133,10 @@ class AuthUserAdmin(UserAdmin):
         next = request.GET.get('next')
         UserObjectPermission.objects.get(pk=permid).delete()
         return redirect(next)
+
+
+class TokenAdmin(TokenAdmin):
+    form = autocomplete_light.modelform_factory(Token)
 
 
 class AuthGroupAdmin(GroupAdmin):
@@ -491,6 +498,9 @@ admin.site.register(User, AuthUserAdmin)
 admin.site.unregister(AuthGroup)
 admin.site.register(AuthGroup, AuthGroupAdmin)
 admin.site.register(AuthPermission, AuthPermissionAdmin)
+admin.site.unregister(Token)
+admin.site.register(Token, TokenAdmin)
+
 
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Permission, PermissionAdmin)
