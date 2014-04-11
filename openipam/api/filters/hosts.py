@@ -1,12 +1,15 @@
 from django.utils import timezone
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 from openipam.hosts.models import Host
 
 from guardian.shortcuts import get_objects_for_group, get_objects_for_user
 
 from django_filters import FilterSet, CharFilter, NumberFilter
+
+from netaddr import AddrFormatError
 
 User = get_user_model()
 
@@ -53,12 +56,23 @@ class GroupFilter(CharFilter):
         return qs
 
 
+class IPFilter(CharFilter):
+    def filter(self, qs, value):
+        if value:
+            try:
+                qs = qs.filter(Q(addresses__address=value) | Q(leases__address__address=value)).distinct()
+            except AddrFormatError:
+                qs = qs.none()
+        return qs
+
+
 class HostFilter(FilterSet):
     mac = CharFilter(lookup_type='istartswith')
     hostname = CharFilter(lookup_type='icontains')
     is_expired = IsExpiredFilter()
     group = GroupFilter()
     user = UserFilter()
+    ip_address = IPFilter()
 
     class Meta:
         model = Host
