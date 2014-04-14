@@ -6,8 +6,9 @@
 
 {% block extrahead %}
     {{ block.super }}
-    {# {% include 'autocomplete_light/static.html' %} #}
+    {% include 'autocomplete_light/static.html' %}
     <script type="text/javascript" src="{% static 'core/js/feedback.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -36,82 +37,92 @@
               {% endcomment %}
               {% admin_tools_render_menu %}
             </ul>
-            {% if request.user.is_ipamadmin %}
-              <form class="navbar-form pull-left" method="post" action="{% url 'mimic' %}">
-                <input type="text" placeholder="Mimic User" id="mimic" class="input-small" />
-              </form>
-            {% endif %}
-
             {% if user.is_active %}
-            <ul class="nav pull-right">
-                {% comment %}
-                  <li class="dropdown">
-                    <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
-                      <i class="icon-search icon-white"></i>
+            <div class="pull-right">
+              {% if request.user.is_ipamadmin %}
+                <form id="mimic_form" class="navbar-form pull-left" method="post" action="{% url 'mimic' %}">
+                  {% csrf_token %}
+                  <input type="text" placeholder="Mimic User" id="id_mimic_select" class="input-small" />
+                  <input type="hidden" id="id_mimic_value" name="mimic_pk" />
+                </form>
+              {% else %}
+                {% if request.session.mimic_user %}
+                  <div class="btn-group pull-left">
+                    <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
+                    <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="icon-remove icon-white"></span></a>
+                  </div>
+                {% endif %}
+              {% endif %}
+              <ul class="nav">
+                  {% comment %}
+                    <li class="dropdown">
+                      <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
+                        <i class="icon-search icon-white"></i>
+                      </a>
+                      <ul id="menu-search" class="dropdown-menu">
+                          <li id="menu-search-li">
+                            <input id="menu-search-input" type="text" placeholder="{% trans "Search in menu" %}"/>
+                          </li>
+                      </ul>
+                    </li>
+                    {% atb_site_link %}
+                  {% endcomment %}
+                  <li class="navbar-form">
+                     <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
+                     Feature or Bug?
+                      <b class="caret"></b>
                     </a>
-                    <ul id="menu-search" class="dropdown-menu">
-                        <li id="menu-search-li">
-                          <input id="menu-search-input" type="text" placeholder="{% trans "Search in menu" %}"/>
-                        </li>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <form id="feedback-form" method="post">
+                        <h4>
+                        Please provide any feedback related to bugs and feature requests.
+                        </h4>
+                          {% csrf_token %}
+                            <div>
+                                {{ feature_form | crispy }}
+                                <div class="form-actions">
+                                    <input type="submit" value="Submit" class="btn btn-primary" />
+                                    <input type="button" value="Cancel" class="btn feedback-cancel" />
+                                </div>
+                            </div>
+                        </form>
+                      </li>
                     </ul>
                   </li>
-                  {% atb_site_link %}
-                {% endcomment %}
-                <li class="navbar-form">
-                   <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
-                   Feature or Bug?
-                    <b class="caret"></b>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <form id="feedback-form" method="post">
-                      <h4>
-                      Please provide any feedback related to bugs and feature requests.
-                      </h4>
-                        {% csrf_token %}
-                          <div>
-                              {{ feature_form | crispy }}
-                              <div class="form-actions">
-                                  <input type="submit" value="Submit" class="btn btn-primary" />
-                                  <input type="button" value="Cancel" class="btn feedback-cancel" />
-                              </div>
-                          </div>
-                      </form>
-                    </li>
-                  </ul>
-                </li>
-                <li class="dropdown">
-                  <a class="dropdown-toggle" href="#" data-toggle="dropdown">
-                      <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />
-                    {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
-                    <b class="caret"></b>
-                  </a>
-                  <ul class="dropdown-menu">
-                  {% block userlinks %}
-                      <li>
-                        <a href="{% url 'profile' %}">
-                          <i class="icon-user"></i>
-                          Profile
-                        </a>
-                      </li>
-                      {% if request.user.has_usable_password %}
-                      <li>
-                        <a href="{% url 'password_change' %}">
-                          <i class="icon-lock"></i>
-                          {% trans 'Change password' %}
-                        </a>
-                      </li>
-                      {% endif %}
-                      <li>
-                        <a href="{% url 'logout' %}">
-                          <i class="icon-off"></i>
-                          {% trans 'Log out' %}
-                        </a>
-                      </li>
-                  {% endblock %}
-                  </ul>
-                </li>
-            </ul>
+                  <li class="dropdown">
+                    <a class="dropdown-toggle" href="#" data-toggle="dropdown">
+                        <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />
+                      {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
+                      <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                    {% block userlinks %}
+                        <li>
+                          <a href="{% url 'profile' %}">
+                            <i class="icon-user"></i>
+                            Profile
+                          </a>
+                        </li>
+                        {% if request.user.has_usable_password %}
+                        <li>
+                          <a href="{% url 'password_change' %}">
+                            <i class="icon-lock"></i>
+                            {% trans 'Change password' %}
+                          </a>
+                        </li>
+                        {% endif %}
+                        <li>
+                          <a href="{% url 'logout' %}">
+                            <i class="icon-off"></i>
+                            {% trans 'Log out' %}
+                          </a>
+                        </li>
+                    {% endblock %}
+                    </ul>
+                  </li>
+              </ul>
+            </div>
             {% endif %}
 
         {% endif %}
