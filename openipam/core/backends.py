@@ -70,7 +70,9 @@ class _IPAMLDAPUser(_LDAPUser):
         new_groups_to_assign = Group.objects.none()
         if groups_to_add:
             invalidate_model(Group)
-            Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
+            for group in groups_to_add:
+                Group.objects.get_or_create(name=group)
+            #Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
             new_groups_to_assign = Group.objects.filter(name__in=groups_to_add)
 
         existing_groups_to_assign = Group.objects.filter(name__in=group_names)
