@@ -30,15 +30,16 @@ class FeatureRequest(models.Model):
         return '%s - %s' % (self.type, self.comment)
 
     @classmethod
-    def email_request(self, sender, instance, *args, **kwargs):
-        mail_admins(
-            subject='openIPAM Bug/Feature Request',
-            message='''
-                Request Type: %s
+    def email_request(self, sender, instance, created, *args, **kwargs):
+        if created:
+            mail_admins(
+                subject='openIPAM Bug/Feature Request',
+                message='''
+                    Request Type: %s
 
-                %s
-            ''' % (instance.type, instance.comment)
-        )
+                    %s
+                ''' % (instance.type, instance.comment)
+            )
 
 
     class Meta:
