@@ -89,24 +89,24 @@
                 var aType = parseInt($("#id_address_type").val());
 
                 if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
-                    $("#div_id_network_or_ip").hide();
-                    $("#div_id_ip_address").hide();
-                    $("#div_id_network").hide();
+                    $("#div_id_network_or_ip:not(.error)").hide();
+                    $("#div_id_ip_address:not(.error)").hide();
+                    $("#div_id_network:not(.error)").hide();
                 }
                 else {
                     $("#div_id_network_or_ip").show();
 
                     if (netSelect === '0') {
                         $("#div_id_network").show();
-                        $("#div_id_ip_address").hide();
+                        $("#div_id_ip_address:not(.error)").hide();
                     }
                     else if (netSelect === '1') {
-                        $("#div_id_network").hide();
+                        $("#div_id_network:not(.error)").hide();
                         $("#div_id_ip_address").show();
                     }
                     else {
-                        $("#div_id_network").hide();
-                        $("#div_id_ip_address").hide();
+                        $("#div_id_network:not(.error)").hide();
+                        $("#div_id_ip_address:not(.error)").hide();
                     }
                 }
             }
@@ -121,18 +121,18 @@
                     dhcpGroup.prop('checked', 'checked');
                 }
                 else {
-                    $("#div_id_dhcp_group").hide();
+                    $("#div_id_dhcp_group:not(.error)").hide();
                 }
 
                 if ($("a#host-renew").length > 0) {
-                    $("#div_id_expire_days").hide();
+                    $("#div_id_expire_days:not(.error)").hide();
                 }
 
                 if ($("a#ip-change").length > 0) {
-                    $("#div_id_address_type").hide();
-                    $("#div_id_network_or_ip").hide();
-                    $("#div_id_network").hide();
-                    $("#div_id_ip_address").hide();
+                    $("#div_id_address_type:not(.error)").hide();
+                    $("#div_id_network_or_ip:not(.error)").hide();
+                    $("#div_id_network:not(.error)").hide();
+                    $("#div_id_ip_address:not(.error)").hide();
                 }
                 else {
                     $.networkIPToggle();
