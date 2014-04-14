@@ -1,6 +1,10 @@
 from django.http import HttpResponseRedirect
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
 from re import compile
+
+User = get_user_model()
 
 
 EXEMPT_URLS = [compile(settings.LOGIN_URL.lstrip('/'))]
@@ -8,7 +12,7 @@ if hasattr(settings, 'LOGIN_EXEMPT_URLS'):
     EXEMPT_URLS += [compile(expr) for expr in settings.LOGIN_EXEMPT_URLS]
 
 
-class LoginRequiredMiddleware:
+class LoginRequiredMiddleware(object):
     """
     Middleware that requires a user to be authenticated to view any page other
     than LOGIN_URL. Exemptions to this requirement can optionally be specified
@@ -31,3 +35,11 @@ class LoginRequiredMiddleware:
                 path = request.path_info.lstrip('/')
                 if not any(m.match(path) for m in EXEMPT_URLS):
                     return HttpResponseRedirect(settings.LOGIN_URL)
+
+
+class MimicUserMiddleware(object):
+
+    def process_request(self, request):
+        mimic_user = request.session.get('mimic_user')
+        if mimic_user:
+            request.user = User.objects.get(pk=mimic_user)
