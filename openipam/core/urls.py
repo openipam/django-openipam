@@ -24,6 +24,7 @@ urlpatterns = patterns('openipam.core.views',
     url(r'^dns/', include('openipam.dns.urls')),
 
     # Account URLS
+    url(r'^mimic/$', 'mimic', name='mimic'),
     url(r'^login/$', 'login', name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     url(r'^profile/$', 'profile', name='profile'),

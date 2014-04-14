@@ -9,7 +9,9 @@ from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import RequestContext, loader
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import login as auth_login
+from django.contrib.auth import login as mimic_login, logout as mimic_logout, SESSION_KEY, BACKEND_SESSION_KEY
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -17,6 +19,8 @@ from openipam.user.forms import IPAMAuthenticationForm
 
 import os
 import random
+
+User = get_user_model()
 
 
 def index(request):
@@ -32,6 +36,20 @@ def index(request):
 
 def login(request, **kwargs):
     return auth_login(request, authentication_form=IPAMAuthenticationForm, **kwargs)
+
+
+def mimic(request):
+    if request.user.is_ipamadmin:
+        username = request.REQUEST.get('username')
+        if username:
+            mimic_user = User.objects.filter(username__iexact=username)
+            if mimic_user:
+                request.session['mimic_user'] = mimic_user[0].pk
+    else:
+        if 'mimic_user' in request.session:
+            del request.session['mimic_user']
+
+    return redirect('index')
 
 
 def profile(request):

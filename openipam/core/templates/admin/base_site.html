@@ -36,6 +36,11 @@
               {% endcomment %}
               {% admin_tools_render_menu %}
             </ul>
+            {% if request.user.is_ipamadmin %}
+              <form class="navbar-form pull-left" method="post" action="{% url 'mimic' %}">
+                <input type="text" placeholder="Mimic User" id="mimic" class="input-small" />
+              </form>
+            {% endif %}
 
             {% if user.is_active %}
             <ul class="nav pull-right">
@@ -52,7 +57,7 @@
                   </li>
                   {% atb_site_link %}
                 {% endcomment %}
-                <li class="dropdown">
+                <li class="navbar-form">
                    <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
                    Feature or Bug?
                     <b class="caret"></b>
