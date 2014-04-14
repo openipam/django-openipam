@@ -210,7 +210,7 @@ class Host(models.Model):
                 # elif addresses:
                 if addresses:
                     try:
-                        ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
+                        ranges = NetworkRange.objects.filter(range__net_contains_or_equals=addresses[0].address)
                         if ranges:
                             self.address_type_id = AddressType.objects.get(ranges__range__in=ranges)
                         else:
