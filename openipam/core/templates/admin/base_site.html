@@ -39,20 +39,22 @@
             </ul>
             {% if user.is_active %}
             <div class="pull-right">
-              {% if request.user.is_ipamadmin %}
-                <form id="mimic_form" class="navbar-form pull-left" method="post" action="{% url 'mimic' %}">
-                  {% csrf_token %}
-                  <input type="text" placeholder="Mimic User" id="id_mimic_select" class="input-small" />
-                  <input type="hidden" id="id_mimic_value" name="mimic_pk" />
-                </form>
-              {% else %}
-                {% if request.session.mimic_user %}
-                  <div class="btn-group pull-left">
-                    <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
-                    <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="icon-remove icon-white"></span></a>
-                  </div>
+              <div class="pull-left">
+                {% if request.user.is_ipamadmin %}
+                  <form id="mimic_form" class="navbar-form" method="post" action="{% url 'mimic' %}">
+                    {% csrf_token %}
+                    <input type="text" placeholder="Mimic User" id="id_mimic_select" class="input-small" />
+                    <input type="hidden" id="id_mimic_value" name="mimic_pk" />
+                  </form>
+                {% else %}
+                  {% if request.session.mimic_user %}
+                    <div class="btn-group">
+                      <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
+                      <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="icon-remove icon-white"></span></a>
+                    </div>
+                  {% endif %}
                 {% endif %}
-              {% endif %}
+              </div>
               <ul class="nav">
                   {% comment %}
                     <li class="dropdown">
@@ -67,12 +69,12 @@
                     </li>
                     {% atb_site_link %}
                   {% endcomment %}
-                  <li class="navbar-form">
+                  <li class="dropdown navbar-form">
                      <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
                      Feature or Bug?
                       <b class="caret"></b>
                     </a>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu pull-right">
                       <li>
                         <form id="feedback-form" method="post">
                         <h4>
@@ -96,7 +98,7 @@
                       {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
                       <b class="caret"></b>
                     </a>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu pull-right">
                     {% block userlinks %}
                         <li>
                           <a href="{% url 'profile' %}">
