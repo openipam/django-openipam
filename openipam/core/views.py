@@ -11,7 +11,6 @@ from django.template import RequestContext, loader
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import login as auth_login
-from django.contrib.auth import login as mimic_login, logout as mimic_logout, SESSION_KEY, BACKEND_SESSION_KEY
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -40,11 +39,13 @@ def login(request, **kwargs):
 
 def mimic(request):
     if request.user.is_ipamadmin:
-        username = request.REQUEST.get('username')
-        if username:
-            mimic_user = User.objects.filter(username__iexact=username)
-            if mimic_user:
-                request.session['mimic_user'] = mimic_user[0].pk
+        mimic_pk = request.POST.get('mimic_pk')
+        if mimic_pk:
+            try:
+                mimic_user = User.objects.get(pk=mimic_pk)
+            except User.DoesNotExist:
+                pass
+            request.session['mimic_user'] = mimic_user.pk
     else:
         if 'mimic_user' in request.session:
             del request.session['mimic_user']
