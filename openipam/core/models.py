@@ -35,10 +35,10 @@ class FeatureRequest(models.Model):
             mail_admins(
                 subject='openIPAM Bug/Feature Request',
                 message='''
-                    Request Type: %s
+                Type: %s
 
-                    %s
-                ''' % (instance.type, instance.comment)
+                %s
+                ''' % (instance.type.capitalize(), instance.comment)
             )
 
 
