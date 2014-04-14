@@ -18,7 +18,7 @@ class FeatureRequestForm(forms.ModelForm):
 
     class Meta:
         model = FeatureRequest
-        exclude = ('user',)
+        exclude = ('user', 'is_complete',)
 
 
 class BaseUserObjectPermissionForm(forms.ModelForm):
