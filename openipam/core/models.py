@@ -4,6 +4,8 @@ from django.contrib.admin import widgets
 from django import forms
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
+from django.core.mail import mail_admins
 
 from admin_tools.menu import items
 
@@ -22,9 +24,22 @@ class FeatureRequest(models.Model):
     comment = models.TextField('Comment Details')
     user = models.ForeignKey(User)
     submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
+    is_complete = models.BooleanField()
 
     def __unicode__(self):
         return '%s - %s' % (self.type, self.comment)
+
+    @classmethod
+    def email_request(self, sender, instance, *args, **kwargs):
+        mail_admins(
+            subject='openIPAM Bug/Feature Request',
+            message='''
+                Request Type: %s
+
+                %s
+            ''' % (instance.type, instance.comment)
+        )
+
 
     class Meta:
         db_table = 'feature_requests'
@@ -53,3 +68,5 @@ class ATBAdminDateWidget(forms.DateInput):
         super(ATBAdminDateWidget, self).__init__(attrs=final_attrs, format=format)
 
 widgets.AdminDateWidget.media = forms.Media()
+
+post_save.connect(FeatureRequest.email_request, sender=FeatureRequest)

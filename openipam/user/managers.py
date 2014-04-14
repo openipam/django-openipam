@@ -12,3 +12,6 @@ class IPAMUserManager(UserManager):
 
     def get_queryset(self):
         return super(IPAMUserManager, self).get_queryset().prefetch_related('groups').all()
+
+    def get_ipam_admins(self):
+        return self.filter(groups__name='ipam-admins')

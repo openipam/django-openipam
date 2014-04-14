@@ -3,7 +3,7 @@ from openipam.core.models import FeatureRequest
 
 
 class FeatureRequestAdmin(admin.ModelAdmin):
-    list_display = ('submitted', 'comment', 'full_user', 'type',)
+    list_display = ('submitted', 'comment', 'full_user', 'type', 'is_complete',)
     list_filter = ('type',)
     search_fields = ('comment', 'user__username')
     readonly_fields = ('user',)
