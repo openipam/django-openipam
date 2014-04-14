@@ -116,6 +116,7 @@ class FeatureRequestView(CreateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.user = self.request.user
+        self.object.is_complete = False
         self.object.save()
         if self.request.is_ajax():
             return HttpResponse(1)
