@@ -18,6 +18,7 @@
 {% endblock %}
 
 {% block extrahead %}
+    {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'core/css/admin_filters.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
