@@ -366,9 +366,20 @@ class HostListView(TemplateView):
                         renew_form = HostRenewForm(user=request.user, data=request.POST)
 
                         if renew_form.is_valid():
+                            expiration = renew_form.cleaned_data['expire_days'].expiration
                             for host in selected_hosts:
-                                host.set_expiration(renew_form.cleaned_data['expire_days'].expiration)
+                                #assert False, host.expires
+                                host.set_expiration(expiration)
                                 host.save()
+
+                                LogEntry.objects.log_action(
+                                    user_id=self.request.user.pk,
+                                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                                    object_id=host.pk,
+                                    object_repr=force_unicode(host),
+                                    action_flag=CHANGE,
+                                    change_message='Renewed expiration to %s' % expiration
+                                )
 
                             messages.success(self.request, "Expiration for selected hosts have been updated.")
 
