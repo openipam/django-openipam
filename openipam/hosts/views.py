@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.db.utils import DatabaseError, DataError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
+from django.db import connection
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
@@ -120,13 +121,31 @@ class HostListJson(BaseDatatableView):
                         qs = qs.filter(addresses__in=net_addresses)
                 elif search_item:
                     like_search_term = search_item + '%'
-                    dns_hosts = Host.objects.raw('''
-                        SELECT hosts.* from hosts
-                            INNER JOIN addresses ON hosts.mac = addresses.mac
+                    cursor = connection.cursor()
+
+                    cursor.execute('''
+                        SELECT hosts.mac from hosts
+                            WHERE hosts.mac::text LIKE %(lsearch)s OR hosts.hostname LIKE %(lsearch)s
+
+                        UNION
+
+                        SELECT addresses.mac from addresses
+                            WHERE addresses.address::text = %(search)s
+
+                        UNION
+
+                        SELECT addresses.mac from addresses
                             INNER JOIN dns_records ON addresses.address = dns_records.ip_content
-                        WHERE dns_records.name LIKE %s OR hosts.hostname LIKE %s
-                    ''', [like_search_term, like_search_term])
-                    qs = qs.filter(mac__in=[host.mac for host in dns_hosts])
+                            WHERE dns_records.name LIKE %(lsearch)s
+
+                        UNION
+
+                        SELECT leases.mac from leases
+                            WHERE leases.address::text = %(search)s
+                    ''', {'lsearch': like_search_term, 'search': search_item})
+                    dns_hosts = cursor.fetchall()
+                    #assert False, dns_hosts[0]
+                    qs = qs.filter(mac__in=[host[0] for host in dns_hosts])
 
             if host_search:
                 qs = qs.filter(hostname__icontains=host_search)
