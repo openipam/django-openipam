@@ -14,10 +14,10 @@
    {% if header.sortable %}
      {% if header.sort_priority > 0 %}
       <div class="btn-group pull-right sortoptions">
-         <a href="{{ header.url_toggle }}" class="btn" title="{% trans "Toggle sorting" %}">
-          <i class="{% if header.ascending %}icon-chevron-up{% else %}icon-chevron-down{% endif %}"></i>
+         <a href="{{ header.url_toggle }}" class="btn sorter" title="{% trans "Toggle sorting" %}">
+          <i class="ui-icon {% if header.ascending %}ui-icon-triangle-1-n{% else %}ui-icon-triangle-1-s{% endif %}"></i>
          </a>
-         <a class="btn btn-danger" href="{{ header.url_remove }}" title="{% trans "Remove from sorting" %}"><i class="icon-remove icon-white"></i></a>
+         <a class="btn" href="{{ header.url_remove }}" title="{% trans "Remove from sorting" %}"><i class="ui-icon ui-icon-close"></i></a>
       </div>
      {% endif %}
    {% endif %}
