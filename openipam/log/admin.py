@@ -21,13 +21,20 @@ class LogEntryAdminForm(forms.ModelForm):
 
 
 class LogEntryAdmin(admin.ModelAdmin):
-    list_display = ('object_name', 'object_id', 'action_name', 'user')
+    list_display = ('object_name', 'object_id', 'action_name', 'user', 'change_time',)
+    list_filter = ('action_time',)
     search_fields = ('object_repr', 'object_id', 'user__username')
     form = LogEntryAdminForm
 
     def get_queryset(self, request):
         qs = super(LogEntryAdmin, self).get_queryset(request)
         return qs.select_related('content_type')
+
+    def change_time(self, obj):
+        return '<span class="nowrap">%s</span>' % obj.action_time.strftime("%d %b %Y %H:%M:%S")
+    change_time.short_description = 'Timestamp'
+    change_time.admin_order_field = 'action_time'
+    change_time.allow_tags = True
 
     def action_name(self, obj):
         if obj.action_flag == 1:
