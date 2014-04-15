@@ -723,3 +723,28 @@ form div.alert-block ul li {
 #advanced-search label {
   margin-bottom: 0px;
 }
+
+.column-change_time {
+  white-space: nowrap;
+}
+
+td > span.nowrap {
+  white-space: nowrap;
+}
+
+th.sortable {
+  white-space: nowrap;
+}
+
+div.sortoptions {
+  padding-left: 20px;
+}
+
+.sorter {
+  padding: 0px;
+  margin: 0px;
+}
+
+#result_list th {
+  line-height: 22px;
+}
