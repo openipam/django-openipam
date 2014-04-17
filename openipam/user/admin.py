@@ -23,6 +23,8 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
+from cacheops import invalidate_model, invalidate_obj
+
 import autocomplete_light
 
 from datetime import date
@@ -74,6 +76,11 @@ class AuthUserAdmin(UserAdmin):
         return obj.is_ipamadmin
     is_ipamadmin.short_description = 'IPAM Admin Status'
     is_ipamadmin.boolean = True
+
+    def save_model(self, request, obj, form, change):
+        super(AuthUserAdmin, self).save_model(request, obj, form, change)
+        invalidate_model(UserObjectPermission)
+        invalidate_model(GroupObjectPermission)
 
     def changelist_view(self, request, extra_context=None):
 

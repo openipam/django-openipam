@@ -76,7 +76,7 @@ class IPAMAuthenticationForm(AuthenticationForm):
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(User.objects.all(), widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
-    permission = forms.ModelChoiceField(Permission.objects.filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
+    permission = forms.ModelChoiceField(Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
     # permission = forms.ModelChoiceField(Permission.objects.filter(content_type__app_label__in=settings.IPAM_APPS),
     #     widget=autocomplete_light.ChoiceWidget('PermissionAutocomplete'), label='Permission')
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
