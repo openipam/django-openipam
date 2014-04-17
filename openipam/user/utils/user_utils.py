@@ -202,14 +202,19 @@ def convert_host_permissions(delete=False, username=None, host_pk=None):
                 assign_perm('hosts.is_owner_host', auth_group, host_group.host)
 
 
-def populate_user_from_ldap():
-    users = User.objects.all()
+def populate_user_from_ldap(username=None):
+    if username:
+        users = User.objects.filter(username__iexact=username)
+    else:
+        users = User.objects.all()
     ldap_backend = LDAPBackend()
-    for user in users:
+    for user in queryset_iterator(users):
         if not user.first_name or not user.last_name or not user.email:
+            print timezone.now(), 'Updating user: %s' % user.username
             ldap_user = ldap_backend.populate_user(username=user.username)
-            if ldap_user:
-                ldap_user.save()
+        else:
+            print timezone.now(), 'NOT Updating user: %s' % user.username
+
 
 
 # Not needed anymore because we switched django user model
