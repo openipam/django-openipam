@@ -11,7 +11,7 @@ urlpatterns = patterns('openipam.dns.views',
 
     url(r'^$', DNSListView.as_view(), name='list_dns'),
     url(r'^data/$', DNSListJson.as_view(), name='json_dns'),
-    url(r'^host:(?P<host>(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?)/$', DNSListView.as_view(), name='list_dns'),
-    url(r'^host:(?P<host>(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?)/data/$', DNSListJson.as_view(), name='json_dns'),
+    url(r'^host:(?P<host>(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]))/$', DNSListView.as_view(), name='list_dns'),
+    url(r'^host:(?P<host>(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]))/data/$', DNSListJson.as_view(), name='json_dns'),
     url(r'^add/$', DNSCreateView.as_view(), name='add_dns'),
 )
