@@ -18,12 +18,19 @@ class Command(BaseCommand):
             dest='username',
             default=False,
             help='Specify a specific username to update'),
+
+        make_option('--groupname',
+            dest='groupname',
+            default=False,
+            help='Specify a specific groupname to update'),
     )
 
     def handle(self, *args, **options):
         delete = options['delete']
         username = options['username'] or None
-        self.stdout.write('Converting Host Permissions...')
-        convert_host_permissions(delete=delete, username=username)
+        groupname = options['groupname'] or None
+        if not groupname:
+            self.stdout.write('Converting Host Permissions...')
+            convert_host_permissions(delete=delete, username=username)
         self.stdout.write('Converting Group Permissions...')
-        convert_permissions(delete=delete, username=username)
+        convert_permissions(delete=delete, username=username, groupname=groupname)
