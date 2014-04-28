@@ -258,8 +258,8 @@ class Address(models.Model):
     # Force manual removal of addresses so they are unassigned and properly re-classified
     host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses', on_delete=models.SET_NULL)
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True, on_delete=models.SET_NULL)
-    # Do we want to allow deletion of a network with addresses referencing it?
     reserved = models.BooleanField()
+    # Do we want to allow deletion of a network with addresses referencing it?
     network = models.ForeignKey('Network', db_column='network', related_name='net_addresses')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
