@@ -48,7 +48,7 @@ class Lease(models.Model):
 
 
 class Pool(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     description = models.TextField(blank=True)
     allow_unknown = models.BooleanField()
     lease_time = models.IntegerField()
@@ -290,10 +290,10 @@ class Address(models.Model):
             return None
 
     def clean(self):
-        if self.mac and self.pool:
-            raise ValidationError('MAC and Pool cannot both be defined.  Choose one or the other.')
-        elif (self.mac or self.pool) and self.reserved:
-            raise ValidationError('If a MAC or Pool are defined, reserved must be false.')
+        if self.host and self.pool:
+            raise ValidationError('Host and Pool cannot both be defined.  Choose one or the other.')
+        elif (self.host or self.pool) and self.reserved:
+            raise ValidationError('If a Host or Pool are defined, reserved must be false.')
 
     def release(self, pool=False):
         from openipam.dns.models import DnsRecord
@@ -324,6 +324,7 @@ class Address(models.Model):
 
     class Meta:
         db_table = 'addresses'
+        verbose_name_plural = 'addresses'
 
 
 class AddressTypeManager(models.Manager):
