@@ -7,6 +7,9 @@ class UserToGroupManager(models.Manager):
     def get_queryset(self):
         return super(UserToGroupManager, self).get_queryset().select_related().all()
 
+    def delete(self():
+        self.update(is_active=False)
+
 
 class IPAMUserManager(UserManager):
 
