@@ -141,15 +141,16 @@ class Host(models.Model):
     mac = MACAddressField('Mac Address', primary_key=True)
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname], db_index=True)
     description = models.TextField(blank=True, null=True)
-    address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id')
+    address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id',
+                                        on_delete=models.SET_NULL)
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
-                                   related_name='pool_hosts',  blank=True, null=True)
+                                   related_name='pool_hosts', blank=True, null=True)
     #freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
     #                                             related_name='freeform_hosts',  blank=True, null=True)
     #structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
     #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group',
-                                   verbose_name='DHCP Group', blank=True, null=True)
+                                   verbose_name='DHCP Group', blank=True, null=True, on_delete=models.SET_NULL)
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
