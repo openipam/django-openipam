@@ -52,7 +52,7 @@ class IPAMMenu(Menu):
             items.MenuItem(
                 _('Home'),
                 reverse('admin:index'),
-                icon='icon-home icon-white'
+                icon='glyphicon glyphicon-home icon-white'
             ),
         ]
 
@@ -79,7 +79,8 @@ class IPAMMenu(Menu):
                         ),
                         items.ModelList('Logs',
                             [
-                                'django.contrib.admin.models.LogEntry'
+                                'django.contrib.admin.models.LogEntry',
+                                'openipam.log.models.HostLog',
                             ]
                         ),
                         items.ModelList('Feature Requests',

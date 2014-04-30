@@ -10,6 +10,9 @@ from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout
+
 import autocomplete_light
 
 
@@ -107,6 +110,13 @@ class DSNCreateFrom(forms.Form):
     dns_type = forms.ModelChoiceField(queryset=DnsType.objects.exclude(min_permissions__name='NONE'), required=True)
     ttl = forms.IntegerField(label='TTL', required=True, initial=14400)
     content = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(DSNCreateFrom, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.label_class = 'col-sm-2 col-md-2 col-lg-2'
+        self.helper.field_class = 'col-sm-6 col-md-6 col-lg-6'
 
 
 class DomainGroupPermissionForm(BaseGroupObjectPermissionForm):

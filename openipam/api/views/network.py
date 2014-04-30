@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework import filters
 from rest_framework import permissions
 
-from openipam.network.models import Network, Address, DhcpGroup
+from openipam.network.models import Network, Address, DhcpGroup, Lease
 from openipam.api.serializers.network import NetworkSerializer
 
 from django_filters import FilterSet, CharFilter
@@ -26,7 +26,7 @@ class NetworkList(generics.ListAPIView):
     filter_fields = ('network', 'name',)
     filter_class = NetworkFilter
     paginate_by = 10
-    paginate_by_param = 'page_size'
+    paginate_by_param = 'limit'
 
 
 class AddressList(generics.ListAPIView):

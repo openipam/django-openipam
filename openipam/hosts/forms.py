@@ -17,7 +17,7 @@ from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPer
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
-from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup
+from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup, PrependedText
 
 from netfields.forms import MACAddressFormField
 
@@ -49,8 +49,8 @@ class HostForm(forms.ModelForm):
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
     network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
     ip_address = forms.CharField(label='IP Address', required=False)
-    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'style': 'width: 400px;'}))
-    show_hide_dhcp_group = forms.BooleanField(label='Click to assign a DHCP Group', required=False)
+    description = forms.CharField(required=False, widget=forms.Textarea())
+    show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
     dhcp_group = forms.ModelChoiceField(
         DhcpGroup.objects.all(),
         help_text='Leave this alone unless directed by an IPAM administrator',
@@ -194,16 +194,18 @@ class HostForm(forms.ModelForm):
         if self.instance.pk:
             html_addresses = []
             for address in self.addresses:
-                html_addresses.append('<span class="label label-important" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
+                html_addresses.append('<span class="label label-primary" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
             if html_addresses:
                 change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
                 self.current_address_html = HTML('''
-                    <div class="control-group">
-                        <label class="control-label">Current IP Address:</label>
-                        <div class="controls" style="margin-top: 5px;">
-                            %s
-                            %s
-                            %s
+                    <div class="form-group">
+                        <label class="col-lg-2 control-label">Current IP Address:</label>
+                        <div class="controls col-md-6 col-lg-6">
+                            <h4>
+                                %s
+                                %s
+                                %s
+                            </h4>
                         </div>
                     </div>
                 ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
@@ -229,11 +231,13 @@ class HostForm(forms.ModelForm):
     def _init_expire_date(self):
         if self.instance.pk:
             self.expire_date = HTML('''
-                <div class="control-group">
-                    <label class="control-label">Expire Date:</label>
-                    <div class="controls" style="margin-top: 5px;">
-                        <span class="label label-important">%s</span>
-                        <a href="#" id="host-renew" class="renew">Renew Host</a>
+                <div class="form-group">
+                    <label class="col-md-2 col-lg-2 control-label">Expire Date:</label>
+                    <div class="controls col-md-6 col-lg-6">
+                        <h4>
+                            <span class="label label-primary">%s</span>
+                            <a href="#" id="host-renew" class="renew">Renew Host</a>
+                        </h4>
                     </div>
                 </div>
             ''' % self.instance.expires.strftime('%b %d %Y'))
@@ -257,7 +261,7 @@ class HostForm(forms.ModelForm):
                 self.expire_date,
                 'expire_days',
                 'description',
-                'show_hide_dhcp_group',
+                PrependedText('show_hide_dhcp_group', ''),
                 'dhcp_group',
             )
         ]
@@ -281,6 +285,8 @@ class HostForm(forms.ModelForm):
         ]
 
         self.helper = FormHelper()
+        self.helper.label_class = 'col-sm-2 col-md-2 col-lg-2'
+        self.helper.field_class = 'col-sm-6 col-md-6 col-lg-6'
         self.helper.layout = Layout(
             Accordion(*accordion_groups),
             #FormActions(*form_actions)

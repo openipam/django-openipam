@@ -9,8 +9,10 @@ from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import RequestContext, loader
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import login as auth_login
+from django.core.exceptions import ValidationError
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -18,6 +20,7 @@ from openipam.user.forms import IPAMAuthenticationForm
 
 import os
 import random
+import sys
 
 User = get_user_model()
 
@@ -116,12 +119,33 @@ def server_error(request, template_name='500.html'):
     kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
     kitty = random.choice(os.listdir(kitty_dir))
     template = loader.get_template(template_name)
+    error_list = []
+
+    try:
+        exc_type, exc_value, tb = sys.exc_info()
+    except:
+        exc_type, exc_value, tb = None, None, None
+
+    if exc_type == ValidationError:
+        if hasattr(exc_value, 'error_dict'):
+            for key, errors in exc_value.message_dict.items():
+                for error in errors:
+                    error_list.append(error)
+        else:
+            error_list.append(exc_value.message)
+
+    if error_list:
+        error_list.append('Please try again.')
+        messages.error(request, mark_safe('<br />'.join(error_list)))
+        return HttpResponseRedirect(request.path)
+
     context = {
         'request_path': request.path,
         'kitty': kitty,
         'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
         'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
-        'request_path': request.path
+        'request_path': request.path,
+        'error_list': error_list,
     }
     body = template.render(RequestContext(request, context))
     return HttpResponseServerError(body, content_type='text/html')

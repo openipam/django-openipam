@@ -33,10 +33,14 @@ urlpatterns += patterns('',
     url(r'^admin_tools/', include('admin_tools.urls')),
 )
 
-
 # Serve Static and Media on development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += staticfiles_urlpatterns()
+if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
+    urlpatterns += patterns('',
+            url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+    )
+else:
+    urlpatterns += staticfiles_urlpatterns()
 
 handler404 = 'openipam.core.views.page_not_found'
 handler500 = 'openipam.core.views.server_error'

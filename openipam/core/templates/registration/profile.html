@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load i18n %}
+{% load i18n openipam widget_tweaks %}
 
 {% block breadcrumbs %}
     {% if not is_popup %}
@@ -25,40 +25,50 @@
             Please update your profile to include your name and email address.
         </h4>
     {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <div class="module aligned wide control-group well">
-            <h3>Personal Info</h3>
-            <div class="pull-left" style="margin-right: 20px;">
-                <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
-                  <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
-                </a>
-            </div>
-            {{ form.as_p }}
-            <div class="clear"><!-- --></div>
-        </div>
-
-        {% if groups %}
-            <div class="module aligned wide control-group well">
-                <h3>Groups</h3>
-                <div style="max-width: 500px;">
-                    {% for group in groups %}
-                        <span class="label label-info" style="margin: 3px;">{{ group }}</span>
-                    {% endfor %}
+    <div>
+        <form method="post" >
+            {% csrf_token %}
+            <div class="module aligned wide form-group well">
+                <h4>Personal Info</h4>
+                <div class="pull-left" style="margin-right: 20px;">
+                    <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
+                      <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
+                    </a>
                 </div>
+                <div class="pull-left form-inline" style="min-width: 400px; margin-top: 20px;">
+                {% for field in form %}
+                    <div class="pull-left" style="width: 110px; line-height: 30px;">
+                        {{ field|label_with_classes:"control-label" }}
+                    </div>
+                    {{ field|add_class:"form-control bottom10 min300" }}
+                <div class="clear"><!-- --></div>
+                {% endfor %}
+                </div>
+                <div class="clear"><!-- --></div>
             </div>
-        {% endif %}
 
-        <div class="well">
-            {% if request.user.is_superuser %}
-            <div class="pull-left">
-              <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{# {% url 'admin:auth_user_change' request.user.pk %} #}';" />
-            </div>
+            {% if groups %}
+                <div class="module aligned wide form-group well">
+                    <h4>Groups</h4>
+                    <div style="max-width: 500px;">
+                        {% for group in groups %}
+                            <h4 style="display: inline-block;">
+                                <span class="label label-primary" style="margin: 3px;">{{ group }}</span>
+                            </h4>
+                        {% endfor %}
+                    </div>
+                </div>
             {% endif %}
-            <div class="pull-right">
-              <input type="submit" value="Save" class="default btn btn-success" name="save" />
+
+            <div class="form-group well">
+                <div class="pull-right">
+                    {% if request.user.is_superuser %}
+                        <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{# {% url 'admin:auth_user_change' request.user.pk %} #}';" />
+                    {% endif %}
+                    <input type="submit" value="Save" class="default btn btn-success" name="save" />
+                </div>
+                <div class="clear"><!-- --></div>
             </div>
-            <div class="clear"><!-- --></div>
-        </div>
-    </form>
+        </form>
+    </div>
 {% endblock %}

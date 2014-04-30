@@ -1,132 +1,99 @@
-  {% extends "admin/base.html" %}
+{% extends "admin/base.html" %}
 {% load static i18n admin_tools_menu_tags openipam crispy_forms_tags %}
 {% load url from future %}
 
 {% block title %}{{ title }} | {% atb_site_name %}{% endblock %}
 
 {% block extrahead %}
-    {{ block.super }}
-    {% include 'autocomplete_light/static.html' %}
-    <script type="text/javascript" src="{% static 'core/js/feedback.js' %}"></script>
-    <script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
+{{ block.super }}
+{% include 'autocomplete_light/static.html' %}
+<script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap/css/bootstrap.min.css" %}" />
-    <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
-    <!-- <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap/less/style.css" %}?{% now "c" %}" /> -->
-
-    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.css" %}" />
-    <!--[if IE]><link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery.ui.1.8.16.ie.css" %}" /><![endif]-->
-    <link rel="stylesheet" type="text/css" href="{% static "core/css/custom-theme/jquery-ui-1.8.16.custom.css" %}" />
-    <link rel="stylesheet" href="{% static 'core/css/feedback.css' %}" type="text/css" />
+{{ block.super }}
 {% endblock %}
 
 {% block nav-global %}
+    <div class="collapse navbar-collapse navHeaderCollapse">
     {% if user.is_active %}
         {% if not is_popup %}
-            <ul class="nav pull-left">
-              {% comment %}
-              <li {% if root_path == 'hosts' %}class="active"{% endif %}>
-                <a href="{% url 'list_hosts' %}">Hosts</a>
-              </li>
-              <li {% if root_path == 'dns' %}class="active"{% endif %}>
-                <a href="{% url 'list_dns' %}">DNS</a>
-              </li>
-              {% endcomment %}
-              {% admin_tools_render_menu %}
-            </ul>
-            {% if user.is_active %}
-            <div class="pull-right">
-              <div class="pull-left">
-                {% if request.user.is_ipamadmin %}
-                  <form id="mimic_form" class="navbar-form" method="post" action="{% url 'mimic' %}">
-                    {% csrf_token %}
-                    <input type="text" placeholder="Mimic User" id="id_mimic_select" class="input-small" />
-                    <input type="hidden" id="id_mimic_value" name="mimic_pk" />
-                  </form>
-                {% else %}
-                  {% if request.session.mimic_user %}
-                    <div class="btn-group">
-                      <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
-                      <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="icon-remove icon-white"></span></a>
-                    </div>
-                  {% endif %}
-                {% endif %}
-              </div>
-              <ul class="nav">
-                  {% comment %}
-                    <li class="dropdown">
-                      <a id="menu-search-toggle" class="dropdown-toggle" href="#" title="{% trans "Menu Search" %}" data-toggle="dropdown">
-                        <i class="icon-search icon-white"></i>
-                      </a>
-                      <ul id="menu-search" class="dropdown-menu">
-                          <li id="menu-search-li">
-                            <input id="menu-search-input" type="text" placeholder="{% trans "Search in menu" %}"/>
-                          </li>
-                      </ul>
-                    </li>
-                    {% atb_site_link %}
-                  {% endcomment %}
-                  <li class="dropdown navbar-form">
-                     <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
-                     Feature or Bug?
-                      <b class="caret"></b>
+            {% admin_tools_render_menu %}
+            <ul id="right-menu" class="nav navbar-nav navbar-right">
+                <li class="navbar-form">
+                    {% if request.user.is_ipamadmin %}
+                        <form id="mimic_form" method="post" action="{% url 'mimic' %}">
+                            {% csrf_token %}
+                            <input type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm" />
+                            <input type="hidden" id="id_mimic_value" name="mimic_pk" />
+                        </form>
+                    {% else %}
+                        {% if request.session.mimic_user %}
+                            <div class="btn-group">
+                                <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
+                                <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="glyphicon glyphicon-remove icon-white"></span></a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </li>
+                {% if not user.is_ipamadmin and not request.session.mimic_user %}
+                <li id="feature-dropdown" class="dropdown">
+                    <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
+                        Feature or Bug?
+                        <b class="caret"></b>
                     </a>
-                    <ul class="dropdown-menu pull-right">
-                      <li>
-                        <form id="feedback-form" method="post">
-                        <h4>
-                        Please provide any feedback related to bugs and feature requests.
-                        </h4>
-                          {% csrf_token %}
-                            <div>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        <li>
+                            <form id="feedback-form" method="post">
+                                <h4>
+                                    Please provide any feedback related to bugs and feature requests.
+                                </h4>
+                                {% csrf_token %}
                                 {{ feature_form | crispy }}
                                 <div class="form-actions">
                                     <input type="submit" value="Submit" class="btn btn-primary" />
-                                    <input type="button" value="Cancel" class="btn feedback-cancel" />
+                                    <input type="button" value="Cancel" class="btn btn-default feedback-cancel" />
                                 </div>
-                            </div>
-                        </form>
-                      </li>
+                            </form>
+                        </li>
                     </ul>
-                  </li>
-                  <li class="dropdown">
+                </li>
+                {% endif %}
+                <li class="dropdown">
                     <a class="dropdown-toggle" href="#" data-toggle="dropdown">
-                        <img src="{{ gravatar }}?d=blank&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; bottom: 2px; position: relative;" alt="{{ request.user }}" class="icon-user icon-white" />
-                      {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
-                      <b class="caret"></b>
+                        <img src="{{ gravatar }}?d=mm&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; top: -3px; position: relative;" alt="{{ request.user }}" class="glyphicon glyphicon-user white" />
+                        {% filter force_escape %}
+                            {% firstof user.first_name user.username %}
+                        {% endfilter %}
+                        <b class="caret"></b>
                     </a>
-                    <ul class="dropdown-menu pull-right">
-                    {% block userlinks %}
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        {% block userlinks %}
                         <li>
-                          <a href="{% url 'profile' %}">
-                            <i class="icon-user"></i>
-                            Profile
-                          </a>
+                            <a href="{% url 'profile' %}">
+                                <i class="icon-user"></i>
+                                Profile
+                            </a>
                         </li>
                         {% if request.user.has_usable_password %}
                         <li>
-                          <a href="{% url 'password_change' %}">
-                            <i class="icon-lock"></i>
-                            {% trans 'Change password' %}
-                          </a>
+                            <a href="{% url 'password_change' %}">
+                                <i class="icon-lock"></i>
+                                {% trans 'Change password' %}
+                            </a>
                         </li>
                         {% endif %}
                         <li>
-                          <a href="{% url 'logout' %}">
-                            <i class="icon-off"></i>
-                            {% trans 'Log out' %}
-                          </a>
+                            <a href="{% url 'logout' %}">
+                                <i class="icon-off"></i>
+                                {% trans 'Log out' %}
+                            </a>
                         </li>
-                    {% endblock %}
+                        {% endblock %}
                     </ul>
-                  </li>
-              </ul>
-            </div>
-            {% endif %}
-
+                </li>
+            </ul>
         {% endif %}
     {% endif %}
+    </div>
 {% endblock %}

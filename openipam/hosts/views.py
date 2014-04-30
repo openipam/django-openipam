@@ -69,7 +69,7 @@ class HostListJson(BaseDatatableView):
             mac_search = self.request.GET.get('sSearch_1', None)
             ip_search = self.request.GET.get('sSearch_2', None)
             expired_search = self.request.GET.get('sSearch_3', None)
-            search = self.request.GET.get('search_filter', None)
+            search = self.request.GET.get('search_filter', '')
             group_filter = self.request.GET.get('group_filter', None)
             user_filter = self.request.GET.get('user_filter', None)
 
@@ -277,7 +277,7 @@ class HostListJson(BaseDatatableView):
             json_data.append([
                 get_selector(host, has_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
-                 ' class="host-details" data-toggle="modal"><span class="icon-expand"></span> %(hostname)s</a>' % {
+                 ' class="host-details" data-toggle="modal"><span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
                                                                                     'hostname': host.hostname or 'N/A',
                                                                                     'view_href': host_view_href,
                                                                                     'update_href': host_edit_href

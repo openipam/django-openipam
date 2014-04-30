@@ -18,8 +18,8 @@ table select {
     max-width: 80px;
 }
 
-.input-name, .input-content {
-    width: 95%;
+.dns-name, .dns-content {
+    width: 95% !important;
 }
 
 table tr.info td {
@@ -44,4 +44,28 @@ table tr.error td {
 
 .dns-ttl {
     max-width: 50px;
+    padding: 5px;
+}
+
+
+@media screen and (max-width: 810px) {
+    #result_list td:nth-child(3),
+    #result_list th:nth-child(3) {
+        display: none;
+    }
+
+    #search-help-button {
+        display: none;
+    }
+
+    #filter-owners {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    #result_list td:nth-child(6),
+    #result_list th:nth-child(6) {
+        display: none;
+    }
 }

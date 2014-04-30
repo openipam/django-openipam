@@ -79,7 +79,7 @@ class HostCreateUpdateSerializer(serializers.Serializer):
     #address_type = serializers.ChoiceField(required=False)
     network = serializers.ChoiceField(required=False)
     pool = serializers.ChoiceField(required=False)
-    ip_addresses = ListField(IPAddressField(required=False))
+    ip_addresses = ListField(IPAddressField(), required=False)
     dhcp_group = serializers.ChoiceField(required=False)
     #user_owners = ListField(serializers.CharField(), required=False)
     #group_owners = ListField(serializers.CharField(), required=False)
@@ -117,7 +117,7 @@ class HostCreateUpdateSerializer(serializers.Serializer):
             instance.dhcp_group = DhcpGroup.objects.get(pk=attrs['dhcp_group'])
 
         if attrs.get('pool'):
-            instance.pool = Pool.objects.get(slug=attrs['pool'])
+            instance.pool = Pool.objects.get(name=attrs['pool'])
 
         if attrs.get('ip_addresses'):
             instance.ip_addresses = attrs['ip_addresses']
@@ -185,7 +185,7 @@ class HostCreateUpdateSerializer(serializers.Serializer):
                 any_perm=True
             )
 
-            if pool not in [pool.slug for pool in user_pools]:
+            if pool not in [pool.name for pool in user_pools]:
                 raise serializers.ValidationError('The pool entered is invalid or not permitted.')
 
         return attrs
@@ -222,28 +222,47 @@ class HostCreateUpdateSerializer(serializers.Serializer):
     def validate_ip_addresses(self, attrs, source):
         ip_addresses = attrs.get(source)
 
-        for ip_address in ip_addresses:
-            user_pools = get_objects_for_user(
-                self.context['request'].user,
-                ['network.add_records_to_pool', 'network.change_pool'],
-                any_perm=True
-            )
-            user_nets = get_objects_for_user(
-                self.context['request'].user,
-                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True
-            )
+        if ip_addresses:
+            for ip_address in ip_addresses:
+                user_pools = get_objects_for_user(
+                    self.context['request'].user,
+                    ['network.add_records_to_pool', 'network.change_pool'],
+                    any_perm=True
+                )
+                user_nets = get_objects_for_user(
+                    self.context['request'].user,
+                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                    any_perm=True
+                )
 
-            address = Address.objects.filter(
-                Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                address=ip_address,
-                host__isnull=True,
-                reserved=False
-            )
-            is_available = True if address else False
-            if not is_available:
-                raise serializers.ValidationError('The IP Address is reserved, in use, or not allowed.')
+                address = Address.objects.filter(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                    address=ip_address,
+                    host__isnull=True,
+                    reserved=False
+                )
+                is_available = True if address else False
+                if not is_available:
+                    raise serializers.ValidationError('The IP Address is reserved, in use, or not allowed.')
         return attrs
+
+
+class HostRenewSerializer(serializers.ModelSerializer):
+    expire_days = serializers.ChoiceField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(HostRenewSerializer, self).__init__(*args, **kwargs)
+        self.fields['expire_days'].choices = [(expire.expiration.days, expire.expiration.days) for expire in ExpirationType.objects.all()]
+
+    def restore_object(self, attrs, instance):
+        instance.expire_days = attrs['expire_days']
+        instance.exipires = instance.set_expiration(timedelta(int(attrs.get('expire_days'))))
+
+        return instance
+
+    class Meta:
+        model = Host
+        fields = ('expire_days',)
 
 
 class HostOwnerSerializer(serializers.Serializer):

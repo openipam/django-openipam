@@ -11,13 +11,35 @@ from BeautifulSoup import BeautifulSoup
 from urllib import unquote
 import re
 
-
 register = template.Library()
+
+CLASS_PATTERN = re.compile(r'\bclass="[\w\d]*"')
+class_re = re.compile(r'(?<=class=["\'])(.*?)(?=["\'])')
 
 
 @register.filter
 def unquote_raw(value):
     return unquote(value)
+
+
+@register.filter(is_safe=True)
+def label_with_classes(field, arg):
+
+    return field.label_tag(attrs={'class': arg})
+
+
+@register.filter(is_safe=True)
+def field_with_classes(value, arg):
+    """
+    Replace the attribute css class for Field 'value' with 'arg'.
+    """
+    attrs = value.field.widget.attrs
+    orig = attrs['class'] if 'class' in attrs else ''
+
+    attrs['class'] = '%s %s' % (orig, arg)
+    rendered = str(value)
+
+    return rendered
 
 
 @register.simple_tag
@@ -160,16 +182,11 @@ class BreadcrumbsNode(template.Node):
                     active = ''
 
                 curr += 1
-                if (len(lines) == curr):
-                    # last
-                    divider = ''
-                else:
-                    divider = '<span class="divider">/</span>'
 
                 if len(d) == 2:
-                    out += '<li%s><a href="%s">%s</a>%s</li>' % (active, d[0], d[1], divider)
+                    out += '<li%s><a href="%s">%s</a></li>' % (active, d[0], d[1])
                 elif len(d) == 1:
-                    out += '<li%s>%s%s</li>' % (active, d[0], divider)
+                    out += '<li%s>%s</li>' % (active, d[0])
                 else:
                     raise ValueError('Invalid breadcrumb line: %s' % self.delimiter.join(d))
         out += '</ul>'

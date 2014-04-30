@@ -15,6 +15,7 @@ from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_p
 from openipam.hosts.signals import create_dns_record_for_static_host, delete_dns_record_for_static_host
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager
+from openipam.user.signals import remove_obj_perms_connected_with_user
 
 from datetime import datetime
 
@@ -569,6 +570,7 @@ class StructuredAttributeToHost(models.Model):
 # Host signals
 post_save.connect(create_dns_record_for_static_host, sender=Host)
 pre_delete.connect(delete_dns_record_for_static_host, sender=Host)
+pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
 
 
 try:

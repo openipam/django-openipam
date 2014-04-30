@@ -74,7 +74,7 @@ class DNSListJson(BaseDatatableView):
             type_search = self.request.GET.get('sSearch_1', None)
             content_search = self.request.GET.get('sSearch_2', None)
             host_filter = self.request.GET.get('host_filter', None)
-            search = self.request.GET.get('search_filter', None)
+            search = self.request.GET.get('search_filter', '')
             group_filter = self.request.GET.get('group_filter', None)
             user_filter = self.request.GET.get('user_filter', None)
 
@@ -184,7 +184,7 @@ class DNSListJson(BaseDatatableView):
                 </span>
             '''
             if has_permissions:
-                html += '<input type="text" name="name-%(id)s" value="%(name)s" style="display:none;" />'
+                html += '<input type="text" name="name-%(id)s" value="%(name)s" class="form-control input-sm" style="display:none;" />'
 
             return html % {
                 'id': dns_record.pk,
@@ -198,7 +198,7 @@ class DNSListJson(BaseDatatableView):
             else:
                 return '''
                     <span>%s</span>
-                    <select name="type-%s" style="display:none;">
+                    <select name="type-%s" class="form-control input-sm" style="display:none;">
                         %s
                     </select>
                 ''' % (dns_record.dns_type.name, dns_record.pk, get_dns_types(dns_record.dns_type)),
@@ -222,7 +222,7 @@ class DNSListJson(BaseDatatableView):
             else:
                 return '''
                 <span title="%s">%s</span>
-                <input type="text" class="dns-content" name="content-%s" value="%s" style="display:none;" />
+                <input type="text" class="dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
             ''' % (content, s_content, dns_record.pk, content)
 
         def get_ttl(dns_record, has_permissions):
@@ -231,7 +231,7 @@ class DNSListJson(BaseDatatableView):
             else:
                 return '''
                 <span>%s</span>
-                <input type="text" class="dns-ttl" name="ttl-%s" value="%s" style="display:none;" />
+                <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s" value="%s" style="display:none;" />
             ''' % (dns_record.ttl, dns_record.pk, dns_record.ttl)
 
 

@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django import forms
 
+from openipam.log.models import HostLog
+
 import autocomplete_light
 
 User = get_user_model()
@@ -49,4 +51,10 @@ class LogEntryAdmin(admin.ModelAdmin):
         return '%s: %s' % (obj.content_type.model.capitalize(), obj.object_repr)
     object_name.short_description = 'Model object'
 
+
+class HostLogAdmin(admin.ModelAdmin):
+    list_display = ('mac', 'hostname', 'changed', 'changed_by',)
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
+#admin.site.register(HostLog, HostLogAdmin)

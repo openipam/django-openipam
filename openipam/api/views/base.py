@@ -10,6 +10,8 @@ class UserAuthenticated(APIView):
     def get(self, request, *args, **kwargs):
         data = {
             "detail": "User is authenticated",
-            "username": request.user.username
+            "username": request.user.username,
+            "is_superuser": request.user.is_superuser,
+            "is_ipamadmin": request.user.is_ipamadmin,
         }
         return Response(data, status=status.HTTP_200_OK)

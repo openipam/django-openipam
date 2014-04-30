@@ -45,8 +45,7 @@ $(function(){
         "sPaginationType": "full_numbers",
         "bAutoWidth": false,
         "bStateSave": true,
-        "bJQueryUI": true,
-        "sDom": '<"header well well-small"r>t<"pagination well well-small"lpi><"clear">',
+        "sDom": '<"header well well-sm"r>t<"paginator well well-sm"lpi<"clear">>',
         "aaSorting": [[ 1, "asc" ]],
         "oLanguage": {
             "sLengthMenu": "Show _MENU_ records",
@@ -147,7 +146,7 @@ $(function(){
                 $("#add-table tr.add-row.extra").clone().appendTo("#result_list");
 
                 // Set pagination to stick when scrolling
-                var page_bar = $('.pagination');
+                var page_bar = $('.paginator');
                 page_bar.removeClass('fixed');
                 if(page_bar.length){
                     var height=page_bar[0].offsetTop + page_bar.outerHeight();
@@ -318,8 +317,8 @@ $(function(){
     });
 
     //$(".pagination").append("<div style='clear: both;'><!-- --></div>").append($("#form-actions").show());
-    $(".pagination").prepend($("#form-actions"));
-    $(".pagination").append("<div style='clear: both;'><!-- --></div>");
+    $(".paginator").prepend($("#form-actions"));
+    $(".paginator").append("<div style='clear: both;'><!-- --></div>");
 
     // Clear all filters logic
     $("#clear-filters").click(function() {

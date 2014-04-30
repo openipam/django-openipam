@@ -62,8 +62,8 @@ class AuthUserAdmin(UserAdmin):
         (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
-                                       'groups', 'user_permissions',)}),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+                                       'groups', 'user_permissions',), 'classes': ('collapse',)}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined'), 'classes': ('collapse',)}),
     )
 
     def full_name(self, obj):
