@@ -32,6 +32,10 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
 
 class AuthUserChangeAdminForm(UserChangeForm):
+    groups = forms.ModelMultipleChoiceField(Group.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('GroupFilterAutocomplete'))
+    user_permissions = forms.ModelMultipleChoiceField(Group.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'))
 
     def clean_username(self):
         username = self.cleaned_data['username']

@@ -216,6 +216,11 @@ autocomplete_light.register(Host,
     autocomplete_js_attributes={'placeholder': 'Search Hosts'},
 )
 
+autocomplete_light.register(Permission,
+    search_fields=['name', 'codename', 'content_type__name', 'content_type__app_label'],
+    autocomplete_js_attributes={'placeholder': 'Search Permissions'},
+)
+
 autocomplete_light.register(ContentType,
     search_fields=['model'],
     autocomplete_js_attributes={'placeholder': 'Search Content Types'},
