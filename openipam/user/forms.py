@@ -33,9 +33,9 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
 class AuthUserChangeAdminForm(UserChangeForm):
     groups = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('GroupFilterAutocomplete'))
-    user_permissions = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'))
+        widget=autocomplete_light.MultipleChoiceWidget('GroupFilterAutocomplete'), required=False)
+    user_permissions = forms.ModelMultipleChoiceField(Permission.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'), required=False)
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -51,14 +51,16 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
 
 class AuthGroupAdminForm(forms.ModelForm):
+    permissions = forms.ModelMultipleChoiceField(Permission.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'), required=False)
 
-    def clean_name(self):
-        name = self.cleaned_data['name'].lower()
+    # def clean_name(self):
+    #     name = self.cleaned_data['name'].lower()
 
-        if Group.objects.filter(name=name):
-            raise forms.ValidationError('Group name already exists.')
+    #     if Group.objects.filter(name=name):
+    #         raise forms.ValidationError('Group name already exists.')
 
-        return name
+    #     return name
 
     class Meta:
         model = Group

@@ -148,7 +148,7 @@ class TokenAdmin(TokenAdmin):
 
 class AuthGroupAdmin(GroupAdmin):
     list_display = ('name',)
-    #form = AuthGroupAdminForm
+    form = AuthGroupAdminForm
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
