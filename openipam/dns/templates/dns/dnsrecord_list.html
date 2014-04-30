@@ -105,10 +105,10 @@
                             </div>
                             <div class="clear"></div>
                         </th>
-                        <th scope="col" nowrap="nowrap">Name</th>
+                        <th scope="col">Name</th>
                         <th scope="col" style="width: 50px;">TTL</th>
                         <th scope="col" style="width: 80px;">Type</th>
-                        <th scope="col" style="width: 100%;">Content</th>
+                        <th scope="col" style="width: 70%;">Content</th>
                         <th scope="col" style="width: 80px;">View</th>
                         <th scope="col" style="width: 70px;">Edit</th>
                     </tr>
@@ -129,7 +129,7 @@
                                 </select>
                             </div>
                         </th>
-                        <th><div><input type="text" class="form-control input-sm search_init" placeholder="Search Content" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 300px;" /></div></th>
+                        <th><div><input type="text" class="input-content form-control input-sm search_init" placeholder="Search Content" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 300px;" /></div></th>
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
@@ -156,7 +156,7 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td><input type="text" name="content-new" class="form-control input-sm" value="{{ row.content }}" /></td>
+                        <td><input type="text" name="content-new" class="input-content form-control input-sm" value="{{ row.content }}" /></td>
                         <td>&nbsp;</td>
                         <td>
                             <a class="remove-record" href="javascript:void(0);">Remove</a>
@@ -175,7 +175,7 @@
                             {% endfor %}
                         </select>
                     </td>
-                    <td><input type="text" name="content-new" class="form-control input-sm" /></td>
+                    <td><input type="text" name="content-new" class="input-content form-control input-sm" /></td>
                     <td>&nbsp;</td>
                     <td>
                         <a class="add-record" href="javascript:void(0);">Quick add</a>

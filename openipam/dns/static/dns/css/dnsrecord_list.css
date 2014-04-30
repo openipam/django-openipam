@@ -47,6 +47,13 @@ table tr.error td {
     padding: 5px;
 }
 
+.input-content {
+    width: 300px !important;
+}
+
+#result_list td:nth-child(2) {
+    white-space: nowrap;
+}
 
 @media screen and (max-width: 810px) {
     #result_list td:nth-child(3),
@@ -60,6 +67,10 @@ table tr.error td {
 
     #filter-owners {
         display: none;
+    }
+
+    .input-content {
+        width: auto !important;
     }
 }
 

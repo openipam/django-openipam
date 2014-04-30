@@ -222,7 +222,7 @@ class DNSListJson(BaseDatatableView):
             else:
                 return '''
                 <span title="%s">%s</span>
-                <input type="text" class="dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
+                <input type="text" class="input-content dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
             ''' % (content, s_content, dns_record.pk, content)
 
         def get_ttl(dns_record, has_permissions):
