@@ -284,10 +284,6 @@ class DNSListView(TemplateView):
         context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
         context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
 
-        data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
-        if data_table_state:
-            context.update(json.loads(data_table_state))
-
         selected_records = self.request.POST.getlist('selected-records', [])
         if selected_records:
             context['selected_records'] = json.dumps(selected_records)

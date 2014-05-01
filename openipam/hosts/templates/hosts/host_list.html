@@ -121,15 +121,15 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input type="text" id="s_host" class="search_init form-control input-sm" placeholder="Search Host" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
-                        <th><div><input type="text" id="s_mac" class="search_init form-control input-sm" placeholder="Search MAC" value="{{ aoSearchCols.1.sSearch }}" style="max-width: 120px;" /></div></th>
-                        <th><div><input type="text" id="s_ip" class="search_init form-control input-sm" placeholder="Search IP" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 100px;" /></div></th>
+                        <th><div><input type="text" id="s_host" class="search_init form-control input-sm" placeholder="Search Host" style="max-width: 150px;" /></div></th>
+                        <th><div><input type="text" id="s_mac" class="search_init form-control input-sm" placeholder="Search MAC" style="max-width: 120px;" /></div></th>
+                        <th><div><input type="text" id="s_ip" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" /></div></th>
                         <th>
                             <div>
                                 <select style="max-width: 80px;" id="s_expires" class="filter_init search_init form-control input-sm">
                                     <option value="">All</option>
-                                    <option value="1" {% ifequal aoSearchCols.3.sSearch '1' %}selected="selected"{% endifequal %}>Active</option>
-                                    <option value="0" {% ifequal aoSearchCols.3.sSearch '0' %}selected="selected"{% endifequal %}>Expired</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Expired</option>
                                 </select>
                             </div>
                         </th>

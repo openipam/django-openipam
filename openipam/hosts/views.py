@@ -23,7 +23,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
-from openipam.network.models import AddressType, Address
+from openipam.network.models import AddressType, Address, Lease
 from openipam.user.utils.user_utils import convert_host_permissions
 
 import json
@@ -159,15 +159,22 @@ class HostListJson(BaseDatatableView):
                 qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
                 if '/' in ip_search and ip_search.split('/')[1]:
-                    ip_addresses = Address.objects.filter(address__net_contained_or_equal=ip_search)
-                    qs = qs.filter(addresses__in=ip_addresses)
+                    registered_ip_addresses = Address.objects.filter(address__net_contained_or_equal=ip_search)
+                    leased_ip_addresses = Lease.objects.filter(address__address__net_contained_or_equal=ip_search)
+                    qs = qs.filter(Q(addresses__in=registered_ip_addresses) | Q(leases__in=leased_ip_addresses))
                 else:
-                    ip = search_item.split(':')[-1]
+                    ip = ip_search.split(':')[-1]
                     ip_blocks = ip.split('.')
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
-                        qs = qs.filter(addresses__address__startswith=ip_search)
+                        qs = qs.filter(
+                            Q(addresses__address__startswith=ip_search.split(':')[-1]) |
+                            Q(leases__address__address__startswith=ip_search.split(':')[-1])
+                        )
                     else:
-                        qs = qs.filter(addresses__address=ip_search)
+                         qs = qs.filter(
+                            Q(addresses__address=ip_search.split(':')[-1]) |
+                            Q(leases__address__address=ip_search.split(':')[-1])
+                        )
             if group_filter:
                 group = Group.objects.filter(pk=group_filter)
                 if group:
@@ -303,10 +310,6 @@ class HostListView(TemplateView):
         context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
-
-        data_table_state = urlunquote(self.request.COOKIES.get('SpryMedia_DataTables_result_list_', ''))
-        if data_table_state:
-            context.update(json.loads(data_table_state))
 
         return context
 

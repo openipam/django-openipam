@@ -117,19 +117,19 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input type="text" class="form-control input-sm search_init" placeholder="Search Name" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
+                        <th><div><input id="name-search" type="text" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
                         <th>&nbsp;</th>
                         <th>
                             <div>
                                 <select id="type-filter" style="max-width: 80px;" class="form-control input-sm filter_init search_init">
                                     <option value="">All</option>
                                     {% for type in dns_types %}
-                                        <option value="{{ type.pk }}" {% ifequal aoSearchCols.1.sSearch type.pk|stringformat:"s" %}selected="selected"{% endifequal %}>{{ type.name }}</option>
+                                        <option value="{{ type.pk }}">{{ type.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </th>
-                        <th><div><input type="text" class="input-content form-control input-sm search_init" placeholder="Search Content" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 300px;" /></div></th>
+                        <th><div><input id="content-search" type="text" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>

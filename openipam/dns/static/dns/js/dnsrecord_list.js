@@ -51,6 +51,11 @@ $(function(){
             "sLengthMenu": "Show _MENU_ records",
             "sSearch": ""
         },
+        "stateLoaded": function (settings, data) {
+            $("#name-search").val(data.aoSearchCols[0].sSearch);
+            $("#type-filter").val(data.aoSearchCols[1].sSearch);
+            $("#content-search").val(data.aoSearchCols[2].sSearch);
+        },
         "aoColumns": [
             { "bSortable": false },
             null,

@@ -51,6 +51,12 @@ $(function(){
             "sLengthMenu": "Show _MENU_ records",
             "sSearch": ""
         },
+        "stateLoaded": function (settings, data) {
+            $("#s_host").val(data.aoSearchCols[0].sSearch);
+            $("#s_mac").val(data.aoSearchCols[1].sSearch);
+            $("#s_ip").val(data.aoSearchCols[2].sSearch);
+            $("#s_expires").val(data.aoSearchCols[3].sSearch);
+        },
         "aoColumns": [
             { "bSortable": false },
             null,
