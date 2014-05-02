@@ -1,5 +1,5 @@
 {% extends "hosts/base.html" %}
-{% load i18n static openipam openipam_host_extras crispy_forms_tags %}
+{% load i18n static openipam openipam_host_extras crispy_forms_tags widget_tweaks %}
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
@@ -148,50 +148,63 @@
             </table>
 
             {% if request.user.is_ipamadmin %}
-                <div id="host-owners" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h3>Set Owners for selected hosts</h3>
-                    </div>
-                    <div class="modal-body" style="overflow: visible;">
-                        <div class="pull-left form-horizontal">
-                            {{ owners_form|crispy }}
+                <div id="host-owners" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h3 class="modal-title">Set Owners for selected hosts</h3>
+                            </div>
+                            <div class="modal-body" style="overflow: visible;">
+                                <div>
+                                    {{ owners_form|crispy }}
+                                </div>
+                                <div class="clear"><!-- --></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-primary" type="submit">Save</button>
+                                <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+                            </div>
                         </div>
-                        <div class="clear"><!-- --></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit">Save</button>
-                        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
                     </div>
                 </div>
             {% endif %}
 
-            <div id="host-renew" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3>Renew for selected hosts</h3>
-                </div>
-                <div class="modal-body">
-                    <div class="pull-left form-horizontal">
-                        {{ renew_form|crispy }}
+            <div id="host-renew" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h3 class="modal-title">Renew for selected hosts</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                {{ renew_form.expire_days|label_with_classes:"control-label right10" }}
+                                {{ renew_form.expire_days|add_class:"form-control" }}
+                            </div>
+                            <div class="clear"><!-- --></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" type="submit">Save</button>
+                            <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+                        </div>
                     </div>
-                    <div class="clear"><!-- --></div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" type="submit">Save</button>
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
                 </div>
             </div>
 
-            <div id="host-details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="host-detail-label">Details for: </h3>
-                </div>
-                <div class="modal-body">Loading...</div>
-                <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                    <a id="edit-host" class="btn btn-success">Edit Host</a>
+            <div id="host-details" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true" style="display: none;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h3 class="modal-title" id="host-detail-label">Details for: </h3>
+                        </div>
+                        <div class="modal-body">Loading...</div>
+                        <div class="modal-footer">
+                            <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+                            <a id="edit-host" class="btn btn-success">Edit Host</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,10 +1,10 @@
-.modal {
+/*.modal {
     width: 800px;
     margin-left: -400px;
-}
+}*/
 .modal-body {
     max-height: 600px;
-    padding: 0px 15px 15px 15px;
+    position: relative;
     margin-top: 20px;
 }
 input {
