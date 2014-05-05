@@ -196,14 +196,14 @@ class DnsRecord(models.Model):
                 names.pop(0)
 
             if names_list:
-                domains = Domain.objects.filter(reduce(operator.or_, names_list))
-                domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
+                self.domain = (
+                    Domain.objects.filter(reduce(operator.or_, names_list))
+                    .extra(select={'length': 'Length(name)'}).order_by('-length').first()
+                )
             else:
-                domains = Domain.objects.none()
+                self.domain = None
 
-            if domains:
-                self.domain = domains[0]
-            else:
+            if not self.domain:
                 raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
 
             if self.domain.type == 'SLAVE':
