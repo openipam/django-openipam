@@ -6,7 +6,7 @@
             Filters
             <span class="caret"></span>
         </button>
-        <div id="changelist-filter-actions" class="well well-sm action-wrapper" style="display: none;">
+        <div id="changelist-filter-actions" class="well well-sm action-wrapper">
             {% for spec in cl.filter_specs %}
               {% admin_select_filter cl spec %}
             {% endfor %}

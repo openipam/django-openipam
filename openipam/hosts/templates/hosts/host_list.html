@@ -20,8 +20,8 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script type="text/javascript" src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
-    <script type="text/javascript" src="//cdn.datatables.net/plug-ins/505bef35b56/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+    <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 

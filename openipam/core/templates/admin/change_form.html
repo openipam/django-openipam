@@ -4,10 +4,8 @@
 {% block extrahead %}
     {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    <script type="text/javascript" src="{% static "core/chosen/chosen.jquery.js" %}"></script>
-    <script type="text/javascript" src="/static/admin/js/core.js"></script>
-    <script type="text/javascript" src="/static/admin/js/calendar.js"></script>
-    <script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+    {{ media.js }}
+    <script type="text/javascript" src="{% static "core/chosen/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         $(function(){
             $('select[multiple]:not(.value-select)').chosen();
@@ -18,8 +16,8 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "core/datepicker/css/datepicker.css" %}" />
-    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.css" %}" />
+    {{ media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.min.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "core/chosen/bootstrap-chosen.css" %}" />
     <style type="text/css">
         .panel-group .panel {

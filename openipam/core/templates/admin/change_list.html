@@ -5,44 +5,49 @@
 {% block extrastyle %}
 	{{ block.super }}
     {{ media.css }}
+    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/bootstrap-chosen.css" %}" />
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
     {{ media.js }}
+    <script type="text/javascript" src="{% static "core/chosen/chosen.jquery.min.js" %}"></script>
     {% if cl.formset or action_form %}
-        {% url 'admin:jsi18n' as jsi18nurl %}
-        <script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+        <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     {% endif %}
     {% if action_form %}
         {% if actions_on_top or actions_on_bottom %}
         <script type="text/javascript">
-            (function($) {
-        		$(document).ready(function($) {
-    				$("#changelist-filters-toggle").click(function(){
-    					$("#changelist-filter-actions").toggle();
-    				});
+            $(function(){
+                $("select.filter-select").chosen();
 
-    				$("#searchbar").keypress(function(e){
-						if (e.keyCode == 13) {
-    						location.href = './?q=' + $(this).val();
-    						return false;
-						}
-    				});
+                $("select.filter-select").on('change', function(){
+                    location.href = $(this).val();
+                });
 
-                    $("select[name='action'] option:selected")
-                        .html("Actions:")
-                        .after("<option value=''>---------</option>");
+                $("#changelist-filter-actions").hide();
 
-                    // $("select[name='action']").addClass("form-control");
+                $("#changelist-filters-toggle").on('click', function(){
+                    $("#changelist-filter-actions").toggle();
+                });
 
-    				$("tr input.action-select").actions();
+                $("#searchbar").keypress(function(e){
+                    if (e.keyCode == 13) {
+                        location.href = './?q=' + $(this).val();
+                        return false;
+                    }
+                });
 
-    				$("select.filter-select").change(function(){
-    					location.href = $(this).val();
-    				});
-        		});
-            })(django.jQuery);
+                $("select[name='action'] option:selected")
+                    .html("Actions:")
+                    .after("<option value=''>---------</option>");
+
+                // $("select[name='action']").addClass("form-control");
+
+				$("tr input.action-select").actions();
+
+            });
         </script>
         {% endif %}
     {% endif %}

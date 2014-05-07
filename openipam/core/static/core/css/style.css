@@ -73,6 +73,10 @@
 }*/
 
 
+.filter-select {
+  display: block;
+}
+
 #mimic_form {
   top: 2px;
   position: relative;
@@ -296,10 +300,6 @@ code, pre {
 
 .well {
   margin-bottom: 10px !important;
-}
-
-#changelist-filters-toggle {
-
 }
 
 #action-submit {
@@ -853,15 +853,11 @@ body.change-form select.form-control {
     margin-right: 4px;
 }
 #changelist-filter-actions {
-    position: fixed;
+    position: absolute;
     margin: 54px 0px 10px;
     min-width: 220px;
     z-index: 999;
     right: 15px;
-}
-
-#changelist-filter-actions .chzn-search {
-    display: block;
 }
 
 #changelist-filter-actions select {
@@ -872,6 +868,14 @@ body.change-form select.form-control {
     height: 30px;
     line-height: 30px;
     display: block;
+}
+
+#changelist-filter-actions label {
+  display: block;
+}
+
+.filter-select + .chosen-container {
+  margin-bottom: 20px;
 }
 
 .navbar-form {
