@@ -184,10 +184,9 @@ INSTALLED_APPS = (
 
 ) + LOCAL_INSTALLED_APPS
 
-IPAM_APPS = [
-    app.split('.')[1] for app in
-    filter(lambda x: x.split('.')[0] == 'openipam', INSTALLED_APPS)
-]
+OPENIPAM = {
+    'GUEST_HOSTNAME_FORMAT': 'g-%s.guests.usu.edu'
+}
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',

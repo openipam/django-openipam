@@ -19,6 +19,14 @@ from datetime import timedelta
 User = get_user_model()
 
 
+class HostMacSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Host
+        fields = ('mac',)
+        read_only_fields = ('mac',)
+
+
 class HostListSerializer(serializers.ModelSerializer):
     registered_addresses = serializers.SerializerMethodField('get_address')
     leased_addresses = serializers.SerializerMethodField('get_leases')
@@ -72,7 +80,8 @@ class HostDetailSerializer(serializers.ModelSerializer):
 
 
 class HostCreateUpdateSerializer(serializers.Serializer):
-    mac = MACAddressField(label='MAC Address', required=False)
+    mac = MACAddressField(label='MAC Address')
+    #new_mac = MACAddressField(label='MAC Address', required=False)
     hostname = serializers.CharField(required=False)
     expire_days = serializers.ChoiceField(required=False)
     description = serializers.CharField(required=False)
@@ -93,7 +102,6 @@ class HostCreateUpdateSerializer(serializers.Serializer):
         self.fields['dhcp_group'].choices = [(dhcp_group.pk, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()]
 
         if not self.object:
-            self.fields['mac'].required = True
             self.fields['hostname'].required = True
             self.fields['expire_days'].required = True
 
@@ -262,7 +270,8 @@ class HostRenewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('expire_days',)
+        fields = ('expire_days', 'mac', 'hostname')
+        read_only_fields = ('mac', 'hostname')
 
 
 class HostOwnerSerializer(serializers.Serializer):

@@ -13,8 +13,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute
-from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer, HostCreateUpdateSerializer, \
-    HostOwnerSerializer, HostUpdateAttributeSerializer, HostDeleteAttributeSerializer, HostRenewSerializer
+from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
@@ -43,9 +42,9 @@ class HostList(generics.ListAPIView):
 
     queryset = Host.objects.prefetch_related('addresses', 'leases').all()
     #model = Host
-    serializer_class = HostListSerializer
+    serializer_class = host_serializers.HostListSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
+    #filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
@@ -90,7 +89,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    serializer_class = HostDetailSerializer
+    serializer_class = host_serializers.HostDetailSerializer
     model = Host
 
 
@@ -119,7 +118,7 @@ class HostCreate(generics.CreateAPIView):
                 "expire_days": "30"
             }
     """
-    serializer_class = HostCreateUpdateSerializer
+    serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
 
 
@@ -148,7 +147,7 @@ class HostUpdate(generics.UpdateAPIView):
                 "expire_days": "30"
             }
     """
-    serializer_class = HostCreateUpdateSerializer
+    serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
 
     def post(self, request, *args, **kwargs):
@@ -156,22 +155,42 @@ class HostUpdate(generics.UpdateAPIView):
 
 
 class HostRenew(generics.UpdateAPIView):
-    serializer_class = HostRenewSerializer
+    serializer_class = host_serializers.HostRenewSerializer
     model = Host
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
 
+class HostDelete(generics.DestroyAPIView):
+    """
+        Delete a host registration.
+
+        All that is required for this to execute is calling it via a POST or DELETE request.
+    """
+    serializer_class = host_serializers.HostMacSerializer
+    model = Host
+
+    def post(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+    def post_delete(self, obj):
+        """
+        Placeholder method for calling after deleting an object.
+        """
+        pass
+
+
 class HostOwnerList(generics.RetrieveAPIView):
-    serializer_class = HostOwnerSerializer
+    serializer_class = host_serializers.HostOwnerSerializer
     model = Host
 
 
 class HostOwnerAdd(APIView):
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
 
         if serializer.is_valid():
             user_list = serializer.data.get('users')
@@ -201,7 +220,7 @@ class HostOwnerAdd(APIView):
 class HostOwnerDelete(APIView):
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
         if serializer.is_valid():
             user_list = serializer.data.get('users')
             group_list = serializer.data.get('groups')
@@ -268,7 +287,7 @@ class HostAddAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostUpdateAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.DATA)
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
             # Get the DB attributes we are going to change
@@ -317,7 +336,7 @@ class HostDeleteAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostDeleteAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.DATA)
 
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
@@ -340,7 +359,4 @@ class HostDeleteAttribute(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 

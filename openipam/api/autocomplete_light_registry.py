@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.contrib.auth import get_user_model
+from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, Pool, DhcpGroup
@@ -201,7 +201,7 @@ autocomplete_light.register(Group, GroupFilterAutocomplete)
 autocomplete_light.register(Permission,
     search_fields=['name', 'content_type__app_label', 'codename'],
     autocomplete_js_attributes={'placeholder': 'Search Permissions'},
-    choices=Permission.objects.select_related().filter(content_type__app_label__in=settings.IPAM_APPS)
+    choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
 )
 
 

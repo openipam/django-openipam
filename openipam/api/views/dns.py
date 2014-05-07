@@ -11,7 +11,7 @@ class DomainList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     model = Domain
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('name',)
+    filter_fields = ('name', 'username')
     filter_class = DomainFilter
     paginate_by = 50
     paginate_by_param = 'limit'
