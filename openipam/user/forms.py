@@ -32,6 +32,10 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
 
 class AuthUserChangeAdminForm(UserChangeForm):
+    groups = forms.ModelMultipleChoiceField(Group.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('GroupFilterAutocomplete'), required=False)
+    user_permissions = forms.ModelMultipleChoiceField(Permission.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'), required=False)
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -47,14 +51,16 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
 
 class AuthGroupAdminForm(forms.ModelForm):
+    permissions = forms.ModelMultipleChoiceField(Permission.objects.all(),
+        widget=autocomplete_light.MultipleChoiceWidget('PermissionAutocomplete'), required=False)
 
-    def clean_name(self):
-        name = self.cleaned_data['name'].lower()
+    # def clean_name(self):
+    #     name = self.cleaned_data['name'].lower()
 
-        if Group.objects.filter(name=name):
-            raise forms.ValidationError('Group name already exists.')
+    #     if Group.objects.filter(name=name):
+    #         raise forms.ValidationError('Group name already exists.')
 
-        return name
+    #     return name
 
     class Meta:
         model = Group
@@ -76,9 +82,10 @@ class IPAMAuthenticationForm(AuthenticationForm):
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(User.objects.all(), widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
-    permission = forms.ModelChoiceField(Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
-    # permission = forms.ModelChoiceField(Permission.objects.filter(content_type__app_label__in=settings.IPAM_APPS),
-    #     widget=autocomplete_light.ChoiceWidget('PermissionAutocomplete'), label='Permission')
+    permission = forms.ModelChoiceField(
+        Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
+        label='Permission'
+    )
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     # def __init__(self, *args, **kwargs):

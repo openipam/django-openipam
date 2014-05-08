@@ -2,10 +2,12 @@ from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address, validate_ipv6_address
+from django.db.models.signals import pre_delete
 
 from openipam.dns.managers import DnsManager, DomainManager
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
     validate_srv_content, validate_sshfp_content
+from openipam.user.signals import remove_obj_perms_connected_with_user
 
 from netaddr.core import AddrFormatError
 
@@ -198,14 +200,14 @@ class DnsRecord(models.Model):
                 names.pop(0)
 
             if names_list:
-                domains = Domain.objects.filter(reduce(operator.or_, names_list))
-                domains = domains.extra(select={'length': 'Length(name)'}).order_by('-length')
+                self.domain = (
+                    Domain.objects.filter(reduce(operator.or_, names_list))
+                    .extra(select={'length': 'Length(name)'}).order_by('-length').first()
+                )
             else:
-                domains = Domain.objects.none()
+                self.domain = None
 
-            if domains:
-                self.domain = domains[0]
-            else:
+            if not self.domain:
                 raise ValidationError({'name': ['Invalid domain name: %s' % self.name]})
 
             if self.domain.type == 'SLAVE':
@@ -399,3 +401,6 @@ class RecordMunged(models.Model):
         managed = False
         db_table = 'records_munged'
 
+
+#Register Signals
+pre_delete.connect(remove_obj_perms_connected_with_user, sender=DnsType)

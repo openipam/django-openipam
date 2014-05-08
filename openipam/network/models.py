@@ -4,10 +4,11 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
-from django.db.models.signals import m2m_changed, post_save
+from django.db.models.signals import m2m_changed, post_save, pre_delete
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
-
+from openipam.network.signals import validate_address_type, release_leases
+from openipam.user.signals import remove_obj_perms_connected_with_user
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
@@ -318,11 +319,6 @@ class Address(models.Model):
         self.pool = pool
         self.save()
 
-    # Signal to delete leases when an address is changed, if MAC is set to None.
-    # @staticmethod
-    # def release_leases(sender, instance, **kwargs):
-    #     if not instance.host.mac:
-    #         Lease.objects.filter(address=instance).delete()
 
     class Meta:
         db_table = 'addresses'
@@ -355,18 +351,13 @@ class AddressType(models.Model):
         if default:
             raise ValidationError(_('There can only be one default Address Type'))
 
-    # Signal to make sure Address Types can only have a range OR pool.
-    @staticmethod
-    def validate_address_type(sender, instance, action, **kwargs):
-        if action == 'pre_add':
-            if instance.pool:
-                raise ValidationError(_('Address Types cannot have both a pool and a range.'))
-
     class Meta:
         db_table = 'addresstypes'
         ordering = ('name',)
 
 
 # Register Signals
-m2m_changed.connect(AddressType.validate_address_type, sender=AddressType.ranges.through)
-# post_save.connect(Address.release_leases, sender=Address)
+m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
+post_save.connect(release_leases, sender=Address)
+pre_delete.connect(remove_obj_perms_connected_with_user, sender=Network)
+pre_delete.connect(remove_obj_perms_connected_with_user, sender=DhcpOption)

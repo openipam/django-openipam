@@ -1,5 +1,5 @@
-# Django settings for openipam project.
 from django.core.urlresolvers import reverse_lazy
+from django.contrib.messages import constants as message_constants
 import hashlib
 import socket
 import datetime
@@ -135,6 +135,9 @@ TEMPLATE_DIRS = (
 
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
+    #'django_admin_bootstrapped.bootstrap3',
+    #'django_admin_bootstrapped',
+
     'openipam.core',
     'openipam.api',
 
@@ -151,6 +154,7 @@ INSTALLED_APPS = (
     #'django_ace',
     #'mptt',
     #'djcelery',
+    'widget_tweaks',
     'crispy_forms',
     'autocomplete_light',
     'south',
@@ -180,10 +184,9 @@ INSTALLED_APPS = (
 
 ) + LOCAL_INSTALLED_APPS
 
-IPAM_APPS = [
-    app.split('.')[1] for app in
-    filter(lambda x: x.split('.')[0] == 'openipam', INSTALLED_APPS)
-]
+OPENIPAM = {
+    'GUEST_HOSTNAME_FORMAT': 'g-%s.guests.usu.edu'
+}
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -199,6 +202,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'openipam.core.context_processors.feature_form',
     'openipam.api.context_processors.api_version',
 )
+
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'warning',
+    message_constants.ERROR: 'danger',
+}
 
 LOCAL_AUTHENTICATION_BACKENDS = locals().pop('LOCAL_AUTHENTICATION_BACKENDS', ())
 AUTHENTICATION_BACKENDS = (
@@ -234,6 +242,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
 }
 
 JWT_AUTH = {
@@ -261,7 +272,8 @@ CACHEOPS = {
     # to other django.contrib.auth models for an hour
     #'auth.*': ('get', 60*60),
     'auth.group': ('all', 60*60),
-    'auth.permission': ('get', 60*60),
+    'auth.permission': ('all', 60*60),
+    'contenttypes.*': ('all', 60*60),
 
     # Auto Cache guadian models
     'guardian.*': ('all', 60*15),
@@ -281,7 +293,7 @@ CACHEOPS = {
 
 CACHEOPS_DEGRADE_ON_FAILURE = True
 
-CRISPY_TEMPLATE_PACK = 'bootstrap'
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'

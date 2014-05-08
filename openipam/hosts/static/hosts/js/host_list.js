@@ -45,12 +45,17 @@ $(function(){
         "sPaginationType": "full_numbers",
         "bAutoWidth": false,
         "bStateSave": true,
-        "bJQueryUI": true,
-        "sDom": '<"header well well-small"r>t<"pagination well well-small"lpi><"clear">',
+        "sDom": '<"header well well-sm"r>t<"paginator well well-sm"lpi<"clear">>',
         "aaSorting": [[ 1, "asc" ]],
         "oLanguage": {
             "sLengthMenu": "Show _MENU_ records",
             "sSearch": ""
+        },
+        "stateLoaded": function (settings, data) {
+            $("#s_host").val(data.aoSearchCols[0].sSearch);
+            $("#s_mac").val(data.aoSearchCols[1].sSearch);
+            $("#s_ip").val(data.aoSearchCols[2].sSearch);
+            $("#s_expires").val(data.aoSearchCols[3].sSearch);
         },
         "aoColumns": [
             { "bSortable": false },
@@ -157,7 +162,7 @@ $(function(){
 
                     if (detail_html.length > 0) {
                         detail_html.toggle();
-                        $(this).find('span').toggleClass('icon-contract').toggleClass('icon-expand');
+                        $(this).find('span').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-right');
                     }
                     else {
                         $.ajax({
@@ -169,7 +174,7 @@ $(function(){
                                 $("#result_list_processing").css('visibility', 'hidden').hide();
                             },
                             success: function(data) {
-                                $(a).find('span').removeClass('icon-expand').addClass('icon-contract');
+                                $(a).find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
                                 results.fnOpen(tr, data, 'host-detail');
                             }
                         });
@@ -184,7 +189,7 @@ $(function(){
                 });
 
                 // Set pagination to stick when scrolling
-                var page_bar = $('.pagination');
+                var page_bar = $('.paginator');
                 page_bar.removeClass('fixed');
                 if(page_bar.length){
                     var height=page_bar[0].offsetTop + page_bar.outerHeight();
@@ -242,8 +247,8 @@ $(function(){
 
     //Triger filtering on owners
     $("#filter-owners button").click(function() {
-        $("#filter-owners button").removeClass('btn-inverse');
-        $(this).addClass('btn-inverse');
+        $("#filter-owners button").removeClass('active');
+        $(this).addClass('active');
         $.cookie('owner_filter', $(this).val(), {expires: 1, path: '/hosts/'});
         results.fnDraw();
     });

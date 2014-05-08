@@ -8,51 +8,18 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework import filters
 from rest_framework import permissions
-from rest_framework import viewsets
-from rest_framework import serializers
-from rest_framework.decorators import action, link
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute
-from openipam.api.serializers.hosts import HostDetailSerializer, HostListSerializer, HostCreateUpdateSerializer, \
-    HostOwnerSerializer, HostUpdateAttributeSerializer, HostDeleteAttributeSerializer
+from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
-
-from django_filters import FilterSet, CharFilter, Filter
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
 
-from netaddr import AddrFormatError
-
 User = get_user_model()
-
-
-class HostViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = HostListSerializer
-    queryset = Host.objects.prefetch_related('addresses', 'leases').all()
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('mac', 'hostname', 'owner', 'group', 'is_expired')
-    filter_class = HostFilter
-    ordering_fields = ('expires', 'changed')
-    ordering = ('expires',)
-    paginate_by = 50
-    max_paginate_by = 5000
-
-
-    def list(self, request, *args, **kwargs):
-        return super(HostViewSet, self).list(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        self.serializer = HostDetailSerializer
-        return super(HostViewSet, self).retrieve(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class HostList(generics.ListAPIView):
@@ -73,12 +40,11 @@ class HostList(generics.ListAPIView):
             /api/hosts/?group=switches&limit=0
     """
 
-    permission_classes = (permissions.IsAuthenticated,)
     queryset = Host.objects.prefetch_related('addresses', 'leases').all()
     #model = Host
-    serializer_class = HostListSerializer
+    serializer_class = host_serializers.HostListSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
+    #filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
@@ -95,13 +61,21 @@ class HostList(generics.ListAPIView):
 
 
 class HostMac(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
     def get(self, request, format=None, **kwargs):
         ip_address = request.GET.get('ip_address')
-        assert False, ip_address
+        leased_ip = request.GET.get('leased_ip')
+        registered_ip = request.GET.get('registered_ip')
+
         if ip_address:
-            hosts = Host.objects.filter(leases__address__address=ip_address)
+            hosts = Host.objects.filter(
+                Q(leases__address__address=ip_address) |
+                Q(addresses__address=ip_address)
+            )
+
+        elif leased_ip:
+            hosts = Host.objects.filter(leases__address__address=leased_ip)
+        elif registered_ip:
+            hosts = Host.objects.filter(addresses__address=registered_ip)
         else:
             hosts = None
 
@@ -115,8 +89,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = HostDetailSerializer
+    serializer_class = host_serializers.HostDetailSerializer
     model = Host
 
 
@@ -145,8 +118,7 @@ class HostCreate(generics.CreateAPIView):
                 "expire_days": "30"
             }
     """
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = HostCreateUpdateSerializer
+    serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
 
 
@@ -175,26 +147,50 @@ class HostUpdate(generics.UpdateAPIView):
                 "expire_days": "30"
             }
     """
-    permissions = (permissions.IsAuthenticated,)
-    serializer_class = HostCreateUpdateSerializer
+    serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
 
+class HostRenew(generics.UpdateAPIView):
+    serializer_class = host_serializers.HostRenewSerializer
+    model = Host
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class HostDelete(generics.DestroyAPIView):
+    """
+        Delete a host registration.
+
+        All that is required for this to execute is calling it via a POST or DELETE request.
+    """
+    serializer_class = host_serializers.HostMacSerializer
+    model = Host
+
+    def post(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+    def post_delete(self, obj):
+        """
+        Placeholder method for calling after deleting an object.
+        """
+        pass
+
+
 class HostOwnerList(generics.RetrieveAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = HostOwnerSerializer
+    serializer_class = host_serializers.HostOwnerSerializer
     model = Host
 
 
 class HostOwnerAdd(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
 
         if serializer.is_valid():
             user_list = serializer.data.get('users')
@@ -222,11 +218,9 @@ class HostOwnerAdd(APIView):
 
 
 class HostOwnerDelete(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
         if serializer.is_valid():
             user_list = serializer.data.get('users')
             group_list = serializer.data.get('groups')
@@ -291,11 +285,9 @@ class HostAddAttribute(APIView):
             }
     """
 
-    permission_classes = (permissions.IsAuthenticated,)
-
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostUpdateAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.DATA)
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
             # Get the DB attributes we are going to change
@@ -342,11 +334,9 @@ class HostDeleteAttribute(APIView):
             }
     """
 
-    permission_classes = (permissions.IsAuthenticated,)
-
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = HostDeleteAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.DATA)
 
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
@@ -369,7 +359,4 @@ class HostDeleteAttribute(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 

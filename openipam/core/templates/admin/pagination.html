@@ -1,9 +1,9 @@
 {% load i18n admin_list openipam %}
 {% load url from future %}
 
-<div class="pagination pull-right">
+<div class="pull-right">
 
-<ul>
+<ul class="pagination">
   <li>
     {% if show_all_url %}
       <a href="{{ show_all_url }}">
@@ -16,7 +16,7 @@
 </ul>
 
 {% if pagination_required %}
-<ul>
+<ul class="pagination">
 
 {% if curr_page.has_previous %}
   <li class="prev"><a href="{% bootstrap_page_url cl curr_page.previous_page_number %}">&larr; {% trans "Previous" %}</a></li>

@@ -46,8 +46,12 @@ def delete_dns_record_for_static_host(sender, instance, *args, **kwargs):
     """
         Deletes A or AAAA and PTR records hosts that are deleted.
     """
-    if instance.is_dynamic is False:
-        addresses = instance.addresses.all()
+    from openipam.hosts.models import Host
+
+    host = Host.objects.filter(pk=instance.pk).first()
+
+    if host and host.is_dynamic is False:
+        addresses = host.addresses.all()
 
         if addresses:
             from openipam.dns.models import DnsRecord

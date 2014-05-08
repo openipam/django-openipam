@@ -1,164 +1,110 @@
 {% load static theming_tags openipam admin_tools_menu_tags %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
-<head>
-<title>{% block title %}{% endblock %}</title>
-{% block extrastyle %}{% endblock %}
-<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="{% block stylesheet_ie %}{% static "admin/css/ie.css" %}{% endblock %}" /><![endif]-->
-{% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
-<script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
+    <head>
+        <title>{% block title %}{% endblock %}</title>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-{# <script type="text/javascript" src="{% static "admin/js/jquery.min.js" %}"></script> #}
-<script type="text/javascript" src="{% static "admin/js/jquery.init.js" %}"></script>
-<script>
-  var jQuery = django.jQuery;
-  var $ = django.jQuery;
-</script>
-<script type="text/javascript" src="{% static "core/js/jquery.cookie.js" %}"></script>
-<script type="text/javascript" src="{% static "core/chosen/chosen.jquery.js" %}"></script>
-<script type="text/javascript" src="{% static "core/bootstrap/js/bootstrap.min.js" %}"></script>
+        <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap3/css/bootstrap.min.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
+        {% block extrastyle %}{% endblock %}
 
-{% block extrahead %}{% endblock %}
-{% render_theming_css %}
+        {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
+        <script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
 
-<script type="text/javascript">
-$(function(){
-  var django_dismimssPopup = window.dismissAddAnotherPopup;
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
+        <script type="text/javascript" src="{% static "core/js/jquery-1.11.1.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "admin/js/jquery.init.js" %}"></script>
+        <script>
+            var jQuery = django.jQuery;
+            var $ = django.jQuery;
+        </script>
+        <script type="text/javascript" src="{% static "core/js/jquery.cookie.js" %}"></script>
+        <script src="{% static "core/bootstrap3/js/bootstrap.min.js" %}"></script>
 
-  window.dismissAddAnotherPopup = function(win, newId, newRepr) {
-    var name = windowname_to_id(win.name);
-    var elem = document.getElementById(name);
-    django_dismimssPopup(win, newId, newRepr);
-    $(elem).removeClass('chzn-done');
-    $('#' + name + '_chzn').remove();
-    $(elem).chosen();
-  }
-  // menu search
+        {% block extrahead %}{% endblock %}
+        <!-- {% render_theming_css %} -->
 
-  {% if is.staff %}
-  var nav_menu = $('#navigation-menu');
-  var menu_map = [];
-  var menu_url_map = {};
-  var search_box = $("#menu-search-li")[0].outerHTML;
-  var search_results = $('#menu-search');
-  var menu_search_visible = false;
+    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+    </head>
+    {% load i18n %}
 
-  $('#navigation-menu a').not('.dropdown-toggle').each(function(i, a) {
-      var line = [a.text.toLowerCase().replace(/^\s+|\s+$/g, ''), a.href];
-      menu_map[i] = line;
-      menu_url_map[a.href] = a.text.replace(/^\s+|\s+$/g, '');
-  });
+    <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
 
-  $('#menu-search-input').on('keyup', function(e){
-    $('#menu-search li:not(:first)').remove();
-    var code = (e.keyCode ? e.keyCode : e.which);
-    var inp = $(this).val().toLowerCase();
-    if (inp == '') { return; }
-    var results = "";
-    var highlight_re = new RegExp('(' + inp + ')', 'ig');
-    var cnt = 0;
-    var unique_map = {};
-    $(menu_map).each(function(i, e){
-      if ((-1 != e[0].indexOf(inp)) && (cnt < 10)) {
-        if (unique_map[e[1]]) { return; }
-        var txt = menu_url_map[e[1]].replace(highlight_re, '<span class="highlight">$1</span>');
-        results = results + '<li><a href="' + e[1] + '">' + txt + '</a></li>';
-        unique_map[e[1]] = true;
-        cnt ++;
-      }
-    });
-    $('#menu-search').append(results);
-  });
-  {% endif %}
+    <!-- Container -->
+    <div class="{% if is_popup %} container-popup{% endif %}">
+            {% if not is_popup %}
+                <!-- Header -->
+                {% block header %}
+                <div id="header" class="navbar navbar-inverse navbar-fixed-top" data-dropdown="dropdown">
+                    <div class="container-fluid">
+                        {% block branding %}
+                            <a class="navbar-brand" href="{% url 'admin:index' %}">openIPAM{# {% atb_site_name %} #}</a>
+                        {% endblock %}
+                        <button class="navbar-toggle" data-toggle="collapse" data-target=".navHeaderCollapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        {% block nav-global %}{% endblock %}
+                    </div>
+                </div>
+                {% endblock %}
+                <!-- END Header -->
+            {% endif %}
 
-  $('.dropdown-menu input, .dropdown-menu label').click(function(e) {
-      e.stopPropagation();
-  });
+        <div id="container" class="container-fluid">
+            {% if not is_popup %}
+                {% block page_nav %}
+                    <div id="page-nav" class="well well-sm">
+                        {% block content_title %}
+                        {% if title %}
+                            <h3 id="breadcrumb-title" class="pull-left">
+                                {{ title }}
+                            </h3>
+                        {% endif %}
+                        {% endblock %}
 
-  $(".chzn-select").chosen();
-	$('select[multiple]:not(.value-select)').css('width', '500px').chosen();
-});
-</script>
+                        {% breadcrumbs %}
+                            {% block breadcrumbs %}{% endblock %}
+                        {% endbreadcrumbs %}
 
-{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
-</head>
-{% load i18n %}
+                        {% block object-tools %}{% endblock %}
+                        <div class="clear"><!-- --></div>
+                    </div>
+                {% endblock %}
+            {% endif %}
 
-<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
 
-<!-- Container -->
-<div id="container" class="container-fluid{% if is_popup %} container-popup{% endif %}">
-    {% if not is_popup %}
-    <!-- Header -->
-    {% block header %}
-    <div id="header" class="navbar navbar-inverse navbar-fixed-top" data-dropdown="dropdown">
-      <div class="navbar-inner">
-        <div class="container-fluid">
-          {% block branding %}
-            {# <img id="globe-small" src="{% static 'core/img/logo-globe-small.png' %}" alt="openIPAM globe" /> #}
-            <a class="brand" href="{% url 'admin:index' %}">openIPAM{# {% atb_site_name %} #}</a>
-          {% endblock %}
-          {% block nav-global %}{% endblock %}
+            <div class="main-container">
+                {% block messages %}
+                    {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}" data-alert="alert"><a class="close" href="#" data-dismiss="alert">&times;</a>{{ message }}</div>
+                            {% endfor %}
+                    {% endif %}
+                {% endblock %}
+
+                <!-- Content -->
+                <div id="content">
+                        {% block pretitle %}{% endblock %}
+                        {% block content %}
+                        {{ content }}
+                        {% endblock %}
+                        {% block sidebar %}{% endblock %}
+                        <br class="clear" />
+                </div>
+                <!-- END Content -->
+            </div>
         </div>
-      </div>
     </div>
+
+    {% block footer %}
+        <div id="footer">
+            Powered by <a href="http://www.openipam.org">openIPAM</a> - Produced by <a href="http://www.usu.edu">Utah State University</a> - <a href="http://it.usu.edu/">Information Technology</a>
+        </div>
     {% endblock %}
-    <!-- END Header -->
+    <!-- END Container -->
 
-      {% block page_nav %}
-        <div id="page-nav" class="well well-small">
-          {% block content_title %}
-          {% if title %}
-            <h3 id="breadcrumb-title" class="pull-left">
-                {{ title }}
-            </h3>
-          {% endif %}
-          {% endblock %}
-
-          {% breadcrumbs %}
-            {% block breadcrumbs %}{% endblock %}
-          {% endbreadcrumbs %}
-
-          {% block object-tools %}{% endblock %}
-          <div class="clear"><!-- --></div>
-        </div>
-      {% endblock %}
-
-    {% endif %}
-
-
-    <div class="main-container">
-        {% block messages %}
-          {% if messages %}
-              {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" data-alert="alert"><a class="close" href="#" data-dismiss="alert">&times;</a>{{ message }}</div>
-              {% endfor %}
-          {% endif %}
-        {% endblock %}
-
-      <!-- Content -->
-      <div id="content" class="{% block coltype %}container-fluid{% endblock %}">
-          {% block pretitle %}{% endblock %}
-          {% block content %}
-          {{ content }}
-          {% endblock %}
-          {% block sidebar %}{% endblock %}
-          <br class="clear" />
-      </div>
-      <!-- END Content -->
-    </div>
-</div>
-
-{% block footer %}
-  <div id="footer">
-    Powered by <a href="http://www.openipam.org">openIPAM</a> - Produced by <a href="http://www.usu.edu">Utah State University</a> - <a href="http://it.usu.edu/">Information Technology</a>
-  </div>
-{% endblock %}
-<!-- END Container -->
-
-{% block footer_scripts %}{% endblock %}
-
-</body>
+    {% block footer_scripts %}{% endblock %}
+    </body>
 </html>

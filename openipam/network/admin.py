@@ -50,9 +50,9 @@ class PoolAdmin(admin.ModelAdmin):
 
 
 class AddressAdmin(admin.ModelAdmin):
-    list
     form = autocomplete_light.modelform_factory(Address)
     search_fields = ('address',)
+    list_filter = ('network',)
 
 
 admin.site.register(DefaultPool)

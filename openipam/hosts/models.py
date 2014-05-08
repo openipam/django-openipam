@@ -5,7 +5,7 @@ from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.functional import cached_property
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import pre_save, post_save, pre_delete
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
@@ -15,8 +15,12 @@ from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_p
 from openipam.hosts.signals import create_dns_record_for_static_host, delete_dns_record_for_static_host
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager
+from openipam.user.signals import remove_obj_perms_connected_with_user
 
 from datetime import datetime
+
+import string
+import random
 
 
 class Attribute(models.Model):
@@ -104,6 +108,45 @@ class GuestTicket(models.Model):
 
     def __unicode__(self):
         return self.ticket
+
+    def set_ticket(self):
+        """Generates a human-readable string for a ticket."""
+
+        def generate_random_ticket():
+            vowels = ("a", "e", "i", "o", "u")
+            consonants = [a for a in string.ascii_lowercase if a not in vowels]
+            groups = ("th", "ch", "sh", "kl", "gr", "br")
+
+            num_vowels = len(vowels) - 1
+            num_consonants = len(consonants) - 1
+            num_groups = len(groups) - 1
+
+            vowel = []
+            cons = []
+            group = []
+
+            for i in range(4):
+                vowel.append(vowels[random.randint(0, num_vowels)])
+                cons.append(consonants[random.randint(0, num_consonants)])
+                group.append(groups[random.randint(0, num_groups)])
+
+            structure = []
+            structure.append('%s%s%s%s%s%s%s%s' % (cons[0], vowel[0], cons[1], cons[2], vowel[1], cons[3], vowel[2], group[0]))
+            structure.append('%s%s%s%s%s%s' % (group[0], vowel[0], cons[0], cons[1], vowel[1], group[1]))
+            structure.append('%s%s%s%s%s' % (group[0], vowel[0], cons[0], vowel[1], "s"))
+            structure.append('%s%s%s%s%s' % (vowel[0], group[0], vowel[1], cons[0], vowel[2]))
+            structure.append('%s%s%s%s%s' % (group[0], vowel[0], cons[0], vowel[1], group[1]))
+            structure.append('%s%s%s%s' % (vowel[0], group[0], vowel[1], group[1]))
+            structure.append('%s%s%s%s%s%s%s%s' % (cons[0], vowel[0], cons[1], vowel[1], cons[2], vowel[2], cons[3], vowel[2]))
+            structure.append('%s%s%s%s%s' % (group[0], vowel[1], group[1], vowel[1], cons[0]))
+
+            return structure[random.randint(0, len(structure)-1)]
+
+        ticket = generate_random_ticket()
+        while GuestTicket.objects.filter(ticket=ticket):
+            ticket = generate_random_ticket()
+
+        self.ticket = ticket
 
     class Meta:
         db_table = 'guest_tickets'
@@ -567,8 +610,10 @@ class StructuredAttributeToHost(models.Model):
 
 
 # Host signals
+pre_save.connect(delete_dns_record_for_static_host, sender=Host)
 post_save.connect(create_dns_record_for_static_host, sender=Host)
 pre_delete.connect(delete_dns_record_for_static_host, sender=Host)
+pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
 
 
 try:

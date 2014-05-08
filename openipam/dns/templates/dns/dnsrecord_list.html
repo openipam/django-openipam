@@ -20,7 +20,6 @@
 {% block extrahead %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
-    <link rel="stylesheet" href="{% static 'core/css/admin_filters.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
     {% if selected_records or form_data %}
     <script type="text/javascript">
@@ -51,20 +50,20 @@
 {% endblock %}
 
 {% block contentbody %}
-    <form id="changelist-form" action="" method="post" class="quickbody">
+    <form id="changelist-form" action="" method="post" class="quickbody form-inline">
         {% csrf_token %}
         <div id="actions">
             {% spaceless %}
                 <div class="actions changelist-actions pull-left">
                     <div class="changelist-action" style="height: auto !important;">
                         <div class="action-wrapper">
-                            <select id="host-action" name="action">
+                            <select id="host-action" name="action" class="form-control">
                                 <option value="">Choose an action...</option>
                                 <option value="">--------------</option>
                                     <option value="delete">Delete selected DNS records</option>
                             </select>
-                            <button id="action-submit" type="submit" class="btn" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
-                                <span class="icon-play"></span>
+                            <button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                                <span class="glyphicon glyphicon-play"></span>
                                 {% trans "Go" %}
                             </button>
                         </div>
@@ -79,8 +78,8 @@
                 <div id="changelist-search" class="pull-right">
                     <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
                     <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
-                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" /></label></div>
-                    <a id="clear-filters" class="pull-right btn" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
+                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" class="form-control" /></label></div>
+                    <a id="clear-filters" class="pull-right btn btn-default" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="hide">
                     <p>Search for hostnames, IP addresses, MAC addresses, or content of a DNS record.</p>
@@ -109,7 +108,7 @@
                         <th scope="col">Name</th>
                         <th scope="col" style="width: 50px;">TTL</th>
                         <th scope="col" style="width: 80px;">Type</th>
-                        <th scope="col" style="min-width: 500px;">Content</th>
+                        <th scope="col" style="width: 70%;">Content</th>
                         <th scope="col" style="width: 80px;">View</th>
                         <th scope="col" style="width: 70px;">Edit</th>
                     </tr>
@@ -118,19 +117,19 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input type="text" class="search_init" placeholder="Search Name" value="{{ aoSearchCols.0.sSearch }}" style="max-width: 150px;" /></div></th>
+                        <th><div><input id="name-search" type="text" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
                         <th>&nbsp;</th>
                         <th>
                             <div>
-                                <select id="type-filter" style="max-width: 80px;" class="filter_init search_init">
+                                <select id="type-filter" style="max-width: 80px;" class="form-control input-sm filter_init search_init">
                                     <option value="">All</option>
                                     {% for type in dns_types %}
-                                        <option value="{{ type.pk }}" {% ifequal aoSearchCols.1.sSearch type.pk|stringformat:"s" %}selected="selected"{% endifequal %}>{{ type.name }}</option>
+                                        <option value="{{ type.pk }}">{{ type.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </th>
-                        <th><div><input type="text" class="search_init" placeholder="Search Content" value="{{ aoSearchCols.2.sSearch }}" style="max-width: 300px;" /></div></th>
+                        <th><div><input id="content-search" type="text" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
@@ -146,18 +145,18 @@
             <table id="add-table" style="display: none;">
                 {% for row in form_data_new %}
                     <tr class="add-row warning">
-                        <td><input type="hidden" name="new-records" value="1" /></td>
-                        <td><input type="text" name="name-new" value="{{ row.name }}" /></td>
+                        <td><input type="hidden" name="new-records" value="1" class="form-control input-sm" /></td>
+                        <td><input type="text" name="name-new" value="{{ row.name }}" class="form-control input-sm" /></td>
                         <td><input type="text" name="ttl-new" value="{{ row.ttl }}" class="dns-ttl" /></td>
                         <td>
-                            <select name="type-new" style="max-width: 80px;">
+                            <select name="type-new" class="form-control input-sm" style="max-width: 80px;">
                                 <option value="">---</option>
                                 {% for type in dns_types %}
                                     <option value="{{ type.pk }}" {% ifequal row.type type.pk|stringformat:"s" %}selected="selected"{% endifequal %}>{{ type.name }}</option>
                                 {% endfor %}
                             </select>
                         </td>
-                        <td><input type="text" name="content-new" value="{{ row.content }}" /></td>
+                        <td><input type="text" name="content-new" class="input-content form-control input-sm" value="{{ row.content }}" /></td>
                         <td>&nbsp;</td>
                         <td>
                             <a class="remove-record" href="javascript:void(0);">Remove</a>
@@ -166,17 +165,17 @@
                 {% endfor %}
                 <tr class="add-row extra">
                     <td><input type="hidden" name="new-records" value="1" /></td>
-                    <td><input type="text" name="name-new" /></td>
-                    <td><input type="text" name="ttl-new" value="14400" class="dns-ttl" /></td>
+                    <td><input type="text" name="name-new" class="form-control input-sm" /></td>
+                    <td><input type="text" name="ttl-new" value="14400" class="form-control input-sm dns-ttl" /></td>
                     <td>
-                        <select name="type-new" style="max-width: 80px;">
+                        <select name="type-new" class="form-control input-sm" style="max-width: 80px;">
                             <option value="">---</option>
                             {% for type in dns_types %}
                                 <option value="{{ type.pk }}">{{ type.name }}</option>
                             {% endfor %}
                         </select>
                     </td>
-                    <td><input type="text" name="content-new" /></td>
+                    <td><input type="text" name="content-new" class="input-content form-control input-sm" /></td>
                     <td>&nbsp;</td>
                     <td>
                         <a class="add-record" href="javascript:void(0);">Quick add</a>
@@ -185,9 +184,9 @@
                 </tr>
 
             </table>
-            <div id="form-actions" class="hide">
+            <div id="form-actions" style="display: none;">
                 <input type="submit" class="btn btn-primary" value="Save" />
-                <input id="cancel-edit" type="button" class="btn" value="Cancel" />
+                <input id="cancel-edit" type="button" class="btn btn-default" value="Cancel" />
             </div>
             <br /><br />
             <br /><br />

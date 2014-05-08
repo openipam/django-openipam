@@ -1,10 +1,10 @@
-.modal {
+/*.modal {
     width: 800px;
     margin-left: -400px;
-}
+}*/
 .modal-body {
     max-height: 600px;
-    padding: 0px 15px 15px 15px;
+    position: relative;
     margin-top: 20px;
 }
 input {
@@ -26,35 +26,35 @@ input {
     margin-right: 4px;
 }
 #host-details-container {
-    margin: 0px 0px 0px 25px;
-    max-width: 800px;
+    margin: 0px 25px;
+    /*max-width: 800px;*/
+}
+
+#host-details-container table {
+    margin-bottom: 10px !important;
+}
+
+#host-details-container table tr th h5 {
+    margin: 0px;
+    font-size: 18px;
+}
+
+#host-details-container table tr th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#host-details-container table tr.active td {
+    background-color: #f5f5f5 !important;
+    color: #000;
 }
 
 .host-detail {
     padding-top: 5px;
-    background-color: #eee;
+    /*background-color: #eee;*/
 }
 .host-detail h3 {
     margin: 5px 0px 0px 0px;
-}
-.icon-expand {
-    width: 0;
-    height: 0;
-    border-bottom: 5px solid transparent;  /* left arrow slant */
-    border-top: 5px solid transparent; /* right arrow slant */
-    border-left: 5px solid #ff0000; /* bottom, add background color here */
-    font-size: 0;
-    line-height: 0;
-}
-
-.icon-contract {
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #ff0000;
-    font-size: 0;
-    line-height: 0;
 }
 .well-white {
     background-color: #fff;
@@ -64,3 +64,34 @@ input {
     border-radius: 4px;
     padding: 5px;
 }
+
+
+@media screen and (max-width: 810px) {
+    .paginate_button:not(.first):not(.previous):not(.next):not(.last) {
+        display: none;
+    }
+
+    #result_list td:nth-child(6),
+    #result_list th:nth-child(6),
+    #result_list td:nth-child(7),
+    #result_list th:nth-child(7) {
+        display: none;
+    }
+
+    #search-help-button {
+        display: none;
+    }
+
+    #filter-owners {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    #result_list td:nth-child(8),
+    #result_list th:nth-child(8) {
+        display: none;
+    }
+}
+
+
