@@ -41,9 +41,15 @@ class DhcpGroupAdmin(admin.ModelAdmin):
 
 
 class DhcpOptionToDhcpGroupAdmin(admin.ModelAdmin):
+    list_display = ('combined_value', 'changed', 'changed_by',)
+
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ('group', 'option', 'readable_value', 'changed', 'changed_by',)
     readonly_fields = ('changed_by', 'changed',)
+
+    def combined_value(self, obj):
+        return '%s:%s=%r' % (obj.group.name, obj.option.name, str(obj.value))
+    combined_value.short_description = 'Group:Option=Value'
 
     # def get_form(self, request, obj=None, **kwargs):
     #     super(DhcpOptionToDhcpGroupAdmin, self).get_form(request, obj, **kwargs)

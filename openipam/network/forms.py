@@ -33,12 +33,10 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
     )
     readable_value = forms.CharField(label='Value')
 
-
     def __init__(self, *args, **kwargs):
         super(DhcpOptionToDhcpGroupAdminForm, self).__init__(*args, **kwargs)
 
         if self.instance:
-
             printable = True
             for c in self.instance.value:
                 if not isprint(c):
@@ -55,9 +53,6 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
 
     def clean_readable_value(self):
         value = self.cleaned_data['readable_value']
-
-        #assert False, value
-
         if value[:2] == '0x':
             self.instance.value = binascii.unhexlify(value[2:])
         else:
