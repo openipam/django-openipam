@@ -3,7 +3,7 @@ from django import forms
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Pool, Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup
-from openipam.network.forms import AddressTypeAdminForm
+from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm
 
 import autocomplete_light
 
@@ -41,8 +41,13 @@ class DhcpGroupAdmin(admin.ModelAdmin):
 
 
 class DhcpOptionToDhcpGroupAdmin(admin.ModelAdmin):
-    form = autocomplete_light.modelform_factory(DhcpOptionToDhcpGroup)
-    fields = ('group', 'option', 'value', 'changed_by',)
+    form = DhcpOptionToDhcpGroupAdminForm
+    fields = ('group', 'option', 'readable_value', 'changed', 'changed_by',)
+    readonly_fields = ('changed_by', 'changed',)
+
+    # def get_form(self, request, obj=None, **kwargs):
+    #     super(DhcpOptionToDhcpGroupAdmin, self).get_form(request, obj, **kwargs)
+
 
 
 class PoolAdmin(admin.ModelAdmin):
