@@ -56,6 +56,10 @@ class DnsRecord(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def content(self):
+        return self.ip_content if self.ip_content else self.text_content
+
     def clean(self):
         # Make sure these are saved as NULL to db.
         if not self.text_content:
