@@ -27,7 +27,7 @@ class HostAdmin(ChangedAdmin):
 
 
 class DisabledAdmin(ChangedAdmin):
-    list_display = ('host', 'changed', 'changed_by_full',)
+    list_display = ('host', 'reason', 'changed', 'changed_by_full',)
     form = autocomplete_light.modelform_factory(Disabled)
     change_form_template = 'admin/openipam/change_form.html'
     list_select_related = True
