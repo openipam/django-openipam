@@ -1,8 +1,9 @@
 from django.contrib import admin
 
-from openipam.dns.models import DnsRecord, DnsType, Domain
+from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView
 # from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
 #     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
+from openipam.core.admin import ChangedAdmin
 from guardian.models import GroupObjectPermission, UserObjectPermission
 import autocomplete_light
 
@@ -26,19 +27,6 @@ class BaseDNSAdmin(admin.ModelAdmin):
         })
 
         return cl
-
-
-# class DomainGroupPermissionInline(admin.TabularInline):
-#     model = DomainGroupObjectPermission
-#     form = DomainGroupPermissionForm
-#     extra = 1
-
-
-# class DomainUserPermissionInline(admin.TabularInline):
-#     model = DomainUserObjectPermission
-#     form = DomainUserPermissionForm
-#     extra = 1
-
 
 class OpjectPermissionAdmin(BaseDNSAdmin):
     list_select_related = True
@@ -68,32 +56,14 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
     suser_permissions.allow_tags = True
 
 
-class DomainAdmin(OpjectPermissionAdmin):
-    list_display = ('name', 'sgroup_permissions', 'suser_permissions')
+class DomainAdmin(OpjectPermissionAdmin, ChangedAdmin):
+    list_display = ('name', 'sgroup_permissions', 'suser_permissions', 'changed_by', 'changed')
     form = autocomplete_light.modelform_factory(Domain)
     change_form_template = 'admin/openipam/change_form.html'
     search_fields = ('name',)
-    #inlines = [DomainGroupPermissionInline, DomainUserPermissionInline]
 
 
-# class DomainGroupObjectPermissionAdmin(admin.ModelAdmin):
-#     list_display = ('group', 'content_object', 'permission',)
-#     list_filter = ('group__name',)
-#     search_fields = ('group__name', 'content_object__name',)
-#     list_select_related = True
-#     form = autocomplete_light.modelform_factory(DomainGroupObjectPermission)
-#     change_form_template = 'admin/openipam/change_form.html'
-
-
-# class DomainUserObjectPermissionAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'content_object', 'permission',)
-#     search_fields = ('user__username', 'content_object__name',)
-#     list_select_related = True
-#     form = autocomplete_light.modelform_factory(DomainUserObjectPermission)
-#     change_form_template = 'admin/openipam/change_form.html'
-
-
-class DnsRecordAdmin(BaseDNSAdmin):
+class DnsRecordAdmin(BaseDNSAdmin, ChangedAdmin):
     list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
     list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
@@ -124,31 +94,15 @@ class DnsRecordAdmin(BaseDNSAdmin):
     edit_link.allow_tags = True
 
 
-# class DnsTypeGroupPermissionInline(admin.TabularInline):
-#     model = DnsTypeGroupObjectPermission
-#     form = DnsTypeGroupPermissionForm
-#     extra = 1
-#     #fk_name = 'content_object'
-
-
-# class DnsTypeUserPermissionInline(admin.TabularInline):
-#     model = DnsTypeUserObjectPermission
-#     form = DnsTypeUserPermissionForm
-#     extra = 1
-#     #fk_name = 'content_object'
-
-
 class DnsTypeAdmin(OpjectPermissionAdmin):
     list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions')
     list_filter = ('min_permissions__name',)
-    #inlines = [DnsTypeGroupPermissionInline, DnsTypeUserPermissionInline]
 
     def min_permission(self, obj):
         return '%s' % obj.min_permissions.name
 
 
+admin.site.register(DnsView)
 admin.site.register(DnsType, DnsTypeAdmin)
 admin.site.register(DnsRecord, DnsRecordAdmin)
 admin.site.register(Domain, DomainAdmin)
-# admin.site.register(DomainGroupObjectPermission, DomainGroupObjectPermissionAdmin)
-# admin.site.register(DomainUserObjectPermission, DomainUserObjectPermissionAdmin)

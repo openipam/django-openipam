@@ -1,25 +1,13 @@
 from django.contrib import admin
 
-from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Notification, Attribute
-#from openipam.hosts.forms import HostGroupPermissionForm, HostUserPermissionForm
+from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Attribute, StructuredAttributeValue
+from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
 
 
-# class HostGroupPermissionInline(admin.TabularInline):
-#     model = HostGroupObjectPermission
-#     form = HostGroupPermissionForm
-#     extra = 1
-
-
-# class HostUserPermissionInline(admin.TabularInline):
-#     model = HostUserObjectPermission
-#     form = HostUserPermissionForm
-#     extra = 1
-
-
-class HostAdmin(admin.ModelAdmin):
-    list_display = ('nice_hostname', 'mac', 'dhcp_group', 'expires')
+class HostAdmin(ChangedAdmin):
+    list_display = ('nice_hostname', 'mac', 'dhcp_group', 'expires', 'changed_by', 'changed')
     list_filter = ('dhcp_group',)
     readonly_fields = ('changed_by', 'changed')
     search_fields = ('hostname', 'mac')
@@ -38,44 +26,16 @@ class HostAdmin(admin.ModelAdmin):
     nice_hostname.admin_order_field = 'hostname'
 
 
-# class HostUserObjectPermissionAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'hostname', 'mac', 'permission',)
-#     list_select_related = True
-#     search_fields = ('user_username', 'content_object__mac', 'content_object__hostname')
-#     form = autocomplete_light.modelform_factory(HostUserObjectPermission)
-#     change_form_template = 'admin/openipam/change_form.html'
-
-#     def hostname(self, obj):
-#         return '%s' % obj.content_object.hostname
-
-#     def mac(self, obj):
-#         return '%s' % obj.content_object.mac
-
-
-# class HostGroupObjectPermissionAdmin(admin.ModelAdmin):
-#     list_display = ('group', 'hostname', 'mac', 'permission',)
-#     list_filter = ('group__name',)
-#     search_fields = ('group__name', 'content_object__mac', 'content_object__hostname')
-#     list_select_related = True
-#     form = autocomplete_light.modelform_factory(HostGroupObjectPermission)
-#     change_form_template = 'admin/openipam/change_form.html'
-
-#     def hostname(self, obj):
-#         return '%s' % obj.content_object.hostname
-
-#     def mac(self, obj):
-#         return '%s' % obj.content_object.mac
-
-
-class DisabledAdmin(admin.ModelAdmin):
-    list_display = ('host', 'disabled', 'disabled_by_full',)
+class DisabledAdmin(ChangedAdmin):
+    list_display = ('host', 'changed', 'changed_by_full',)
     form = autocomplete_light.modelform_factory(Disabled)
     change_form_template = 'admin/openipam/change_form.html'
     list_select_related = True
 
-    def disabled_by_full(self, obj):
-        return '%s (%s)' % (obj.disabled_by.username, obj.disabled_by.get_full_name())
-    disabled_by_full.short_description = 'Disabled By'
+    def changed_by_full(self, obj):
+        return '%s (%s)' % (obj.changed_by.username, obj.changed_by.get_full_name())
+    changed_by_full.short_description = 'Changed By'
+
 
 class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'user', 'starts', 'ends')
@@ -85,9 +45,18 @@ class GuestTicketAdmin(admin.ModelAdmin):
     change_form_template = 'admin/openipam/change_form.html'
 
 
+class AttributeAdmin(ChangedAdmin):
+    pass
+
+
+class StructuredAttributeValueAdmin(ChangedAdmin):
+    list_display = ('attribute', 'value', 'is_default', 'changed_by', 'changed',)
+    list_filter = ('attribute__name',)
+
+
 admin.site.register(Host, HostAdmin)
-# admin.site.register(HostUserObjectPermission, HostUserObjectPermissionAdmin)
-# admin.site.register(HostGroupObjectPermission, HostGroupObjectPermissionAdmin)
-admin.site.register(Attribute)
+admin.site.register(Attribute, AttributeAdmin)
+admin.site.register(StructuredAttributeValue, StructuredAttributeValueAdmin)
+#admin.site.register(Notification)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)

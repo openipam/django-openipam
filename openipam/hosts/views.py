@@ -43,7 +43,7 @@ class HostListJson(BaseDatatableView):
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
-    max_display_length = 100
+    max_display_length = 1500
 
     def get_initial_queryset(self):
         # return queryset used as base for futher sorting/filtering
@@ -231,13 +231,10 @@ class HostListJson(BaseDatatableView):
                     return None
 
         def get_ips(host):
-            if host.is_dynamic:
-                addresses = [lease.pk for lease in host.leases.all()]
-            else:
-                addresses = host.addresses.all()
+            addresses = [str(address) for address in host.addresses.all()] + [str(lease.address) for lease in host.leases.all()]
 
             if addresses:
-                addresses = [str(address) for address in addresses]
+                #addresses = [str(address) for address in addresses]
                 if len(addresses) == 1:
                     return '<span>%s</span>' % addresses[0]
                 else:

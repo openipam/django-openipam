@@ -129,7 +129,7 @@ class DhcpOptionToDhcpGroup(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s:%s=%r' % (self.group, self.option, str(self.value))
+        return '%s:%s=%r' % (self.group.name, self.option.name, str(self.value))
 
     class Meta:
         db_table = 'dhcp_options_to_dhcp_groups'
@@ -188,32 +188,6 @@ class Network(models.Model):
             ('is_owner_network', 'Is owner'),
             ('add_records_to_network', 'Can add records to'),
         )
-
-
-# class NetworkUserObjectPermissionManager(NetManager, UserObjectPermissionManager):
-#     pass
-
-
-# class NetworkUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('Network', related_name='user_permissions')
-
-#     objects = NetworkUserObjectPermissionManager()
-
-#     class Meta:
-#         verbose_name = 'Network User Permission'
-
-
-# class NetworkGroupObjectPermissionManager(NetManager, GroupObjectPermissionManager):
-#     pass
-
-
-# class NetworkGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('Network', related_name='group_permissions')
-
-#     objects = NetworkGroupObjectPermissionManager()
-
-#     class Meta:
-#         verbose_name = 'Network Group Permission'
 
 
 class NetworkRange(models.Model):
