@@ -195,10 +195,10 @@ autocomplete_light.register(Group,
     autocomplete_js_attributes={'placeholder': 'Search Groups'},
 )
 
-autocomplete_light.register(OldGroup,
-    search_fields=['name'],
-    autocomplete_js_attributes={'placeholder': 'Search Groups'},
-)
+class OldGroupAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['name']
+    autocomplete_js_attributes = {'placeholder': 'Search Groups'}
+autocomplete_light.register(OldGroup, OldGroupAutocomplete)
 
 
 class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
