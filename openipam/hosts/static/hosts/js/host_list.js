@@ -1,5 +1,33 @@
 $(function(){
 
+    var oCache = {
+        iCacheLower: -1
+    };
+
+    function fnSetKey( aoData, sKey, mValue )
+    {
+        for ( var i=0, iLen=aoData.length ; i<iLen ; i++ )
+        {
+            if ( aoData[i].name == sKey )
+            {
+                aoData[i].value = mValue;
+            }
+        }
+    }
+
+    function fnGetKey( aoData, sKey )
+    {
+        for ( var i=0, iLen=aoData.length ; i<iLen ; i++ )
+        {
+            if ( aoData[i].name == sKey )
+            {
+                return aoData[i].value;
+            }
+        }
+        return null;
+    }
+
+
     $.fn.dataTableExt.oApi.fnFilterClear = function(oSettings)
     {
         /* Remove global filter */
@@ -128,80 +156,150 @@ $(function(){
             );
         },
         "fnServerData": function(sSource, aoData, fnCallback) {
-            $.getJSON(sSource, aoData, function(json) {
+            var iPipe = 10; /* Ajust the pipe size */
 
-                // Populate Table
-                fnCallback(json);
+            var bNeedServer = false;
+            var sEcho = fnGetKey(aoData, "sEcho");
+            var iRequestStart = fnGetKey(aoData, "iDisplayStart");
+            var iRequestLength = fnGetKey(aoData, "iDisplayLength");
+            var iRequestEnd = iRequestStart + iRequestLength;
+            oCache.iDisplayStart = iRequestStart;
 
-                $("#result_list span.flagged").parents('tr').addClass('flagged');
+            /* outside pipeline? */
+            if ( oCache.iCacheLower < 0 || iRequestStart < oCache.iCacheLower || iRequestEnd > oCache.iCacheUpper )
+            {
+                bNeedServer = true;
+            }
 
-                // $(".host-details").click(function(){
-                //     var hostname = $(this).prop("rel");
-                //     var href = $(this).prop("href");
-                //     var edit_href = $(this).prop("id");
-
-                //     $('#host-details').modal({
-                //           remote: href
-                //     });
-
-                //     $('#host-details').on('shown', function(){
-                //         $("#host-detail-label").text("Details for: " + hostname);
-                //         $("#edit-host").prop("href", edit_href);
-                //     });
-
-                //     return false;
-                // });
-
-                $(".host-details").on('click', function() {
-                    var a = $(this);
-                    var tr = $(this).parents('tr')[0];
-                    var hostname = $(this).prop("rel");
-                    var href = $(this).prop("href");
-                    var edit_href = $(this).prop("id");
-                    var detail_html = $(tr).next("tr").has("td.host-detail");
-
-                    if (detail_html.length > 0) {
-                        detail_html.toggle();
-                        $(this).find('span').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-right');
+            /* sorting etc changed? */
+            if ( oCache.lastRequest && !bNeedServer )
+            {
+                for( var i=0, iLen=aoData.length ; i<iLen ; i++ )
+                {
+                    if ( aoData[i].name != "iDisplayStart" && aoData[i].name != "iDisplayLength" && aoData[i].name != "sEcho" )
+                    {
+                        if ( aoData[i].value != oCache.lastRequest[i].value )
+                        {
+                            bNeedServer = true;
+                            break;
+                        }
                     }
-                    else {
-                        $.ajax({
-                            url: href,
-                            beforeSend: function() {
-                                $("#result_list_processing").css('visibility', 'visible').show();
-                            },
-                            complete: function() {
-                                $("#result_list_processing").css('visibility', 'hidden').hide();
-                            },
-                            success: function(data) {
-                                $(a).find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
-                                results.fnOpen(tr, data, 'host-detail');
-                            }
-                        });
-                    }
-
-                    return false;
-                } );
-
-                $('#host-details').on('hidden', function() {
-                    $(this).data('modal').$element.removeData();
-                    $(".modal-body").html('Loading...');
-                });
-
-                // Set pagination to stick when scrolling
-                var page_bar = $('.paginator');
-                page_bar.removeClass('fixed');
-                if(page_bar.length){
-                    var height=page_bar[0].offsetTop + page_bar.outerHeight();
-                    var onchange = function(){
-                        var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-                        if(s<height){page_bar.addClass('fixed');}
-                        else{page_bar.removeClass('fixed');}
-                    }
-                    window.onscroll=onchange;
-                    onchange();
                 }
+            }
+
+            /* Store the request for checking next time around */
+            oCache.lastRequest = aoData.slice();
+
+            if ( bNeedServer )
+            {
+                if ( iRequestStart < oCache.iCacheLower )
+                {
+                    iRequestStart = iRequestStart - (iRequestLength*(iPipe-1));
+                    if ( iRequestStart < 0 )
+                    {
+                        iRequestStart = 0;
+                    }
+                }
+
+                oCache.iCacheLower = iRequestStart;
+                oCache.iCacheUpper = iRequestStart + (iRequestLength * iPipe);
+                oCache.iDisplayLength = fnGetKey( aoData, "iDisplayLength" );
+                fnSetKey( aoData, "iDisplayStart", iRequestStart );
+                fnSetKey( aoData, "iDisplayLength", iRequestLength*iPipe );
+
+                $.getJSON( sSource, aoData, function (json) {
+                    /* Callback processing */
+                    oCache.lastJson = jQuery.extend(true, {}, json);
+
+                    if ( oCache.iCacheLower != oCache.iDisplayStart )
+                    {
+                        json.aaData.splice( 0, oCache.iDisplayStart-oCache.iCacheLower );
+                    }
+                    json.aaData.splice( oCache.iDisplayLength, json.aaData.length );
+
+                    fnCallback(json)
+                });
+            }
+            else
+            {
+                json = jQuery.extend(true, {}, oCache.lastJson);
+                json.sEcho = sEcho; /* Update the echo for each response */
+                json.aaData.splice( 0, iRequestStart-oCache.iCacheLower );
+                json.aaData.splice( iRequestLength, json.aaData.length );
+                fnCallback(json);
+            }
+
+            $("#result_list span.flagged").parents('tr').addClass('flagged');
+
+            // $(".host-details").click(function(){
+            //     var hostname = $(this).prop("rel");
+            //     var href = $(this).prop("href");
+            //     var edit_href = $(this).prop("id");
+
+            //     $('#host-details').modal({
+            //           remote: href
+            //     });
+
+            //     $('#host-details').on('shown', function(){
+            //         $("#host-detail-label").text("Details for: " + hostname);
+            //         $("#edit-host").prop("href", edit_href);
+            //     });
+
+            //     return false;
+            // });
+
+            $(".host-details").on('click', function() {
+                var a = $(this);
+                var tr = $(this).parents('tr')[0];
+                var hostname = $(this).prop("rel");
+                var href = $(this).prop("href");
+                var edit_href = $(this).prop("id");
+                var detail_html = $(tr).next("tr").has("td.host-detail");
+
+                if (detail_html.length > 0) {
+                    detail_html.toggle();
+                    $(this).find('span').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-right');
+                }
+                else {
+                    $.ajax({
+                        url: href,
+                        beforeSend: function() {
+                            $("#result_list_processing").css('visibility', 'visible').show();
+                        },
+                        complete: function() {
+                            $("#result_list_processing").css('visibility', 'hidden').hide();
+                        },
+                        success: function(data) {
+                            $(a).find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
+                            results.fnOpen(tr, data, 'host-detail');
+                        }
+                    });
+                }
+
+                return false;
+            } );
+
+            $('#host-details').on('hidden', function() {
+                $(this).data('modal').$element.removeData();
+                $(".modal-body").html('Loading...');
             });
+
+            // Set pagination to stick when scrolling
+            var page_bar = $('.paginator');
+            page_bar.removeClass('fixed');
+            if(page_bar.length){
+                var height=page_bar[0].offsetTop + page_bar.outerHeight();
+                var onchange = function(){
+                    var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
+                    if(s<height){page_bar.addClass('fixed');}
+                    else{page_bar.removeClass('fixed');}
+                }
+                window.onscroll=onchange;
+                onchange();
+            }
+
+            return;
+
         },
         "fnInfoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
             if (iTotal < iMax){

@@ -1,11 +1,15 @@
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+
 from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, Pool, DhcpGroup
+from openipam.user.models import Group as OldGroup
+
 from guardian.shortcuts import get_objects_for_user, assign_perm
+
 import autocomplete_light
 
 User = get_user_model()
@@ -190,6 +194,11 @@ autocomplete_light.register(Group,
     search_fields=['name'],
     autocomplete_js_attributes={'placeholder': 'Search Groups'},
 )
+
+class OldGroupAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['name']
+    autocomplete_js_attributes = {'placeholder': 'Search Groups'}
+autocomplete_light.register(OldGroup, OldGroupAutocomplete)
 
 
 class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):

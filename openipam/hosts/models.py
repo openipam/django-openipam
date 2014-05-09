@@ -61,8 +61,8 @@ class AttributeToHost(models.Model):
 class Disabled(models.Model):
     host = MACAddressField(primary_key=True, db_column='mac')
     reason = models.TextField(blank=True, null=True)
-    disabled = models.DateTimeField(auto_now=True)
-    disabled_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
+    changed = models.DateTimeField(auto_now=True, db_column='disabled')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
     def __unicode__(self):
         return self.host
@@ -70,7 +70,7 @@ class Disabled(models.Model):
     class Meta:
         db_table = 'disabled'
         verbose_name = 'Disabled Host'
-        ordering = ('-disabled',)
+        ordering = ('-changed',)
 
 
 class ExpirationType(models.Model):
@@ -269,12 +269,8 @@ class Host(models.Model):
         return self.address_type_id
 
     def get_owners(self, ids_only=True):
-        # users = self.user_permissions.filter(permission__codename='is_owner_host')
-        # groups = self.group_permissions.filter(permission__codename='is_owner_host')
-
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
-
 
         users = []
         for user, permissions in users_dict.iteritems():
@@ -523,20 +519,6 @@ class Host(models.Model):
         ordering = ('hostname',)
 
 
-# class HostUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('Host', related_name='user_permissions')
-
-#     class Meta:
-#         verbose_name = 'Host User Permission'
-
-
-# class HostGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('Host', related_name='group_permissions')
-
-#     class Meta:
-#         verbose_name = 'Host Group Permission'
-
-
 # TODO:  What is this?
 # class Kvp(models.Model):
 #     id = models.IntegerField()
@@ -594,6 +576,7 @@ class StructuredAttributeValue(models.Model):
 
     class Meta:
         db_table = 'structured_attribute_values'
+        ordering = ('attribute__name', 'value',)
 
 
 class StructuredAttributeToHost(models.Model):

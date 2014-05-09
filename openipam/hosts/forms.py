@@ -138,6 +138,8 @@ class HostForm(forms.ModelForm):
                 self.fields['user_owners'].initial = self.previous_form_data.get('user_owners')
             if 'group_owners' in self.previous_form_data:
                 self.fields['group_owners'].initial = self.previous_form_data.get('group_owners')
+        else:
+            self.fields['user_owners'].initial = (self.user.pk,)
 
     def _init_address_type(self):
         # Customize address types for non super users
@@ -319,13 +321,15 @@ class HostForm(forms.ModelForm):
         if self.cleaned_data.get('user_owners'):
             for user in self.cleaned_data['user_owners']:
                 instance.assign_owner(user)
-        else:
-            # If not admin, assign as owner
-            instance.assign_owner(self.user)
+
 
         if self.cleaned_data.get('group_owners'):
             for group in self.cleaned_data['group_owners']:
                 instance.assign_owner(group)
+
+        # FIXME: This wont run cause we have a clean check preventing it, but I left it here just in case.
+        if not self.cleaned_data.get('user_owners') and not self.cleaned_data.get('group_owners'):
+            instance.assign_owner(self.user)
 
         # Invalidate Cache
         invalidate_model(User)
@@ -370,6 +374,9 @@ class HostForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(HostForm, self).clean()
+
+        if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
+            raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
 
         return cleaned_data
 

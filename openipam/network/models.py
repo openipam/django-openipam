@@ -10,6 +10,7 @@ from openipam.network.managers import LeaseManager, PoolManager, AddressManager,
 from openipam.network.signals import validate_address_type, release_leases
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
+
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
     host = models.ForeignKey('hosts.Host', db_column='mac', related_name='leases', unique=True, null=True)
@@ -123,12 +124,12 @@ class DhcpOption(models.Model):
 class DhcpOptionToDhcpGroup(models.Model):
     group = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
     option = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
-    value = models.CharField(blank=True, null=True, max_length='255')
+    value = models.BinaryField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s:%s=%r' % (self.group, self.option, str(self.value))
+        return '%s:%s=%r' % (self.group.name, self.option.name, str(self.value))
 
     class Meta:
         db_table = 'dhcp_options_to_dhcp_groups'
@@ -187,32 +188,6 @@ class Network(models.Model):
             ('is_owner_network', 'Is owner'),
             ('add_records_to_network', 'Can add records to'),
         )
-
-
-# class NetworkUserObjectPermissionManager(NetManager, UserObjectPermissionManager):
-#     pass
-
-
-# class NetworkUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('Network', related_name='user_permissions')
-
-#     objects = NetworkUserObjectPermissionManager()
-
-#     class Meta:
-#         verbose_name = 'Network User Permission'
-
-
-# class NetworkGroupObjectPermissionManager(NetManager, GroupObjectPermissionManager):
-#     pass
-
-
-# class NetworkGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('Network', related_name='group_permissions')
-
-#     objects = NetworkGroupObjectPermissionManager()
-
-#     class Meta:
-#         verbose_name = 'Network Group Permission'
 
 
 class NetworkRange(models.Model):

@@ -82,6 +82,9 @@
   position: relative;
 }
 
+.alert ul {
+  -webkit-padding-start: 10px;
+}
 
 .table-curved {
     border-collapse: separate;
@@ -185,6 +188,15 @@ div.has-error label, div.has-error .errors {
 .dashboard-module li {
   list-style: none;
 }
+.dashboard-module-content > ul {
+  margin: 5px 0px;
+
+}
+.dashboard-module-content > ul > li {
+  margin: 0px 5px;
+
+}
+
 .dashboard-module h2 {
   font-size: 18px;
   line-height: 20px;
@@ -201,9 +213,6 @@ div.has-error label, div.has-error .errors {
   margin-left: -15px;
   color: #46a546 !important;
   font-weight: bold !important;
-}
-.dashboard-module li a {
-  margin-left: 10px;
 }
 #container {
   margin-top: 50px;
