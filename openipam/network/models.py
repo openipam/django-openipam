@@ -232,7 +232,7 @@ class Vlan(models.Model):
     name = models.CharField(max_length=12)
     description = models.TextField(blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
         return '%s %s' % (self.id, self.name)
