@@ -269,12 +269,8 @@ class Host(models.Model):
         return self.address_type_id
 
     def get_owners(self, ids_only=True):
-        # users = self.user_permissions.filter(permission__codename='is_owner_host')
-        # groups = self.group_permissions.filter(permission__codename='is_owner_host')
-
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
-
 
         users = []
         for user, permissions in users_dict.iteritems():
