@@ -42,7 +42,7 @@ class DomainManager(Manager):
 
 class DnsManager(Manager):
 
-     def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
+    def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
         try:
             if record:
                 created = False
@@ -91,4 +91,19 @@ class DnsManager(Manager):
 
         except Address.DoesNotExist:
             raise ValidationError('Static IP does not exist for content: %s' % content)
+
+
+class DnsTypeManager(Manager):
+
+    @property
+    def A(self):
+        return self.get(name='A')
+
+    @property
+    def AAAA(self):
+        return self.get(name='AAAA')
+
+    @property
+    def PTR(self):
+        return self.get(name='PTR')
 

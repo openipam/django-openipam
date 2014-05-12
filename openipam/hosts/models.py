@@ -295,6 +295,74 @@ class Host(models.Model):
         else:
             return None
 
+    def add_ip_address(self, user=None, ip_address=None, network=None, hostname=None):
+        from openipam.network.models import Network, Address
+        from openipam.dns.models import DnsType
+
+        if not user and self.user:
+            user = self.user
+        elif not user:
+            raise Exception('A User must be specified to an address to this host.')
+
+        if isinstance(network, str):
+            network = Network.objects.get(network=network)
+
+        user_pools = get_objects_for_user(
+            user,
+            ['network.add_records_to_pool', 'network.change_pool'],
+            any_perm=True
+        )
+
+        address = None
+
+        if network:
+            address = Address.objects.filter(
+                Q(pool__in=user_pools) | Q(pool__isnull=True),
+                network=network,
+                host__isnull=True,
+                reserved=False,
+            ).order_by('address')
+
+            if not address:
+                raise Address.DoesNotExist
+
+            # Get only one
+            address = address[0]
+
+        elif ip_address:
+            address = Address.objects.get(
+                Q(pool__in=user_pools) | Q(pool__isnull=True),
+                address=ip_address,
+                host__isnull=True,
+                reserved=False,
+            )
+
+        else:
+            raise Exception('A Network or IP Address must be given to assign this host.')
+
+        # Make sure pool is clear.
+        address.pool_id = None
+        address.host = self
+        address.changed_by = user
+        address.save()
+
+        if hostname:
+            from openipam.dns.models import DnsRecord
+
+            DnsRecord.objects.add_or_update_record(
+                user=user,
+                name=hostname,
+                content=address.address,
+                dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
+            )
+
+            DnsRecord.objects.add_or_update_record(
+                user=user,
+                name=address.address.reverse_dns[:-1],
+                content=hostname,
+                dns_type=DnsType.objects.PTR,
+            )
+
     # def get_address_type(self):
     #     from openipam.network.models import AddressType, NetworkRange
 
@@ -389,57 +457,13 @@ class Host(models.Model):
 
         # If we have an IP address, then assign that address to host
         else:
-            user_pools = get_objects_for_user(
-                user,
-                ['network.add_records_to_pool', 'network.change_pool'],
-                any_perm=True
+            self.add_ip_address(
+                user=user,
+                ip_address=self.ip_address,
+                network=self.network,
+                hostname=self.hostname
             )
 
-            if self.network:
-                address = Address.objects.filter(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True),
-                    network__network=self.network,
-                    host__isnull=True,
-                    reserved=False,
-                ).order_by('address')
-
-                if not address:
-                    raise Address.DoesNotExist
-
-                # Get only one
-                address = address[0]
-                # Make sure pool is clear.
-                address.pool_id = None
-                address.host = self
-                address.changed_by = self.user
-                address.save()
-
-            elif self.ip_address or self.ip_addresses:
-                if self.ip_address:
-                    self.ip_addresses.append(self.ip_address)
-                    self.ip_addresses = list(set(self.ip_addresses))
-
-                for ip_address in self.ip_addresses:
-                    address = Address.objects.get(
-                        Q(pool__in=user_pools) | Q(pool__isnull=True),
-                        address=ip_address,
-                        host__isnull=True,
-                        reserved=False,
-                    )
-
-                    # Make sure pool is clear.
-                    address.pool_id = None
-                    address.host = self
-                    address.changed_by = self.user
-                    address.save()
-            else:
-                raise Exception('A Network or IP Address must be given to assign this host.')
-
-            # Make sure pool is clear.
-            address.pool_id = None
-            address.host = self
-            address.changed_by = self.user
-            address.save()
 
     def remove_owners(self):
         users, groups = self.get_owners(ids_only=False)
