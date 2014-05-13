@@ -3,6 +3,9 @@
 # C extensions
 *.so
 
+# Swap files
+*.swp
+
 # Packages
 *.egg
 *.egg-info
@@ -18,6 +21,8 @@ develop-eggs
 lib
 lib64
 .Python
+env/local
+env/src
 env/share
 env/include
 
