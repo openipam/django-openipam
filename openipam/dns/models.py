@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address, validate_ipv6_address
 from django.db.models.signals import pre_delete
 
-from openipam.dns.managers import DnsManager, DomainManager
+from openipam.dns.managers import DnsManager, DomainManager, DnsTypeManager
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
     validate_srv_content, validate_sshfp_content
 from openipam.user.signals import remove_obj_perms_connected_with_user
@@ -238,7 +238,7 @@ class DnsRecord(models.Model):
     def user_has_ownership(self, user):
         if user.is_ipamadmin:
             return True
-        if self.ip_content and self.ip_content.host.mac in user.host_owner_permissions:
+        if self.ip_content and self.ip_content.host and self.ip_content.host.mac in user.host_owner_permissions:
             return True
         elif self.domain.name in user.domain_owner_permissions:
             return True
@@ -287,6 +287,8 @@ class DnsType(models.Model):
     name = models.CharField(max_length=16, blank=True, unique=True)
     description = models.TextField(blank=True, null=True)
     min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+
+    objects = DnsTypeManager()
 
     def __unicode__(self):
         return '%s' % self.name

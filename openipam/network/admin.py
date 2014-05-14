@@ -21,6 +21,21 @@ class NetworkAdmin(ChangedAdmin):
     nice_network.short_description = 'Network'
     nice_network.allow_tags = True
 
+    def save_model(self, request, obj, form, change):
+        super(NetworkAdmin, self).save_model(request, obj, form, change)
+
+        if not change:
+            addresses = []
+            for address in obj.network:
+                reserved = False
+                if address in (obj.gateway, obj.network[0], obj.network[-1]):
+                    reserved = True
+                addresses.append(
+                    #TODO: Need to set pool eventually.
+                    Address(address=address, network=obj, reserved=reserved, changed_by=request.user)
+                )
+            Address.objects.bulk_create(addresses)
+
 
 class AddressTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'show_pool', 'show_ranges', 'is_default')
