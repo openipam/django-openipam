@@ -121,6 +121,7 @@ class DhcpOption(models.Model):
         db_table = 'dhcp_options'
         verbose_name = 'DHCP option'
 
+
 class DhcpOptionToDhcpGroup(models.Model):
     group = models.ForeignKey('DhcpGroup', null=True, db_column='gid', blank=True, related_name='option_values')
     option = models.ForeignKey('DhcpOption', null=True, db_column='oid', blank=True, related_name='group_values')
@@ -137,7 +138,7 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 class HostToPool(models.Model):
     host = models.ForeignKey('hosts.Host', db_column='mac', db_index=True)
-    pool = models.ForeignKey('Pool',  db_index=True)
+    pool = models.ForeignKey('Pool', db_index=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
@@ -273,27 +274,33 @@ class Address(models.Model):
         elif (self.host or self.pool) and self.reserved:
             raise ValidationError('If a Host or Pool are defined, reserved must be false.')
 
+    def get_pool_default(self):
+        # Find most specific DefaultPool for this address and return associated Pool
+        pool = (DefaultPool.objects
+                .filter(cidr__net_contains_or_equals=self.address)
+                .extra(select={'masklen': "masklen(cidr)"}, order_by=['-masklen']))
+        # first one should have the longest mask, which is most specific
+        pool = pool[0].pool if pool else None
+        return pool
+
     def release(self, pool=False):
         from openipam.dns.models import DnsRecord
 
         # Get default pool if false
         if pool is False:
-            pool = (DefaultPool.objects
-                   .filter(cidr__net_contains_or_equals=self.address)
-                   .extra(select={'masklen': "masklen(cidr)"}, order_by=['masklen']))
-        # Assume an int of not Model
+            pool = self.get_pool_default()
+        # Assume an int if not Model
         elif not isinstance(pool, models.Model):
-            pool = DefaultPool.objects.get(pk=pool)
+            pool = Pool.objects.get(pk=pool)
 
         # Delete dns PTR records
-        DnsRecord.objects.filter(name=self.address.reverse_dns).delete()
+        DnsRecord.objects.filter(name=self.address.reverse_dns[:-1]).delete()
         # Delete dns A records
         DnsRecord.objects.filter(address=self).delete()
 
         # Set new pool and save
         self.pool = pool
         self.save()
-
 
     class Meta:
         db_table = 'addresses'
