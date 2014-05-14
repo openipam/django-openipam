@@ -296,7 +296,7 @@ class Address(models.Model):
         # Delete dns PTR records
         DnsRecord.objects.filter(name=self.address.reverse_dns[:-1]).delete()
         # Delete dns A records
-        DnsRecord.objects.filter(address=self).delete()
+        DnsRecord.objects.filter(ip_content=self).delete()
 
         # Set new pool and save
         self.pool = pool
