@@ -42,5 +42,6 @@ if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
 else:
     urlpatterns += staticfiles_urlpatterns()
 
+handler403 = 'openipam.core.views.page_denied'
 handler404 = 'openipam.core.views.page_not_found'
 handler500 = 'openipam.core.views.server_error'
