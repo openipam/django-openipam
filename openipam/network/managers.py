@@ -1,4 +1,5 @@
 from django.db.models import Model, Manager
+from django.db.models.query import QuerySet
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.timezone import utc, now
@@ -68,15 +69,40 @@ class LeaseManager(NetManager):
         return self.get(address__ip=ip).mac
 
 
+class AddressMixin(object):
+    def release(self, pool=False):
+
+        from openipam.dns.models import DnsRecord
+        from openipam.network.models import Pool
+
+        for address in self:
+            # Get default pool if false
+            if pool is False:
+                pool = address.get_pool_default
+            # Assume an int if not Model
+            elif not isinstance(pool, Model):
+                pool = Pool.objects.get(pk=pool)
+
+            # Delete dns PTR records
+            DnsRecord.objects.filter(name=address.address.reverse_dns[:-1]).delete()
+            # Delete dns A records
+            DnsRecord.objects.filter(ip_content=address).delete()
+
+        # Set new pool and save
+        self.update(pool=pool)
+
+
+class AddressQuerySet(QuerySet, AddressMixin):
+    pass
+
+
 class AddressManager(NetManager):
 
-    def release_static_address(self, address):
+    def __getattr__(self, name):
+        return getattr(self.get_query_set(), name)
 
-        if not isinstance(address, Model):
-            address = self.get(pk=address)
-
-        if not address.mac:
-            raise ValidationError('This address "%s" has already been released.' % address)
+    def get_query_set(self):
+        return AddressQuerySet(self.model, using=self._db)
 
     def assign_ip6_address(self, mac, network):
     #def assign_ip6_address(self, mac, network, dhcp_server_id=0, use_lowest=False, is_server=False):
