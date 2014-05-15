@@ -2,9 +2,12 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
+from cacheops.invalidation import invalidate_model, invalidate_all, invalidate_obj
+from cacheops.conf import handle_connection_failure
 
 DIRECT_PERM_MODELS_LIST = (
     ('hosts', 'host'),
@@ -68,3 +71,10 @@ def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
 #     from openipam.user.models import Group, HostToGroup, DomainToGroup, NetworkToGroup
 
 #     assert False, instance.__dict__
+
+@handle_connection_failure
+def invalidate_object_perms_cache(sender, instance, **kwargs):
+    User = get_user_model()
+
+    invalidate_model(Group)
+    invalidate_model(User)
