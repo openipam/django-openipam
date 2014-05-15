@@ -307,7 +307,7 @@ class Host(models.Model):
         elif not user:
             raise Exception('A User must be specified to an address to this host.')
 
-        if isinstance(network, str):
+        if network and isinstance(network, str):
             network = Network.objects.get(network=network)
 
         user_pools = get_objects_for_user(
@@ -356,7 +356,7 @@ class Host(models.Model):
 
             # Check for existing dns records and for now delete PTRs automatically.
             DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
-            has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content__address=address)
+            has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content=address)
 
             DnsRecord.objects.add_or_update_record(
                 user=user,
