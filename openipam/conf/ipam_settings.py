@@ -6,7 +6,8 @@ CONFIG_DEFAULTS = {
     'GUEST_USER': 'guest',
     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.example.com'],
     'GUEST_POOL': 'routable-dynamic',
-    'APPS': [app.split('.')[1] for app in filter(lambda x: x.split('.')[0] == 'openipam', settings.INSTALLED_APPS)]
+    'APPS': [app.split('.')[1] for app in filter(lambda x: x.split('.')[0] == 'openipam', settings.INSTALLED_APPS)],
+    'CONVERT_OLD_PERMISSIONS': True,
 }
 
 USER_CONFIG = getattr(settings, 'OPENIPAM', {})
