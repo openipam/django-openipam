@@ -468,7 +468,7 @@ class Host(models.Model):
         # Perform check to on hostname to not let users create a host
         if self.hostname:
             existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
-            if existing_dns_hostname:
+            if existing_dns_hostname and existing_dns_hostname.mac != self.mac:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
                     ' Please contact an IPAM Administrator.' % (self.hostname))
 
