@@ -6,13 +6,13 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.functional import cached_property
 from django.db.models.signals import pre_save, post_save, pre_delete
+from django.core.validators import validate_ipv46_address
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 
-from openipam.hosts.signals import create_dns_record_for_static_host, delete_dns_record_for_static_host
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager
 from openipam.user.signals import remove_obj_perms_connected_with_user
@@ -349,12 +349,11 @@ class Host(models.Model):
         if hostname:
             from openipam.dns.models import DnsRecord
 
-            DnsRecord.objects.add_or_update_record(
-                user=user,
-                name=hostname,
-                content=address.address,
-                dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
-            )
+            a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
+
+            # Check for existing dns records and for now delete PTRs automatically.
+            DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
+            has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content__address=address)
 
             DnsRecord.objects.add_or_update_record(
                 user=user,
@@ -363,39 +362,13 @@ class Host(models.Model):
                 dns_type=DnsType.objects.PTR,
             )
 
-    # def get_address_type(self):
-    #     from openipam.network.models import AddressType, NetworkRange
-
-    #     if self.address_type:
-    #         return self.address_type
-    #     elif not self.pk:
-    #         self.address_type = None
-    #     else:
-    #         addresses = self.addresses.all()
-    #         pools = self.pools.all()
-
-    #         try:
-    #             # if (len(addresses) + len(pools)) > 1:
-    #             #     self.address_type = None
-    #             # elif addresses:
-    #             if addresses:
-    #                 try:
-    #                     ranges = NetworkRange.objects.filter(range__net_contained_or_equal=addresses[0].address)
-    #                     if ranges:
-    #                         self.address_type = AddressType.objects.get(ranges__range__in=ranges)
-    #                     else:
-    #                         raise AddressType.DoesNotExist
-    #                 except AddressType.DoesNotExist:
-    #                     self.address_type = AddressType.objects.get(is_default=True)
-    #             elif pools:
-    #                 self.address_type = AddressType.objects.get(pool=pools[0])
-    #         except AddressType.DoesNotExist:
-    #             self.address_type = None
-    #         finally:
-    #             pass
-    #             #self.save()
-    #     #assert False, self.address_type
-    #     return self.address_type
+            if not has_a_record:
+                DnsRecord.objects.add_or_update_record(
+                    user=user,
+                    name=hostname,
+                    content=address.address,
+                    dns_type=a_type
+                )
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -464,7 +437,6 @@ class Host(models.Model):
                 hostname=self.hostname
             )
 
-
     def remove_owners(self):
         users, groups = self.get_owners(ids_only=False)
         for user in users:
@@ -490,6 +462,15 @@ class Host(models.Model):
         super(Host, self).save(*args, **kwargs)
 
     def clean(self):
+        from openipam.dns.models import DnsRecord
+        from openipam.network.models import Address
+
+        # Perform check to on hostname to not let users create a host
+        if self.hostname:
+            existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
+            if existing_dns_hostname:
+                raise ValidationError('DNS Records already exist for this hostname: %s. '
+                    ' Please contact an IPAM Administrator.' % (self.hostname))
 
         # Perform permission checks if user is attached to this instance
         # and user is not an IPAM admin
@@ -524,8 +505,8 @@ class Host(models.Model):
                     raise ValidationError('You do not have sufficient permissions to add hosts to '
                                           'the assigned pool. Please contact an IPAM Administrator.')
 
-            # Otherwise check for address assignment and perms
-            elif self.network:
+            # If network defined check for address assignment and perms
+            if self.network:
                 valid_network = get_objects_for_user(
                     self.user,
                     ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
@@ -534,6 +515,31 @@ class Host(models.Model):
                 if self.network not in [network.network for network in valid_network]:
                     raise ValidationError('You do not have sufficient permissions to add hosts to '
                       'the assigned network. Please contact an IPAM Administrator.')
+
+            # If IP Address defined, check validity and perms
+            if self.ip_address:
+                # Make sure this is valid.
+                validate_ipv46_address(self.ip_address)
+
+                user_pools = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_pool', 'network.change_pool'],
+                    any_perm=True
+                )
+                user_nets = get_objects_for_user(
+                    self.user,
+                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                    any_perm=True
+                )
+
+                address = Address.objects.filter(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                    address=self.ip_address,
+                    host__isnull=True,
+                    reserved=False
+                )
+                if not address:
+                    raise ValidationError('The IP Address is reserved, in use, or not allowed.')
 
     class Meta:
         db_table = 'hosts'
@@ -617,9 +623,6 @@ class StructuredAttributeToHost(models.Model):
 
 
 # Host signals
-pre_save.connect(delete_dns_record_for_static_host, sender=Host)
-post_save.connect(create_dns_record_for_static_host, sender=Host)
-pre_delete.connect(delete_dns_record_for_static_host, sender=Host)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
 
 
