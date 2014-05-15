@@ -211,6 +211,9 @@ class Host(models.Model):
         self.pool = None
         self.expire_days = self.get_expire_days()
 
+        # Get original hostname for validation later.
+        self.original_hostsname = self.hostname
+
     def __unicode__(self):
         return self.hostname
 
@@ -466,9 +469,9 @@ class Host(models.Model):
         from openipam.network.models import Address
 
         # Perform check to on hostname to not let users create a host
-        if self.hostname:
+        if self.hostname and self.hostname != self.original_hostsname:
             existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
-            if existing_dns_hostname and existing_dns_hostname.mac != self.mac:
+            if existing_dns_hostname:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
                     ' Please contact an IPAM Administrator.' % (self.hostname))
 
