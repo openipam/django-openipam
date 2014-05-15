@@ -7,7 +7,7 @@ from netfields import InetAddressField, MACAddressField, CidrAddressField, NetMa
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
-from openipam.network.signals import validate_address_type, release_leases
+from openipam.network.signals import validate_address_type, release_leases, delete_dns_record_for_static_host
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
 
@@ -268,11 +268,9 @@ class Address(models.Model):
         else:
             return None
 
-    def clean(self):
-        if self.host and self.pool:
-            raise ValidationError('Host and Pool cannot both be defined.  Choose one or the other.')
-        elif (self.host or self.pool) and self.reserved:
-            raise ValidationError('If a Host or Pool are defined, reserved must be false.')
+    @property
+    def pool_default(self):
+        return self.get_pool_default()
 
     def get_pool_default(self):
         # Find most specific DefaultPool for this address and return associated Pool
@@ -282,6 +280,12 @@ class Address(models.Model):
         # first one should have the longest mask, which is most specific
         pool = pool[0].pool if pool else None
         return pool
+
+    def clean(self):
+        if self.host and self.pool:
+            raise ValidationError('Host and Pool cannot both be defined.  Choose one or the other.')
+        elif (self.host or self.pool) and self.reserved:
+            raise ValidationError('If a Host or Pool are defined, reserved must be false.')
 
     def release(self, pool=False):
         from openipam.dns.models import DnsRecord
@@ -296,7 +300,7 @@ class Address(models.Model):
         # Delete dns PTR records
         DnsRecord.objects.filter(name=self.address.reverse_dns[:-1]).delete()
         # Delete dns A records
-        DnsRecord.objects.filter(address=self).delete()
+        DnsRecord.objects.filter(ip_content=self).delete()
 
         # Set new pool and save
         self.pool = pool
@@ -338,8 +342,9 @@ class AddressType(models.Model):
         ordering = ('name',)
 
 
-# Register Signals
+# Network Signals
 m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
+post_save.connect(delete_dns_record_for_static_host, sender=Address)
 post_save.connect(release_leases, sender=Address)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Network)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=DhcpOption)
