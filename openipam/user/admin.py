@@ -23,7 +23,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
-from cacheops import invalidate_model, invalidate_obj
+#from cacheops import invalidate_model, invalidate_obj
 
 import autocomplete_light
 
@@ -77,10 +77,10 @@ class AuthUserAdmin(UserAdmin):
     is_ipamadmin.short_description = 'IPAM Admin Status'
     is_ipamadmin.boolean = True
 
-    def save_model(self, request, obj, form, change):
-        super(AuthUserAdmin, self).save_model(request, obj, form, change)
-        invalidate_model(UserObjectPermission)
-        invalidate_model(GroupObjectPermission)
+    # def save_model(self, request, obj, form, change):
+    #     super(AuthUserAdmin, self).save_model(request, obj, form, change)
+    #     invalidate_model(UserObjectPermission)
+    #     invalidate_model(GroupObjectPermission)
 
     def changelist_view(self, request, extra_context=None):
 
@@ -193,7 +193,7 @@ class AuthGroupAdmin(GroupAdmin):
 
 
 class AuthPermissionAdmin(admin.ModelAdmin):
-    list_filter = ('content_type__app_label',)
+    list_filter = ('content_type__app_label', 'codename', 'content_type__model')
     list_select_related = True
     search_fields = ('name', 'content_type__name', 'content_type__app_label',)
 
