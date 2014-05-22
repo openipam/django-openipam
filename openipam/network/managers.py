@@ -6,6 +6,7 @@ from django.utils.timezone import utc, now
 from django.db.models import Q
 
 from netfields import NetManager
+from netfields.managers import NetWhere, NetQuery
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -102,7 +103,9 @@ class AddressManager(NetManager):
         return getattr(self.get_query_set(), name)
 
     def get_query_set(self):
-        return AddressQuerySet(self.model, using=self._db)
+	q = NetQuery(self.model, NetWhere)
+	return AddressQuerySet(self.model, q)
+
 
     def assign_ip6_address(self, mac, network):
     #def assign_ip6_address(self, mac, network, dhcp_server_id=0, use_lowest=False, is_server=False):
