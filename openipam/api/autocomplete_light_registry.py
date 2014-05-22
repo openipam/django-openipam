@@ -150,31 +150,18 @@ autocomplete_light.register(Group, GroupnameAutocomplete)
 class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^name']
     autocomplete_js_attributes = {'placeholder': 'Search Domains'}
+    limit_choices = 10
 
-    def choices_for_request(self):
-        #choices = super(DomainAutoComplete, self).choices_for_request()
+    def __init__(self, *args, **kwargs):
+        super(DomainAutocomplete, self).__init__(*args, **kwargs)
 
-        if self.request.user.is_ipamadmin:
-            choices = super(DomainAutocomplete, self).choices_for_request()
-        else:
-            try:
-                choices = get_objects_for_user(
-                    self.request.user,
-                    ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
-                    klass=Domain,
-                    any_perm=True
-                )
-            except ContentType.DoesNotExist:
-                return []
-
-        # choices.filter(
-        #     userobjectpermission__permission__codename='add_records_to',
-        #     userobjectpermission__content_type__model='domain'
-        # )
-        # if not self.request.user.is_staff:
-        #     choices = choices.filter(private=False)
-
-        return choices
+        if not self.request.user.is_ipamadmin:
+            self.choices = get_objects_for_user(
+                self.request.user,
+                ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
+                klass=Domain,
+                any_perm=True,
+            )
 autocomplete_light.register(Domain, DomainAutocomplete)
 
 
