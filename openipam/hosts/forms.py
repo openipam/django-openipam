@@ -69,7 +69,7 @@ class HostForm(forms.ModelForm):
         super(HostForm, self).__init__(*args, **kwargs)
 
         # Attach user to form and model
-        self.instance.user = self.user = request.user
+        self.user = request.user
 
         self.previous_form_data = request.session.get('host_form_add')
 
@@ -90,9 +90,6 @@ class HostForm(forms.ModelForm):
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
         if self.instance.pk:
-
-            # Populate the hostname for this record if in edit mode.
-            self.fields['hostname'].initial = self.instance.hostname
             # Populate the mac for this record if in edit mode.
             self.fields['mac_address'].initial = self.instance.mac
             # Populate the address type if in edit mode.
@@ -297,14 +294,18 @@ class HostForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         instance = super(HostForm, self).save(commit=False)
 
+        instance.user = instance.changed_by = self.user
+
         if self.cleaned_data['expire_days']:
             instance.set_expiration(self.cleaned_data['expire_days'].expiration)
-        instance.changed_by = self.user
+        if self.cleaned_data.get('address_type'):
+            instance.address_type_id = self.cleaned_data['address_type']
 
         instance.hostname = self.cleaned_data['hostname']
         instance.set_mac_address(self.cleaned_data['mac_address'])
-        if self.cleaned_data.get('address_type'):
-            instance.address_type_id = self.cleaned_data['address_type']
+
+        instance.ip_address = self.cleaned_data['ip_address']
+        instance.network = self.cleaned_data['network']
 
         instance.full_clean()
 
@@ -380,10 +381,6 @@ class HostForm(forms.ModelForm):
         if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
             raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
 
-        self.instance.hostname = cleaned_data['hostname']
-        self.instance.address_type_id = cleaned_data['address_type']
-        self.instance.network = cleaned_data['network']
-
         return cleaned_data
 
     def clean_mac_address(self):
@@ -401,10 +398,6 @@ class HostForm(forms.ModelForm):
 
         return mac
 
-    def clean_address_type(self):
-        address_type = self.cleaned_data['address_type']
-        self.instance.address_type_id = address_type
-
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
@@ -418,7 +411,6 @@ class HostForm(forms.ModelForm):
             else:
                 raise ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
 
-        self.instance.hostname = hostname
         return hostname
 
     def clean_network_or_ip(self):
@@ -447,10 +439,8 @@ class HostForm(forms.ModelForm):
             network = ''
 
         if network:
-            self.instance.network = network.network
-
             user_pools = get_objects_for_user(
-                self.instance.user,
+                self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
@@ -478,7 +468,6 @@ class HostForm(forms.ModelForm):
             return ip_address
         # If this host has this IP already then stop (meaning its not changing)
         elif ip_address in current_addresses:
-            self.instance.ip_address = ip_address
             return ip_address
 
         if network_or_ip and network_or_ip == '1':
@@ -510,8 +499,6 @@ class HostForm(forms.ModelForm):
 
                 if not is_available:
                     raise ValidationError('The IP Address is reserved, in use, or not allowed.')
-                else:
-                    self.instance.ip_address = ip_address
         else:
             # Clear values
             ip_address = ''
@@ -520,7 +507,7 @@ class HostForm(forms.ModelForm):
 
     class Meta:
         model = Host
-        exclude = ('mac', 'hostname', 'expires', 'changed', 'changed_by',)
+        exclude = ('mac', 'expires', 'changed', 'changed_by',)
 
 
 class HostOwnerForm(forms.Form):
