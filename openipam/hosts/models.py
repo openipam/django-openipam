@@ -206,16 +206,18 @@ class Host(models.Model):
         # Adding dummy fields that come from form or web service
         self.user = None
         self.ip_address = None
-        self.ip_addresses = []
         self.network = None
         self.pool = None
-        self.expire_days = self.get_expire_days()
 
         # Get original hostname for validation later.
         self.original_hostsname = self.hostname
 
     def __unicode__(self):
         return self.hostname
+
+    @property
+    def expire_days(self):
+        return self.get_expire_days()
 
     @property
     def is_dynamic(self):
