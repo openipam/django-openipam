@@ -23,7 +23,7 @@ from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
-from cacheops import invalidate_model
+#from cacheops import invalidate_model
 
 import autocomplete_light
 import operator
@@ -306,6 +306,8 @@ class HostForm(forms.ModelForm):
         if self.cleaned_data.get('address_type'):
             instance.address_type_id = self.cleaned_data['address_type']
 
+        instance.full_clean()
+
         # Save
         instance.save()
 
@@ -332,8 +334,8 @@ class HostForm(forms.ModelForm):
             instance.assign_owner(self.user)
 
         # Invalidate Cache
-        invalidate_model(User)
-        invalidate_model(Group)
+        #invalidate_model(User)
+        #invalidate_model(Group)
 
         # Update all host attributes
         # Get all possible attributes
@@ -378,6 +380,10 @@ class HostForm(forms.ModelForm):
         if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
             raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
 
+        self.instance.hostname = cleaned_data['hostname']
+        self.instance.address_type_id = cleaned_data['address_type']
+        self.instance.network = cleaned_data['network']
+
         return cleaned_data
 
     def clean_mac_address(self):
@@ -395,6 +401,10 @@ class HostForm(forms.ModelForm):
 
         return mac
 
+    def clean_address_type(self):
+        address_type = self.cleaned_data['address_type']
+        self.instance.address_type_id = address_type
+
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
@@ -408,6 +418,7 @@ class HostForm(forms.ModelForm):
             else:
                 raise ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
 
+        self.instance.hostname = hostname
         return hostname
 
     def clean_network_or_ip(self):
@@ -446,7 +457,7 @@ class HostForm(forms.ModelForm):
 
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
-                network=self.instance.network,
+                network=network,
                 host__isnull=True,
                 reserved=False,
             ).order_by('address')
@@ -520,9 +531,17 @@ class HostOwnerForm(forms.Form):
         widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
         required=False)
 
+    def clean(self):
+        cleaned_data = super(HostOwnerForm, self).clean()
+
+        if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
+            raise ValidationError('No owner assigned. Please assign a user or group.')
+
+        return cleaned_data
 
 class HostRenewForm(forms.Form):
-    expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
+    expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all(),
+        error_messages={'required': 'Expire Days is required.'})
 
     def __init__(self, user, *args, **kwargs):
         super(HostRenewForm, self).__init__(*args, **kwargs)
@@ -546,30 +565,3 @@ class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
 class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
     content_object = forms.ModelChoiceField(Host.objects.all(), widget=autocomplete_light.ChoiceWidget('HostAutocomplete'))
-
-# class EditHostForm(forms.ModelForm):
-# hostname = forms.CharField(widget=autocomplete_light.TextWidget('DomainAutocomplete'))
-
-#     def __init__(self, *args, **kwargs):
-#         super(EditHostForm, self).__init__(*args, **kwargs)
-#         self.helper = FormHelper()
-#         self.helper.layout = Layout(
-#             Fieldset(
-#                 'Edit Host: {{ object.mac }}',
-#                 'mac',
-#                 'hostname',
-#                 'address_type',
-#                 Field('expires', readonly=True),
-#                 'description',
-#                 'dhcp_group',
-#                 css_class='module aligned control-group'
-#             ),
-
-#             Submit('save', 'Save changes'),
-#             Button('cancel', 'Cancel')
-#         )
-
-#     class Meta:
-#         model = Host
-#         fields = ('mac', 'hostname', 'address_type', 'expires',
-#                   'description', 'dhcp_group')
