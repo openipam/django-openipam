@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
 
 from netfields import NetManager
+from netfields.managers import NetWhere, NetQuery
 
 import operator
 
@@ -40,7 +41,8 @@ class HostManager(NetManager):
         return getattr(self.get_query_set(), name)
 
     def get_query_set(self):
-        return HostQuerySet(self.model, using=self._db)
+        q = NetQuery(self.model, NetWhere)
+        return HostQuerySet(self.model, q)
 
     def get_owners_of_host(self, mac):
         host = self.get(mac=mac)
