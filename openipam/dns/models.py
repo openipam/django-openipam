@@ -200,10 +200,14 @@ class DnsRecord(models.Model):
                 names.pop(0)
 
             if names_list:
-                self.domain = (
+                domain = (
                     Domain.objects.filter(reduce(operator.or_, names_list))
                     .extra(select={'length': 'Length(name)'}).order_by('-length').first()
                 )
+                if domain:
+                    self.domain = domain
+                else:
+                    raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
             else:
                 self.domain = None
 
