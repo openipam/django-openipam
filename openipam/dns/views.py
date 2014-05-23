@@ -19,8 +19,7 @@ from django.contrib.contenttypes.models import ContentType
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
 from openipam.dns.forms import DNSListForm, DSNCreateFrom
-
-from django_datatables_view.base_datatable_view import BaseDatatableView
+from openipam.core.views import BaseDatatableView
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
