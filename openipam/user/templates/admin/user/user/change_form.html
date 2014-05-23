@@ -9,7 +9,7 @@
                <a class="accordion-toggle" data-toggle="collapse" data-parent="#object-permissions" href="#object-permissions_fs">Object Permissions</a>
             </h3>
         </div>
-        <div id="object-permissions_fs" class="panel-collapse collapse out">
+        <div id="object-permissions_fs" class="panel-collapse collapse in">
             <div class="panel-body">
                 <fieldset class="module aligned control-group">
                     {% if host_permissions %}
@@ -83,7 +83,7 @@
                         <tr class="form-inline">
                             <td>{{ user_add_form.object_id|add_class:"form-control" }}</td>
                             <td>{{ user_add_form.user|add_class:"form-control" }}</td>
-                            <td>{{ user_add_form.permission|add_class:"form-control" }}</td>
+                            <td>{{ user_add_form.permission|add_class:"form-control no-chosen" }}</td>
                             <td><input type="submit" value="Add Permission" class="btn btn-default" /></td>
                         </tr>
                     </table>
