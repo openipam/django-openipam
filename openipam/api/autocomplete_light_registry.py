@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
-from openipam.network.models import Network, Address, Pool, DhcpGroup
+from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 from openipam.user.models import Group as OldGroup
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
@@ -59,7 +59,7 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         ('name',),
     )
 
-    autocomplete_js_attributes = {
+    attrs = {
         'minimum_characters': 2,
         'placeholder': 'Advanced Search',
     }
@@ -118,7 +118,7 @@ autocomplete_light.register(IPAMSearchAutoComplete)
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^username', 'first_name', 'last_name', 'email']
-    autocomplete_js_attributes = {'placeholder': 'Search Users'}
+    attrs = {'placeholder': 'Search Users'}
 
     def choice_label(self, choice):
         if choice.get_full_name():
@@ -149,7 +149,7 @@ autocomplete_light.register(Group, GroupnameAutocomplete)
 
 class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^name']
-    autocomplete_js_attributes = {'placeholder': 'Search Domains'}
+    attrs = {'placeholder': 'Search Domains'}
     limit_choices = 10
 
     def __init__(self, *args, **kwargs):
@@ -167,7 +167,17 @@ autocomplete_light.register(Domain, DomainAutocomplete)
 
 class NetworkAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['network', 'name']
-    autocomplete_js_attributes = {'placeholder': 'Search Networks'}
+    attrs = {'placeholder': 'Search Networks'}
+
+    def choices_for_request(self):
+        atype = self.request.GET.get('atype')
+        if atype:
+            address_type = AddressType.objects.filter(id=atype).first()
+            if address_type:
+                self.choices = self.choices.by_address_type(address_type)
+
+        return super(NetworkAutocomplete, self).choices_for_request()
+
 autocomplete_light.register(Network, NetworkAutocomplete)
 
 
@@ -179,12 +189,12 @@ autocomplete_light.register(DhcpGroup,
 
 autocomplete_light.register(Group,
     search_fields=['name'],
-    autocomplete_js_attributes={'placeholder': 'Search Groups'},
+    attrs={'placeholder': 'Search Groups'},
 )
 
 class OldGroupAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['name']
-    autocomplete_js_attributes = {'placeholder': 'Search Groups'}
+    attrs = {'placeholder': 'Search Groups'}
 autocomplete_light.register(OldGroup, OldGroupAutocomplete)
 
 
@@ -196,7 +206,7 @@ autocomplete_light.register(Group, GroupFilterAutocomplete)
 
 autocomplete_light.register(Permission,
     search_fields=['name', 'content_type__app_label', 'codename'],
-    autocomplete_js_attributes={'placeholder': 'Search Permissions'},
+    attrs={'placeholder': 'Search Permissions'},
     choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
 )
 
@@ -209,28 +219,28 @@ autocomplete_light.register(Address,
 
 autocomplete_light.register(Host,
     search_fields=['mac', 'hostname'],
-    autocomplete_js_attributes={'placeholder': 'Search Hosts'},
+    attrs={'placeholder': 'Search Hosts'},
 )
 
 autocomplete_light.register(Permission,
     search_fields=['name', 'codename', 'content_type__name', 'content_type__app_label'],
-    autocomplete_js_attributes={'placeholder': 'Search Permissions'},
+    attrs={'placeholder': 'Search Permissions'},
 )
 
 autocomplete_light.register(ContentType,
     search_fields=['model'],
-    autocomplete_js_attributes={'placeholder': 'Search Content Types'},
+    attrs={'placeholder': 'Search Content Types'},
 )
 
 class HostFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['^hostname']
-    autocomplete_js_attributes = {'placeholder': 'Filter Hosts'}
+    attrs = {'placeholder': 'Filter Hosts'}
 autocomplete_light.register(Host, HostFilterAutocomplete)
 
 
 # autocomplete_light.register(Domain,
 #     search_fields=['name'],
-#     autocomplete_js_attributes={'placeholder': 'Search Domains'},
+#     attrs={'placeholder': 'Search Domains'},
 # )
 
 
