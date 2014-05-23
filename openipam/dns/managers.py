@@ -1,5 +1,6 @@
 from django.db.models import Model, Manager, Q
 from django.core.exceptions import ValidationError
+from django.db.models.query import QuerySet
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
@@ -12,22 +13,9 @@ from guardian.shortcuts import get_objects_for_user
 from netaddr.core import AddrFormatError
 
 
-class DomainManager(Manager):
-
-    def get_domains_owned_by_user(self, user, ids_only=False, names_only=False):
-        domains = get_objects_for_user(user, 'dns.is_owner_domain')
-        # domains = self.raw('''
-        #     SELECT d.id FROM domains d
-        #         INNER JOIN dns_domainuserobjectpermission dup ON dup.content_object_id = d.id AND dup.user_id = %s
-        #         INNER JOIN auth_permission duap ON dup.permission_id = duap.id AND duap.codename = 'is_owner_domain'
-
-        #     UNION
-
-        #     SELECT d.id FROM domains d
-        #         INNER JOIN dns_domaingroupobjectpermission dgp ON dgp.content_object_id = d.id
-        #         INNER JOIN auth_permission dgap ON dgp.permission_id = dgap.id AND dgap.codename = 'is_owner_domain'
-        #         INNER JOIN users_groups ug ON dgp.group_id = ug.group_id and ug.user_id = %s
-        # ''', [user.pk, user.pk])
+class DomainMixin(object):
+    def by_owner(self, user, use_groups=False, ids_only=False, names_only=False):
+        domains = get_objects_for_user(user, 'dns.is_owner_domain', use_groups=use_groups)
 
         if names_only:
             domain_names = [domain.name for domain in domains]
@@ -38,6 +26,19 @@ class DomainManager(Manager):
             return tuple(domains)
         else:
             return domains
+
+
+class DomainQuerySet(QuerySet, DomainMixin):
+    pass
+
+
+class DomainManager(Manager):
+
+    def __getattr__(self, name):
+        return getattr(self.get_query_set(), name)
+
+    def get_query_set(self):
+        return DomainQuerySet(self.model)
 
 
 class DnsManager(Manager):
