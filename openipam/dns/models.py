@@ -242,9 +242,9 @@ class DnsRecord(models.Model):
     def user_has_ownership(self, user):
         if user.is_ipamadmin:
             return True
-        if self.ip_content and self.ip_content.host and self.ip_content.host.mac in user.host_owner_permissions:
+        if self.ip_content and self.ip_content.host and self.ip_content.host.mac in user.host_owner_perms:
             return True
-        elif self.domain.name in user.domain_owner_permissions:
+        elif self.domain.name in user.domain_owner_perms:
             return True
 
         return False
