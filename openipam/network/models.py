@@ -143,7 +143,7 @@ class HostToPool(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.mac, self.pool)
+        return '%s %s' % (self.host, self.pool)
 
     class Meta:
         db_table = 'hosts_to_pools'
