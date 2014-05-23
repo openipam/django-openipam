@@ -456,7 +456,7 @@ class Host(models.Model):
         if user.is_ipamadmin:
             return True
         else:
-            return True if self.mac in user.host_owner_permissions else False
+            return True if self.mac in user.host_owner_perms else False
 
     def save(self, *args, **kwargs):
         # Make sure hostname is lowercase
