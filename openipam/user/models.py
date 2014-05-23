@@ -12,9 +12,9 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions#, remove_old_group_permissions
+   remove_obj_perms_connected_with_user, convert_user_permissions, invalidate_object_perms_cache
 
-#from guardian.models import GroupObjectPermission, UserObjectPermission
+from guardian.models import GroupObjectPermission, UserObjectPermission
 
 from django_postgres import Bits
 import django_postgres
@@ -55,28 +55,28 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True if 'ipam-admins' in groups else False
 
     @cached_property
-    def network_owner_permissions(self):
-        if self.is_ipamadmin:
+    def network_owner_perms(self):
+        if self.has_perm('network.is_owner_network'):
             return True
         else:
             from openipam.network.models import Network
-            return Network.objects.get_networks_owned_by_user(self, ids_only=True)
+            return Network.objects.by_owner(self, use_groups=True, ids_only=True)
 
     @cached_property
-    def domain_owner_permissions(self):
-        if self.is_ipamadmin:
+    def domain_owner_perms(self):
+        if self.has_perm('domain.is_owner_domain'):
             return True
         else:
             from openipam.dns.models import Domain
-            return Domain.objects.get_domains_owned_by_user(self, names_only=True)
+            return Domain.objects.by_owner(self, use_groups=True, names_only=True)
 
     @cached_property
-    def host_owner_permissions(self):
-        if self.is_ipamadmin:
+    def host_owner_perms(self):
+        if self.has_perm('hosts.is_owner_host'):
             return True
         else:
             from openipam.hosts.models import Host
-            return Host.objects.get_hosts_owned_by_user(self, ids_only=True)
+            return Host.objects.by_owner(self, use_groups=True, ids_only=True)
 
     def get_auth_user(self):
         try:
@@ -159,7 +159,6 @@ class Permission(models.Model):
 
     class Meta:
         db_table = 'permissions'
-        managed = False
 
 
 class UserToGroup(models.Model):
@@ -259,8 +258,11 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-#pre_delete.connect(remove_old_group_permissions, sender=GroupObjectPermission)
 
+pre_save.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
+pre_delete.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
+pre_save.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
+pre_delete.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
 
 # South Fixes for Bit string field
 try:
