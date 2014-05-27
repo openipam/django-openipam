@@ -92,7 +92,7 @@
 
         </div>
     </div>
-    {% if request.user.is_ipamadmin %}
+    {% if request.user.is_staff %}
         {% for module in dashboard.children %}
             {% admin_tools_render_dashboard_module module %}
         {% endfor %}

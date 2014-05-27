@@ -16,7 +16,7 @@ User = get_user_model()
 
 # autocomplete_light.register(User,
 #     search_fields=['username', 'first_name', 'last_name', 'email'],
-#     autocomplete_js_attributes={'placeholder': 'Search Users',},
+#     attrs={'placeholder': 'Search Users',},
 # )
 
 class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
@@ -36,7 +36,7 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
         ('hostname',),
     )
 
-    autocomplete_js_attributes = {
+    attrs = {
         'minimum_characters': 1,
         'placeholder': 'Search Objects',
     }
@@ -47,6 +47,8 @@ autocomplete_light.register(IPAMObjectsAutoComplete)
 
 
 class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+    split_words = True
+
     choices = (
         Network.objects.all(),
         User.objects.all(),
@@ -117,8 +119,9 @@ autocomplete_light.register(IPAMSearchAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields = ['^username', 'first_name', 'last_name', 'email']
+    search_fields = ['^username', '^first_name', '^last_name', 'email']
     attrs = {'placeholder': 'Search Users'}
+    split_words = True
 
     def choice_label(self, choice):
         if choice.get_full_name():
@@ -135,7 +138,7 @@ autocomplete_light.register(User, UsernameAutocomplete)
 
 
 class UserFilterAutocomplete(UserAutocomplete):
-    autocomplete_js_attributes = {'placeholder': 'Filter Users'}
+    attrs = {'placeholder': 'Filter Users'}
 autocomplete_light.register(User, UserFilterAutocomplete)
 
 
@@ -183,7 +186,7 @@ autocomplete_light.register(Network, NetworkAutocomplete)
 
 autocomplete_light.register(DhcpGroup,
     search_fields=['name'],
-    autocomplete_js_attributes={'placeholder': 'Search DHCP Groups'},
+    attrs={'placeholder': 'Search DHCP Groups'},
 )
 
 
@@ -200,11 +203,12 @@ autocomplete_light.register(OldGroup, OldGroupAutocomplete)
 
 class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['name']
-    autocomplete_js_attributes = {'placeholder': 'Filter Groups'}
+    attrs = {'placeholder': 'Filter Groups'}
 autocomplete_light.register(Group, GroupFilterAutocomplete)
 
 
 autocomplete_light.register(Permission,
+    split_words=True,
     search_fields=['name', 'content_type__app_label', 'codename'],
     attrs={'placeholder': 'Search Permissions'},
     choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
@@ -213,7 +217,7 @@ autocomplete_light.register(Permission,
 
 autocomplete_light.register(Address,
     search_fields=['address'],
-    autocomplete_js_attributes={'placeholder': 'Search Addresses'},
+    attrs={'placeholder': 'Search Addresses'},
 )
 
 

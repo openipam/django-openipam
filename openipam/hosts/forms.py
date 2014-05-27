@@ -42,28 +42,26 @@ ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
 
 class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
-    hostname = forms.CharField(validators=[validate_hostname])
+    hostname = forms.CharField(
+        validators=[validate_hostname],
+        widget=forms.TextInput(attrs={'placeholder': 'Enter a FQDN for this host'})
+    )
     expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
     address_type = forms.ModelChoiceField(queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
-    network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
+    network = autocomplete_light.ModelChoiceField('NetworkAutocomplete', required=False, queryset=Network.objects.all())
     ip_address = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
     show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
-    dhcp_group = forms.ModelChoiceField(
-        DhcpGroup.objects.all(),
+    dhcp_group = autocomplete_light.ModelChoiceField(
+        'DhcpGroupAutocomplete',
         help_text='Leave this alone unless directed by an IPAM administrator',
-        widget=autocomplete_light.ChoiceWidget('DhcpGroupAutocomplete'),
         label='DHCP Group',
         required=False
     )
-    user_owners = forms.ModelMultipleChoiceField(User.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('UserAutocomplete'),
-        required=False)
-    group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
-        required=False)
+    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
     def __init__(self, request, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
@@ -82,8 +80,9 @@ class HostForm(forms.ModelForm):
 
         # Set networks based on address type if form is bound
         if self.data.get('address_type'):
-            self.fields['network'].queryset = (Network.objects.
-                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type'])))
+            self.fields['network'].queryset = (
+                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
+            )
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
@@ -96,9 +95,9 @@ class HostForm(forms.ModelForm):
             self.fields['address_type'].initial = self.instance.address_type
 
             # Set networks based on address type if form is not bound
-            if not self.data:
+            #if not self.data:
                 # Set address_type
-                self.fields['network'].queryset = Network.objects.get_networks_from_address_type(self.instance.address_type)
+            #    self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type)
 
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
@@ -507,16 +506,12 @@ class HostForm(forms.ModelForm):
 
     class Meta:
         model = Host
-        exclude = ('mac', 'expires', 'changed', 'changed_by',)
+        exclude = ('mac', 'pools', 'address_type_id', 'expires', 'changed', 'changed_by',)
 
 
 class HostOwnerForm(forms.Form):
-    user_owners = forms.ModelMultipleChoiceField(User.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('UserAutocomplete'),
-        required=False)
-    group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
-        required=False)
+    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
     def clean(self):
         cleaned_data = super(HostOwnerForm, self).clean()
@@ -539,10 +534,8 @@ class HostRenewForm(forms.Form):
 
 
 class HostListForm(forms.Form):
-    groups = forms.ModelChoiceField(Group.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
-    users = forms.ModelChoiceField(User.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('UserFilterAutocomplete'))
+    groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
+    users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
@@ -551,4 +544,4 @@ class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
 
 class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
-    content_object = forms.ModelChoiceField(Host.objects.all(), widget=autocomplete_light.ChoiceWidget('HostAutocomplete'))
+    content_object = autocomplete_light.ModelChoiceField('HostAutocomplete')

@@ -96,3 +96,17 @@ class HostManager(NetManager):
         owners = get_users_with_perms(host, attach_perms=True, with_group_users=False)
         owners = [k for k, v in owners.items() if 'is_owner_host' in v]
         return owners
+
+
+    # def get_hosts_owned_by_user(self, user, ids_only=False):
+
+    #     # Temporarily set superuser to false so we can get only permission relations
+    #     perm_user = User.objects.get(pk=user.pk)
+    #     perm_user.is_superuser = False
+
+    #     hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host', use_groups=True)
+
+    #     if ids_only:
+    #         return tuple([host.pk for host in hosts])
+    #     else:
+    #         return hosts
