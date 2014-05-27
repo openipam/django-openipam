@@ -1,9 +1,10 @@
 from django.contrib import admin
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
-from django.contrib.admin import SimpleListFilter
+from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
 from django.contrib.admin.views.main import ChangeList
 from django.conf.urls import patterns, url
@@ -52,11 +53,56 @@ class IPAMAdminFilter(SimpleListFilter):
         return queryset
 
 
+class IPAMGroupFilter(ListFilter):
+    title = 'groups'
+    parameter_name = 'groups'
+    template = 'admin/filter_autocomplete.html'
+    autocomplete_url = '/api/web/GroupAutocomplete/'
+
+    def has_output(self):
+        """
+        Returns True if some choices would be output for this filter.
+        """
+        return True
+
+    def choices(self, cl):
+        """
+        Returns choices ready to be output in the template.
+        """
+        if getattr(self, 'value', None):
+            group = AuthGroup.objects.filter(pk=self.value).first()
+
+            if group:
+                return [{
+                    'selected': True,
+                    'query_string': cl.get_query_string({}, [self.parameter_name]),
+                    'display': group.name,
+                    'value': group.pk
+                }]
+
+        return []
+
+    def expected_parameters(self):
+        """
+        Returns the list of parameter names that are expected from the
+        request's query string and that will be used by this filter.
+        """
+        return [self.parameter_name]
+
+    def queryset(self, request, queryset):
+        value = request.GET.get(self.parameter_name, '')
+
+        if value:
+            self.value = value
+            queryset = queryset.filter(groups__pk=value)
+        return queryset
+
+
 class AuthUserAdmin(UserAdmin):
     add_form = AuthUserCreateAdminForm
     form = AuthUserChangeAdminForm
     list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'last_login')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', IPAMAdminFilter, 'groups', 'last_login')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', IPAMAdminFilter, IPAMGroupFilter, 'last_login')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),

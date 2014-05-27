@@ -1,0 +1,38 @@
+<div>
+    <label>Filter By {{ title }}:</label>
+    {# <input type="text" class="filter-autocomplete form-control" /> #}
+    <span id="id_{{ spec.parameter_name }}filter-wrapper" class=" autocomplete-light-widget {{ spec.parameter_name }}filter single" data-widget-bootstrap="normal" data-widget-maximum-values="1" data-widget-ready="1">
+        <span id="id_{{ spec.parameter_name }}filter-deck" class="deck" style="display: inline;">
+            {% for choice in choices %}
+            <span data-value="{{ choice.value }}">
+                {{ choice.display }}
+            </span>
+            {% endfor %}
+        </span>
+        <input type="text" name="{{ spec.parameter_name }}filter-autocomplete" id="id_{{ spec.parameter_name }}filter-autocomplete" value="" class="filter-autocomplete form-control autocomplete" data-autocomplete-choice-selector="[data-value]" data-autocomplete-url="{{ spec.autocomplete_url }}" placeholder="Search Users" autocomplete="off" style="display: inline-block;">
+        <select style="display:none" class="value-select" name="{{ spec.parameter_name }}filter" id="id_{{ spec.parameter_name }}filter" multiple="multiple">
+            {% for choice in choices %}
+                <option value="{{ choice.query_string|iriencode }}" {% if choice.selected %}selected="selected"{% endif %}>{{ choice.display }}</option>
+            {% endfor %}
+        </select>
+        <span style="display:none" class="remove">
+            ˣ
+        </span>
+        <span style="display:none" class="choice-template">
+            <span class="choice prepend-remove append-option-html">
+            </span>
+        </span>
+    </span>
+</div>
+
+<script type="text/javascript">
+    $(function(){
+        $(".filter-autocomplete").on('selectChoice', function(event, choice, autocomplete) {
+            location.href = '{{ request.path }}{{ query_string|safe }}&{{ spec.parameter_name }}=' + choice.attr('data-value');
+        });
+        $(".deck .remove").on('click', function(){
+            location.href = '{{ request.path }}{{ query_string|safe }}';
+        });
+    });
+
+</script>
