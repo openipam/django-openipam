@@ -641,13 +641,14 @@ fieldset.module legend {
   font-size: 13px;
 }
 
-.deck .div:not(.remove) {
+.deck span:not(.remove) {
   display: inline-block !important;
-  padding: 4px 4px 2px 4px;
+  padding: 6px 6px 6px 4px !important;
   margin-right: 3px;
+  margin-bottom: 5px;
   font-size: 11.844px;
   font-weight: bold;
-  line-height: 22px;
+  line-height: 12px;
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
   white-space: nowrap;
@@ -661,6 +662,7 @@ fieldset.module legend {
 
 .deck span.remove {
   margin-top: 3px;
+  margin-right: 3px;
 }
 
 .renew {
@@ -801,13 +803,12 @@ div.sortoptions {
   line-height: 22px;
 }
 
-body.change-form .autocomplete-light-widget {
-  float: none !important;
+.form-horizontal .autocomplete-light-widget input {
+  width: 100% !important;
 }
 
-body.change-form .autocomplete-light-widget input {
-  /*width: 97%;*/
-  display: inline;
+.form-horizontal .autocomplete-light-widget {
+  display: block;
 }
 
 body.change-form .add-another {
@@ -831,22 +832,29 @@ body.change-form select.form-control {
   padding: 5px !important;
 }
 
-
+.help-button, .help-close {
+  cursor: pointer;
+}
+.help-content {
+  font-weight: normal;
+  display: none;
+  width: 250px;
+  font-size: 12px;
+  background: #eee;
+  position: fixed;
+  z-index: 200;
+  float: left;
+  margin-top: 10px;
+  padding: 10px;
+  webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
+}
 #search-help-button {
     margin: 5px;
     cursor: pointer;
 }
 #search-help {
-    width: 250px;
-    font-size: 12px;
-    background: #eee;
-    position: fixed;
-    z-index: 200;
-    float: left;
     right: 320px;
-    padding: 10px;
-    webkit-box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
-    box-shadow: 2px 2px 16px rgba(0, 0, 0, 0.5);
 }
 #search-help pre {
     padding: 4px;
@@ -885,6 +893,11 @@ body.change-form select.form-control {
 
 .filter-select + .chosen-container {
   margin-bottom: 20px;
+}
+
+.filter-autocomplete {
+  margin-bottom: 20px !important;
+  width: 220px !important;
 }
 
 .navbar-form {
