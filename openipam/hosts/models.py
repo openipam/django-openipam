@@ -358,9 +358,6 @@ class Host(models.Model):
 
             # Check for existing dns records and for now delete PTRs automatically.
             DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
-            # Delete A Record if hostsname changes only.
-            if self.original_hostsname != self.hostname:
-                DnsRecord.objects.filter(dns_type=a_type, name=self.original_hostsname, ip_content=address).delete()
             has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content=address)
 
             DnsRecord.objects.add_or_update_record(
