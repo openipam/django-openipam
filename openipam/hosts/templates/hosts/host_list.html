@@ -80,10 +80,10 @@
                 <div id="changelist-search" class="pull-right">
                     <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
                     <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign"></div>
-                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
+                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" class="form-control" value="{{ search_filter }}" /></label></div>
                     <a id="clear-filters" class="pull-right btn btn-default" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
                 </div>
-                <div id="search-help" class="help-content">
+                <div id="search-help" style="display: none;">
                     <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
                     <p>Search for hostnames, IP addresses, or MAC addresses.</p>
                     <strong>For advanced searches...</strong>
@@ -121,50 +121,17 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
+                        <th><div><input type="text" id="s_host" class="search_init form-control input-sm" placeholder="Search Host" style="max-width: 150px;" /></div></th>
+                        <th><div><input type="text" id="s_mac" class="search_init form-control input-sm" placeholder="Search MAC" style="max-width: 120px;" /></div></th>
+                        <th><div><input type="text" id="s_ip" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" /></div></th>
                         <th>
-                            <input type="text" id="s_host" class="search_init form-control input-sm" placeholder="Search Host" style="max-width: 150px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>To search hostnames, try these special helpers:</p>
-                                <pre>^<em>hostname</em> (starts with)</pre>
-                                <pre>=<em>hostname</em> (equal)</pre>
+                            <div>
+                                <select style="max-width: 80px;" id="s_expires" class="filter_init search_init form-control input-sm">
+                                    <option value="">All</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Expired</option>
+                                </select>
                             </div>
-                        </th>
-                        <th>
-                            <input type="text" id="s_mac" class="search_init form-control input-sm" placeholder="Search MAC" style="max-width: 120px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>
-                                    To search MAC Address, hexadecimal numbers may be
-                                    separated by commas, colons, periods, dashes, or spaces.</p>
-                                <pre>00:A0:C9:14:C8:29</pre>
-                                <pre>00-A0-C9-14-C8-29</pre>
-                                <pre>00.A0.C9.14.C8.29</pre>
-                                <pre>00A0C9-14C829</pre>
-                                <pre>00A0C914C829</pre>
-                                <pre>00 A0 C9 14 C8 29</pre>
-                                <pre>00,A0,C9,14,C8,29</pre>
-                            </div>
-                        </th>
-                        <th>
-                            <input type="text" id="s_ip" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>To search IP Address, partial addresses and subnets are valid:</p>
-                                <pre>10.255.10.1</pre>
-                                <pre>10.255.10.1/24</pre>
-                                <pre>10.255.10</pre>
-                            </div>
-                        </th>
-                        <th>
-                            <select style="max-width: 80px;" id="s_expires" class="filter_init search_init form-control input-sm">
-                                <option value="">All</option>
-                                <option value="1">Active</option>
-                                <option value="0">Expired</option>
-                            </select>
                         </th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>

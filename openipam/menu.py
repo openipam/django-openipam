@@ -42,21 +42,6 @@ class IPAMMenu(Menu):
                 items.ModelList('Hosts', hosts_models),
                 items.ModelList('DNS', dns_models),
             ]
-        elif user.is_staff:
-            core_menus = [
-                items.MenuItem('Hosts',
-                    children=[
-                        items.MenuItem('Hosts', url=reverse('list_hosts')),
-                        items.ModelList('', ['openipam.hosts.*']),
-                    ]
-                ),
-                items.MenuItem('DNS',
-                    children=[
-                        items.MenuItem('DNS', url=reverse('list_dns')),
-                        items.ModelList('', ['openipam.dns.*']),
-                    ],
-                ),
-            ]
         else:
             core_menus = [
                 items.MenuItem('Hosts', url=reverse('list_hosts')),

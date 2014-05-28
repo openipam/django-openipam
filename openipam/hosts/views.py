@@ -18,17 +18,13 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 
-from openipam.core.utils.merge_values import merge_values
-from openipam.core.views import BaseDatatableView
-from openipam.hosts.decorators import permission_owner_host, permission_view_host, permission_add_host
+from django_datatables_view.base_datatable_view import BaseDatatableView
+
+from openipam.hosts.decorators import permission_owner_required
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
-from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
-from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
+from openipam.hosts.models import Host
 from openipam.network.models import AddressType, Address, Lease
 from openipam.user.utils.user_utils import convert_host_permissions
-from openipam.conf.ipam_settings import CONFIG
-
-from querystring_parser import parser
 
 import json
 import re
@@ -49,17 +45,11 @@ class HostListJson(BaseDatatableView):
     # and make it return huge amount of data
     max_display_length = 1500
 
-
-    @method_decorator(permission_view_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostListJson, self).dispatch(request, *args, **kwargs)
-
-
     def get_initial_queryset(self):
         # return queryset used as base for futher sorting/filtering
         # these are simply objects displayed in datatable
         # Get my hosts /hosts/mine
-        is_owner = self.json_data.get('owner_filter', None)
+        is_owner = self.request.GET.get('owner_filter', None)
 
         if is_owner:
             qs = Host.objects.by_owner(self.request.user)
@@ -68,32 +58,22 @@ class HostListJson(BaseDatatableView):
             qs = Host.objects.all()
 
         #return qs.prefetch_related('addresses').all()
-        # return qs.prefetch_related('pools', 'addresses', 'leases').extra(
-        #     select={
-        #         'last_ip_stamp': 'SELECT stopstamp from gul_recent_arp_byaddress where gul_recent_arp_byaddress.mac = hosts.mac LIMIT 1',
-        #         'last_mac_stamp': 'SELECT stopstamp from gul_recent_arp_bymac where gul_recent_arp_bymac.mac = hosts.mac LIMIT 1',
-        #     }
-        # )
-
-        return qs.inplace()
-
-
+        return qs.prefetch_related('ip_history', 'mac_history', 'pools', 'addresses', 'leases').all()
 
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
-        column_data = self.json_data.get('columns', [])
 
         try:
 
-            host_search = column_data[1]['search']['value']
-            mac_search = column_data[2]['search']['value']
-            ip_search = column_data[3]['search']['value']
-            expired_search = column_data[4]['search']['value']
-            search = self.json_data.get('search_filter', '')
-            group_filter = self.json_data.get('group_filter', None)
-            user_filter = self.json_data.get('user_filter', None)
+            host_search = self.request.GET.get('sSearch_0', None)
+            mac_search = self.request.GET.get('sSearch_1', None)
+            ip_search = self.request.GET.get('sSearch_2', None)
+            expired_search = self.request.GET.get('sSearch_3', None)
+            search = self.request.GET.get('search_filter', '')
+            group_filter = self.request.GET.get('group_filter', None)
+            user_filter = self.request.GET.get('user_filter', None)
 
-            search_list = search.strip().split(' ') if search else []
+            search_list = search.strip().split(' ')
             for search_item in search_list:
                 search_str = ''.join(search_item.split(':')[1:])
                 if search_item.startswith('desc:') and search_str:
@@ -114,28 +94,31 @@ class HostListJson(BaseDatatableView):
                     qs = qs.filter(hostname__istartswith=search_item[5:])
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
-                    # Replace garbage
-                    rgx = re.compile('[:,-. ]')
-                    mac_str = rgx.sub('', mac_search)
-                    # Split to list to put back togethor with :
-                    mac_str = re.findall('..', mac_str)
-                    mac_str = ':'.join(mac_str)
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
+                    except TypeError:
+                        pass
                     qs = qs.filter(mac__startswith=mac_str)
                 elif search_item.startswith('ip:') and search_str:
                     ip = search_item.split(':')[-1]
                     ip_blocks = ip.split('.')
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith=ip) |
-                            Q(leases__address__address__startswith=ip)
-                        ).distinct()
+                            Q(addresses__address__startswith=search_item.split(':')[-1]) |
+                            Q(leases__address__address__startswith=search_item.split(':')[-1])
+                        )
                     else:
                         qs = qs.filter(
-                            Q(addresses__address=ip) |
-                            Q(leases__address__address=ip)
-                        ).distinct()
+                            Q(addresses__address=search_item.split(':')[-1]) |
+                            Q(leases__address__address=search_item.split(':')[-1])
+                        )
                 elif search_item.startswith('net:') and search_str:
-                        qs = qs.filter(address__net_contained_or_equal=search_item[4:]).distinct()
+                    try:
+                        net_addresses = Address.objects.filter(address__net_contained_or_equal=search_item[4:])
+                    except DataError:
+                        net_addresses = None
+                    if net_addresses:
+                        qs = qs.filter(addresses__in=net_addresses)
                 elif search_item:
                     like_search_term = search_item + '%'
                     cursor = connection.cursor()
@@ -160,44 +143,38 @@ class HostListJson(BaseDatatableView):
                         SELECT leases.mac from leases
                             WHERE leases.address::text = %(search)s
                     ''', {'lsearch': like_search_term, 'search': search_item})
-                    search_hosts = cursor.fetchall()
+                    dns_hosts = cursor.fetchall()
                     #assert False, dns_hosts[0]
-                    qs = qs.filter(mac__in=[host[0] for host in search_hosts])
+                    qs = qs.filter(mac__in=[host[0] for host in dns_hosts])
 
             if host_search:
-                if host_search.startswith('^'):
-                    qs = qs.filter(hostname__istartswith=host_search[1:])
-                elif host_search.startswith('='):
-                    qs = qs.filter(hostname__iexact=host_search[1:])
-                else:
-                    qs = qs.filter(hostname__icontains=host_search)
+                qs = qs.filter(hostname__icontains=host_search)
             if mac_search:
-                # Replace garbage
-                rgx = re.compile('[:,-. ]')
-                mac_str = rgx.sub('', mac_search)
-                # Split to list to put back togethor with :
-                mac_str = re.findall('..', mac_str)
-                mac_str = ':'.join(mac_str)
-                qs = qs.filter(mac__istartswith=mac_str)
+                mac_str = re.sub('[.:-]', ':', mac_search)
+                if ':' not in mac_search:
+                    try:
+                        mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
+                    except TypeError:
+                        pass
+                qs = qs.filter(mac__icontains=mac_str)
             if ip_search:
-                if '/' in ip_search and len(ip_search.split('/')) > 1:
-                    qs = qs.filter(
-                        Q(addresses__address__net_contained_or_equal=ip_search) |
-                        Q(leases__address__address__net_contained_or_equal=ip_search)
-                    ).distinct()
+                if '/' in ip_search and ip_search.split('/')[1]:
+                    registered_ip_addresses = Address.objects.filter(address__net_contained_or_equal=ip_search)
+                    leased_ip_addresses = Lease.objects.filter(address__address__net_contained_or_equal=ip_search)
+                    qs = qs.filter(Q(addresses__in=registered_ip_addresses) | Q(leases__in=leased_ip_addresses))
                 else:
                     ip = ip_search.split(':')[-1]
                     ip_blocks = ip.split('.')
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith=ip) |
-                            Q(leases__address__address__startswith=ip)
-                        ).distinct()
+                            Q(addresses__address__startswith=ip_search.split(':')[-1]) |
+                            Q(leases__address__address__startswith=ip_search.split(':')[-1])
+                        )
                     else:
                          qs = qs.filter(
-                            Q(addresses__address=ip) |
-                            Q(leases__address__address=ip)
-                        ).distinct()
+                            Q(addresses__address=ip_search.split(':')[-1]) |
+                            Q(leases__address__address=ip_search.split(':')[-1])
+                        )
             if group_filter:
                 group = Group.objects.filter(pk=group_filter)
                 if group:
@@ -219,28 +196,23 @@ class HostListJson(BaseDatatableView):
         return qs
 
     def prepare_results(self, qs):
-        qs_macs = [q.mac for q in qs]
-        qs = Host.objects.filter(mac__in=qs_macs).values('mac', 'hostname', 'expires', 'addresses__address',
-            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')
-        qs = merge_values(self.ordering(qs))
 
-        user = self.request.user
-        global_delete_permission = user.has_perm('hosts.delete_host')
-        global_change_permission = user.has_perm('hosts.change_host')
+        #qs_macs = [q.mac for q in qs]
+        #self.gul_recent_arp_bymac = GulRecentArpBymac.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
+        #self.gul_recent_arp_byaddress = GulRecentArpByaddress.objects.filter(mac__in=qs_macs).order_by('-stopstamp')
+        #self.dynamic_addresses = Address.objects.filter(leases__mac__in=qs_macs)
 
-        def get_last_mac_stamp(host):
-            mac_stamp = host['mac_history__stopstamp']
-            if mac_stamp:
-                mac_stamp = max(mac_stamp) if isinstance(mac_stamp, list) else mac_stamp
-                return timezone.localtime(mac_stamp).strftime('%Y-%m-%d %I:%M %p')
+        def get_last_mac_stamp(mac):
+            macs = host.mac_history.all()
+            if macs:
+                return timezone.localtime(macs[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
                 return None
 
-        def get_last_ip_stamp(host):
-            ip_stamp = host['ip_history__stopstamp']
-            if ip_stamp:
-                ip_stamp = max(ip_stamp) if isinstance(ip_stamp, list) else ip_stamp
-                return timezone.localtime(ip_stamp).strftime('%Y-%m-%d %I:%M %p')
+        def get_last_ip_stamp(mac):
+            ips = host.ip_history.all()
+            if ips:
+                return timezone.localtime(ips[0].stopstamp).strftime('%Y-%m-%d %I:%M %p')
             else:
                 return None
 
@@ -259,18 +231,7 @@ class HostListJson(BaseDatatableView):
                     return None
 
         def get_ips(host):
-            addresses = []
-
-            if host['addresses__address']:
-                if isinstance(host['addresses__address'], list):
-                    addresses += [address for address in host['addresses__address']]
-                else:
-                    addresses.append(host['addresses__address'])
-            if host['leases__address']:
-                if isinstance(host['leases__address'], list):
-                    addresses += [lease for lease in host['leases__address']]
-                else:
-                    addresses.append(host['leases__address'])
+            addresses = [str(address) for address in host.addresses.all()] + [str(lease.address) for lease in host.leases.all()]
 
             if addresses:
                 #addresses = [str(address) for address in addresses]
@@ -290,31 +251,27 @@ class HostListJson(BaseDatatableView):
             else:
                 return expires.strftime('%Y-%m-%d')
 
-        def get_selector(host, onwer_permissions):
-            if onwer_permissions or global_change_permission or global_delete_permission:
-                return '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host['mac']
+        def get_selector(host, has_permissions):
+            if has_permissions:
+                return '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host.mac
             else:
                 return ''
 
         def render_cell(value, is_flagged=False):
-            flagged = 'flagged' if is_flagged else ''
-            no_data = '<span class="%s">No Data</span>' % flagged
+            no_data = '<span class="%s">No Data</span>' % 'flagged' if is_flagged else ''
             return value if value else no_data
 
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
         for host in qs:
-            if user.host_owner_perms is True or host['mac'] in user.host_owner_perms:
-                onwer_permissions = True
-            else:
-                onwer_permissions = False
-            host_view_href = reverse_lazy('view_host', args=(slugify(host['mac']),))
-            host_edit_href = reverse_lazy('update_host', args=(slugify(host['mac']),))
+            has_permissions = host.user_has_onwership(self.request.user)
+            host_view_href = reverse_lazy('view_host', args=(slugify(host.mac),))
+            host_edit_href = reverse_lazy('update_host', args=(slugify(host.mac),))
             host_ips = get_ips(host)
-            expires = get_expires(host['expires'])
-            last_mac_stamp = get_last_mac_stamp(host)
-            last_ip_stamp = get_last_ip_stamp(host)
+            expires = get_expires(host.expires)
+            last_mac_stamp = get_last_mac_stamp(host.mac)
+            last_ip_stamp = get_last_ip_stamp(host.mac)
 
             if not host_ips:
                 is_flagged = True
@@ -322,22 +279,21 @@ class HostListJson(BaseDatatableView):
                 is_flagged = False if last_ip_stamp or last_mac_stamp else True
 
             json_data.append([
-                get_selector(host, onwer_permissions),
+                get_selector(host, has_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
                  ' class="host-details" data-toggle="modal"><span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
-                                                                                    'hostname': host['hostname'] or 'N/A',
+                                                                                    'hostname': host.hostname or 'N/A',
                                                                                     'view_href': host_view_href,
                                                                                     'update_href': host_edit_href
                                                                                 }),
-                host['mac'],
-                host_ips,
+                host.mac,
+                render_cell(host_ips, is_flagged),
                 expires,
                 render_cell(last_mac_stamp, is_flagged),
                 render_cell(last_ip_stamp, is_flagged),
-                '<a href="%s">DNS Records</a>' % reverse_lazy('list_dns', kwargs={'host': host['hostname']}) if host['hostname'] else '',
-                '<a href="%s">%s</a>' % (host_edit_href, 'Edit' if onwer_permissions or global_change_permission else 'View'),
+                '<a href="%s">DNS Records</a>' % reverse_lazy('list_dns', kwargs={'host': host.hostname}) if host.hostname else '',
+                '<a href="%s">%s</a>' % (host_edit_href, 'Edit' if has_permissions else 'View'),
             ])
-        #assert False
         return json_data
 
 
@@ -354,13 +310,10 @@ class HostListView(TemplateView):
 
         return context
 
-    @method_decorator(permission_view_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostListView, self).dispatch(request, *args, **kwargs)
-
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
+        user = request.user
         action = request.POST.get('action', None)
         selected_hosts = request.POST.getlist('selected_hosts', [])
 
@@ -368,12 +321,90 @@ class HostListView(TemplateView):
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
 
             # If action is to change owners on host(s)
+            # Only IPAM admins can do this.
             if action == 'owners':
-                assign_owner_hosts(request, selected_hosts)
-            elif action == 'delete':
-                delete_hosts(request, selected_hosts)
-            elif action == 'renew':
-                renew_hosts(request, selected_hosts)
+                owner_form = HostOwnerForm(request.POST)
+
+                if user.is_ipamadmin and owner_form.is_valid():
+                    user_owners = owner_form.cleaned_data['user_owners']
+                    group_owners = owner_form.cleaned_data['group_owners']
+
+                    for host in selected_hosts:
+                        # Delete user and group permissions first
+                        host.remove_owners()
+
+                        # Re-assign users
+                        for user in user_owners:
+                            host.assign_owner(user)
+
+                        # Re-assign groups
+                        for group in group_owners:
+                            host.assign_owner(group)
+
+                    messages.success(self.request, "Ownership for selected hosts has been updated.")
+
+                else:
+                    messages.error(self.request, "There was an error changing ownership of selected hosts. "
+                                   "Please content an IPAM administrator.")
+
+            # Actions that both IPAM admins and regular users can do.
+            # We do out perm checks first
+            else:
+                user_perms_check = False
+                if user.is_ipamadmin:
+                    user_perms_check = True
+                else:
+                    user_perm_list = [host.user_has_onwership(user) for host in selected_hosts]
+                    if set(user_perm_list) == set([True]):
+                        user_perms_check = True
+                    else:
+                        messages.error(self.request, "You do not have permissions to perform this action on the selected hosts. "
+                                       "Please content an IPAM administrator.")
+
+                # Continue if user has perms.
+                if user_perms_check:
+                    # If action is to delete hosts
+                    if action == 'delete':
+
+                        # Log Deletion
+                        for host in selected_hosts:
+                            LogEntry.objects.log_action(
+                                user_id=self.request.user.pk,
+                                content_type_id=ContentType.objects.get_for_model(host).pk,
+                                object_id=host.pk,
+                                object_repr=force_unicode(host),
+                                action_flag=DELETION
+                            )
+
+                        # Delete hosts
+                        selected_hosts.delete()
+
+                        messages.success(self.request, "Seleted hosts have been deleted.")
+
+                    elif action == 'renew':
+                        renew_form = HostRenewForm(user=request.user, data=request.POST)
+
+                        if renew_form.is_valid():
+                            expiration = renew_form.cleaned_data['expire_days'].expiration
+                            for host in selected_hosts:
+                                #assert False, host.expires
+                                host.set_expiration(expiration)
+                                host.save()
+
+                                LogEntry.objects.log_action(
+                                    user_id=self.request.user.pk,
+                                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                                    object_id=host.pk,
+                                    object_repr=force_unicode(host),
+                                    action_flag=CHANGE,
+                                    change_message='Renewed expiration to %s' % expiration
+                                )
+
+                            messages.success(self.request, "Expiration for selected hosts have been updated.")
+
+                        else:
+                            messages.error(self.request, "There was an error renewing the expiration of selected hosts. "
+                                   "Please content an IPAM administrator.")
 
         return redirect('list_hosts')
 
@@ -383,8 +414,7 @@ class HostDetailView(DetailView):
     noaccess = False
 
     def get(self, request, *args, **kwargs):
-        #if CONFIG['CONVERT_OLD_PERMISSIONS']:
-        #    convert_host_permissions(host_pk=self.kwargs.get('pk'))
+        convert_host_permissions(host_pk=self.kwargs.get('pk'))
         return super(HostDetailView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -409,9 +439,9 @@ class HostDetailView(DetailView):
         else:
             return super(HostDetailView, self).get_template_names()
 
-    @method_decorator(permission_view_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostDetailView, self).dispatch(request, *args, **kwargs)
+    # @method_decorator(permission_owner_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(HostDetailView, self).dispatch(*args, **kwargs)
 
 
 class HostUpdateCreateView(object):
@@ -442,8 +472,7 @@ class HostUpdateCreateView(object):
 
 class HostUpdateView(HostUpdateCreateView, UpdateView):
     def get(self, request, *args, **kwargs):
-        #if CONFIG['CONVERT_OLD_PERMISSIONS']:
-        #    convert_host_permissions(host_pk=self.kwargs.get('pk'))
+        convert_host_permissions(host_pk=self.kwargs.get('pk'))
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     @transaction.atomic
@@ -464,9 +493,9 @@ class HostUpdateView(HostUpdateCreateView, UpdateView):
 
         return valid_form
 
-    @method_decorator(permission_owner_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
+    @method_decorator(permission_owner_required)
+    def dispatch(self, *args, **kwargs):
+        return super(HostUpdateView, self).dispatch(*args, **kwargs)
 
 
 class HostCreateView(HostUpdateCreateView, CreateView):
@@ -492,10 +521,6 @@ class HostCreateView(HostUpdateCreateView, CreateView):
             return redirect(reverse_lazy('add_hosts_bulk'))
 
         return valid_form
-
-    @method_decorator(permission_add_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostCreateView, self).dispatch(request, *args, **kwargs)
 
 
 def change_owners(request):

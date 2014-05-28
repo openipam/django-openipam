@@ -157,13 +157,12 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'crispy_forms',
     'autocomplete_light',
-    #'south',
+    'south',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
     'cacheops',
     'django_pickling',
-    'sqlbuilder.django_sqlbuilder',
 
     'openipam.user',
 
@@ -267,27 +266,29 @@ CACHEOPS = {
     # Automatically cache any User.objects.get() calls for 15 minutes
     # This includes request.user or post.author access,
     # where Post.author is a foreign key to auth.User
-    #'user.*': ('all', 60*15),
+    'user.*': ('all', 60*15),
 
     # Automatically cache all gets, queryset fetches and counts
     # to other django.contrib.auth models for an hour
     #'auth.*': ('get', 60*60),
-    #'auth.group': ('all', 60*60),
-    #'auth.permission': ('all', 60*60),
-    #'contenttypes.*': ('all', 60*60),
+    'auth.group': ('all', 60*60),
+    'auth.permission': ('all', 60*60),
+    'contenttypes.*': ('all', 60*60),
 
     # Auto Cache guadian models
-    #'guardian.*': ('all', 60*15),
+    'guardian.*': ('all', 60*15),
 
     # Enable manual caching on all news models with default timeout of an hour
     # Use News.objects.cache().get(...)
     #  or Tags.objects.filter(...).order_by(...).cache()
     # to cache particular ORM request.
     # Invalidation is still automatic
+    #'news.*': ('just_enable', 60*60),
     '*.*': ('just_enable', 60*60),
 
-    # Automatically cache count requests for all other models for 60 min
-    '*.*': ('count', 60*60),
+    # Automatically cache count requests for all other models for 15 min
+    'dns.dnsrecord': ('count', 60*15),
+    'hosts.host': ('count', 60*15),
 }
 
 CACHEOPS_DEGRADE_ON_FAILURE = True

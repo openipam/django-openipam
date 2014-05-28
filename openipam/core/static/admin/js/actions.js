@@ -1,4 +1,4 @@
-$(function(){
+(function($) {
     $.fn.actions = function(opts) {
         var options = $.extend({}, $.fn.actions.defaults, opts);
         var actionCheckboxes = $(this);
@@ -136,4 +136,4 @@ $(function(){
         allToggle: "#action-toggle",
         selectedClass: "selected"
     };
-});
+})(django.jQuery);

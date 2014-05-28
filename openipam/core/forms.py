@@ -23,9 +23,11 @@ class FeatureRequestForm(forms.ModelForm):
 
 class BaseUserObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
-    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
+    user = forms.ModelChoiceField(User.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
 
 
 class BaseGroupObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
-    group = autocomplete_light.ModelChoiceField('GroupAutocomplete')
+    group = forms.ModelChoiceField(Group.objects.all(),
+        widget=autocomplete_light.ChoiceWidget('GroupAutocomplete'))
