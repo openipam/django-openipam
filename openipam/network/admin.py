@@ -12,7 +12,6 @@ import autocomplete_light
 
 class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
-    change_form_template = 'admin/openipam/change_form.html'
     list_display = ('nice_network', 'name', 'description', 'gateway')
 
     def nice_network(self, obj):
