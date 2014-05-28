@@ -23,7 +23,6 @@
                 url: '/api/web/DomainAutocomplete/',
                 choiceSelector: '[data-value]',
                 minimumCharacters: 1,
-                placeholder: 'Enter a FQDN for this host',
                 getQuery: function() {
                     var value = this.input.val();
                     return value.substr(value.indexOf('.') + 1)
@@ -44,21 +43,23 @@
                 var value = choice.text();
                 var pre_value = this.value.split('.')[0]
                 this.value = pre_value + '.' + value;
-                //alert("You have choosen: " + value);
             });
 
             $("#id_address_type").on('change', function(){
-                var aType = $("#id_address_type").val();
+                // var aType = $("#id_address_type").val();
 
-                if (aType) {
-                    $.get('/api/web/networkselects/'+ $("#id_address_type").val(), function(data) {
-                        $("#id_network").html(data);
-                        $.networkIPToggle();
-                    });
+                // if (aType) {
+                //     $.get('/api/web/networkselects/'+ $("#id_address_type").val(), function(data) {
+                //         $("#id_network").html(data);
+                //         $.networkIPToggle();
+                //     });
+                // }
+                // else{
+                // }
+                $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
+                    'atype': $(this).val()
                 }
-                else{
-                    $.networkIPToggle();
-                }
+                $.networkIPToggle();
             });
 
             // Click hadlers for Network or IP fields
@@ -88,24 +89,24 @@
                 var aType = parseInt($("#id_address_type").val());
 
                 if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
-                    $("#div_id_network_or_ip:not(.error)").hide();
-                    $("#div_id_ip_address:not(.error)").hide();
-                    $("#div_id_network:not(.error)").hide();
+                    $("#div_id_network_or_ip:not(.has-error)").hide();
+                    $("#div_id_ip_address:not(.has-error)").hide();
+                    $("#div_id_network:not(.has-error)").hide();
                 }
                 else {
                     $("#div_id_network_or_ip").show();
 
                     if (netSelect === '0') {
                         $("#div_id_network").show();
-                        $("#div_id_ip_address:not(.error)").hide();
+                        $("#div_id_ip_address:not(.has-error)").hide();
                     }
                     else if (netSelect === '1') {
-                        $("#div_id_network:not(.error)").hide();
+                        $("#div_id_network:not(.has-error)").hide();
                         $("#div_id_ip_address").show();
                     }
                     else {
-                        $("#div_id_network:not(.error)").hide();
-                        $("#div_id_ip_address:not(.error)").hide();
+                        $("#div_id_network:not(.has-error)").hide();
+                        $("#div_id_ip_address:not(.has-error)").hide();
                     }
                 }
             }
@@ -120,18 +121,18 @@
                     dhcpGroup.prop('checked', 'checked');
                 }
                 else {
-                    $("#div_id_dhcp_group:not(.error)").hide();
+                    $("#div_id_dhcp_group:not(.has-error)").hide();
                 }
 
                 if ($("a#host-renew").length > 0) {
-                    $("#div_id_expire_days:not(.error)").hide();
+                    $("#div_id_expire_days:not(.has-error)").hide();
                 }
 
                 if ($("a#ip-change").length > 0) {
-                    $("#div_id_address_type:not(.error)").hide();
-                    $("#div_id_network_or_ip:not(.error)").hide();
-                    $("#div_id_network:not(.error)").hide();
-                    $("#div_id_ip_address:not(.error)").hide();
+                    $("#div_id_address_type:not(.has-error)").hide();
+                    $("#div_id_network_or_ip:not(.has-error)").hide();
+                    $("#div_id_network:not(.has-error)").hide();
+                    $("#div_id_ip_address:not(.has-error)").hide();
                 }
                 else {
                     $.networkIPToggle();
@@ -174,13 +175,12 @@
                     {% if not form.instance.mac_last_seen %}
                         <div class="alert alert-danger">
                             <h4>Mac not seen: there is no data for this mac address and we have not seen it in over 3 months (if ever).</h4>
-                            {{ form.non_field_errors }}
                         </div>
                     {% endif %}
                 {% endif %}
 
-                {% csrf_token %}
                 {% crispy form %}
+
                 <div class="text-right">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
                     {% if request.user.is_ipamadmin %}
