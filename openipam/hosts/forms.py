@@ -295,19 +295,6 @@ class HostForm(forms.ModelForm):
 
         instance.user = instance.changed_by = self.user
 
-        if self.cleaned_data['expire_days']:
-            instance.set_expiration(self.cleaned_data['expire_days'].expiration)
-        if self.cleaned_data.get('address_type'):
-            instance.address_type_id = self.cleaned_data['address_type']
-
-        instance.hostname = self.cleaned_data['hostname']
-        instance.set_mac_address(self.cleaned_data['mac_address'])
-
-        instance.ip_address = self.cleaned_data['ip_address']
-        instance.network = self.cleaned_data['network']
-
-        instance.full_clean()
-
         # Save
         instance.save()
 
@@ -379,6 +366,19 @@ class HostForm(forms.ModelForm):
 
         if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
             raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
+
+        if cleaned_data['expire_days']:
+            self.instance.set_expiration(cleaned_data['expire_days'].expiration)
+        if cleaned_data.get('address_type'):
+            self.instance.address_type_id = cleaned_data['address_type']
+
+        self.instance.hostname = cleaned_data['hostname']
+        self.instance.set_mac_address(cleaned_data['mac_address'])
+
+        self.instance.ip_address = cleaned_data['ip_address']
+        self.instance.network = cleaned_data['network']
+
+        self.instance.full_clean()
 
         return cleaned_data
 
