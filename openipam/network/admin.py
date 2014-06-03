@@ -80,6 +80,10 @@ class SharedNetworkAdmin(ChangedAdmin):
     list_display = ('name', 'description', 'changed_by', 'changed',)
 
 
+class VlanAdmin(ChangedAdmin):
+    pass
+
+
 class NetworkToVlanAdmin(ChangedAdmin):
     list_display = ('network', 'vlan', 'changed_by', 'changed',)
 
@@ -113,8 +117,6 @@ class AddressAdmin(ChangedAdmin):
     list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed')
 
 
-class VlanAdmin(ChangedAdmin):
-    pass
 
 
 admin.site.register(DefaultPool)
