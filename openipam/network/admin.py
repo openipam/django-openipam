@@ -113,11 +113,15 @@ class AddressAdmin(ChangedAdmin):
     list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed')
 
 
+class VlanAdmin(ChangedAdmin):
+    pass
+
+
 admin.site.register(DefaultPool)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)
-admin.site.register(Vlan)
+admin.site.register(Vlan, ChangedAdmin)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(Lease, LeaseAdmin)
