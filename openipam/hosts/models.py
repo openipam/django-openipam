@@ -458,12 +458,6 @@ class Host(models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
-    def user_has_onwership(self, user):
-        if user.is_ipamadmin:
-            return True
-        else:
-            return True if self.mac in user.host_owner_perms else False
-
     def save(self, *args, **kwargs):
         # Make sure hostname is lowercase
         self.hostname = self.hostname.lower()
