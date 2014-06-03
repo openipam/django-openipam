@@ -92,7 +92,7 @@ class DhcpGroupManager(models.Manager):
 
 
 class DhcpGroup(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.SlugField()
     description = models.TextField(blank=True, null=True)
     dhcp_options = models.ManyToManyField('DhcpOption', through='DhcpOptionToDhcpGroup')
     changed = models.DateTimeField(auto_now=True)
@@ -222,6 +222,8 @@ class NetworkToVlan(models.Model):
     vlan = models.ForeignKey('Vlan', db_column='vlan')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+    objects = NetManager()
 
     def __unicode__(self):
         return '%s %s' % (self.network, self.vlan)
