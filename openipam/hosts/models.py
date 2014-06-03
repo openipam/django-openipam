@@ -304,6 +304,9 @@ class Host(models.Model):
         from openipam.network.models import Network, Address
         from openipam.dns.models import DnsType
 
+        if not hostname:
+            raise Exception('For now, a hostname is required.')
+
         if not user and self.user:
             user = self.user
         elif not user:
