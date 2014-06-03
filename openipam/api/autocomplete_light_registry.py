@@ -106,7 +106,10 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         return request_choices
 
     def choice_label(self, choice):
-        return '%s | %s' % (choice.__class__.__name__, choice)
+        if choice.__class__.__name__ == 'User':
+            return '%s | %s | %s' % (choice.__class__.__name__, choice, choice.get_full_name())
+        else:
+            return '%s | %s' % (choice.__class__.__name__, choice)
 
     def choice_value(self, choice):
         if choice.__class__.__name__ == 'User':
