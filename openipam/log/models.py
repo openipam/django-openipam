@@ -1,5 +1,4 @@
 from django.db import models
-from django_postgres import BitStringField
 
 
 class BaseLog(models.Model):
@@ -46,7 +45,7 @@ class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
     source = models.IntegerField()
-    min_permissions = BitStringField(max_length=8)
+    min_permissions = models.CharField(max_length=8)
 
     password = models.CharField(max_length=128, default='!')
     last_login = models.DateTimeField(blank=True, null=True)
