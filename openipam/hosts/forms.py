@@ -367,18 +367,18 @@ class HostForm(forms.ModelForm):
         if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
             raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
 
-        if cleaned_data['expire_days']:
+        if cleaned_data.get('expire_days'):
             self.instance.set_expiration(cleaned_data['expire_days'].expiration)
         if cleaned_data.get('address_type'):
             self.instance.address_type_id = cleaned_data['address_type']
-
-        self.instance.hostname = cleaned_data['hostname']
-        self.instance.set_mac_address(cleaned_data['mac_address'])
-
-        self.instance.ip_address = cleaned_data['ip_address']
-        self.instance.network = cleaned_data['network']
-
-        self.instance.full_clean()
+        if cleaned_data.get('mac_address'):
+            self.instance.set_mac_address(cleaned_data['mac_address'])
+        if cleaned_data.get('hostname'):
+            self.instance.hostname = cleaned_data['hostname']
+        if cleaned_data.get('ip_address'):
+            self.instance.ip_address = cleaned_data['ip_address']
+        if cleaned_data.get('network'):
+            self.instance.network = cleaned_data['network']
 
         return cleaned_data
 
@@ -393,8 +393,7 @@ class HostForm(forms.ModelForm):
             if host_exists[0].is_expired:
                 host_exists[0].delete()
             else:
-                raise ValidationError(mark_safe('The mac address entered already exists for host:<br /> %s.' % host_exists[0].hostname))
-
+                raise ValidationError(mark_safe('The mac address entered already exists for host: %s.' % host_exists[0].hostname))
         return mac
 
     def clean_hostname(self):
