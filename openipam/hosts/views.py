@@ -215,11 +215,12 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
-        qs = Host.objects.filter(mac__in=qs_macs).values('mac', 'hostname', 'expires', 'addresses__address',
-            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')
-        qs = merge_values(self.ordering(qs))
+        qs = Host.objects.filter(mac__in=qs_macs)
+        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
+            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
 
         user = self.request.user
+        user_change_permissions = qs.by_change_perms(user, ids_only=True)
         global_delete_permission = user.has_perm('hosts.delete_host')
         global_change_permission = user.has_perm('hosts.change_host')
 
@@ -299,8 +300,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
-        for host in qs:
-            if user.host_change_perms is True or host['mac'] in user.host_change_perms:
+        for host in value_qs:
+            if global_change_permission or host['mac'] in user_change_permissions:
                 change_permissions = True
             else:
                 change_permissions = False
