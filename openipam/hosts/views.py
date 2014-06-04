@@ -106,7 +106,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     else:
                         qs = qs.none()
                 elif search_item.startswith('name:') and search_str:
-                    qs = qs.filter(hostname__istartswith=search_item[5:])
+                    qs = qs.filter(hostname__startswith=search_item[5:].lower())
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
                     # Replace garbage
@@ -115,7 +115,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     # Split to list to put back togethor with :
                     mac_str = re.findall('..', mac_str)
                     mac_str = ':'.join(mac_str)
-                    qs = qs.filter(mac__startswith=mac_str)
+                    qs = qs.filter(mac__startswith=mac_str.lower())
                 elif search_item.startswith('ip:') and search_str:
                     ip = search_item.split(':')[-1]
                     ip_blocks = ip.split('.')
@@ -161,11 +161,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
             if host_search:
                 if host_search.startswith('^'):
-                    qs = qs.filter(hostname__istartswith=host_search[1:])
+                    qs = qs.filter(hostname__startswith=host_search[1:].lower())
                 elif host_search.startswith('='):
-                    qs = qs.filter(hostname__iexact=host_search[1:])
+                    qs = qs.filter(hostname__exact=host_search[1:].lower())
                 else:
-                    qs = qs.filter(hostname__icontains=host_search)
+                    qs = qs.filter(hostname__contains=host_search.lower())
             if mac_search:
                 # Replace garbage
                 rgx = re.compile('[:,-. ]')
@@ -173,7 +173,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 # Split to list to put back togethor with :
                 mac_str = re.findall('..', mac_str)
                 mac_str = ':'.join(mac_str)
-                qs = qs.filter(mac__istartswith=mac_str)
+                qs = qs.filter(mac__startswith=mac_str.lower())
             if ip_search:
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
                     qs = qs.filter(

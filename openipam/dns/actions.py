@@ -30,12 +30,10 @@ def delete_records(request, selected_records):
         messages.success(request, "Selected DNS records have been deleted.")
 
 
-def change_perms_check(user, records):
+def change_perms_check(user, selected_records):
     # Check permission of dnsrecords for users with only object level permissions.
-    user_perms_check = False
-    allowed_dnsrecords = DnsRecord.objects.filter(pk__in=records).by_change_perms(user).values_list('pk', flat=True)
-    user_perm_list = [True if record.pk in allowed_dnsrecords else False for record in records]
-    if set(user_perm_list) == set([True]):
-        user_perms_check = True
-
-    return user_perms_check
+    allowed_dnsrecords = DnsRecord.objects.filter(pk__in=selected_records).by_change_perms(user)
+    for record in selected_records:
+        if record not in allowed_dnsrecords:
+            return False
+    return True

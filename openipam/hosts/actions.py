@@ -108,12 +108,8 @@ def renew_hosts(request, selected_hosts):
 
 def change_perms_check(user, selected_hosts):
     # Check onwership of hosts for users with only object level permissions.
-    user_perms_check = False
-    if user.host_change_perms is True:
-        user_perms_check = True
-    else:
-        user_perm_list = [True if host.mac in user.host_change_perms else False for host in selected_hosts]
-    if set(user_perm_list) == set([True]):
-        user_perms_check = True
-
-    return user_perms_check
+    host_perms_qs = Host.objects.filter(mac__in=[host.mac for host in selected_hosts]).by_change_perms(user)
+    for host in selected_hosts:
+        if host not in host_perms_qs:
+            return False
+    return True

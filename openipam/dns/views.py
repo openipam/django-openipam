@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.dns.forms import DNSListForm, DSNCreateFrom
-from openipam.dns.actions import delete_records, change_perms_check
+from openipam.dns.actions import delete_records
 from openipam.hosts.models import Host
 from openipam.core.views import BaseDatatableView
 
