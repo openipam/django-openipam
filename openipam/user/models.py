@@ -16,9 +16,6 @@ from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase,
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
-from django_postgres import Bits
-import django_postgres
-
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=50, unique=True)
@@ -35,7 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # TODO: Remove later
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions',
-                                        related_name='user_min_permissions', default=Bits('0x00'))
+                                        related_name='user_min_permissions', default='00000000')
     source = models.ForeignKey('AuthSource', db_column='source', default=1)
 
     objects = IPAMUserManager()
@@ -64,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def domain_owner_perms(self):
-        if self.has_perm('domain.is_owner_domain'):
+        if self.has_perm('dns.is_owner_domain'):
             return True
         else:
             from openipam.dns.models import Domain
@@ -77,6 +74,30 @@ class User(AbstractBaseUser, PermissionsMixin):
         else:
             from openipam.hosts.models import Host
             return Host.objects.by_owner(self, use_groups=True, ids_only=True)
+
+    @cached_property
+    def network_change_perms(self):
+        if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):
+            return True
+        else:
+            from openipam.network.models import Network
+            return Network.objects.by_change_perms(self, ids_only=True)
+
+    @cached_property
+    def domain_change_perms(self):
+        if self.has_perm('dns.change_domain') or self.has_perm('dns.is_owner_domain'):
+            return True
+        else:
+            from openipam.dns.models import Domain
+            return Domain.objects.by_change_perms(self, names_only=True)
+
+    @cached_property
+    def host_change_perms(self):
+        if self.has_perm('hosts.change_host') or self.has_perm('dns.is_owner_host'):
+            return True
+        else:
+            from openipam.hosts.models import Host
+            return Host.objects.by_change_perms(self, ids_only=True)
 
     def get_auth_user(self):
         try:
@@ -150,12 +171,12 @@ class AuthSource(models.Model):
 
 
 class Permission(models.Model):
-    permission = django_postgres.BitStringField(max_length=8, primary_key=True, db_column='id')
+    permission = models.CharField(max_length=8, primary_key=True, db_column='id')
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.permission.bin, self.name)
+        return '%s - %s' % (self.permission, self.name)
 
     class Meta:
         db_table = 'permissions'
@@ -263,12 +284,3 @@ pre_save.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
 pre_delete.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
 pre_save.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
 pre_delete.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
-
-# South Fixes for Bit string field
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], [
-        "^django_postgres\.bitstrings\.BitStringField",
-    ])
-except ImportError:
-    pass
