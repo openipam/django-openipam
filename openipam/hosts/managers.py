@@ -42,9 +42,9 @@ class HostMixin(object):
             else:
                 return self.all()
         else:
-            host_perms = get_objects_for_user(user, ['hosts.is_owner_host', 'hosts.change_host'], any_perm=True).values_list('pk', flat=True)
+            host_perms = get_objects_for_user(user, ['hosts.is_owner_host', 'hosts.change_host'], any_perm=True).values_list('mac', flat=True)
             domain_perms = get_objects_for_user(user, ['dns.is_owner_domain', 'dns.change_domain'], any_perm=True).values_list('name', flat=True)
-            network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('pk', flat=True)
+            network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('network', flat=True)
 
             qs = self.filter(
                 Q(mac__in=host_perms) |
