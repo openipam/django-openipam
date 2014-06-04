@@ -41,4 +41,7 @@ class MimicUserMiddleware(object):
     def process_request(self, request):
         mimic_user = request.session.get('mimic_user')
         if mimic_user:
-            request.user = User.objects.get(pk=mimic_user)
+            try:
+                request.user = User.objects.get(pk=mimic_user)
+            except User.DoesNotExist:
+                del request.session['mimic_user']

@@ -51,13 +51,13 @@ def login(request, **kwargs):
 
 
 def mimic(request):
-    if request.user.is_ipamadmin:
+    if request.POST and request.user.is_ipamadmin:
         mimic_pk = request.POST.get('mimic_pk')
         if mimic_pk:
             try:
                 mimic_user = User.objects.get(pk=mimic_pk)
             except User.DoesNotExist:
-                pass
+                return redirect('index')
             request.session['mimic_user'] = mimic_user.pk
     else:
         if 'mimic_user' in request.session:
