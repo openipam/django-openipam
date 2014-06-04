@@ -2,10 +2,9 @@ from django.core.exceptions import PermissionDenied
 from django.utils.decorators import available_attrs
 from django.utils.functional import wraps
 from openipam.hosts.models import Host
-#require_http_methods
 
 
-def permission_owner_host(view_func):
+def permission_change_host(view_func):
     """
     Decorator for views that checks that the User has owner permission
     on a host.
@@ -22,22 +21,4 @@ def permission_owner_host(view_func):
             return response.render()
     return wraps(view_func)(_wrapped_view)
 # TODO:  Temp function until perms changes.
-permission_owner_required = permission_owner_host
-
-
-def permission_view_host(view_func):
-    def _wrapped_view(request, *args, **kwargs):
-        if request.user.has_perm('hosts.view_host'):
-            return view_func(request, *args, **kwargs)
-        else:
-            raise PermissionDenied
-    return wraps(view_func)(_wrapped_view)
-
-
-def permission_add_host(view_func):
-    def _wrapped_view(request, *args, **kwargs):
-        if request.user.has_perm('hosts.add_host'):
-            return view_func(request, *args, **kwargs)
-        else:
-            raise PermissionDenied
-    return wraps(view_func)(_wrapped_view)
+permission_owner_required = permission_change_host
