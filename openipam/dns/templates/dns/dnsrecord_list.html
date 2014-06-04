@@ -70,9 +70,9 @@
                     </div>
                 </div>
                 {% if not request.user.is_ipamadmin %}
-                <div id="filter-owners" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
-                    <button type="button" class="btn {% if owner_filter %}active btn-inverse{% endif %}" value="1">Show Mine</button>
-                    <button type="button" class="btn {% if not owner_filter %}active btn-inverse{% endif %}" value="">Show All</button>
+                <div id="filter-change" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
+                    <button type="button" class="btn btn-default {% if change_filter %}active{% endif %}" value="1">Show Mine</button>
+                    <button type="button" class="btn btn-default {% if not change_filter %}active{% endif %}" value="">Show All</button>
                 </div>
                 {% endif %}
                 <div id="changelist-search" class="pull-right">
@@ -117,11 +117,11 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input id="name-search" type="text" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
+                        <th><div><input id="name-search" type="text" rel="1" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
                         <th>&nbsp;</th>
                         <th>
                             <div>
-                                <select id="type-filter" style="max-width: 80px;" class="form-control input-sm filter_init search_init">
+                                <select id="type-filter" rel="3" style="max-width: 80px;" class="form-control input-sm filter_init search_init">
                                     <option value="">All</option>
                                     {% for type in dns_types %}
                                         <option value="{{ type.pk }}">{{ type.name }}</option>
@@ -129,7 +129,7 @@
                                 </select>
                             </div>
                         </th>
-                        <th><div><input id="content-search" type="text" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
+                        <th><div><input id="content-search" type="text" rel="4" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
