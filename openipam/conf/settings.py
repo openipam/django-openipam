@@ -157,7 +157,7 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'crispy_forms',
     'autocomplete_light',
-    #'south',
+    'south',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
