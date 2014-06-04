@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.timezone import utc, now
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from netfields import NetManager
 from netfields.managers import NetWhere, NetQuery
@@ -14,15 +15,41 @@ import random
 import re
 import operator
 
+User = get_user_model()
+
 
 class NetworkMixin(object):
     def by_owner(self, user, use_groups=False, ids_only=False):
-        networks = get_objects_for_user(user, 'network.is_owner_network', use_groups=use_groups)
+        # Temporarily set superuser to false so we can get only permission relations
+        perm_user = User.objects.get(pk=user.pk)
+        perm_user.is_superuser = False
+
+        networks = get_objects_for_user(perm_user, 'network.is_owner_network', use_groups=use_groups)
 
         if ids_only:
             return tuple([str(network.network) for network in networks])
         else:
             return networks
+
+    def by_change_perms(self, user, pk=None, ids_only=False):
+        if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):
+            if pk:
+                qs = self.filter(pk=pk)
+                return qs[0] if qs else None
+            else:
+                return self.all()
+        else:
+            network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('pk', flat=True)
+
+            qs = self.filter(network__in=list(network_perms))
+
+            if pk:
+                qs = qs.filter(pk=pk).first()
+
+            if ids_only:
+                return tuple([network.network for network in qs])
+            else:
+                return qs
 
     def by_address_type(self, address_type):
         from openipam.network.models import NetworkRange
@@ -92,6 +119,33 @@ class AddressMixin(object):
 
         # Set new pool and save
         self.update(pool=pool)
+
+    def by_dns_change_perms(self, user, pk=None):
+        if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):
+            if pk:
+                qs = self.filter(pk=pk)
+                return qs[0] if qs else None
+            else:
+                return self.all()
+        else:
+            host_perms = get_objects_for_user(
+                user, ['hosts.is_owner_host', 'hosts.change_host'],
+                any_perm=True
+            ).values_list('pk', flat=True)
+            network_perms = get_objects_for_user(
+                user, ['network.is_owner_network', 'network.add_records_to_network', 'network.change_network'],
+                any_perm=True
+            ).values_list('pk', flat=True)
+
+            qs = self.filter(
+                Q(host__mac__in=list(host_perms)) |
+                Q(network__network__in=list(network_perms))
+            )
+
+            if pk:
+                qs = qs.filter(pk=pk).first()
+
+            return qs
 
 
 class AddressQuerySet(QuerySet, AddressMixin):
@@ -249,4 +303,3 @@ class AddressManager(NetManager):
     #         )
 
     #     return new_address
-
