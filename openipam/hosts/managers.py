@@ -43,7 +43,7 @@ class HostMixin(object):
                 return self.all()
         else:
             host_perms = get_objects_for_user(user, ['hosts.is_owner_host', 'hosts.change_host'], any_perm=True).values_list('pk', flat=True)
-            domain_perms = get_objects_for_user(user, ['dns.is_owner_domain', 'dns.change_domain'], any_perm=True).values_list('pk', flat=True)
+            domain_perms = get_objects_for_user(user, ['dns.is_owner_domain', 'dns.change_domain'], any_perm=True).values_list('name', flat=True)
             network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('pk', flat=True)
 
             qs = self.filter(
@@ -51,7 +51,7 @@ class HostMixin(object):
                 Q(addresses__network__in=network_perms)
             )
 
-            domain_q_list = [Q(hostname__iendswith=domain) for domain in domain_perms]
+            domain_q_list = [Q(hostname__endswith=name) for name in domain_perms]
             if domain_q_list:
                 domain_qs = self.filter(reduce(operator.or_, domain_q_list))
                 qs = qs | domain_qs
