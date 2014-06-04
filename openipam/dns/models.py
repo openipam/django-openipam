@@ -239,16 +239,6 @@ class DnsRecord(models.Model):
         self.ip_content = None
         self.text_content = None
 
-    def user_has_ownership(self, user):
-        if user.is_ipamadmin:
-            return True
-        if self.ip_content and self.ip_content.host and self.ip_content.host.mac in user.host_owner_perms:
-            return True
-        elif self.domain.name in user.domain_owner_perms:
-            return True
-
-        return False
-
     class Meta:
         db_table = 'dns_records'
         ordering = ('dns_type', 'name')
