@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 
-from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
+from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
 from openipam.network.signals import validate_address_type, release_leases, delete_dns_record_for_static_host
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
@@ -73,7 +73,7 @@ class DefaultPool(models.Model):
     pool = models.ForeignKey('Pool', related_name='pool_defaults', blank=True, null=True)
     cidr = CidrAddressField(unique=True)
 
-    objects = NetManager()
+    objects = DefaultPoolManager()
 
     def __unicode__(self):
         return '%s - %s' % (self.pool, self.cidr)
@@ -271,43 +271,11 @@ class Address(models.Model):
         else:
             return None
 
-    @property
-    def pool_default(self):
-        return self.get_pool_default()
-
-    def get_pool_default(self):
-        # Find most specific DefaultPool for this address and return associated Pool
-        pool = (DefaultPool.objects
-                .filter(cidr__net_contains_or_equals=self.address)
-                .extra(select={'masklen': "masklen(cidr)"}, order_by=['-masklen']))
-        # first one should have the longest mask, which is most specific
-        pool = pool[0].pool if pool else None
-        return pool
-
     def clean(self):
         if self.host and self.pool:
             raise ValidationError('Host and Pool cannot both be defined.  Choose one or the other.')
         elif (self.host or self.pool) and self.reserved:
             raise ValidationError('If a Host or Pool are defined, reserved must be false.')
-
-    def release(self, pool=False):
-        from openipam.dns.models import DnsRecord
-
-        # Get default pool if false
-        if pool is False:
-            pool = self.get_pool_default()
-        # Assume an int if not Model
-        elif not isinstance(pool, models.Model):
-            pool = Pool.objects.get(pk=pool)
-
-        # Delete dns PTR records
-        DnsRecord.objects.filter(name=self.address.reverse_dns[:-1]).delete()
-        # Delete dns A records
-        DnsRecord.objects.filter(ip_content=self).delete()
-
-        # Set new pool and save
-        self.pool = pool
-        self.save()
 
     class Meta:
         db_table = 'addresses'
