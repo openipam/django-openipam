@@ -18,5 +18,7 @@ def delete_dns_record_for_static_host(sender, instance, *args, **kwargs):
     """
         Deletes A or AAAA and PTR records from address where hosts are removed.
     """
+    from openipam.network.models import Address
+
     if not instance.host:
-        instance.release()
+        Address.objects.filter(pk=instance.pk).release()
