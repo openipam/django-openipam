@@ -189,6 +189,7 @@ class Network(models.Model):
             ('is_owner_network', 'Is owner'),
             ('add_records_to_network', 'Can add records to'),
         )
+        ordering = ('network',)
 
 
 class NetworkRange(models.Model):
