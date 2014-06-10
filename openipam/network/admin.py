@@ -13,6 +13,7 @@ import autocomplete_light
 class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
     list_display = ('nice_network', 'name', 'description', 'gateway')
+    search_fields = ('network',)
 
     def nice_network(self, obj):
         url = str(obj.network).replace('/', '_2F')
