@@ -99,26 +99,30 @@ class LeaseManager(NetManager):
 
 
 class AddressMixin(object):
+
     def release(self, pool=False):
-
         from openipam.dns.models import DnsRecord
-        from openipam.network.models import Pool
+        from openipam.network.models import DefaultPool, Pool
 
-        for address in self:
+        # Loop through addresses and release them
+        for obj in self:
             # Get default pool if false
             if pool is False:
-                pool = address.get_pool_default
+                pool = DefaultPool.objects.get_pool_default(address=obj.address)
             # Assume an int if not Model
             elif not isinstance(pool, Model):
                 pool = Pool.objects.get(pk=pool)
 
             # Delete dns PTR records
-            DnsRecord.objects.filter(name=address.address.reverse_dns[:-1]).delete()
+            DnsRecord.objects.filter(name=obj.address.reverse_dns[:-1]).delete()
             # Delete dns A records
-            DnsRecord.objects.filter(ip_content=address).delete()
+            DnsRecord.objects.filter(ip_content=obj).delete()
 
         # Set new pool and save
         self.update(pool=pool)
+
+        return self
+
 
     def by_dns_change_perms(self, user, pk=None):
         if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):
@@ -303,3 +307,14 @@ class AddressManager(NetManager):
     #         )
 
     #     return new_address
+
+
+class DefaultPoolManager(NetManager):
+
+    def get_pool_default(self, address):
+        # Find most specific DefaultPool for this address and return associated Pool
+        pool = (self.filter(cidr__net_contains_or_equals=address)
+                .extra(select={'masklen': "masklen(cidr)"}, order_by=['-masklen'])).first()
+        # first one should have the longest mask, which is most specific
+        pool = pool.pool if pool else None
+        return pool
