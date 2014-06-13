@@ -23,6 +23,9 @@ urlpatterns += patterns('',
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
+    # Two factor auth urls
+    # url(r'^', include('two_factor.urls', 'two_factor')),
+
     # openIPAM urls
     url(r'^', include('openipam.core.urls')),
 
