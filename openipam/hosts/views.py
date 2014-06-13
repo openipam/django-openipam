@@ -121,7 +121,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             Q(leases__address__address=ip)
                         ).distinct()
                 elif search_item.startswith('net:') and search_str:
-                        qs = qs.filter(address__net_contained_or_equal=search_item[4:]).distinct()
+                        qs = qs.filter(addresses__address__net_contained_or_equal=search_item[4:]).distinct()
                 elif search_item:
                     like_search_term = search_item + '%'
                     cursor = connection.cursor()
