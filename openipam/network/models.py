@@ -7,7 +7,7 @@ from netfields import InetAddressField, MACAddressField, CidrAddressField, NetMa
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
-from openipam.network.signals import validate_address_type, release_leases, delete_dns_record_for_static_host
+from openipam.network.signals import validate_address_type, release_leases
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
 
@@ -315,7 +315,6 @@ class AddressType(models.Model):
 
 # Network Signals
 m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
-post_save.connect(delete_dns_record_for_static_host, sender=Address)
 post_save.connect(release_leases, sender=Address)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Network)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=DhcpOption)
