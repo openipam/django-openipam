@@ -125,7 +125,7 @@ $(function(){
         "processing": true,
         "serverSide": true,
         "ajax": $.fn.dataTable.pipeline({
-            "url": "data/",
+            "url": "/dns/data/",
             "pages": 5,
             "data": function(d) {
                 d.change_filter = $.cookie('change_filter');
@@ -238,10 +238,9 @@ $(function(){
         url: '/api/web/IPAMSearchAutoComplete',
         choiceSelector: '[data-value]',
         minimumCharacters: 2,
-        placeholder: 'Advanced Search',
         getQuery: function() {
             var value = this.input.val();
-            return value
+            return value;
         },
         refresh: function() {
             var value = this.input.val();
@@ -250,7 +249,7 @@ $(function(){
             this.search_type = this.search_type[this.search_type.length - 1];
             this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
 
-            var searches = ['user:', 'group:']
+            var searches = ['user:', 'group:', 'net:']
             var do_search = false;
 
             if (searches.indexOf(this.search_type) != -1 && current_search != "") {
@@ -345,7 +344,7 @@ $(function(){
     });
 
     // Call edit all for all records
-    $("a.edit-all").click(function() {
+    $("a.edit-all").on('click', function() {
         if ($(this).prop('rel') == 'edit') {
             $(this).prop('rel', 'cancel');
             $(this).html('Cancel');
@@ -360,7 +359,7 @@ $(function(){
     });
 
     // Cancel edit of all records
-    $("#cancel-edit").click(function() {
+    $("#cancel-edit").on('click', function() {
         $("a.cancel-dns").click();
         $("#form-actions").hide();
         $("#action-toggle").removeAttr('checked');
@@ -368,18 +367,18 @@ $(function(){
     });
 
 
-    $("#changelist-filters-toggle").click(function() {
+    $("#changelist-filters-toggle").on('click', function() {
         $("#changelist-filter-actions").toggle();
         $(this).toggleClass('btn-inverse');
     });
 
 
-    $("#filter-close").click(function() {
+    $("#filter-close").on('click', function() {
         $("#changelist-filters-toggle").click();
     });
 
     //Triger filtering on change perms
-    $("#filter-change button").click(function() {
+    $("#filter-change button").on('click', function() {
         $("#filter-change button").removeClass('active');
         $(this).addClass('active');
         $.cookie('change_filter', $(this).val(), {expires: 1, path: '/dns/'});
@@ -428,13 +427,17 @@ $(function(){
 
     });
 
-    $("#search-help-button").click(function(){
+    $("#search-help-button").on('click', function(){
         $("#search-help").toggle();
         return false;
     });
 
+    $("#search-info-close").on('click', function() {
+        $("#search-help").hide();
+    });
+
     // Toggle all select for checkboxes
-    $("#action-toggle").click(function() {
+    $("#action-toggle").on('click', function() {
         $.each($(".action-select"), function(key, selector){
             if ($("#action-toggle").is(':checked') && !$(selector).is(':checked')) {
                 selector.click();
@@ -446,7 +449,7 @@ $(function(){
     });
 
     // Action submit logic
-    $("#action-submit").click(function() {
+    $("#action-submit").on('click', function() {
         var action = $("#host-action").val();
         var records = $(".action-select:checked");
 
