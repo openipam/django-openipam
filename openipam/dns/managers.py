@@ -2,14 +2,14 @@ from django.db.models import Model, Manager, Q
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django.contrib.auth import get_user_model
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.auth.models import Group
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 
-from openipam.hosts.models import Host
 from openipam.network.models import Address
 
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 from netaddr.core import AddrFormatError
 
@@ -37,16 +37,24 @@ class DomainMixin(object):
         else:
             return domains
 
-    def by_change_perms(self, user, pk=None, ids_only=False, names_only=False):
-        if user.has_perm('dns.change_domain') or user.has_perm('dns.is_owner_domain'):
+    def by_change_perms(self, user_or_group, pk=None, ids_only=False, names_only=False):
+        if (isinstance(user_or_group, User) and
+                (user_or_group.has_perm('dns.change_domain') or user_or_group.has_perm('dns.is_owner_domain'))):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
             else:
                 return self.all()
         else:
-            domain_perms = get_objects_for_user(
-                user,
+            if isinstance(user_or_group, User):
+                get_objects_for_user_or_group = get_objects_for_user
+            elif isinstance(user_or_group, Group):
+                get_objects_for_user_or_group = get_objects_for_group
+            else:
+                raise Exception('A valid user or goup must is required.')
+
+            domain_perms = get_objects_for_user_or_group(
+                user_or_group,
                 ['dns.is_owner_domain', 'dns.change_domain'],
                 any_perm=True
             ).values_list('name', flat=True)
@@ -100,26 +108,33 @@ class DomainManager(Manager):
 
 
 class DNSMixin(object):
-    def by_change_perms(self, user, pk=None):
-        if user.has_perm('dns.change_dnsrecord'):
+    def by_change_perms(self, user_or_group, pk=None):
+        if isinstance(user_or_group, User) and user_or_group.has_perm('dns.change_dnsrecord'):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
             else:
                 return self.all()
         else:
-            host_perms = get_objects_for_user(
-                user,
+            if isinstance(user_or_group, User):
+                get_objects_for_user_or_group = get_objects_for_user
+            elif isinstance(user_or_group, Group):
+                get_objects_for_user_or_group = get_objects_for_group
+            else:
+                raise Exception('A valid user or goup must is required.')
+
+            host_perms = get_objects_for_user_or_group(
+                user_or_group,
                 ['hosts.is_owner_host', 'hosts.change_host'],
                 any_perm=True
             ).values_list('mac', flat=True)
-            domain_perms = get_objects_for_user(
-                user,
+            domain_perms = get_objects_for_user_or_group(
+                user_or_group,
                 ['dns.is_owner_domain', 'dns.change_domain'],
                 any_perm=True
             ).values_list('name', flat=True)
-            network_perms = get_objects_for_user(
-                user,
+            network_perms = get_objects_for_user_or_group(
+                user_or_group,
                 ['network.is_owner_network', 'network.change_network'],
                 any_perm=True
             ).values_list('network', flat=True)
@@ -153,7 +168,6 @@ class DnsManager(Manager):
     def get_query_set(self):
         return DNSQuerySet(self.model)
 
-
     def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
         from openipam.dns.models import Domain
 
@@ -165,11 +179,10 @@ class DnsManager(Manager):
                 created = True
                 dns_record = self.model()
 
-
             # Permission Checks
             if created and not user.has_perm('dns.add_dnsrecord'):
                 raise ValidationError('Invalid credentials: user %s does not have permissions'
-                                      ' to add DNS records. Please contact an IPAM administrator.' % user)
+                    ' to add DNS records. Please contact an IPAM administrator.' % user)
 
             # Clear content if we are changing dnstype
             if created is False and dns_record.dns_type != dns_type:
@@ -202,19 +215,26 @@ class DnsManager(Manager):
             # Users must either have domain permissions, host permission or network permission.
             if not allowed_domains and not allowed_addresses.count():
                 raise ValidationError('Invalid credentials: user %s does not have permissions'
-                                  ' to add DNS records to the domain, host and/or network provided. Please contact an IPAM administrator '
-                                  'to ensure you have the proper permissions.' % user)
+                    ' to add DNS records to the domain, host and/or network provided. Please contact an IPAM administrator '
+                    'to ensure you have the proper permissions.' % user)
             elif dns_record.dns_type.is_a_record and not allowed_addresses.filter(address=content):
                 raise ValidationError('Invalid credentials: user %s does not have permissions'
-                                  ' to add DNS records to the address provided. Please contact an IPAM administrator '
-                                  'to ensure you have the proper host and/or network permissions.' % user)
-
+                    ' to add DNS records to the address provided. Please contact an IPAM administrator '
+                    'to ensure you have the proper host and/or network permissions.' % user)
 
             dns_record.changed_by = user
 
             dns_record.full_clean()
 
             dns_record.save()
+
+            LogEntry.objects.log_action(
+                user_id=user.pk,
+                content_type_id=ContentType.objects.get_for_model(self.model).pk,
+                object_id=dns_record.pk,
+                object_repr=force_unicode(dns_record),
+                action_flag=ADDITION if created else CHANGE
+            )
 
             return dns_record, created
 
@@ -238,4 +258,3 @@ class DnsTypeManager(Manager):
     @property
     def PTR(self):
         return self.get(name='PTR')
-
