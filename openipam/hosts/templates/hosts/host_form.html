@@ -90,7 +90,7 @@
 
                 if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
                     $("#div_id_network_or_ip:not(.has-error)").hide();
-                    $("#div_id_ip_address:not(.has-error)").hide();
+                    $("#div_id_ip_addresses:not(.has-error)").hide();
                     $("#div_id_network:not(.has-error)").hide();
                 }
                 else {
@@ -98,15 +98,15 @@
 
                     if (netSelect === '0') {
                         $("#div_id_network").show();
-                        $("#div_id_ip_address:not(.has-error)").hide();
+                        $("#div_id_ip_addresses:not(.has-error)").hide();
                     }
                     else if (netSelect === '1') {
                         $("#div_id_network:not(.has-error)").hide();
-                        $("#div_id_ip_address").show();
+                        $("#div_id_ip_addresses").show();
                     }
                     else {
                         $("#div_id_network:not(.has-error)").hide();
-                        $("#div_id_ip_address:not(.has-error)").hide();
+                        $("#div_id_ip_addresses:not(.has-error)").hide();
                     }
                 }
             }
@@ -132,7 +132,7 @@
                     $("#div_id_address_type:not(.has-error)").hide();
                     $("#div_id_network_or_ip:not(.has-error)").hide();
                     $("#div_id_network:not(.has-error)").hide();
-                    $("#div_id_ip_address:not(.has-error)").hide();
+                    $("#div_id_ip_addresses:not(.has-error)").hide();
                 }
                 else {
                     $.networkIPToggle();
