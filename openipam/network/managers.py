@@ -108,18 +108,19 @@ class AddressMixin(object):
         for obj in self:
             # Get default pool if false
             if pool is False:
-                pool = DefaultPool.objects.get_pool_default(address=obj.address)
+                obj_pool = DefaultPool.objects.get_pool_default(address=obj.address)
             # Assume an int if not Model
             elif not isinstance(pool, Model):
-                pool = Pool.objects.get(pk=pool)
+                obj_pool = Pool.objects.get(pk=pool)
 
             # Delete dns PTR records
             DnsRecord.objects.filter(name=obj.address.reverse_dns[:-1]).delete()
             # Delete dns A records
             DnsRecord.objects.filter(ip_content=obj).delete()
 
-        # Set new pool and save
-        self.update(pool=pool)
+            obj.host = None
+            obj.pool = obj_pool
+            obj.save()
 
         return self
 
