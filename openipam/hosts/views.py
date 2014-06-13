@@ -29,7 +29,6 @@ from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin
-from guardian.mixins import PermissionRequiredMixin as GaurdedPermissionRequiredMixin
 
 import json
 import re
@@ -63,16 +62,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         # Otherwise get hosts based on permissions
         else:
             qs = Host.objects.all()
-
-        #return qs.prefetch_related('addresses').all()
-        # return qs.prefetch_related('pools', 'addresses', 'leases').extra(
-        #     select={
-        #         'last_ip_stamp': 'SELECT stopstamp from gul_recent_arp_byaddress where gul_recent_arp_byaddress.mac = hosts.mac LIMIT 1',
-        #         'last_mac_stamp': 'SELECT stopstamp from gul_recent_arp_bymac where gul_recent_arp_bymac.mac = hosts.mac LIMIT 1',
-        #     }
-        # )
-
-        return qs.inplace()
+        return qs
 
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
@@ -85,8 +75,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             ip_search = column_data[3]['search']['value']
             expired_search = column_data[4]['search']['value']
             search = self.json_data.get('search_filter', '')
-            group_filter = self.json_data.get('group_filter', None)
-            user_filter = self.json_data.get('user_filter', None)
+
+            #group_filter = self.json_data.get('group_filter', None)
+            #user_filter = self.json_data.get('user_filter', None)
 
             search_list = search.strip().split(' ') if search else []
             for search_item in search_list:
@@ -94,15 +85,15 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 if search_item.startswith('desc:') and search_str:
                     qs = qs.filter(description__icontains=search_item[5:])
                 elif search_item.startswith('user:'):
-                    user = User.objects.filter(username__iexact=search_item[5:])
+                    user = User.objects.filter(username__iexact=search_item[5:]).fisrt()
                     if user:
-                        qs = qs.by_owner(user[0])
+                        qs = qs.by_owner(user)
                     else:
                         qs = qs.none()
                 elif search_item.startswith('group:') and search_str:
-                    group = Group.objects.filter(name__iexact=search_item[6:])
+                    group = Group.objects.filter(name__iexact=search_item[6:]).first()
                     if group:
-                        qs = qs.by_group(group[0])
+                        qs = qs.by_group(group)
                     else:
                         qs = qs.none()
                 elif search_item.startswith('name:') and search_str:
@@ -189,18 +180,20 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             Q(leases__address__address__startswith=ip)
                         ).distinct()
                     else:
-                         qs = qs.filter(
+                        qs = qs.filter(
                             Q(addresses__address=ip) |
                             Q(leases__address__address=ip)
                         ).distinct()
-            if group_filter:
-                group = Group.objects.filter(pk=group_filter)
-                if group:
-                    qs = qs.by_group(group)
-            if user_filter:
-                user = User.objects.filter(pk=user_filter)
-                if user:
-                    qs = qs.by_owner(user)
+
+            # if group_filter:
+            #     group = Group.objects.filter(pk=group_filter).first()
+            #     if group:
+            #         qs = qs.by_group(group)
+            # if user_filter:
+            #     user = User.objects.filter(pk=user_filter).first()
+            #     if user:
+            #         qs = qs.by_owner(user)
+
             if expired_search and expired_search == '1':
                 qs = qs.filter(expires__gt=timezone.now())
             elif expired_search and expired_search == '0':
@@ -263,10 +256,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 else:
                     addresses.append(host['addresses__address'])
             if host['leases__address']:
-                if isinstance(host['leases__address'], list):
-                    addresses += [lease for lease in host['leases__address']]
-                else:
-                    addresses.append(host['leases__address'])
+                if not isinstance(host['leases__address'], list):
+                    host['leases__address'] = [host['leases__address']]
+
+                valid_leases = list(
+                    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address')
+                )
+                addresses += valid_leases
 
             if addresses:
                 #addresses = [str(address) for address in addresses]
