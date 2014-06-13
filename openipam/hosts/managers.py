@@ -1,6 +1,7 @@
 from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 from openipam.network.models import DhcpGroup, Pool
 
@@ -28,10 +29,11 @@ class HostMixin(object):
         if ids_only:
             return tuple([host.pk for host in hosts])
         else:
-            return hosts
+            return self.filter(pk__in=[host.pk for host in hosts])
 
     def by_group(self, group):
-        return get_objects_for_group(group, 'hosts.is_owner_host', klass=self)
+        hosts = get_objects_for_group(group, 'hosts.is_owner_host')
+        return self.filter(pk__in=[host.pk for host in hosts])
 
     def by_change_perms(self, user, pk=None, ids_only=False):
         # If global permission set, then return all.
@@ -104,8 +106,9 @@ class HostManager(NetManager):
         owners = [k for k, v in owners.items() if 'is_owner_host' in v]
         return owners
 
+    #TODO!  Finish this and use it for everthing except the web form
     def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, description=None, dhcp_group=None,
-                           pool=None, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None):
+                           pool=None, ip_addresses=None, network=None, user_owners=None, group_owners=None, instance=None):
 
         if isinstance(user, str):
             user = User.objects.get(username=user)
@@ -125,22 +128,22 @@ class HostManager(NetManager):
             instance.expire_days = expire_days
             instance.exipires = instance.set_expiration(timedelta(int(expire_days)))
 
-        if dhcp_group:
-            if isinstance(dhcp_group, str):
-                dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
-            instance.dhcp_group = dhcp_group
+        if isinstance(dhcp_group, str):
+            dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
+        instance.dhcp_group = dhcp_group
 
         if pool:
             if isinstance(pool, int):
                 pool = Pool.objects.get(name=pool)
             instance.pool = pool
 
-        if ip_address:
-            instance.ip_addresses = ip_address
+        if ip_addresses:
+            instance.ip_addresses = ip_addresses
 
         if network:
             instance.network = network
 
+        instance.full_clean()
         instance.save()
 
         if instance.pool or instance.network or instance.ip_addresses:
@@ -149,18 +152,29 @@ class HostManager(NetManager):
             instance.address_type_id = instance.address_type
             instance.save()
 
+        user_groups = []
+
+        if user_owners or group_owners:
+            if isinstance(user_owners, list):
+                users_to_add = User.objects.filter(username__in=[user_owner.lower() for user_owner in user_owners])
+            else:
+                users_to_add = User.objects.filter(username__iexact=user_owners)
+            users_to_add = list(users_to_add)
+            user_groups += users_to_add
+
+            if isinstance(group_owners, list):
+                groups_to_add = Group.objects.filter(name__in=group_owners)
+            else:
+                groups_to_add = Group.objects.filter(name=group_owners)
+            groups_to_add = list(groups_to_add)
+            user_groups += groups_to_add
+
+            instance.remove_owners()
+            for user_group in user_groups:
+                instance.assign_owner(user_group)
+        else:
+            has_users, has_groups = instance.get_owners()
+            if not has_users and not has_groups:
+                instance.assign_owner(user)
+
         return instance
-
-
-    # def get_hosts_owned_by_user(self, user, ids_only=False):
-
-    #     # Temporarily set superuser to false so we can get only permission relations
-    #     perm_user = User.objects.get(pk=user.pk)
-    #     perm_user.is_superuser = False
-
-    #     hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host', use_groups=True)
-
-    #     if ids_only:
-    #         return tuple([host.pk for host in hosts])
-    #     else:
-    #         return hosts
