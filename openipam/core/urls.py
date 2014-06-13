@@ -26,7 +26,7 @@ urlpatterns = patterns('openipam.core.views',
     # Account URLS
     url(r'^mimic/$', 'mimic', name='mimic'),
     url(r'^login/$', 'login', name='login'),
-    url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
+    url(r'^logout/$', logout, name='logout'),
     url(r'^profile/$', 'profile', name='profile'),
     url(r'^password/forgot/$',
         TemplateView.as_view(template_name='core/password_forgot.html'),
