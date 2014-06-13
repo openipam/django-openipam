@@ -51,7 +51,8 @@ class HostForm(forms.ModelForm):
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
     network = autocomplete_light.ModelChoiceField('NetworkAutocomplete', required=False, queryset=Network.objects.all())
-    ip_address = forms.CharField(label='IP Address', required=False)
+    #ip_addresses = forms.CharField(label='IP Address(es)', required=False, help_text='To enter multiple IPs, please use commas or spaces.')
+    ip_addresses = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
     show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
     dhcp_group = autocomplete_light.ModelChoiceField(
@@ -104,7 +105,7 @@ class HostForm(forms.ModelForm):
                 del self.fields['show_hide_dhcp_group']
 
         # Init IP Address(es) only if form is not bound
-        self._init_ip_address()
+        self._init_ip_addresses()
 
         # Init Exipre Date
         self._init_expire_date()
@@ -158,7 +159,14 @@ class HostForm(forms.ModelForm):
             else:
                 user_networks = NetworkRange.objects.none()
 
-            user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks)).distinct()
+            if self.instance.pk:
+                existing_address_type = self.instance.address_type.pk
+            else:
+                existing_address_type = None
+
+            user_address_types = AddressType.objects.filter(
+                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type)
+            ).distinct()
             self.fields['address_type'].queryset = user_address_types
 
         if self.previous_form_data and 'address_type' in self.previous_form_data:
@@ -188,13 +196,13 @@ class HostForm(forms.ModelForm):
             elif self.previous_form_data and attribute_field_key in self.previous_form_data:
                 self.fields[attribute_field_key].initial = self.previous_form_data.get(attribute_field_key)
 
-    def _init_ip_address(self):
+    def _init_ip_addresses(self):
         if self.instance.pk:
             html_addresses = []
             for address in self.addresses:
                 html_addresses.append('<span class="label label-primary" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
             if html_addresses:
-                change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
+                change_html = '<a href="#" id="ip-change" class="renew">Change IP Address(es)</a>'
                 self.current_address_html = HTML('''
                     <div class="form-group">
                         <label class="col-lg-2 control-label">Current IP Address:</label>
@@ -202,23 +210,21 @@ class HostForm(forms.ModelForm):
                             <h4>
                                 %s
                                 %s
-                                %s
                             </h4>
                         </div>
                     </div>
-                ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
-                       ''.join(html_addresses),
-                       change_html if len(self.addresses) == 1 else ''))
+                ''' % (''.join(html_addresses), change_html))
 
-                if len(self.addresses) > 1:
-                    del self.fields['address_type']
-                    del self.fields['network_or_ip']
-                    del self.fields['network']
-                    del self.fields['ip_address']
-                else:
-                    self.fields['ip_address'].initial = self.addresses[0]
-                    self.fields['ip_address'].label = 'New IP Address'
-                    self.fields['network_or_ip'].initial = '1'
+                # if len(self.addresses) > 1:
+                #     del self.fields['address_type']
+                #     del self.fields['network_or_ip']
+                #     del self.fields['network']
+                #     del self.fields['ip_address']
+                # else:
+                self.fields['ip_addresses'].initial = ' '.join([str(address.address) for address in self.addresses])
+                #self.fields['ip_addresses'].label = 'New IP Address(es)'
+                self.fields['ip_addresses'].label = 'New IP Address'
+                self.fields['network_or_ip'].initial = '1'
 
         elif self.previous_form_data:
             if 'network_or_ip' in self.previous_form_data:
@@ -255,7 +261,7 @@ class HostForm(forms.ModelForm):
                 'address_type',
                 'network_or_ip',
                 'network',
-                'ip_address',
+                'ip_addresses',
                 self.expire_date,
                 'expire_days',
                 'description',
@@ -299,9 +305,7 @@ class HostForm(forms.ModelForm):
         instance.save()
 
         # Assign Pool or Network based on conditions
-        # TODO: We dont assign if Host has multiple addresses.
-        if len(self.addresses) <= 1:
-            instance.set_network_ip_or_pool()
+        instance.set_network_ip_or_pool()
 
         # Remove all owners if there are any
         instance.remove_owners()
@@ -375,8 +379,8 @@ class HostForm(forms.ModelForm):
             self.instance.set_mac_address(cleaned_data['mac_address'])
         if cleaned_data.get('hostname'):
             self.instance.hostname = cleaned_data['hostname']
-        if cleaned_data.get('ip_address'):
-            self.instance.ip_address = cleaned_data['ip_address']
+        if cleaned_data.get('ip_addresses'):
+            self.instance.ip_addresses = cleaned_data['ip_addresses'].split()
         if cleaned_data.get('network'):
             self.instance.network = cleaned_data['network']
 
@@ -455,26 +459,31 @@ class HostForm(forms.ModelForm):
                                       'Please contact an IPAM Administrator.'))
         return network
 
-    def clean_ip_address(self):
-        ip_address = self.cleaned_data.get('ip_address', '')
+    def clean_ip_addresses(self):
+        ip_addresses = self.cleaned_data.get('ip_addresses', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
         current_addresses = [str(address) for address in self.instance.addresses.all()]
+        ip_addresses_list = ip_addresses.replace(',', ' ').split()
+        ip_addresses_list = [ip_address.strip() for ip_address in ip_addresses_list]
 
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
-            return ip_address
+            return ip_addresses
         # If this host has this IP already then stop (meaning its not changing)
-        elif ip_address in current_addresses:
-            return ip_address
+        else:
+            for ip_address in ip_addresses_list:
+                if ip_address in current_addresses:
+                    return ip_addresses
 
         if network_or_ip and network_or_ip == '1':
-            if not ip_address:
+            if not ip_addresses:
                 raise ValidationError('This field is required.')
 
-            elif ip_address:
-                # Make sure this is valid.
-                validate_ipv46_address(ip_address)
+            elif ip_addresses:
+                for ip_address in ip_addresses_list:
+                    # Make sure this is valid.
+                    validate_ipv46_address(ip_address)
 
                 user_pools = get_objects_for_user(
                     self.user,
@@ -487,21 +496,21 @@ class HostForm(forms.ModelForm):
                     any_perm=True
                 )
 
-                address = Address.objects.filter(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    address=ip_address,
-                    host__isnull=True,
-                    reserved=False
-                )
-                is_available = True if address else False
+                for ip_address in ip_addresses_list:
+                    address = Address.objects.filter(
+                        Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                        address=ip_address,
+                        host__isnull=True,
+                        reserved=False
+                    ).first()
 
-                if not is_available:
-                    raise ValidationError('The IP Address is reserved, in use, or not allowed.')
+                    if not address:
+                        raise ValidationError("The IP Address '%s' is reserved, in use, or not allowed." % ip_address)
         else:
             # Clear values
-            ip_address = ''
+            ip_addresses = ''
 
-        return ip_address
+        return ip_addresses
 
     class Meta:
         model = Host
