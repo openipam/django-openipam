@@ -12,7 +12,7 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions, invalidate_object_perms_cache
+   remove_obj_perms_connected_with_user, convert_user_permissions
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -75,29 +75,29 @@ class User(AbstractBaseUser, PermissionsMixin):
             from openipam.hosts.models import Host
             return Host.objects.by_owner(self, use_groups=True, ids_only=True)
 
-    @cached_property
-    def network_change_perms(self):
-        if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):
-            return True
-        else:
-            from openipam.network.models import Network
-            return Network.objects.by_change_perms(self, ids_only=True)
+    # @cached_property
+    # def network_change_perms(self):
+    #     if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):
+    #         return True
+    #     else:
+    #         from openipam.network.models import Network
+    #         return Network.objects.by_change_perms(self, ids_only=True)
 
-    @cached_property
-    def domain_change_perms(self):
-        if self.has_perm('dns.change_domain') or self.has_perm('dns.is_owner_domain'):
-            return True
-        else:
-            from openipam.dns.models import Domain
-            return Domain.objects.by_change_perms(self, names_only=True)
+    # @cached_property
+    # def domain_change_perms(self):
+    #     if self.has_perm('dns.change_domain') or self.has_perm('dns.is_owner_domain'):
+    #         return True
+    #     else:
+    #         from openipam.dns.models import Domain
+    #         return Domain.objects.by_change_perms(self, names_only=True)
 
-    @cached_property
-    def host_change_perms(self):
-        if self.has_perm('hosts.change_host') or self.has_perm('dns.is_owner_host'):
-            return True
-        else:
-            from openipam.hosts.models import Host
-            return Host.objects.by_change_perms(self, ids_only=True)
+    # @cached_property
+    # def host_change_perms(self):
+    #     if self.has_perm('hosts.change_host') or self.has_perm('dns.is_owner_host'):
+    #         return True
+    #     else:
+    #         from openipam.hosts.models import Host
+    #         return Host.objects.by_change_perms(self, ids_only=True)
 
     def get_auth_user(self):
         try:
@@ -279,8 +279,3 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-
-pre_save.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
-pre_delete.connect(invalidate_object_perms_cache, sender=GroupObjectPermission)
-pre_save.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
-pre_delete.connect(invalidate_object_perms_cache, sender=UserObjectPermission)
