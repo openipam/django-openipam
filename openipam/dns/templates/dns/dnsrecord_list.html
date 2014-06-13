@@ -9,12 +9,7 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-        {% if host %}
-            ../|{% trans "DNS" %}
-            {{ host }}
-        {% else %}
-            {% trans "DNS" %}
-        {% endif %}
+    {% trans "DNS" %}
 {% endblock %}
 
 {% block extrahead %}
@@ -57,7 +52,7 @@
                 <div class="actions changelist-actions pull-left">
                     <div class="changelist-action" style="height: auto !important;">
                         <div class="action-wrapper">
-                            <select id="host-action" name="action" class="form-control">
+                            <select id="dns-action" name="action" class="form-control">
                                 <option value="">Choose an action...</option>
                                 <option value="">--------------</option>
                                     <option value="delete">Delete selected DNS records</option>
@@ -77,11 +72,12 @@
                 {% endif %}
                 <div id="changelist-search" class="pull-right">
                     <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
-                    <a id="search-help-button" href="javascript:void(0);" class="pull-left"><span class="icon-question-sign"></span></a>
-                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" value="{{ search_filter }}" class="form-control" /></label></div>
+                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign"></div>
+                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" placeholder="Advanced Search" value="{{ search_filter }}" class="form-control" /></label></div>
                     <a id="clear-filters" class="pull-right btn btn-default" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
                 </div>
-                <div id="search-help" class="hide">
+                <div id="search-help" class="help-content">
+                    <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
                     <p>Search for hostnames, IP addresses, MAC addresses, or content of a DNS record.</p>
                     <strong>For advanced searches...</strong>
                     <p>Multiple search terms may be included separated spaces.</p>
@@ -113,7 +109,6 @@
                         <th scope="col" style="width: 70px;">Edit</th>
                     </tr>
                 </thead>
-                {% if not host %}
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
@@ -134,7 +129,6 @@
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
                 </tfoot>
-                {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
