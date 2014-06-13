@@ -6,8 +6,6 @@ from django.contrib.auth import get_user_model
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from cacheops.invalidation import invalidate_model, invalidate_all, invalidate_obj
-from cacheops.conf import handle_connection_failure
 
 DIRECT_PERM_MODELS_LIST = (
     ('hosts', 'host'),
@@ -56,7 +54,6 @@ def assign_ipam_groups(sender, instance, created, **kwargs):
         instance.groups.add(ipam_user_group)
 
 
-
 # Automatically remove permissions when user is deleted.
 # This is only used when there are row level permissions defined using
 # guadian tables.  Right now Host, Domain, DnsType, etc have explicit perm tables.
@@ -66,15 +63,3 @@ def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
     UserObjectPermission.objects.filter(filters).delete()
     GroupObjectPermission.objects.filter(filters).delete()
 
-
-# def remove_old_group_permissions(sender, instance, **kwargs):
-#     from openipam.user.models import Group, HostToGroup, DomainToGroup, NetworkToGroup
-
-#     assert False, instance.__dict__
-
-@handle_connection_failure
-def invalidate_object_perms_cache(sender, instance, **kwargs):
-    User = get_user_model()
-
-    invalidate_model(Group)
-    invalidate_model(User)
