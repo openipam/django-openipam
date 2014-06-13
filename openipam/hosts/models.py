@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils.functional import cached_property
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.core.validators import validate_ipv46_address
+from django.utils.functional import cached_property
 
 from netfields import InetAddressField, MACAddressField, NetManager
 
@@ -203,9 +204,12 @@ class Host(models.Model):
     def __init__(self, *args, **kwargs):
         super(Host, self).__init__(*args, **kwargs)
 
-        # Adding dummy fields that come from form or web service
+        # Initialize setters
         self.user = None
-        self.ip_address = None
+        self.user_owners = None
+        self.group_owners = None
+        self.ip_addresses = None
+        #self.ip_address = None
         self.network = None
         self.pool = None
 
@@ -273,6 +277,10 @@ class Host(models.Model):
 
         return self.address_type_id
 
+    @cached_property
+    def owners(self):
+        return self.get_owners(ids_only=False)
+
     def get_owners(self, ids_only=True):
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
@@ -300,9 +308,9 @@ class Host(models.Model):
         else:
             return None
 
-    def add_ip_address(self, user=None, ip_address=None, network=None, hostname=None):
+    def add_ip_addresses(self, user=None, ip_addresses=None, network=None, hostname=None):
         from openipam.network.models import Network, Address
-        from openipam.dns.models import DnsType
+        from openipam.dns.models import DnsRecord, DnsType
 
         if not hostname:
             raise Exception('For now, a hostname is required.')
@@ -321,65 +329,69 @@ class Host(models.Model):
             any_perm=True
         )
 
-        address = None
+        addresses = []
 
         if network:
-            address = Address.objects.filter(
+            network_address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
                 network=network,
                 host__isnull=True,
                 reserved=False,
-            ).order_by('address')
+            ).order_by('address').first()
 
-            if not address:
+            if not network_address:
                 raise Address.DoesNotExist
+            else:
+                addresses.append(network_address)
 
-            # Get only one
-            address = address[0]
+        elif ip_addresses:
+            if isinstance(ip_addresses, str):
+                ip_addresses = [ip_addresses]
 
-        elif ip_address:
-            address = Address.objects.get(
-                Q(pool__in=user_pools) | Q(pool__isnull=True),
-                address=ip_address,
-                host__isnull=True,
-                reserved=False,
-            )
-
+            for ip_address in ip_addresses:
+                addresses.append(
+                    Address.objects.get(
+                        Q(pool__in=user_pools) | Q(pool__isnull=True),
+                        address=ip_address,
+                        host__isnull=True,
+                        reserved=False,
+                    )
+                )
         else:
             raise Exception('A Network or IP Address must be given to assign this host.')
 
-        # Make sure pool is clear.
-        address.pool_id = None
-        address.host = self
-        address.changed_by = user
-        address.save()
+        # Make sure pool is clear on addresses we are assigning.
+        for address in addresses:
+            address.pool_id = None
+            address.host = self
+            address.changed_by = user
+            address.save()
 
-        if hostname:
-            from openipam.dns.models import DnsRecord
+            # Update A and PTR dns records
+            if hostname:
+                a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
 
-            a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
+                # Check for existing dns records and for now delete PTRs automatically.
+                DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
+                # Delete A Record if hostsname changes only.
+                if self.original_hostsname != self.hostname:
+                    DnsRecord.objects.filter(dns_type=a_type, name=self.original_hostsname, ip_content=address).delete()
+                has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content=address)
 
-            # Check for existing dns records and for now delete PTRs automatically.
-            DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
-            # Delete A Record if hostsname changes only.
-            if self.original_hostsname != self.hostname:
-                DnsRecord.objects.filter(dns_type=a_type, name=self.original_hostsname, ip_content=address).delete()
-            has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content=address)
-
-            DnsRecord.objects.add_or_update_record(
-                user=user,
-                name=address.address.reverse_dns[:-1],
-                content=hostname,
-                dns_type=DnsType.objects.PTR,
-            )
-
-            if not has_a_record:
                 DnsRecord.objects.add_or_update_record(
                     user=user,
-                    name=hostname,
-                    content=address.address,
-                    dns_type=a_type
+                    name=address.address.reverse_dns[:-1],
+                    content=hostname,
+                    dns_type=DnsType.objects.PTR,
                 )
+
+                if not has_a_record:
+                    DnsRecord.objects.add_or_update_record(
+                        user=user,
+                        name=hostname,
+                        content=address.address,
+                        dns_type=a_type
+                    )
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -428,7 +440,7 @@ class Host(models.Model):
             # Remove all pools
             self.pools.clear()
             # Remove all addresses
-            self.addresses.clear()
+            self.addresses.release()
 
         # If we have a pool, this dynamic and we assign
         if pool:
@@ -441,9 +453,9 @@ class Host(models.Model):
 
         # If we have an IP address, then assign that address to host
         else:
-            self.add_ip_address(
+            self.add_ip_addresses(
                 user=user,
-                ip_address=self.ip_address,
+                ip_addresses=self.ip_addresses,
                 network=self.network,
                 hostname=self.hostname
             )
