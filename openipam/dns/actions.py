@@ -22,7 +22,8 @@ def delete_records(request, selected_records):
                 content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
                 object_id=record,
                 object_repr=force_unicode(DnsRecord.objects.get(pk=record)),
-                action_flag=DELETION
+                action_flag=DELETION,
+                change_message=record.__dict__
             )
 
         DnsRecord.objects.filter(pk__in=selected_records).delete()
