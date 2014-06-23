@@ -9,8 +9,8 @@ from openipam.dns.views import DNSCreateUpdateView, DNSListView, DNSListJson
 
 urlpatterns = patterns('openipam.dns.views',
     url(r'^dnsrecord/add/$', RedirectView.as_view(url=reverse_lazy('add_dns'))),
-    #url(r'^dnsrecord/(\d+)/$', RedirectView.as_view(url=reverse_lazy('list_dns', args=self.args))),
     url(r'^dnsrecord/(?P<pk>\d+)/$', RedirectView.as_view(pattern_name='edit_dns')),
+    url(r'^dnsrecord/$', RedirectView.as_view(url=reverse_lazy('list_dns'))),
 
     url(r'^$', DNSListView.as_view(), name='list_dns'),
     url(r'^data/$', DNSListJson.as_view(), name='json_dns'),
