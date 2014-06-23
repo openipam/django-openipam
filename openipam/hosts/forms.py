@@ -156,8 +156,12 @@ class HostForm(forms.ModelForm):
             if user_nets:
                 n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
                 user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
+
+                e_list = [Q(network__net_contained_or_equal=nr.range) for nr in user_networks]
+                other_networks = True if user_nets.exclude(reduce(operator.or_, e_list)) else False
             else:
                 user_networks = NetworkRange.objects.none()
+                other_networks = False
 
             if self.instance.pk:
                 existing_address_type = self.instance.address_type.pk
@@ -165,7 +169,7 @@ class HostForm(forms.ModelForm):
                 existing_address_type = None
 
             user_address_types = AddressType.objects.filter(
-                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type)
+                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type) | Q(is_default=other_networks)
             ).distinct()
             self.fields['address_type'].queryset = user_address_types
 
