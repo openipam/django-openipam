@@ -324,7 +324,7 @@ class Host(models.Model):
         elif not user:
             raise Exception('A User must be specified to an address to this host.')
 
-        if network and isinstance(network, str):
+        if network and (isinstance(network, str) or isinstance(network, unicode)):
             network = Network.objects.get(network=network)
 
         user_pools = get_objects_for_user(
@@ -352,11 +352,11 @@ class Host(models.Model):
                 addresses.append(network_address)
 
         elif ip_addresses:
+            if isinstance(ip_addresses, str) or isinstance(ip_addresses, unicode):
+                ip_addresses = [ip_addresses]
+
             new_ip_addresses = ip_addresses
             current_ip_addresses = self.addresses.all().values_list('address', flat=True)
-
-            if isinstance(ip_addresses, str):
-                ip_addresses = [ip_addresses]
 
             # Adding new ip adresses
             for ip_address in new_ip_addresses:
