@@ -260,7 +260,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     host['leases__address'] = [host['leases__address']]
 
                 valid_leases = list(
-                    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address')
+                    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
                 )
                 addresses += valid_leases
 
