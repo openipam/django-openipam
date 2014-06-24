@@ -413,7 +413,6 @@ $(function(){
     $(".search_init").on('input', function() {
         var self = this;
         delay(function(){
-            console.log($(self).attr('rel'));
             results.column($(self).attr('rel')).search($(self).val()).draw();
         }, 300);
     });
@@ -450,7 +449,7 @@ $(function(){
 
     // Action submit logic
     $("#action-submit").on('click', function() {
-        var action = $("#host-action").val();
+        var action = $("#dns-action").val();
         var records = $(".action-select:checked");
 
         if (records.length > 0) {
