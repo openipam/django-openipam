@@ -3,6 +3,7 @@ from django.contrib.admin.models import LogEntry, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
+from django.core import serializers
 
 from openipam.hosts.models import Host
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm
@@ -55,12 +56,15 @@ def delete_hosts(request, selected_hosts):
     else:
         # Log Deletion
         for host in selected_hosts:
+            data = serializers.serialize('json', [host])
+
             LogEntry.objects.log_action(
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
                 object_repr=force_unicode(host),
-                action_flag=DELETION
+                action_flag=DELETION,
+                change_message=data
             )
 
         # Delete hosts
@@ -82,7 +86,8 @@ def renew_hosts(request, selected_hosts):
         if renew_form.is_valid():
             expiration = renew_form.cleaned_data['expire_days'].expiration
             for host in selected_hosts:
-                #assert False, host.expires
+                data = serializers.serialize('json', [host])
+
                 host.set_expiration(expiration)
                 host.save()
 
@@ -92,7 +97,7 @@ def renew_hosts(request, selected_hosts):
                     object_id=host.pk,
                     object_repr=force_unicode(host),
                     action_flag=CHANGE,
-                    change_message='Renewed expiration to %s' % expiration
+                    change_message=data
                 )
 
             messages.success(request, "Expiration for selected hosts have been updated.")
