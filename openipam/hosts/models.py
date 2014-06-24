@@ -332,6 +332,9 @@ class Host(models.Model):
         addresses = []
 
         if network:
+            # Remove all addresses
+            self.addresses.release()
+
             network_address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
                 network=network,
@@ -345,18 +348,28 @@ class Host(models.Model):
                 addresses.append(network_address)
 
         elif ip_addresses:
+            new_ip_addresses = ip_addresses
+            current_ip_addresses = self.addresses.all().values_list('address', flat=True)
+
             if isinstance(ip_addresses, str):
                 ip_addresses = [ip_addresses]
 
-            for ip_address in ip_addresses:
-                addresses.append(
-                    Address.objects.get(
-                        Q(pool__in=user_pools) | Q(pool__isnull=True),
-                        address=ip_address,
-                        host__isnull=True,
-                        reserved=False,
+            # Adding new ip adresses
+            for ip_address in new_ip_addresses:
+                if ip_address not in current_ip_addresses:
+                    addresses.append(
+                        Address.objects.get(
+                            Q(pool__in=user_pools) | Q(pool__isnull=True),
+                            address=ip_address,
+                            host__isnull=True,
+                            reserved=False,
+                        )
                     )
-                )
+            # Removing deleted ip addresses
+            for ip_address in current_ip_addresses:
+                if ip_address not in new_ip_addresses:
+                    Address.objects.filter(address=ip_address).release()
+
         else:
             raise Exception('A Network or IP Address must be given to assign this host.')
 
@@ -422,7 +435,7 @@ class Host(models.Model):
         self.pk = new_mac_address
 
     # TODO: Clean this up, I dont like where this is at.
-    def set_network_ip_or_pool(self, user=None, delete=True):
+    def set_network_ip_or_pool(self, user=None, delete=False):
         from openipam.network.models import Address, HostToPool
 
         if not user and self.user:
@@ -444,6 +457,9 @@ class Host(models.Model):
 
         # If we have a pool, this dynamic and we assign
         if pool:
+            # Remove all addresses
+            self.addresses.release()
+
             # Assign new pool if it doesn't already exist
             HostToPool.objects.get_or_create(
                 host=self,
