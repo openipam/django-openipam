@@ -338,10 +338,6 @@ class HostForm(forms.ModelForm):
         if not self.cleaned_data.get('user_owners') and not self.cleaned_data.get('group_owners'):
             instance.assign_owner(self.user)
 
-        # Invalidate Cache
-        #invalidate_model(User)
-        #invalidate_model(Group)
-
         # Update all host attributes
         # Get all possible attributes
         attribute_fields = Attribute.objects.all()
