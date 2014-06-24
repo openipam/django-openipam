@@ -14,9 +14,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db.utils import DatabaseError, DataError
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.core import serializers
 
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
@@ -444,6 +445,10 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
            convert_host_permissions(host_pk=self.kwargs.get('pk'))
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
+    def post(self, request, *args, **kwargs):
+        self.original_object = serializers.serialize('json', [self.get_object()])
+        return super(HostUpdateView, self).post(request, *args, **kwargs)
+
     @transaction.atomic
     def form_valid(self, form):
         valid_form = super(HostUpdateView, self).form_valid(form)
@@ -453,7 +458,8 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             content_type_id=ContentType.objects.get_for_model(self.object).pk,
             object_id=self.object.pk,
             object_repr=force_unicode(self.object),
-            action_flag=CHANGE
+            action_flag=CHANGE,
+            change_message=self.original_object
         )
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
 
