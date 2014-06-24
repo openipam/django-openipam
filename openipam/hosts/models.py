@@ -281,7 +281,7 @@ class Host(models.Model):
     def owners(self):
         return self.get_owners(ids_only=False)
 
-    def get_owners(self, ids_only=True):
+    def get_owners(self, ids_only=True, owner_detail=False):
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
 
@@ -295,7 +295,11 @@ class Host(models.Model):
             if 'is_owner_host' in permissions:
                 groups.append(group)
 
-        if ids_only:
+        if owner_detail:
+            users = [(user.pk, user.username, user.get_full_name(), user.email) for user in users]
+            groups = [(group.pk, group.name) for group in groups]
+
+        elif ids_only:
             users = [user.pk for user in users]
             groups = [group.pk for group in groups]
 
