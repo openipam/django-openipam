@@ -14,8 +14,6 @@ from django.db.utils import DatabaseError
 from django.contrib import messages
 from django.forms.util import ErrorList
 from django.db import transaction
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
-from django.contrib.contenttypes.models import ContentType
 
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.dns.forms import DNSListForm, DSNCreateFrom
@@ -26,8 +24,6 @@ from openipam.core.views import BaseDatatableView
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 from braces.views import PermissionRequiredMixin
-
-from netaddr.core import AddrFormatError
 
 import json
 
