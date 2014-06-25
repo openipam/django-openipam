@@ -24,8 +24,6 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
-#from cacheops import invalidate_model, invalidate_obj
-
 import autocomplete_light
 
 from datetime import date
