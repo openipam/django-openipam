@@ -1,9 +1,8 @@
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-from django.conf import settings
-from django.contrib.auth import get_user_model
 
+from openipam.conf.ipam_settings import CONFIG
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 
@@ -43,7 +42,7 @@ def convert_user_permissions(sender, request, user, **kwargs):
 # Automatically assign new users to IPAM_USER_GROUP
 def assign_ipam_groups(sender, instance, created, **kwargs):
     # Get user group
-    ipam_user_group = Group.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
+    ipam_user_group = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))[0]
     # Check to make sure Admin Group exists
     # ipam_admin_group = Group.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
 
