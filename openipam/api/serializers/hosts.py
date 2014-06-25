@@ -85,14 +85,14 @@ class HostDetailSerializer(serializers.ModelSerializer):
                 for row in cursor.fetchall()
             ]
 
-        with connection.cursor() as c:
-            c.execute('''
-                SELECT name, value from attributes_to_hosts
-                    WHERE mac = %s
-            ''', [obj.mac])
+        c = connection.cursor()
+        c.execute('''
+            SELECT name, value from attributes_to_hosts
+                WHERE mac = %s
+        ''', [obj.mac])
 
-            rows = dictfetchall(c)
-            return rows
+        rows = dictfetchall(c)
+        return rows
 
     class Meta:
         model = Host
