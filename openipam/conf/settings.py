@@ -235,7 +235,7 @@ REST_FRAMEWORK = {
         'openipam.api.permissions.IPAMAPIPermission',
     ),
     'DEFAULT_FILTER_BACKENDS': (
-        'filters.DjangoFilterBackend',
+        'rest_framework.filters.DjangoFilterBackend',
     )
 }
 
