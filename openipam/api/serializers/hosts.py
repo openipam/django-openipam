@@ -30,29 +30,27 @@ class HostMacSerializer(serializers.ModelSerializer):
 
 
 class HostListSerializer(serializers.ModelSerializer):
-    registered_addresses = serializers.SerializerMethodField('get_address')
-    leased_addresses = serializers.SerializerMethodField('get_leases')
+    addresses = serializers.SerializerMethodField('get_addresses')
     is_dynamic = serializers.SerializerMethodField('get_is_dynamic')
 
     # def get_last_ip_seen(self, obj):
     #     return obj.last_ip_address_seen
 
-    def get_address(self, obj):
-        return obj.addresses.all()
-
-    def get_leases(self, obj):
-        return obj.leases.all()
+    def get_addresses(self, obj):
+        addresses = {
+            'leased': obj.leases.all(),
+            'registered': obj.addresses.all()
+        }
+        return addresses
 
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'expires', 'description',
-                  'registered_addresses', 'leased_addresses')
+        fields = ('mac', 'hostname', 'expires', 'description', 'addresses',)
 
 
 class HostDetailSerializer(serializers.ModelSerializer):
     owners = serializers.SerializerMethodField('get_owners')
-    registered_addresses = serializers.SerializerMethodField('get_address')
-    leased_addresses = serializers.SerializerMethodField('get_leases')
+    addresses = serializers.SerializerMethodField('get_addresses')
     #last_ip_address_seen = serializers.SerializerMethodField('get_last_ip_seen')
     address_type = serializers.SerializerMethodField('get_address_type')
     is_dynamic = serializers.SerializerMethodField('get_is_dynamic')
@@ -64,11 +62,12 @@ class HostDetailSerializer(serializers.ModelSerializer):
     # def get_last_ip_seen(self, obj):
     #     return obj.last_ip_address_seen
 
-    def get_address(self, obj):
-        return obj.addresses.all()
-
-    def get_leases(self, obj):
-        return obj.leases.all()
+    def get_addresses(self, obj):
+        addresses = {
+            'leased': obj.leases.all(),
+            'registered': obj.addresses.all()
+        }
+        return addresses
 
     def get_address_type(self, obj):
         return obj.address_type
@@ -97,7 +96,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Host
         fields = ('mac', 'hostname', 'address_type', 'expires', 'is_dynamic', 'description', 'owners',
-                  'registered_addresses', 'leased_addresses', 'attributes',)
+                  'addresses', 'attributes',)
 
 
 class HostCreateUpdateSerializer(serializers.ModelSerializer):
