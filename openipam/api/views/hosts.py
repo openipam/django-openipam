@@ -33,6 +33,7 @@ class HostList(generics.ListAPIView):
         * `user` -- Username of a user
         * `group` -- Group name of a group
         * `is_expired` -- 1 or 0 to see expired hosts
+        * `attribute` -- Name:Value to filter on attributes
         * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
 
         **Example**:
@@ -122,7 +123,7 @@ class HostCreate(generics.CreateAPIView):
     model = Host
 
 
-class HostUpdate(generics.UpdateAPIView):
+class HostUpdate(APIView):
     """
         Updates registration for a host.
 
@@ -134,9 +135,12 @@ class HostUpdate(generics.UpdateAPIView):
         * `mac` -- A new MAC Address for the host.
         * `hostname` -- A new unique hostname.
         * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
-        * `pool`, `network`, or `ip_address` --  A pool name, network CIDR address, or ip address.
+        * `pool`, `network`, or `ip_addresses` --  A pool name, network CIDR address, or ip address(es).
+        * `ip_addresses` -- IP Addresses can be a single IP as a string or multiple IPs as a list.
         * `description` -- A text description of the host.
         * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
+        * `user_owners` -- A string or list or usernames to assign as owner to the host.
+        * `group_owners` -- A string or list or group names to assign as owner to the host.a
 
         **Example**:
 
@@ -147,11 +151,25 @@ class HostUpdate(generics.UpdateAPIView):
                 "expire_days": "30"
             }
     """
-    serializer_class = host_serializers.HostCreateUpdateSerializer
-    model = Host
+
+    def get(self, request, format=None, **kwargs):
+        DetailView = HostDetail.as_view()
+        return DetailView(request, pk=kwargs['pk'])
 
     def post(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        host = get_object_or_404(Host, pk=kwargs['pk'])
+        serializer = host_serializers.HostCreateUpdateSerializer(
+            context={'user': request.user},
+            data=request.DATA,
+            instance=host
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class HostRenew(generics.UpdateAPIView):
