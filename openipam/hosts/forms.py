@@ -24,8 +24,6 @@ from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
-#from cacheops import invalidate_model
-
 import autocomplete_light
 import operator
 
