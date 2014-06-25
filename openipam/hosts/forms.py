@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
@@ -514,6 +515,7 @@ class HostForm(forms.ModelForm):
                 # Chekc address that are assigned and free to use
                 addresses = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                     Q(host__isnull=True) | Q(host=self.instance),
                     address__in=ip_addresses_list,
                     reserved=False
