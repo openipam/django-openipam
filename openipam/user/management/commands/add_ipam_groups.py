@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 
+from openipam.conf.ipam_settings import CONFIG
+
 User = get_user_model()
 UserGroup = User.groups.through
 
@@ -13,8 +15,8 @@ class Command(BaseCommand):
 
         self.stdout.write('Adding ipam groups to users...')
 
-        ipam_user_group, u_created = Group.objects.get_or_create(name='ipam-users')
-        ipam_admin_group, a_created = Group.objects.get_or_create(name='ipam-admins')
+        ipam_user_group, u_created = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))
+        ipam_admin_group, a_created = Group.objects.get_or_create(name=CONFIG.get('ADMIN_GROUP'))
 
         # Add Ipam Users
         all_users = User.objects.exclude(groups=ipam_user_group).exclude(pk=-1).distinct()
