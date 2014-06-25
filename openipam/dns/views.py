@@ -1,7 +1,7 @@
 from django.views.generic.edit import FormView
 from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -404,7 +404,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
 
     def dispatch(self, request, *args, **kwargs):
         if kwargs.get('pk'):
-            self.record = DnsRecord.objects.filter(pk=kwargs.get('pk')).first()
+            self.record = get_object_or_404(DnsRecord, pk=kwargs.get('pk'))
             self.initial = {
                 'name': self.record.name,
                 'dns_type': self.record.dns_type,
