@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.utils.functional import cached_property
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
@@ -364,6 +363,7 @@ class Host(models.Model):
                     addresses.append(
                         Address.objects.get(
                             Q(pool__in=user_pools) | Q(pool__isnull=True),
+                            Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                             address=ip_address,
                             host__isnull=True,
                             reserved=False,
