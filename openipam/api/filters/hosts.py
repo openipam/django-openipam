@@ -84,5 +84,3 @@ class HostFilter(FilterSet):
     class Meta:
         model = Host
         fields = ['mac', 'hostname']
-
-

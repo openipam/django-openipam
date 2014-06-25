@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 from rest_framework import filters
 from rest_framework.views import APIView
@@ -17,8 +17,8 @@ User = get_user_model()
 
 
 class GuestTicketList(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = GuestTicket.objects.all()
-    filter_backends = (filters.DjangoFilterBackend,)
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
     paginate_by = 50
@@ -39,8 +39,8 @@ class GuestTicketList(generics.ListAPIView):
 
 
 class GuestTicketCreate(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = GuestTicket.objects.all()
-    filter_backends = (filters.DjangoFilterBackend,)
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
 
@@ -51,6 +51,7 @@ class GuestTicketCreate(generics.CreateAPIView):
 
 
 class GuestTicketDelete(generics.RetrieveDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = GuestDeleteSerializer
     model = GuestTicket
     lookup_field = 'ticket'

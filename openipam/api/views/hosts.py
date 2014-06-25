@@ -7,12 +7,11 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework import filters
-from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
 
-from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute
+from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, StructuredAttributeValue
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
 
@@ -41,11 +40,10 @@ class HostList(generics.ListAPIView):
             /api/hosts/?group=switches&limit=0
     """
 
+    permission_classes = (IsAuthenticated,)
     queryset = Host.objects.prefetch_related('addresses', 'leases').all()
-    #model = Host
     serializer_class = host_serializers.HostListSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    #filter_fields = ('mac', 'hostname', 'user', 'group', 'is_expired', 'ip_address')
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
@@ -90,6 +88,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
+    permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
     model = Host
 
@@ -169,7 +168,6 @@ class HostUpdate(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class HostRenew(generics.UpdateAPIView):
@@ -261,6 +259,16 @@ class HostOwnerDelete(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AttributeList(generics.ListAPIView):
+    model = Attribute
+
+
+class StructuredAttributeValueList(generics.ListAPIView):
+    model = StructuredAttributeValue
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('attribute__name', 'value', 'attribute')
 
 
 class HostAttributeList(APIView):
