@@ -232,6 +232,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+        'openipam.api.permissions.IPAMAPIPermission',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'filters.DjangoFilterBackend',
     )
 }
 
@@ -245,9 +249,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
-
-IPAM_USER_GROUP = locals().pop('LOCAL_IPAM_USER_GROUP', 'ipam-users')
-IPAM_ADMIN_GROUP = locals().pop('LOCAL_IPAM_ADMIN_GROUP', 'ipam-admins')
-IPAM_DEFAULT_POOL = 1
-
 
