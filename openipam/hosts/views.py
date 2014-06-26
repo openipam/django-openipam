@@ -13,7 +13,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.utils import DatabaseError, DataError
+from django.db.utils import DatabaseError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -23,9 +23,9 @@ from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
-from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
+from openipam.hosts.models import Host
+from openipam.network.models import AddressType, Lease
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
-from openipam.network.models import AddressType, Address, Lease
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
@@ -380,7 +380,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         if CONFIG['CONVERT_OLD_PERMISSIONS']:
-           convert_host_permissions(host_pk=self.kwargs.get('pk'))
+           convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostDetailView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -442,7 +442,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
         if CONFIG['CONVERT_OLD_PERMISSIONS']:
-           convert_host_permissions(host_pk=self.kwargs.get('pk'))
+           convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
