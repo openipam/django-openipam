@@ -2,7 +2,6 @@ from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.conf import settings
 from django.db import connection
 
 from guardian.shortcuts import assign_perm, remove_perm
@@ -10,6 +9,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from django_auth_ldap.backend import LDAPBackend
 
+from openipam.conf.ipam_settings import CONFIG
 from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup
 from openipam.hosts.models import Host
 
@@ -109,7 +109,7 @@ def convert_min_permissions(user=None, username=None):
         user_qs = user_qs.filter(username__iexact=username)
 
     # Add admins to IPAM admins
-    ipam_admin_group = AuthGroup.objects.get(name=settings.IPAM_ADMIN_GROUP)
+    ipam_admin_group = AuthGroup.objects.get(name=CONFIG.get('ADMIN_GROUP'))
     users_ipam_admins = user_qs.filter(min_permissions__name='ADMIN')
     for user in users_ipam_admins:
         user.groups.add(ipam_admin_group)
