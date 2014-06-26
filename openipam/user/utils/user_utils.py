@@ -136,7 +136,7 @@ def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], 
     return
 
 
-def convert_host_permissions(delete=False, username=None, host_pk=None):
+def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty_only=False):
     owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
     host_type = ContentType.objects.get(app_label='hosts', model='host')
 
@@ -146,6 +146,13 @@ def convert_host_permissions(delete=False, username=None, host_pk=None):
         #HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
         #HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
     if host_pk:
+        if on_empty_only:
+            host = Host.objects.filter(pk=host_pk).first()
+            if not host:
+                return
+            user_owners, group_owners = host.owners
+            if user_owners or group_owners:
+                return
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups').filter(host__pk=host_pk))
     elif username:
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
