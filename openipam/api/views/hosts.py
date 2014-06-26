@@ -1,4 +1,3 @@
-from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -15,7 +14,6 @@ from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttri
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
 
-from guardian.models import UserObjectPermission, GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
