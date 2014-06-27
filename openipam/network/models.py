@@ -300,6 +300,9 @@ class Address(models.Model):
 
         # Set new pool and save
         self.pool = pool
+
+        # actually release the address
+        self.host = None
         self.save()
 
     class Meta:
