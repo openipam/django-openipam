@@ -30,6 +30,7 @@ class HostList(generics.ListAPIView):
         * `user` -- Username of a user
         * `group` -- Group name of a group
         * `is_expired` -- 1 or 0 to see expired hosts
+        * `ip_address` -- IP Address to filter on
         * `attribute` -- Name:Value to filter on attributes
         * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
 
