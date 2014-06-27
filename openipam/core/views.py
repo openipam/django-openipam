@@ -1,7 +1,7 @@
 #from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
@@ -9,11 +9,9 @@ from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import RequestContext, loader
 from django.conf import settings
-from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import login as auth_login
-from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
@@ -120,30 +118,7 @@ def page_not_found(request):
 
 @requires_csrf_token
 def server_error(request):
-    error_list = []
-
-    try:
-        exc_type, exc_value, tb = sys.exc_info()
-    except:
-        exc_type, exc_value, tb = None, None, None
-
-    if exc_type == ValidationError:
-        if hasattr(exc_value, 'error_dict'):
-            for key, errors in exc_value.message_dict.items():
-                for error in errors:
-                    error_list.append(error)
-        else:
-            error_list.append(exc_value.message)
-
-    if error_list:
-        error_list.append('Please try again.')
-        messages.error(request, mark_safe('<br />'.join(error_list)))
-        return HttpResponseRedirect(request.path)
-
-    context = {
-        'error_list': error_list,
-    }
-    return page_error(request, template_name='500.html', extra_context=context)
+    return page_error(request, template_name='500.html')
 
 
 def page_error(request, template_name, extra_context=None):
