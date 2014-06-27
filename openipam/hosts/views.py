@@ -3,7 +3,9 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView
 from django.views.generic import TemplateView
 from django.core.urlresolvers import reverse_lazy
+from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
+from django.utils.safestring import mark_safe
 from django.utils.http import urlunquote
 from django.utils import timezone
 from django.utils.encoding import force_unicode
@@ -148,7 +150,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             WHERE leases.address::text = %(search)s
                     ''', {'lsearch': like_search_term, 'search': search_item})
                     search_hosts = cursor.fetchall()
-                    #assert False, dns_hosts[0]
                     qs = qs.filter(mac__in=[host[0] for host in search_hosts])
 
             if host_search:
@@ -432,7 +433,22 @@ class HostUpdateCreateMixin(object):
         return context
 
     def post(self, request, *args, **kwargs):
-        return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
+        try:
+            return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
+        except ValidationError as e:
+            error_list = []
+            form_class = self.get_form_class()
+            form = self.get_form(form_class)
+            if hasattr(e, 'error_dict'):
+                for key, errors in e.message_dict.items():
+                    for error in errors:
+                        error_list.append(error)
+            else:
+                error_list.append(e.message)
+
+            error_list.append('Please try again.')
+            messages.error(request, mark_safe('<br />'.join(error_list)))
+            return self.form_invalid(form)
 
 
 class HostUpdateView(HostUpdateCreateMixin, UpdateView):
