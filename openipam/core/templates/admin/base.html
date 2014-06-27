@@ -11,13 +11,7 @@
         {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
         <script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
 
-        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
         <script type="text/javascript" src="{% static "core/js/jquery-1.11.1.min.js" %}"></script>
-        <script type="text/javascript" src="{% static "admin/js/jquery.init.js" %}"></script>
-        <script>
-            var jQuery = django.jQuery;
-            var $ = django.jQuery;
-        </script>
         <script type="text/javascript" src="{% static "core/js/jquery.cookie.js" %}"></script>
         <script src="{% static "core/bootstrap3/js/bootstrap.min.js" %}"></script>
 
@@ -105,6 +99,11 @@
     {% endblock %}
     <!-- END Container -->
 
-    {% block footer_scripts %}{% endblock %}
+    {% block footer_scripts %}
+        <script type="text/javascript">
+            // autocomplete_light sets this to true which conflicts with datatables.
+            $.ajaxSettings.traditional = false;
+        </script>
+    {% endblock %}
     </body>
 </html>

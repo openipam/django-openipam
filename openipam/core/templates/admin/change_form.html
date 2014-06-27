@@ -8,7 +8,7 @@
     <script type="text/javascript" src="{% static "core/chosen/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         $(function(){
-            $('select:not(.value-select)').chosen();
+            $('select:not(.value-select):not(.no-chosen)').chosen();
         });
 
     </script>

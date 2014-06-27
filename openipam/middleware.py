@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import REDIRECT_FIELD_NAME
 
 from re import compile
 
@@ -31,9 +32,9 @@ class LoginRequiredMiddleware(object):
  work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
  'django.core.context_processors.auth'."
         if not request.user.is_authenticated():
-            path = request.path_info.lstrip('/')
+            path = request.path.lstrip('/')
             if not any(m.match(path) for m in EXEMPT_URLS):
-                return HttpResponseRedirect(settings.LOGIN_URL)
+                return HttpResponseRedirect(settings.LOGIN_URL + '?%s=%s' % (REDIRECT_FIELD_NAME, request.path))
 
 
 class MimicUserMiddleware(object):
@@ -41,4 +42,7 @@ class MimicUserMiddleware(object):
     def process_request(self, request):
         mimic_user = request.session.get('mimic_user')
         if mimic_user:
-            request.user = User.objects.get(pk=mimic_user)
+            try:
+                request.user = User.objects.get(pk=mimic_user)
+            except User.DoesNotExist:
+                del request.session['mimic_user']

@@ -4,7 +4,7 @@ from django import forms
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Pool, Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
-from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm
+from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, AddressAdminForm
 from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
@@ -12,8 +12,8 @@ import autocomplete_light
 
 class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
-    change_form_template = 'admin/openipam/change_form.html'
     list_display = ('nice_network', 'name', 'description', 'gateway')
+    search_fields = ('network',)
 
     def nice_network(self, obj):
         url = str(obj.network).replace('/', '_2F')
@@ -81,6 +81,10 @@ class SharedNetworkAdmin(ChangedAdmin):
     list_display = ('name', 'description', 'changed_by', 'changed',)
 
 
+class VlanAdmin(ChangedAdmin):
+    pass
+
+
 class NetworkToVlanAdmin(ChangedAdmin):
     list_display = ('network', 'vlan', 'changed_by', 'changed',)
 
@@ -108,17 +112,19 @@ class HasHostFilter(admin.SimpleListFilter):
 
 
 class AddressAdmin(ChangedAdmin):
-    form = autocomplete_light.modelform_factory(Address)
+    form = AddressAdminForm
     search_fields = ('address', 'host__mac', 'host__hostname',)
     list_filter = ('network', 'reserved', 'pool', HasHostFilter)
     list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed')
+
+
 
 
 admin.site.register(DefaultPool)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)
-admin.site.register(Vlan)
+admin.site.register(Vlan, ChangedAdmin)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(Lease, LeaseAdmin)

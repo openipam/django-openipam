@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block page_nav %}{% endblock %}
+
+{% block content %}
+    <div id="error-page">
+        <h2>Denied!  403, You have been found not worthy to view this page!</h2>
+        <h4>You do not have access to the page requested.  To offset your anger and fustration, we have provided you with a LOLCat.</h4>
+        {% if email %}
+            <h4>You can also contact an <a href="mailto:{{ email }}">IPAM admin</a> if you need further consoling.</h4>
+        {% endif %}
+        <img class="cat" src="{% static 'core/img/error_cats/' %}{{ kitty }}" alt="Lolcats" />
+    </div>
+{% endblock %}

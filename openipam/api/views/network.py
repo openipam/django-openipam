@@ -22,7 +22,6 @@ class NetworkList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     queryset = Network.objects.all()
     serializer_class = NetworkSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('network', 'name',)
     filter_class = NetworkFilter
     paginate_by = 10
@@ -30,7 +29,6 @@ class NetworkList(generics.ListAPIView):
 
 
 class AddressList(generics.ListAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
     model = Address
     paginate_by = 50
     filter_backends = (filters.SearchFilter,)
@@ -38,7 +36,6 @@ class AddressList(generics.ListAPIView):
 
 
 class DhcpGroupList(generics.ListAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
     model = DhcpGroup
     filter_backends = (filters.SearchFilter,)
     filter_fields = ('name',)

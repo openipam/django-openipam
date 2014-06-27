@@ -1,8 +1,8 @@
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-from django.conf import settings
 
+from openipam.conf.ipam_settings import CONFIG
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 
@@ -42,7 +42,7 @@ def convert_user_permissions(sender, request, user, **kwargs):
 # Automatically assign new users to IPAM_USER_GROUP
 def assign_ipam_groups(sender, instance, created, **kwargs):
     # Get user group
-    ipam_user_group = Group.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
+    ipam_user_group = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))[0]
     # Check to make sure Admin Group exists
     # ipam_admin_group = Group.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
 
@@ -51,7 +51,6 @@ def assign_ipam_groups(sender, instance, created, **kwargs):
 
     if ipam_user_group not in user_groups:
         instance.groups.add(ipam_user_group)
-
 
 
 # Automatically remove permissions when user is deleted.
@@ -63,8 +62,3 @@ def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
     UserObjectPermission.objects.filter(filters).delete()
     GroupObjectPermission.objects.filter(filters).delete()
 
-
-# def remove_old_group_permissions(sender, instance, **kwargs):
-#     from openipam.user.models import Group, HostToGroup, DomainToGroup, NetworkToGroup
-
-#     assert False, instance.__dict__

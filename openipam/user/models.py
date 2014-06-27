@@ -12,12 +12,9 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions#, remove_old_group_permissions
+   remove_obj_perms_connected_with_user, convert_user_permissions
 
-#from guardian.models import GroupObjectPermission, UserObjectPermission
-
-from django_postgres import Bits
-import django_postgres
+from guardian.models import GroupObjectPermission, UserObjectPermission
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -35,7 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # TODO: Remove later
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions',
-                                        related_name='user_min_permissions', default=Bits('0x00'))
+                                        related_name='user_min_permissions', default='00000000')
     source = models.ForeignKey('AuthSource', db_column='source', default=1)
 
     objects = IPAMUserManager()
@@ -55,28 +52,52 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True if 'ipam-admins' in groups else False
 
     @cached_property
-    def network_owner_permissions(self):
-        if self.is_ipamadmin:
+    def network_owner_perms(self):
+        if self.has_perm('network.is_owner_network'):
             return True
         else:
             from openipam.network.models import Network
-            return Network.objects.get_networks_owned_by_user(self, ids_only=True)
+            return Network.objects.by_owner(self, use_groups=True, ids_only=True)
 
     @cached_property
-    def domain_owner_permissions(self):
-        if self.is_ipamadmin:
+    def domain_owner_perms(self):
+        if self.has_perm('dns.is_owner_domain'):
             return True
         else:
             from openipam.dns.models import Domain
-            return Domain.objects.get_domains_owned_by_user(self, names_only=True)
+            return Domain.objects.by_owner(self, use_groups=True, names_only=True)
 
     @cached_property
-    def host_owner_permissions(self):
-        if self.is_ipamadmin:
+    def host_owner_perms(self):
+        if self.has_perm('hosts.is_owner_host'):
             return True
         else:
             from openipam.hosts.models import Host
-            return Host.objects.get_hosts_owned_by_user(self, ids_only=True)
+            return Host.objects.by_owner(self, use_groups=True, ids_only=True)
+
+    # @cached_property
+    # def network_change_perms(self):
+    #     if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):
+    #         return True
+    #     else:
+    #         from openipam.network.models import Network
+    #         return Network.objects.by_change_perms(self, ids_only=True)
+
+    # @cached_property
+    # def domain_change_perms(self):
+    #     if self.has_perm('dns.change_domain') or self.has_perm('dns.is_owner_domain'):
+    #         return True
+    #     else:
+    #         from openipam.dns.models import Domain
+    #         return Domain.objects.by_change_perms(self, names_only=True)
+
+    # @cached_property
+    # def host_change_perms(self):
+    #     if self.has_perm('hosts.change_host') or self.has_perm('dns.is_owner_host'):
+    #         return True
+    #     else:
+    #         from openipam.hosts.models import Host
+    #         return Host.objects.by_change_perms(self, ids_only=True)
 
     def get_auth_user(self):
         try:
@@ -107,34 +128,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email])
 
-    # # Force Usernames to be lower case when being created
-    # @classmethod
-    # def force_usernames_uppercase(sender, instance, **kwargs):
-    #     username = instance.username.lower()
-    #     if username.startswith('a') and username[1:].isdigit() and len(username) == 9:
-    #         instance.username = instance.username.upper()
-
-    # # Automatically assign new users to IPAM_USER_GROUP
-    # @classmethod
-    # def assign_ipam_groups(sender, instance, created, **kwargs):
-    #     # Get user group
-    #     ipam_user_group = AuthGroup.objects.get_or_create(name=settings.IPAM_USER_GROUP)[0]
-    #     # Check to make sure Admin Group exists
-    #     ipam_admin_group = AuthGroup.objects.get_or_create(name=settings.IPAM_ADMIN_GROUP)[0]
-
-    #     if created:
-    #         instance.groups.add(ipam_user_group)
-
-    # # Automatically remove permissions when user is deleted.
-    # # This is only used when there are row level permissions defined using
-    # # guadian tables.  Right now Host, Domain, DnsType, etc have explicit perm tables.
-    # @classmethod
-    # def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
-    #     filters = Q(content_type=ContentType.objects.get_for_model(instance),
-    #         object_pk=instance.pk)
-    #     UserObjectPermission.objects.filter(filters).delete()
-    #     GroupObjectPermission.objects.filter(filters).delete()
-
     class Meta:
         db_table = 'users'
         verbose_name = _('user')
@@ -150,16 +143,15 @@ class AuthSource(models.Model):
 
 
 class Permission(models.Model):
-    permission = django_postgres.BitStringField(max_length=8, primary_key=True, db_column='id')
+    permission = models.CharField(max_length=8, primary_key=True, db_column='id')
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.permission.bin, self.name)
+        return '%s - %s' % (self.permission, self.name)
 
     class Meta:
         db_table = 'permissions'
-        managed = False
 
 
 class UserToGroup(models.Model):
@@ -259,14 +251,3 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
-#pre_delete.connect(remove_old_group_permissions, sender=GroupObjectPermission)
-
-
-# South Fixes for Bit string field
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], [
-        "^django_postgres\.bitstrings\.BitStringField",
-    ])
-except ImportError:
-    pass

@@ -21,7 +21,7 @@
             {% admin_tools_render_menu %}
             <ul id="right-menu" class="nav navbar-nav navbar-right">
                 <li class="navbar-form">
-                    {% if request.user.is_ipamadmin %}
+                    {% if request.user.is_ipamadmin and not request.session.mimic_user %}
                         <form id="mimic_form" method="post" action="{% url 'mimic' %}">
                             {% csrf_token %}
                             <input type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm" />

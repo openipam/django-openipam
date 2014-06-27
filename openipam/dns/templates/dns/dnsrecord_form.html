@@ -3,7 +3,7 @@
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-    Add DNS Record
+    {% if object %}Edit{% else %}Add{% endif %} DNS Record
   </h3>
 {% endblock %}
 
@@ -23,7 +23,7 @@
     {{ block.super }}
         ../|{% trans "DNS" %}
         {% if object %}
-            {{ object.pk }}
+            {{ object.name }}
         {% else %}
             {% trans "Add Record" %}
         {% endif %}

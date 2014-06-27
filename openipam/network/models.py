@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 
-from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager
+from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
 from openipam.network.signals import validate_address_type, release_leases
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
@@ -73,7 +73,7 @@ class DefaultPool(models.Model):
     pool = models.ForeignKey('Pool', related_name='pool_defaults', blank=True, null=True)
     cidr = CidrAddressField(unique=True)
 
-    objects = NetManager()
+    objects = DefaultPoolManager()
 
     def __unicode__(self):
         return '%s - %s' % (self.pool, self.cidr)
@@ -92,7 +92,7 @@ class DhcpGroupManager(models.Manager):
 
 
 class DhcpGroup(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.SlugField()
     description = models.TextField(blank=True, null=True)
     dhcp_options = models.ManyToManyField('DhcpOption', through='DhcpOptionToDhcpGroup')
     changed = models.DateTimeField(auto_now=True)
@@ -143,7 +143,7 @@ class HostToPool(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.mac, self.pool)
+        return '%s %s' % (self.host, self.pool)
 
     class Meta:
         db_table = 'hosts_to_pools'
@@ -189,6 +189,7 @@ class Network(models.Model):
             ('is_owner_network', 'Is owner'),
             ('add_records_to_network', 'Can add records to'),
         )
+        ordering = ('network',)
 
 
 class NetworkRange(models.Model):
@@ -222,6 +223,8 @@ class NetworkToVlan(models.Model):
     vlan = models.ForeignKey('Vlan', db_column='vlan')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+    objects = NetManager()
 
     def __unicode__(self):
         return '%s %s' % (self.network, self.vlan)
@@ -274,37 +277,6 @@ class Address(models.Model):
         elif (self.host or self.pool) and self.reserved:
             raise ValidationError('If a Host or Pool are defined, reserved must be false.')
 
-    def get_pool_default(self):
-        # Find most specific DefaultPool for this address and return associated Pool
-        pool = (DefaultPool.objects
-                .filter(cidr__net_contains_or_equals=self.address)
-                .extra(select={'masklen': "masklen(cidr)"}, order_by=['-masklen']))
-        # first one should have the longest mask, which is most specific
-        pool = pool[0].pool if pool else None
-        return pool
-
-    def release(self, pool=False):
-        from openipam.dns.models import DnsRecord
-
-        # Get default pool if false
-        if pool is False:
-            pool = self.get_pool_default()
-        # Assume an int if not Model
-        elif not isinstance(pool, models.Model):
-            pool = Pool.objects.get(pk=pool)
-
-        # Delete dns PTR records
-        DnsRecord.objects.filter(name=self.address.reverse_dns[:-1]).delete()
-        # Delete dns A records
-        DnsRecord.objects.filter(ip_content=self).delete()
-
-        # Set new pool and save
-        self.pool = pool
-
-        # actually release the address
-        self.host = None
-        self.save()
-
     class Meta:
         db_table = 'addresses'
         verbose_name_plural = 'addresses'
@@ -341,7 +313,7 @@ class AddressType(models.Model):
         ordering = ('name',)
 
 
-# Register Signals
+# Network Signals
 m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
 post_save.connect(release_leases, sender=Address)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Network)

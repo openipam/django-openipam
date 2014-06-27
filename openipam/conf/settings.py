@@ -114,6 +114,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'openipam.middleware.LoginRequiredMiddleware',
     'openipam.middleware.MimicUserMiddleware',
@@ -135,9 +136,6 @@ TEMPLATE_DIRS = (
 
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
-    #'django_admin_bootstrapped.bootstrap3',
-    #'django_admin_bootstrapped',
-
     'openipam.core',
     'openipam.api',
 
@@ -146,14 +144,6 @@ INSTALLED_APPS = (
     'admin_tools.menu',
     'admin_tools.dashboard',
     'django_extensions',
-    #'djangopad.usuauth',
-    #'djangopad.identity',
-    #'reversion',
-    #'reversion_compare',
-    #'csvimport',
-    #'django_ace',
-    #'mptt',
-    #'djcelery',
     'widget_tweaks',
     'crispy_forms',
     'autocomplete_light',
@@ -161,8 +151,12 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
-    'cacheops',
-    'django_pickling',
+
+    # Two factor auth
+    #'django_otp',
+    #'django_otp.plugins.otp_static',
+    #'django_otp.plugins.otp_totp',
+    #'two_factor',
 
     'openipam.user',
 
@@ -222,16 +216,10 @@ LOGIN_EXEMPT_URLS = (
     'password/forgot/',
     'api/?.*',
 )
+#LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_RENDERER_CLASSES': (
-#         'rest_framework.renderers.JSONRenderer',
-#         'rest_framework.renderers.BrowsableAPIRenderer',
-#     )
-# }
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 25,
@@ -244,6 +232,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+        'openipam.api.permissions.IPAMAPIPermission',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
     )
 }
 
@@ -252,55 +244,9 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=4)
 }
 
-CACHEOPS_REDIS = {
-    'host': 'localhost', # redis-server is on same machine
-    'port': 6379,        # default redis port
-    'db': 1,             # SELECT non-default redis database
-                         # using separate redis db or redis instance
-                         # is highly recommended
-    'socket_timeout': 3,
-}
-
-
-CACHEOPS = {
-    # Automatically cache any User.objects.get() calls for 15 minutes
-    # This includes request.user or post.author access,
-    # where Post.author is a foreign key to auth.User
-    'user.*': ('all', 60*15),
-
-    # Automatically cache all gets, queryset fetches and counts
-    # to other django.contrib.auth models for an hour
-    #'auth.*': ('get', 60*60),
-    'auth.group': ('all', 60*60),
-    'auth.permission': ('all', 60*60),
-    'contenttypes.*': ('all', 60*60),
-
-    # Auto Cache guadian models
-    'guardian.*': ('all', 60*15),
-
-    # Enable manual caching on all news models with default timeout of an hour
-    # Use News.objects.cache().get(...)
-    #  or Tags.objects.filter(...).order_by(...).cache()
-    # to cache particular ORM request.
-    # Invalidation is still automatic
-    #'news.*': ('just_enable', 60*60),
-    '*.*': ('just_enable', 60*60),
-
-    # Automatically cache count requests for all other models for 15 min
-    'dns.dnsrecord': ('count', 60*15),
-    'hosts.host': ('count', 60*15),
-}
-
-CACHEOPS_DEGRADE_ON_FAILURE = True
-
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
-
-IPAM_USER_GROUP = locals().pop('LOCAL_IPAM_USER_GROUP', 'ipam-users')
-IPAM_ADMIN_GROUP = locals().pop('LOCAL_IPAM_ADMIN_GROUP', 'ipam-admins')
-IPAM_DEFAULT_POOL = 1
-
 

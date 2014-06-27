@@ -59,7 +59,6 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
 class DomainAdmin(OpjectPermissionAdmin, ChangedAdmin):
     list_display = ('name', 'sgroup_permissions', 'suser_permissions', 'changed_by', 'changed')
     form = autocomplete_light.modelform_factory(Domain)
-    change_form_template = 'admin/openipam/change_form.html'
     search_fields = ('name',)
 
 
@@ -67,7 +66,6 @@ class DnsRecordAdmin(BaseDNSAdmin, ChangedAdmin):
     list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
     list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
-    change_form_template = 'admin/openipam/change_form.html'
     list_editable = ('name', 'dns_type', 'text_content')
     list_display_links = ('edit_link',)
     #list_select_related = True

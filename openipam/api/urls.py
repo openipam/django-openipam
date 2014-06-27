@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url, include
 from openipam.api.views.base import UserAuthenticated
 from openipam.api.views import network
 from openipam.api.views import hosts
+from openipam.api.views import users
 from openipam.api.views import guests
 from openipam.api.views import dns
 from rest_framework_jwt.views import obtain_jwt_token
@@ -17,6 +18,13 @@ urlpatterns = patterns('openipam.api.views',
 
     url(r'^web/networkselects/(?P<address_type_id>\d+)$', 'web.network_selects', name='api_network_select'),
     url(r'^web/', include('autocomplete_light.urls')),
+
+    # Users
+    url(r'^users/$', users.UserList.as_view(), name='api_users_list'),
+
+    # Attributes
+    url(r'^attributes/$', hosts.AttributeList.as_view(), name='api_attributes'),
+    url(r'^attributes/structured/values/$', hosts.StructuredAttributeValueList.as_view(), name='api_attributes_structured_values'),
 
     # Hosts
     url(r'^hosts/mac/$', hosts.HostMac.as_view(), name='api_host_mac'),

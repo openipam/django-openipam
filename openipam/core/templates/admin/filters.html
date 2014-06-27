@@ -1,16 +1,14 @@
-{% load openipam cache %}
+{% load openipam %}
 
-{% cache 300 admin_filters request.GET.items request.path %}
-    {% if cl.has_filters %}
-        <button type="button" id="changelist-filters-toggle" class="pull-right btn btn-default">
-            Filters
-            <span class="caret"></span>
-        </button>
-        <div id="changelist-filter-actions" class="well well-sm action-wrapper">
-            {% for spec in cl.filter_specs %}
-              {% admin_select_filter cl spec %}
-            {% endfor %}
-        <div class="clear"><!-- --></div>
-        </div>
-    {% endif %}
-{% endcache %}
+{% if cl.has_filters %}
+    <button type="button" id="changelist-filters-toggle" class="pull-right btn btn-default">
+        Filters
+        <span class="caret"></span>
+    </button>
+    <div id="changelist-filter-actions" class="well well-sm action-wrapper">
+        {% for spec in cl.filter_specs %}
+          {% admin_select_filter cl spec %}
+        {% endfor %}
+    <div class="clear"><!-- --></div>
+    </div>
+{% endif %}

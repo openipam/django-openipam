@@ -3,13 +3,22 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django import forms
 
-from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup
+from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup, Address
 
 import autocomplete_light
 
 from curses.ascii import isprint
 
 import binascii
+
+
+class AddressAdminForm(forms.ModelForm):
+    host = autocomplete_light.ModelChoiceField('HostAutocomplete', required=False)
+    network = autocomplete_light.ModelChoiceField('NetworkAutocomplete')
+
+
+    class Meta:
+        model = Address
 
 
 class AddressTypeAdminForm(forms.ModelForm):
@@ -28,9 +37,7 @@ class AddressTypeAdminForm(forms.ModelForm):
 
 
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
-    group = forms.ModelChoiceField(DhcpGroup.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('DhcpGroupAutocomplete')
-    )
+    group = autocomplete_light.ModelChoiceField('DhcpGroupAutocomplete')
     readable_value = forms.CharField(label='Value')
 
     def __init__(self, *args, **kwargs):

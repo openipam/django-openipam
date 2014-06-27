@@ -30,12 +30,9 @@ class DNSSearchForm(forms.Form):
 
 
 class DNSListForm(forms.Form):
-    host = forms.ModelChoiceField(Host.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('HostFilterAutocomplete'))
-    groups = forms.ModelChoiceField(Group.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
-    users = forms.ModelChoiceField(User.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('UserFilterAutocomplete'))
+    host = autocomplete_light.ModelChoiceField('HostFilterAutocomplete')
+    groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
+    users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
 
 
 class BaseDNSUpdateFormset(BaseModelFormSet):

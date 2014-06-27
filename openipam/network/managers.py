@@ -1,10 +1,13 @@
 from django.db.models import Model, Manager
+from django.db.models.query import QuerySet
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.timezone import utc, now
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from netfields import NetManager
+from netfields.managers import NetWhere, NetQuery
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -12,30 +15,43 @@ import random
 import re
 import operator
 
+User = get_user_model()
 
-class NetworkManager(NetManager):
 
-    def get_networks_owned_by_user(self, user, ids_only=False):
-        networks = get_objects_for_user(user, 'network.is_owner_network')
-        # networks = self.raw('''
-        #     SELECT n.network FROM networks n
-        #         INNER JOIN network_networkuserobjectpermission nup ON nup.content_object_id = n.network AND nup.user_id = %s
-        #         INNER JOIN auth_permission nuap ON nup.permission_id = nuap.id AND nuap.codename = 'is_owner_network'
+class NetworkMixin(object):
+    def by_owner(self, user, use_groups=False, ids_only=False):
+        # Temporarily set superuser to false so we can get only permission relations
+        perm_user = User.objects.get(pk=user.pk)
+        perm_user.is_superuser = False
 
-        #     UNION
-
-        #     SELECT n.network FROM networks n
-        #         INNER JOIN network_networkgroupobjectpermission ngp ON ngp.content_object_id = n.network
-        #         INNER JOIN auth_permission ngap ON ngp.permission_id = ngap.id AND ngap.codename = 'is_owner_network'
-        #         INNER JOIN users_groups ug ON ngp.group_id = ug.group_id and ug.user_id = %s
-        # ''', [user.pk, user.pk])
+        networks = get_objects_for_user(perm_user, 'network.is_owner_network', use_groups=use_groups)
 
         if ids_only:
             return tuple([str(network.network) for network in networks])
         else:
             return networks
 
-    def get_networks_from_address_type(self, address_type):
+    def by_change_perms(self, user, pk=None, ids_only=False):
+        if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):
+            if pk:
+                qs = self.filter(pk=pk)
+                return qs[0] if qs else None
+            else:
+                return self.all()
+        else:
+            network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('pk', flat=True)
+
+            qs = self.filter(network__in=list(network_perms))
+
+            if pk:
+                qs = qs.filter(pk=pk).first()
+
+            if ids_only:
+                return tuple([network.network for network in qs])
+            else:
+                return qs
+
+    def by_address_type(self, address_type):
         from openipam.network.models import NetworkRange
 
         # Get assigned ranges
@@ -56,6 +72,20 @@ class NetworkManager(NetManager):
             return self.none()
 
 
+class NetworkQuerySet(QuerySet, NetworkMixin):
+    pass
+
+
+class NetworkManager(NetManager):
+
+    def __getattr__(self, name):
+        return getattr(self.get_query_set(), name)
+
+    def get_query_set(self):
+        q = NetQuery(self.model, NetWhere)
+        return NetworkQuerySet(self.model, q)
+
+
 class PoolManager(Manager):
 
     def get_default_pool(self):
@@ -68,156 +98,224 @@ class LeaseManager(NetManager):
         return self.get(address__ip=ip).mac
 
 
-class AddressManager(NetManager):
+class AddressMixin(object):
 
-    def release_static_address(self, address):
-
-        if not isinstance(address, Model):
-            address = self.get(pk=address)
-
-        if not address.mac:
-            raise ValidationError('This address "%s" has already been released.' % address)
-
-    def assign_ip6_address(self, mac, network):
-    #def assign_ip6_address(self, mac, network, dhcp_server_id=0, use_lowest=False, is_server=False):
-
-        from openipam.network.models import Network, Address, Pool
-
-        # Sanity Checks for arguents
-        if network and not isinstance(network, Model):
-            network = Network.objects.get(pk=network)
-
-        # if network.network.prefixlen == 64:
-        #     # FIXME: the logic for choosing an address to try should go in a config file somewhere
-        #     address_prefix = network.network.ip | (dhcp_server_id << 48)
-        #     if not is_server:
-        #         address_prefix |= 1 << 63
-        #     address_prefix = address_prefix.make_net(48)
-
-        # if network.network.prefixlen == 128:
-        #     address = str(network.network)
-        # Use lowest avaiable
-        # elif use_lowest:
-
-        net_str = str(network.network)
-        address = Address.objects.raw('''
-            SELECT (address+1) as next FROM addresses a1
-            WHERE a1.address << %s
-                AND NOT EXISTS (SELECT address from addresses a2
-                            WHERE a2.address = (a1.address+1) and (a2.address+1) << %s)
-            ORDER BY next
-            LIMIT 1
-        ''', [net_str, net_str])[0]
-
-        if not address:
-            raise ValidationError('Did not find an ip6 address?! network: %s prefixlen: %s mac: %s'
-                                  % (net_str, network.network.prefixlen, mac))
-        # else:
-        #     macaddr = int('0x' + re.sub(mac,'[^0-9A-Fa-f]+',''))
-        #     lastbits = (macaddr & 0xffffff) ^ (macaddr >> 24) | (random.getrandbits(24) << 24)
-        #     address = address_prefix | lastbits
-
-        # Check to see if it is used
-        addr = Address.objects.filter(address=address)
-        if addr:
-            raise ValidationError('Address %r already in use' % addr)
-
-        # Add our new address to the table
-        Address.objects.create(mac=mac, network=network, address=address)
-
-        return address
-
-    def assign_static_address(self, mac, hostname=None, network=None, address=None):
-
-        from openipam.network.models import Network, Pool
+    def release(self, pool=False):
         from openipam.dns.models import DnsRecord
+        from openipam.network.models import DefaultPool, Pool
 
-        # Sanity Checks for arguents
-        if network and not isinstance(network, Model):
-            network = Network.objects.get(pk=network)
-        if address and not isinstance(address, Model):
-            address = addresses = self.get(pk=address)
+        # Loop through addresses and release them
+        for obj in self:
+            # Get default pool if false
+            if pool is False:
+                obj_pool = DefaultPool.objects.get_pool_default(address=obj.address)
+            # Assume an int if not Model
+            elif not isinstance(pool, Model):
+                obj_pool = Pool.objects.get(pk=pool)
 
-        # Validation checks on Network and Address
-        if address and network:
-            if address.address.version != network.network.version:
-                raise ValidationError('Address and Network family mismatch: %s, %s' % (address, network))
-            elif address.address not in network.network:
-                raise ValidationError('Address %s does not belong to Network %s' % (address, network))
+            # Delete dns PTR records
+            DnsRecord.objects.filter(name=obj.address.reverse_dns[:-1]).delete()
+            # Delete dns A records
+            DnsRecord.objects.filter(ip_content=obj).delete()
 
-            # Since we have an address, we don't need a network
-            network = None
+            obj.host = None
+            obj.pool = obj_pool
+            obj.save()
 
-        is_ipv4 = (address and address.address.version == 4) or (network and network.network.version == 4)
+        return self
 
-        # Get available address(es)
-        if is_ipv4 is False:
-            # We dont reuse IPV6
-            addresses = None
-        elif address:
-            addresses = self.filter(pk=address, mac=None, reserved=False)
-        elif network:
-            addresses = self.filter(pk__net_contained=network, mac=None, reserved=False)
 
-        # If no addresses available or IPV6
-        if not addresses:
-
-            # If ipv4
-            if is_ipv4:
-                # Find the assignable pools
-                assignable_pools = Pool.objects.filter(assignable=True)
-                # Filter addresses that and not asigned or reserved
-                # And that are in assignable bools
-                # And that leases are expired on never used or owned by the mac (user)
-                pool_addresses = self.filter(
-                    Q(lease__ends__lt=now()) | Q(lease__ends=None) | Q(lease__mac=mac),
-                    mac=None,
-                    reserved=False,
-                    pool__in=assignable_pools,
-                )
-
-                # If network selected make sure addresses are in the network
-                if network:
-                    pool_addresses = pool_addresses.filter(address__net_contained=network)
-                # If specific address specified, filter just to it
-                if address:
-                    pool_addresses = pool_addresses.filter(address=address)
-
-                if not pool_addresses:
-                    if address:
-                        raise ValidationError('Could not assign IP address %s to MAC address %s. '
-                                              ' It may be in use or not contained by a network.' % (address, mac))
-                    else:
-                        raise ValidationError('Could not assign IP address %s to MAC address %s. '
-                                              ' There are no free addresses available with the'
-                                              ' criteria specified.' % mac)
-
-                # Select the first pool address to use
-                new_address = pool_addresses[0]
-
-                # Assign the mac to our selected address
-                new_address.mac = mac
-                new_address.save()
-
-            # Else ipv6 address
+    def by_dns_change_perms(self, user, pk=None):
+        if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):
+            if pk:
+                qs = self.filter(pk=pk)
+                return qs[0] if qs else None
             else:
-                ip6net = address if address else network
-                # Assign an ipv6 address to our mac
-                new_address = self.assign_ip6_address(mac, ip6net)
+                return self.all()
+        else:
+            host_perms = get_objects_for_user(
+                user, ['hosts.is_owner_host', 'hosts.change_host'],
+                any_perm=True
+            ).values_list('pk', flat=True)
+            network_perms = get_objects_for_user(
+                user, ['network.is_owner_network', 'network.add_records_to_network', 'network.change_network'],
+                any_perm=True
+            ).values_list('pk', flat=True)
 
-        # Add the A record for this static (also adds PTR)
-        if hostname:
-            # delete any ptr's
-            # FIXME: this is a sign that something wasn't deleted cleanly... maybe we shouldn't?
-            #self.del_dns_record(name=openipam.iptypes.IP(address).reverseName()[:-1])
-            # FIXME: is it safe to delete other DNS records here?
-            tid = 1 if is_ipv4 else 28
-
-            DnsRecord.objects.create(
-                name=hostname,
-                address=new_address,
-                tid=tid
+            qs = self.filter(
+                Q(host__mac__in=list(host_perms)) |
+                Q(network__network__in=list(network_perms))
             )
 
-        return new_address
+            if pk:
+                qs = qs.filter(pk=pk).first()
 
+            return qs
+
+
+class AddressQuerySet(QuerySet, AddressMixin):
+    pass
+
+
+class AddressManager(NetManager):
+
+    def __getattr__(self, name):
+        return getattr(self.get_query_set(), name)
+
+    def get_query_set(self):
+        q = NetQuery(self.model, NetWhere)
+        return AddressQuerySet(self.model, q)
+
+
+    # TODO: Will we use the function below???
+
+    # def assign_ip6_address(self, mac, network):
+    #     from openipam.network.models import Network, Address, Pool
+
+    #     # Sanity Checks for arguents
+    #     if network and not isinstance(network, Model):
+    #         network = Network.objects.get(pk=network)
+
+    #     # if network.network.prefixlen == 64:
+    #     #     # FIXME: the logic for choosing an address to try should go in a config file somewhere
+    #     #     address_prefix = network.network.ip | (dhcp_server_id << 48)
+    #     #     if not is_server:
+    #     #         address_prefix |= 1 << 63
+    #     #     address_prefix = address_prefix.make_net(48)
+
+    #     # if network.network.prefixlen == 128:
+    #     #     address = str(network.network)
+    #     # Use lowest avaiable
+    #     # elif use_lowest:
+
+    #     net_str = str(network.network)
+    #     address = Address.objects.raw('''
+    #         SELECT (address+1) as next FROM addresses a1
+    #         WHERE a1.address << %s
+    #             AND NOT EXISTS (SELECT address from addresses a2
+    #                         WHERE a2.address = (a1.address+1) and (a2.address+1) << %s)
+    #         ORDER BY next
+    #         LIMIT 1
+    #     ''', [net_str, net_str])[0]
+
+    #     if not address:
+    #         raise ValidationError('Did not find an ip6 address?! network: %s prefixlen: %s mac: %s'
+    #                               % (net_str, network.network.prefixlen, mac))
+    #     # else:
+    #     #     macaddr = int('0x' + re.sub(mac,'[^0-9A-Fa-f]+',''))
+    #     #     lastbits = (macaddr & 0xffffff) ^ (macaddr >> 24) | (random.getrandbits(24) << 24)
+    #     #     address = address_prefix | lastbits
+
+    #     # Check to see if it is used
+    #     addr = Address.objects.filter(address=address)
+    #     if addr:
+    #         raise ValidationError('Address %r already in use' % addr)
+
+    #     # Add our new address to the table
+    #     Address.objects.create(mac=mac, network=network, address=address)
+
+    #     return address
+
+    # def assign_static_address(self, mac, hostname=None, network=None, address=None):
+    #     from openipam.network.models import Network, Pool
+    #     from openipam.dns.models import DnsRecord
+
+    #     # Sanity Checks for arguents
+    #     if network and not isinstance(network, Model):
+    #         network = Network.objects.get(pk=network)
+    #     if address and not isinstance(address, Model):
+    #         address = addresses = self.get(pk=address)
+
+    #     # Validation checks on Network and Address
+    #     if address and network:
+    #         if address.address.version != network.network.version:
+    #             raise ValidationError('Address and Network family mismatch: %s, %s' % (address, network))
+    #         elif address.address not in network.network:
+    #             raise ValidationError('Address %s does not belong to Network %s' % (address, network))
+
+    #         # Since we have an address, we don't need a network
+    #         network = None
+
+    #     is_ipv4 = (address and address.address.version == 4) or (network and network.network.version == 4)
+
+    #     # Get available address(es)
+    #     if is_ipv4 is False:
+    #         # We dont reuse IPV6
+    #         addresses = None
+    #     elif address:
+    #         addresses = self.filter(pk=address, mac=None, reserved=False)
+    #     elif network:
+    #         addresses = self.filter(pk__net_contained=network, mac=None, reserved=False)
+
+    #     # If no addresses available or IPV6
+    #     if not addresses:
+
+    #         # If ipv4
+    #         if is_ipv4:
+    #             # Find the assignable pools
+    #             assignable_pools = Pool.objects.filter(assignable=True)
+    #             # Filter addresses that and not asigned or reserved
+    #             # And that are in assignable bools
+    #             # And that leases are expired on never used or owned by the mac (user)
+    #             pool_addresses = self.filter(
+    #                 Q(lease__ends__lt=now()) | Q(lease__ends=None) | Q(lease__mac=mac),
+    #                 mac=None,
+    #                 reserved=False,
+    #                 pool__in=assignable_pools,
+    #             )
+
+    #             # If network selected make sure addresses are in the network
+    #             if network:
+    #                 pool_addresses = pool_addresses.filter(address__net_contained=network)
+    #             # If specific address specified, filter just to it
+    #             if address:
+    #                 pool_addresses = pool_addresses.filter(address=address)
+
+    #             if not pool_addresses:
+    #                 if address:
+    #                     raise ValidationError('Could not assign IP address %s to MAC address %s. '
+    #                                           ' It may be in use or not contained by a network.' % (address, mac))
+    #                 else:
+    #                     raise ValidationError('Could not assign IP address %s to MAC address %s. '
+    #                                           ' There are no free addresses available with the'
+    #                                           ' criteria specified.' % mac)
+
+    #             # Select the first pool address to use
+    #             new_address = pool_addresses[0]
+
+    #             # Assign the mac to our selected address
+    #             new_address.mac = mac
+    #             new_address.save()
+
+    #         # Else ipv6 address
+    #         else:
+    #             ip6net = address if address else network
+    #             # Assign an ipv6 address to our mac
+    #             new_address = self.assign_ip6_address(mac, ip6net)
+
+    #     # Add the A record for this static (also adds PTR)
+    #     if hostname:
+    #         # delete any ptr's
+    #         # FIXME: this is a sign that something wasn't deleted cleanly... maybe we shouldn't?
+    #         #self.del_dns_record(name=openipam.iptypes.IP(address).reverseName()[:-1])
+    #         # FIXME: is it safe to delete other DNS records here?
+    #         tid = 1 if is_ipv4 else 28
+
+    #         DnsRecord.objects.create(
+    #             name=hostname,
+    #             address=new_address,
+    #             tid=tid
+    #         )
+
+    #     return new_address
+
+
+class DefaultPoolManager(NetManager):
+
+    def get_pool_default(self, address):
+        # Find most specific DefaultPool for this address and return associated Pool
+        pool = (self.filter(cidr__net_contains_or_equals=address)
+                .extra(select={'masklen': "masklen(cidr)"}, order_by=['-masklen'])).first()
+        # first one should have the longest mask, which is most specific
+        pool = pool.pool if pool else None
+        return pool

@@ -2,7 +2,6 @@ from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.conf import settings
 from django.db import connection
 
 from guardian.shortcuts import assign_perm, remove_perm
@@ -10,6 +9,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from django_auth_ldap.backend import LDAPBackend
 
+from openipam.conf.ipam_settings import CONFIG
 from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup
 from openipam.hosts.models import Host
 
@@ -109,7 +109,7 @@ def convert_min_permissions(user=None, username=None):
         user_qs = user_qs.filter(username__iexact=username)
 
     # Add admins to IPAM admins
-    ipam_admin_group = AuthGroup.objects.get(name=settings.IPAM_ADMIN_GROUP)
+    ipam_admin_group = AuthGroup.objects.get(name=CONFIG.get('ADMIN_GROUP'))
     users_ipam_admins = user_qs.filter(min_permissions__name='ADMIN')
     for user in users_ipam_admins:
         user.groups.add(ipam_admin_group)
@@ -136,7 +136,7 @@ def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], 
     return
 
 
-def convert_host_permissions(delete=False, username=None, host_pk=None):
+def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty_only=False):
     owner_perm = Permission.objects.get(content_type__app_label='hosts', codename='is_owner_host')
     host_type = ContentType.objects.get(app_label='hosts', model='host')
 
@@ -146,6 +146,13 @@ def convert_host_permissions(delete=False, username=None, host_pk=None):
         #HostUserObjectPermission.objects.filter(permission=owner_perm).delete()
         #HostGroupObjectPermission.objects.filter(permission=owner_perm).delete()
     if host_pk:
+        if on_empty_only:
+            host = Host.objects.filter(pk=host_pk).first()
+            if not host:
+                return
+            user_owners, group_owners = host.owners
+            if user_owners or group_owners:
+                return
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups').filter(host__pk=host_pk))
     elif username:
         host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')

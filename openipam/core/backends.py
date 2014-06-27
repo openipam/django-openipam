@@ -2,8 +2,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
-from cacheops import invalidate_model
-
 
 # Dont require this.
 try:
@@ -69,7 +67,6 @@ class _IPAMLDAPUser(_LDAPUser):
 
         new_groups_to_assign = Group.objects.none()
         if groups_to_add:
-            invalidate_model(Group)
             for group in groups_to_add:
                 Group.objects.get_or_create(name=group)
             #Group.objects.bulk_create([Group(name=group) for group in groups_to_add])

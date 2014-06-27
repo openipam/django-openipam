@@ -23,6 +23,9 @@ urlpatterns += patterns('',
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
+    # Two factor auth urls
+    # url(r'^', include('two_factor.urls', 'two_factor')),
+
     # openIPAM urls
     url(r'^', include('openipam.core.urls')),
 
@@ -42,5 +45,6 @@ if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
 else:
     urlpatterns += staticfiles_urlpatterns()
 
+handler403 = 'openipam.core.views.page_denied'
 handler404 = 'openipam.core.views.page_not_found'
 handler500 = 'openipam.core.views.server_error'

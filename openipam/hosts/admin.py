@@ -29,7 +29,6 @@ class HostAdmin(ChangedAdmin):
 class DisabledAdmin(ChangedAdmin):
     list_display = ('host', 'reason', 'changed', 'changed_by_full',)
     form = autocomplete_light.modelform_factory(Disabled)
-    change_form_template = 'admin/openipam/change_form.html'
     list_select_related = True
 
     def changed_by_full(self, obj):
@@ -42,7 +41,6 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_filter = ('starts', 'ends')
     search_fields = ('uid', 'ticket')
     form = autocomplete_light.modelform_factory(GuestTicket)
-    change_form_template = 'admin/openipam/change_form.html'
 
 
 class AttributeAdmin(ChangedAdmin):

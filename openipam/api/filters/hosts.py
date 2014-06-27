@@ -26,15 +26,9 @@ class IsExpiredFilter(NumberFilter):
 class UserFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            user = User.objects.filter(username__iexact=value)
+            user = User.objects.filter(username__iexact=value).first()
             if user:
-                user[0].is_superuser = False
-                user_hosts = get_objects_for_user(
-                    user[0],
-                    ['hosts.is_owner_host'],
-                    klass=Host,
-                )
-                qs = qs.filter(pk__in=[host.pk for host in user_hosts])
+                qs = qs.by_owner(user)
             else:
                 qs = qs.none()
         return qs
@@ -43,16 +37,28 @@ class UserFilter(CharFilter):
 class GroupFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            group = Group.objects.filter(name=value)
+            group = Group.objects.filter(name=value).first()
             if group:
-                group_hosts = get_objects_for_group(
-                    group[0],
-                    ['hosts.is_owner_host'],
-                    klass=Host,
-                )
-                qs = qs.filter(pk__in=[host.pk for host in group_hosts])
+                qs = qs.by_group(group)
             else:
                 qs = qs.none()
+        return qs
+
+
+class AttributeFilter(CharFilter):
+    def filter(self, qs, value):
+        if value:
+            attribute_name = value.split(':')[0]
+            attribute_value = value.split(':')[1]
+
+            if attribute_name and attribute_value:
+                qs = qs.filter(
+                    Q(freeform_attributes__attribute__name=attribute_name, freeform_attributes__value=attribute_value) |
+                    Q(
+                        structured_attributes__structured_attribute_value__attribute__name=attribute_name,
+                        structured_attributes__structured_attribute_value__value=attribute_value
+                    )
+                )
         return qs
 
 
@@ -73,9 +79,8 @@ class HostFilter(FilterSet):
     group = GroupFilter()
     user = UserFilter()
     ip_address = IPFilter()
+    attribute = AttributeFilter()
 
     class Meta:
         model = Host
         fields = ['mac', 'hostname']
-
-

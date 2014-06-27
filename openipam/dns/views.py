@@ -1,6 +1,7 @@
 from django.views.generic.edit import FormView
+from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -13,25 +14,25 @@ from django.db.utils import DatabaseError
 from django.contrib import messages
 from django.forms.util import ErrorList
 from django.db import transaction
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
-from django.contrib.contenttypes.models import ContentType
 
 from openipam.dns.models import DnsRecord, DnsType
-from openipam.hosts.models import Host
 from openipam.dns.forms import DNSListForm, DSNCreateFrom
-
-from django_datatables_view.base_datatable_view import BaseDatatableView
+from openipam.dns.actions import delete_records
+from openipam.hosts.models import Host
+from openipam.core.views import BaseDatatableView
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
-from netaddr.core import AddrFormatError
+from braces.views import PermissionRequiredMixin
 
 import json
 
 User = get_user_model()
 
 
-class DNSListJson(BaseDatatableView):
+class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
+    permission_required = 'dns.view_dnsrecord'
+
     order_columns = (
         'pk',
         'name',
@@ -43,111 +44,102 @@ class DNSListJson(BaseDatatableView):
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
     # and make it return huge amount of data
-    max_display_length = 300
+    max_display_length = 1500
 
     def get_initial_queryset(self):
         qs = DnsRecord.objects.select_related('ip_content', 'dns_type', 'ip_content__host', 'domain').all()
 
-        owner_filter = self.request.GET.get('owner_filter', None)
+        owner_filter = self.json_data.get('change_filter', None)
         if owner_filter:
-            owner_permited_domains = get_objects_for_user(
-                self.request.user,
-                ['dns.is_owner_domain', 'dns.add_records_to_domain'],
-                any_perm=True
-            )
-            qs = qs.filter(domain__in=[domain.id for domain in owner_permited_domains])
+            qs = qs.by_change_perms(self.request.user)
 
-        host = self.kwargs.get('host', '')
-        if host:
-            qs = qs.filter(
-                Q(ip_content__host__hostname=host) |
-                Q(text_content=host)
-            )
+        # host = self.kwargs.get('host', '')
+        # if host:
+        #     qs = qs.filter(
+        #         Q(ip_content__host__hostname=host) |
+        #         Q(text_content=host)
+        #     )
 
         return qs
 
     def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        column_data = self.json_data.get('columns', [])
 
         # use request parameters to filter queryset
         try:
-            name_search = self.request.GET.get('sSearch_0', None)
-            type_search = self.request.GET.get('sSearch_1', None)
-            content_search = self.request.GET.get('sSearch_2', None)
-            host_filter = self.request.GET.get('host_filter', None)
-            search = self.request.GET.get('search_filter', '')
-            group_filter = self.request.GET.get('group_filter', None)
-            user_filter = self.request.GET.get('user_filter', None)
+            name_search = column_data[1]['search']['value']
+            type_search = column_data[3]['search']['value']
+            content_search = column_data[4]['search']['value']
+            search = self.json_data.get('search_filter', '')
 
-            search_list = search.strip().split(' ')
+            #host_filter = self.json_data.get('host_filter', None)
+            #group_filter = self.json_data.get('group_filter', None)
+            #user_filter = self.json_data.get('user_filter', None)
+
+            search_list = search.strip().split(' ') if search else []
             for search_item in search_list:
                 search_str = ''.join(search_item.split(':')[1:])
-                if search_item.startswith('host:') and search_str:
-                    qs = qs.filter(ip_content__host__hostname__istartswith=search_item[5:])
+                if search_item.startswith('id:') and search_str:
+                    qs = qs.filter(pk=search_item[3:].lower())
+                elif search_item.startswith('host:') and search_str:
+                    qs = qs.filter(ip_content__host__hostname__startswith=search_item[5:].lower())
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
                     try:
                         mac_str = ':'.join(s.encode('hex') for s in mac_str.decode('hex'))
                     except TypeError:
                         pass
-                    qs = qs.filter(ip_content__host__mac__istartswith=mac_str)
+                    qs = qs.filter(ip_content__host__mac__startswith=mac_str.lower())
                 elif search_item.startswith('ip:') and search_str:
-                    qs = qs.filter(ip_content__address__istartswith=search_item[3:])
+                    qs = qs.filter(ip_content__address__startswith=search_item[3:])
                 elif search_item.startswith('user:') and search_str:
-                    user = User.objects.filter(username__iexact=search_item[5:])
+                    user = User.objects.filter(username__iexact=search_item[5:]).first()
                     if user:
-                        user_permited_domains = get_objects_for_user(
-                            user[0],
-                            ['dns.is_owner_domain', 'dns.add_records_to_domain'],
-                            any_perm=True
-                        )
-                        qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
+                        qs = qs.by_change_perms(user)
                     else:
                         qs = qs.none()
                 elif search_item.startswith('group:') and search_str:
-                    group = Group.objects.filter(name__iexact=search_item[6:])
+                    group = Group.objects.filter(name__iexact=search_item[6:]).first()
                     if group:
-                        group_permited_domains = get_objects_for_group(
-                            group[0],
-                            ['dns.is_owner_domain', 'dns.add_records_to_domain'],
-                            any_perm=True
-                        )
-                        qs = qs.filter(domain__in=[group.id for group in group_permited_domains])
+                        qs = qs.by_change_perms(group)
                     else:
                         qs = qs.none()
                 elif search_item:
-                    qs = qs.filter(name__icontains=search_item)
+                    qs = qs.filter(name__contains=search_item.lower())
 
             if name_search:
-                qs = qs.filter(name__istartswith=name_search).distinct()
+                qs = qs.filter(name__startswith=name_search.lower()).distinct()
             if type_search:
                 qs = qs.filter(dns_type=type_search)
             if content_search:
                 qs = qs.filter(
                     Q(text_content__icontains=content_search) |
-                    Q(ip_content__address__icontains=content_search)
+                    Q(ip_content__address__startswith=content_search)
                 )
-            if host_filter:
-                host_filter = Host.objects.get(pk=host_filter)
-                qs = qs.filter(
-                    Q(ip_content__host=host_filter) |
-                    Q(text_content__istartswith=host_filter.hostname)
-                )
-            if group_filter:
-                group = Group.objects.get(pk=group_filter)
-                group_permited_domains = get_objects_for_group(
-                    group,
-                    ['dns.is_owner_domain', 'dns.add_records_to_domain'],
-                    any_perm=True
-                )
-                qs = qs.filter(domain__in=[group.id for group in group_permited_domains])
-            if user_filter:
-                user = User.objects.get(pk=user_filter)
-                user_permited_domains = get_objects_for_user(
-                    user,
-                    ['dns.is_owner_domain', 'dns.add_records_to_domain'],
-                    any_perm=True
-                )
-                qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
+
+            # if host_filter:
+            #     host_filter = Host.objects.get(pk=host_filter)
+            #     qs = qs.filter(
+            #         Q(ip_content__host=host_filter) |
+            #         Q(text_content__istartswith=host_filter.hostname)
+            #     )
+            # if group_filter:
+            #     group = Group.objects.get(pk=group_filter)
+            #     group_permited_domains = get_objects_for_group(
+            #         group,
+            #         ['dns.is_owner_domain', 'dns.add_records_to_domain'],
+            #         any_perm=True
+            #     )
+            #     qs = qs.filter(domain__in=[group.id for group in group_permited_domains])
+            # if user_filter:
+            #     user = User.objects.get(pk=user_filter)
+            #     user_permited_domains = get_objects_for_user(
+            #         user,
+            #         ['dns.is_owner_domain', 'dns.add_records_to_domain'],
+            #         any_perm=True
+            #     )
+            #     qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
 
         except DatabaseError:
             pass
@@ -158,9 +150,12 @@ class DNSListJson(BaseDatatableView):
 
     def prepare_results(self, qs):
 
-        #user = self.request.user
-        #group_perms = [domain.pk for domain in DomainGroupObjectPermission.objects.filter(group__in=user.groups.all())]
-        #user_perms = [domain.pk for domain in DomainUserObjectPermission.objects.filter(user=user)]
+        user = self.request.user
+        change_permissions = DnsRecord.objects.filter(
+            pk__in=[record.pk for record in qs]
+        ).by_change_perms(user).values_list('pk', flat=True)
+        global_delete_permission = user.has_perm('dns.change_dnsrecord')
+
         dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
 
         def get_dns_types(dtype):
@@ -175,7 +170,7 @@ class DNSListJson(BaseDatatableView):
                     types_html.append('<option value="%s">%s</option>' % (dns_type.pk, dns_type.name))
             return ''.join(types_html)
 
-        def get_name(dns_record, has_permissions):
+        def get_name(dns_record, has_change_permission):
             html = '''
                 <span>
                     <a href="%(view_href)s" rel="%(name)s">
@@ -183,7 +178,7 @@ class DNSListJson(BaseDatatableView):
                     </a>
                 </span>
             '''
-            if has_permissions:
+            if has_change_permission:
                 html += '<input type="text" name="name-%(id)s" value="%(name)s" class="form-control input-sm" style="display:none;" />'
 
             return html % {
@@ -192,8 +187,8 @@ class DNSListJson(BaseDatatableView):
                 'view_href': dns_view_href,
             },
 
-        def get_type(dns_record, has_permissions):
-            if not has_permissions:
+        def get_type(dns_record, has_change_permission):
+            if not has_change_permission:
                 return '<span>%s</span>' % dns_record.dns_type.name
             else:
                 return '''
@@ -203,7 +198,7 @@ class DNSListJson(BaseDatatableView):
                     </select>
                 ''' % (dns_record.dns_type.name, dns_record.pk, get_dns_types(dns_record.dns_type)),
 
-        def get_content(dns_record, has_permissions):
+        def get_content(dns_record, has_change_permission):
             if dns_record.dns_type.is_a_record:
                 content = str(dns_record.ip_content.address)
             elif dns_record.dns_type.is_mx_record or dns_record.dns_type.is_srv_record:
@@ -217,7 +212,7 @@ class DNSListJson(BaseDatatableView):
             else:
                 s_content = content
 
-            if not has_permissions:
+            if not has_change_permission:
                 return '<span title="%s">%s</span>' % (content, s_content)
             else:
                 return '''
@@ -225,8 +220,8 @@ class DNSListJson(BaseDatatableView):
                 <input type="text" class="input-content dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
             ''' % (content, s_content, dns_record.pk, content)
 
-        def get_ttl(dns_record, has_permissions):
-            if not has_permissions:
+        def get_ttl(dns_record, has_change_permission):
+            if not has_change_permission:
                 return '<span>%s</span>' % dns_record.ttl
             else:
                 return '''
@@ -235,8 +230,8 @@ class DNSListJson(BaseDatatableView):
             ''' % (dns_record.ttl, dns_record.pk, dns_record.ttl)
 
 
-        def get_links(dns_record, has_permissions):
-            if has_permissions:
+        def get_links(dns_record, has_change_permission):
+            if has_change_permission:
                 return '''
                     <a href="javascript:void(0);" class="edit-dns" rel="%s">Edit</a>
                     <a href="javascript:void(0);" class="cancel-dns" rel="%s" style="display:none;">Cancel</a>
@@ -256,33 +251,36 @@ class DNSListJson(BaseDatatableView):
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
-        user = self.request.user
 
         for dns_record in qs:
-            has_permissions = dns_record.user_has_ownership(user)
+            has_change_permission = True if dns_record.pk in change_permissions else False
             dns_view_href = get_dns_view_href(dns_record)
             json_data.append([
                 ('<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
-                    % dns_record.pk) if has_permissions else '',
-                get_name(dns_record, has_permissions),
-                get_ttl(dns_record, has_permissions),
-                get_type(dns_record, has_permissions),
-                get_content(dns_record, has_permissions),
+                    % dns_record.pk) if has_change_permission or global_delete_permission else '',
+                get_name(dns_record, has_change_permission),
+                get_ttl(dns_record, has_change_permission),
+                get_type(dns_record, has_change_permission),
+                get_content(dns_record, has_change_permission),
                 dns_record.dns_view.name if dns_record.dns_view else '',
-                get_links(dns_record, has_permissions),
+                get_links(dns_record, has_change_permission),
             ])
         return json_data
 
 
-class DNSListView(TemplateView):
+class DNSListView(PermissionRequiredMixin, TemplateView):
+    permission_required = 'dns.view_dnsrecord'
     template_name = 'dns/dnsrecord_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(DNSListView, self).get_context_data(**kwargs)
         context['dns_types'] = DnsType.objects.exclude(min_permissions__name='NONE')
 
-        context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
-        context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
+        context['change_filter'] = self.request.COOKIES.get('change_filter', None)
+        if kwargs.get('host'):
+            context['search_filter'] = 'host:%s' % kwargs['host']
+        else:
+            context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
 
         selected_records = self.request.POST.getlist('selected-records', [])
         if selected_records:
@@ -307,15 +305,15 @@ class DNSListView(TemplateView):
 
         return context
 
-    # def dispatch(self, *args, **kwargs):
-    #     host = self.kwargs.get('host', None)
-    #     host = get_object_or_404(Host, hostname=host) if host else None
-    #     return super(DNSListView, self).dispatch(*args, **kwargs)
+    def render_to_response(self, context, **response_kwargs):
+        response = super(DNSListView, self).render_to_response(context, **response_kwargs)
+        if self.kwargs.get('host'):
+            response.set_cookie('search_filter', 'host:%s' % self.kwargs['host'], path=reverse_lazy('list_dns'))
+        return response
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
-        user = request.user
         action = request.POST.get('action', None)
         selected_records = request.POST.getlist('selected-records', [])
 
@@ -327,47 +325,26 @@ class DNSListView(TemplateView):
 
         error_list = []
 
-        if action == 'delete':
-
-            for record in selected_records:
-                LogEntry.objects.log_action(
-                    user_id=self.request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
-                    object_id=record,
-                    object_repr=force_unicode(DnsRecord.objects.get(pk=record)),
-                    action_flag=DELETION
-                )
-
-            DnsRecord.objects.filter(pk__in=selected_records).delete()
-            messages.success(self.request, "Selected DNS records have been deleted.")
+        if action:
+            if action == 'delete':
+                delete_records(request, selected_records)
 
             return redirect('list_dns')
-
         else:
-
+            # Permission checks are done inside add_or_update_record
             # New records
             for index, record in enumerate(new_records):
                 if not new_names[index] and not new_contents[index] and not new_types[index]:
                     continue
 
                 try:
-
                     dns_record, created = DnsRecord.objects.add_or_update_record(
-                        user=self.request.user,
+                        user=request.user,
                         name=new_names[index],
                         content=new_contents[index],
                         dns_type=DnsType.objects.get(pk=int(new_types[index])),
                         ttl=new_ttls[index]
                     )
-
-                    if dns_record:
-                        LogEntry.objects.log_action(
-                            user_id=self.request.user.pk,
-                            content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
-                            object_id=dns_record.pk,
-                            object_repr=force_unicode(dns_record),
-                            action_flag=ADDITION
-                        )
 
                 except ValidationError, e:
                     if hasattr(e, 'error_dict'):
@@ -383,22 +360,13 @@ class DNSListView(TemplateView):
                 try:
 
                     dns_record, created = DnsRecord.objects.add_or_update_record(
-                        user=self.request.user,
+                        user=request.user,
                         name=request.POST.get('name-%s' % record, ''),
                         content=request.POST.get('content-%s' % record, ''),
                         dns_type=DnsType.objects.get(pk=int(request.POST.get('type-%s' % record, ''))),
                         ttl=request.POST.get('ttl-%s' % record, ''),
                         record=record
                     )
-
-                    if dns_record:
-                        LogEntry.objects.log_action(
-                            user_id=self.request.user.pk,
-                            content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
-                            object_id=dns_record.pk,
-                            object_repr=force_unicode(dns_record),
-                            action_flag=CHANGE
-                        )
 
                 except ValidationError, e:
                     if hasattr(e, 'error_dict'):
@@ -419,10 +387,35 @@ class DNSListView(TemplateView):
         return self.get(request, *args, **kwargs)
 
 
-class DNSCreateView(FormView):
+class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
+    permission_required = 'dns.add_dnsrecord'
     template_name = 'dns/dnsrecord_form.html'
     form_class = DSNCreateFrom
     success_url = reverse_lazy('list_dns')
+    record = None
+
+    def get_context_data(self, **kwargs):
+        if self.kwargs.get('pk'):
+            kwargs['pk'] = self.kwargs.get('pk')
+        if self.record:
+            kwargs['object'] = self.record
+
+        return super(DNSCreateUpdateView, self).get_context_data(**kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        if kwargs.get('pk'):
+            self.record = get_object_or_404(DnsRecord, pk=kwargs.get('pk'))
+            self.initial = {
+                'name': self.record.name,
+                'dns_type': self.record.dns_type,
+                'ttl': self.record.ttl,
+            }
+            if self.record.dns_type.is_a_record:
+                self.initial['content'] = self.record.ip_content.address
+            else:
+                self.initial['content'] = self.record.text_content
+
+        return super(DNSCreateUpdateView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
 
@@ -432,11 +425,12 @@ class DNSCreateView(FormView):
             error_list = []
             try:
                 DnsRecord.objects.add_or_update_record(
-                    user=self.request.user,
+                    user=request.user,
                     name=form.cleaned_data['name'],
                     content=form.cleaned_data['content'],
                     dns_type=form.cleaned_data['dns_type'],
-                    ttl=form.cleaned_data['ttl']
+                    ttl=form.cleaned_data['ttl'],
+                    record=self.record.pk or None,
                 )
             except ValidationError, e:
                 if hasattr(e, 'error_dict'):
@@ -450,7 +444,10 @@ class DNSCreateView(FormView):
                 errors = form._errors.setdefault("__all__", ErrorList(error_list))
                 return self.form_invalid(form)
             else:
-                messages.success(self.request, "DNS record has been added.")
+                if self.record:
+                    messages.success(self.request, "DNS record has been updated.")
+                else:
+                    messages.success(self.request, "DNS record has been added.")
                 if request.POST.get('_add'):
                     return redirect('add_dns')
                 else:
@@ -458,6 +455,3 @@ class DNSCreateView(FormView):
         else:
             return self.form_invalid(form)
 
-
-def index(request):
-    return render(request, 'dns/index.html', {})

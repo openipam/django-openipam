@@ -7,9 +7,14 @@ from django.contrib.admin.views.main import PAGE_VAR, ALL_VAR
 from django.conf import settings
 from django.template.context import Context
 from django.template.loader import get_template
+
 from BeautifulSoup import BeautifulSoup
+
 from urllib import unquote
+
 import re
+
+import autocomplete_light
 
 register = template.Library()
 
@@ -208,10 +213,13 @@ def do_breadcrumbs(parser, token):
 
 @register.simple_tag
 def admin_select_filter(cl, spec):
-    tpl = get_template('admin/filter_select.html')
+    tpl = get_template(spec.template)
+    query_string = cl.get_query_string({}, [spec.parameter_name] if hasattr(spec, 'parameter_name') else [])
+
     return tpl.render(Context({
         'title': spec.title,
         'choices': list(spec.choices(cl)),
+        'query_string': query_string,
         'spec': spec,
     }))
 

@@ -12,10 +12,8 @@ User = get_user_model()
 
 
 class LogEntryAdminForm(forms.ModelForm):
-    user = forms.ModelChoiceField(User.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('UserAutocomplete'))
-    content_type = forms.ModelChoiceField(ContentType.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('ContentTypeAutocomplete'))
+    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
+    content_type = autocomplete_light.ModelChoiceField('ContentTypeAutocomplete')
 
 
     class Meta:

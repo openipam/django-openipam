@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
@@ -22,8 +23,6 @@ from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup, Prepe
 from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
-
-from cacheops import invalidate_model
 
 import autocomplete_light
 import operator
@@ -42,34 +41,33 @@ ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
 
 class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
-    hostname = forms.CharField(validators=[validate_hostname])
+    hostname = forms.CharField(
+        validators=[validate_hostname],
+        widget=forms.TextInput(attrs={'placeholder': 'Enter a FQDN for this host'})
+    )
     expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
     address_type = forms.ModelChoiceField(queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
-    network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
-    ip_address = forms.CharField(label='IP Address', required=False)
+    network = autocomplete_light.ModelChoiceField('NetworkAutocomplete', required=False, queryset=Network.objects.all())
+    #ip_addresses = forms.CharField(label='IP Address(es)', required=False, help_text='To enter multiple IPs, please use commas or spaces.')
+    ip_addresses = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
     show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
-    dhcp_group = forms.ModelChoiceField(
-        DhcpGroup.objects.all(),
+    dhcp_group = autocomplete_light.ModelChoiceField(
+        'DhcpGroupAutocomplete',
         help_text='Leave this alone unless directed by an IPAM administrator',
-        widget=autocomplete_light.ChoiceWidget('DhcpGroupAutocomplete'),
         label='DHCP Group',
         required=False
     )
-    user_owners = forms.ModelMultipleChoiceField(User.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('UserAutocomplete'),
-        required=False)
-    group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
-        required=False)
+    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
     def __init__(self, request, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
 
         # Attach user to form and model
-        self.instance.user = self.user = request.user
+        self.user = request.user
 
         self.previous_form_data = request.session.get('host_form_add')
 
@@ -82,33 +80,31 @@ class HostForm(forms.ModelForm):
 
         # Set networks based on address type if form is bound
         if self.data.get('address_type'):
-            self.fields['network'].queryset = (Network.objects.
-                get_networks_from_address_type(AddressType.objects.get(pk=self.data['address_type'])))
+            self.fields['network'].queryset = (
+                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
+            )
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
         if self.instance.pk:
-
-            # Populate the hostname for this record if in edit mode.
-            self.fields['hostname'].initial = self.instance.hostname
             # Populate the mac for this record if in edit mode.
             self.fields['mac_address'].initial = self.instance.mac
             # Populate the address type if in edit mode.
             self.fields['address_type'].initial = self.instance.address_type
 
             # Set networks based on address type if form is not bound
-            if not self.data:
+            #if not self.data:
                 # Set address_type
-                self.fields['network'].queryset = Network.objects.get_networks_from_address_type(self.instance.address_type)
+            #    self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type)
 
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
                 del self.fields['show_hide_dhcp_group']
 
         # Init IP Address(es) only if form is not bound
-        self._init_ip_address()
+        self._init_ip_addresses()
 
         # Init Exipre Date
         self._init_expire_date()
@@ -159,10 +155,24 @@ class HostForm(forms.ModelForm):
             if user_nets:
                 n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
                 user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
+
+                if user_networks:
+                    e_list = [Q(network__net_contained_or_equal=nr.range) for nr in user_networks]
+                    other_networks = True if user_nets.exclude(reduce(operator.or_, e_list)) else False
+                else:
+                    other_networks = False
             else:
                 user_networks = NetworkRange.objects.none()
+                other_networks = False
 
-            user_address_types = AddressType.objects.filter(Q(pool__in=user_pools) | Q(ranges__in=user_networks)).distinct()
+            if self.instance.pk:
+                existing_address_type = self.instance.address_type.pk
+            else:
+                existing_address_type = None
+
+            user_address_types = AddressType.objects.filter(
+                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type) | Q(is_default=other_networks)
+            ).distinct()
             self.fields['address_type'].queryset = user_address_types
 
         if self.previous_form_data and 'address_type' in self.previous_form_data:
@@ -192,37 +202,45 @@ class HostForm(forms.ModelForm):
             elif self.previous_form_data and attribute_field_key in self.previous_form_data:
                 self.fields[attribute_field_key].initial = self.previous_form_data.get(attribute_field_key)
 
-    def _init_ip_address(self):
+    def _init_ip_addresses(self):
         if self.instance.pk:
             html_addresses = []
-            for address in self.addresses:
-                html_addresses.append('<span class="label label-primary" style="margin: 5px 5px 0px 0px;">%s</span>' % address)
+            addresses = list(self.addresses)
+            for address in addresses:
+                html_addresses.append('<p class="pull-left"><span class="label label-primary" style="margin-right: 5px; font-size: 14px;">%s</span></p>' % address)
+                #if address in nth_split:
+                #    html_addresses.append('<p><!-- separator --></p>')
+
             if html_addresses:
-                change_html = '<a href="#" id="ip-change" class="renew">Change IP Address</a>'
+                change_html = '<a href="#" id="ip-change" class="pull-left renew">Change IP Address%s</a>' % (
+                    'es' if len(addresses) > 1 else ''
+                )
+
                 self.current_address_html = HTML('''
                     <div class="form-group">
-                        <label class="col-lg-2 control-label">Current IP Address:</label>
-                        <div class="controls col-md-6 col-lg-6">
-                            <h4>
+                        <label class="col-sm-2 col-md-2 col-lg-2 control-label">Current IP Address%s:</label>
+                        <div class="controls col-sm-6 col-md-6 col-lg-6">
                                 %s
                                 %s
-                                %s
-                            </h4>
                         </div>
                     </div>
-                ''' % ('<strong>Multiple IPs</strong><br />' if len(self.addresses) > 1 else '',
-                       ''.join(html_addresses),
-                       change_html if len(self.addresses) == 1 else ''))
+                ''' % ('es' if len(addresses) > 1 else '', ''.join(html_addresses), change_html))
 
-                if len(self.addresses) > 1:
-                    del self.fields['address_type']
-                    del self.fields['network_or_ip']
-                    del self.fields['network']
-                    del self.fields['ip_address']
+                # if len(self.addresses) > 1:
+                #     del self.fields['address_type']
+                #     del self.fields['network_or_ip']
+                #     del self.fields['network']
+                #     del self.fields['ip_address']
+                # else:
+                #self.fields['ip_addresses'].label = 'New IP Address(es)'
+                if len(addresses) > 1:
+                    self.fields['ip_addresses'].initial = '\n'.join([str(address.address) for address in addresses])
+                    self.fields['ip_addresses'].label = 'New IP Addresses'
+                    self.fields['ip_addresses'].widget = forms.Textarea()
                 else:
-                    self.fields['ip_address'].initial = self.addresses[0]
-                    self.fields['ip_address'].label = 'New IP Address'
-                    self.fields['network_or_ip'].initial = '1'
+                    self.fields['ip_addresses'].initial = addresses[0]
+                    self.fields['ip_addresses'].label = 'New IP Address'
+                self.fields['network_or_ip'].initial = '1'
 
         elif self.previous_form_data:
             if 'network_or_ip' in self.previous_form_data:
@@ -259,7 +277,7 @@ class HostForm(forms.ModelForm):
                 'address_type',
                 'network_or_ip',
                 'network',
-                'ip_address',
+                'ip_addresses',
                 self.expire_date,
                 'expire_days',
                 'description',
@@ -297,22 +315,13 @@ class HostForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         instance = super(HostForm, self).save(commit=False)
 
-        if self.cleaned_data['expire_days']:
-            instance.set_expiration(self.cleaned_data['expire_days'].expiration)
-        instance.changed_by = self.user
-
-        instance.hostname = self.cleaned_data['hostname']
-        instance.set_mac_address(self.cleaned_data['mac_address'])
-        if self.cleaned_data.get('address_type'):
-            instance.address_type_id = self.cleaned_data['address_type']
+        instance.user = instance.changed_by = self.user
 
         # Save
         instance.save()
 
         # Assign Pool or Network based on conditions
-        # TODO: We dont assign if Host has multiple addresses.
-        if len(self.addresses) <= 1:
-            instance.set_network_ip_or_pool()
+        instance.set_network_ip_or_pool()
 
         # Remove all owners if there are any
         instance.remove_owners()
@@ -330,10 +339,6 @@ class HostForm(forms.ModelForm):
         # FIXME: This wont run cause we have a clean check preventing it, but I left it here just in case.
         if not self.cleaned_data.get('user_owners') and not self.cleaned_data.get('group_owners'):
             instance.assign_owner(self.user)
-
-        # Invalidate Cache
-        invalidate_model(User)
-        invalidate_model(Group)
 
         # Update all host attributes
         # Get all possible attributes
@@ -378,6 +383,19 @@ class HostForm(forms.ModelForm):
         if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
             raise ValidationError('No owner assigned. Please assign a user or group to this Host.')
 
+        if cleaned_data.get('expire_days'):
+            self.instance.set_expiration(cleaned_data['expire_days'].expiration)
+        if cleaned_data.get('address_type'):
+            self.instance.address_type_id = cleaned_data['address_type']
+        if cleaned_data.get('mac_address'):
+            self.instance.set_mac_address(cleaned_data['mac_address'])
+        if cleaned_data.get('hostname'):
+            self.instance.hostname = cleaned_data['hostname']
+        if cleaned_data.get('ip_addresses'):
+            self.instance.ip_addresses = cleaned_data['ip_addresses'].split()
+        if cleaned_data.get('network'):
+            self.instance.network = cleaned_data['network']
+
         return cleaned_data
 
     def clean_mac_address(self):
@@ -391,8 +409,7 @@ class HostForm(forms.ModelForm):
             if host_exists[0].is_expired:
                 host_exists[0].delete()
             else:
-                raise ValidationError(mark_safe('The mac address entered already exists for host:<br /> %s.' % host_exists[0].hostname))
-
+                raise ValidationError(mark_safe('The mac address entered already exists for host: %s.' % host_exists[0].hostname))
         return mac
 
     def clean_hostname(self):
@@ -436,17 +453,15 @@ class HostForm(forms.ModelForm):
             network = ''
 
         if network:
-            self.instance.network = network.network
-
             user_pools = get_objects_for_user(
-                self.instance.user,
+                self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
 
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
-                network=self.instance.network,
+                network=network,
                 host__isnull=True,
                 reserved=False,
             ).order_by('address')
@@ -456,27 +471,36 @@ class HostForm(forms.ModelForm):
                                       'Please contact an IPAM Administrator.'))
         return network
 
-    def clean_ip_address(self):
-        ip_address = self.cleaned_data.get('ip_address', '')
+    def clean_ip_addresses(self):
+        ip_addresses = self.cleaned_data.get('ip_addresses', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
         current_addresses = [str(address) for address in self.instance.addresses.all()]
+        ip_addresses_list = ip_addresses.replace(',', ' ').split()
+        ip_addresses_list = [ip_address.strip() for ip_address in ip_addresses_list]
+        has_new = False
 
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
-            return ip_address
+            return ip_addresses
         # If this host has this IP already then stop (meaning its not changing)
-        elif ip_address in current_addresses:
-            self.instance.ip_address = ip_address
-            return ip_address
+        else:
+            for ip_address in ip_addresses_list:
+                if ip_address not in current_addresses:
+                    has_new = True
+                    break
+
+        if not has_new:
+            return ip_addresses
 
         if network_or_ip and network_or_ip == '1':
-            if not ip_address:
+            if not ip_addresses:
                 raise ValidationError('This field is required.')
 
-            elif ip_address:
-                # Make sure this is valid.
-                validate_ipv46_address(ip_address)
+            elif ip_addresses:
+                for ip_address in ip_addresses_list:
+                    # Make sure this is valid.
+                    validate_ipv46_address(ip_address)
 
                 user_pools = get_objects_for_user(
                     self.user,
@@ -489,40 +513,44 @@ class HostForm(forms.ModelForm):
                     any_perm=True
                 )
 
-                address = Address.objects.filter(
+                # Chekc address that are assigned and free to use
+                addresses = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    address=ip_address,
-                    host__isnull=True,
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    Q(host__isnull=True) | Q(host=self.instance),
+                    address__in=ip_addresses_list,
                     reserved=False
-                )
-                is_available = True if address else False
+                ).values_list('address', flat=True)
 
-                if not is_available:
-                    raise ValidationError('The IP Address is reserved, in use, or not allowed.')
-                else:
-                    self.instance.ip_address = ip_address
+                for ip_address in ip_addresses_list:
+                    if ip_address not in addresses:
+                        raise ValidationError("The IP Address '%s' is reserved, in use, or not allowed." % ip_address)
         else:
             # Clear values
-            ip_address = ''
+            ip_addresses = ''
 
-        return ip_address
+        return ip_addresses
 
     class Meta:
         model = Host
-        exclude = ('mac', 'hostname', 'expires', 'changed', 'changed_by',)
+        exclude = ('mac', 'pools', 'address_type_id', 'expires', 'changed', 'changed_by',)
 
 
 class HostOwnerForm(forms.Form):
-    user_owners = forms.ModelMultipleChoiceField(User.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('UserAutocomplete'),
-        required=False)
-    group_owners = forms.ModelMultipleChoiceField(Group.objects.all(),
-        widget=autocomplete_light.MultipleChoiceWidget('GroupAutocomplete'),
-        required=False)
+    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
+    def clean(self):
+        cleaned_data = super(HostOwnerForm, self).clean()
+
+        if not cleaned_data['user_owners'] and not cleaned_data['group_owners']:
+            raise ValidationError('No owner assigned. Please assign a user or group.')
+
+        return cleaned_data
 
 class HostRenewForm(forms.Form):
-    expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all())
+    expire_days = forms.ModelChoiceField(label='Expires', queryset=ExpirationType.objects.all(),
+        error_messages={'required': 'Expire Days is required.'})
 
     def __init__(self, user, *args, **kwargs):
         super(HostRenewForm, self).__init__(*args, **kwargs)
@@ -533,10 +561,8 @@ class HostRenewForm(forms.Form):
 
 
 class HostListForm(forms.Form):
-    groups = forms.ModelChoiceField(Group.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('GroupFilterAutocomplete'))
-    users = forms.ModelChoiceField(User.objects.all(),
-        widget=autocomplete_light.ChoiceWidget('UserFilterAutocomplete'))
+    groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
+    users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
@@ -545,31 +571,4 @@ class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
 
 class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
-    content_object = forms.ModelChoiceField(Host.objects.all(), widget=autocomplete_light.ChoiceWidget('HostAutocomplete'))
-
-# class EditHostForm(forms.ModelForm):
-# hostname = forms.CharField(widget=autocomplete_light.TextWidget('DomainAutocomplete'))
-
-#     def __init__(self, *args, **kwargs):
-#         super(EditHostForm, self).__init__(*args, **kwargs)
-#         self.helper = FormHelper()
-#         self.helper.layout = Layout(
-#             Fieldset(
-#                 'Edit Host: {{ object.mac }}',
-#                 'mac',
-#                 'hostname',
-#                 'address_type',
-#                 Field('expires', readonly=True),
-#                 'description',
-#                 'dhcp_group',
-#                 css_class='module aligned control-group'
-#             ),
-
-#             Submit('save', 'Save changes'),
-#             Button('cancel', 'Cancel')
-#         )
-
-#     class Meta:
-#         model = Host
-#         fields = ('mac', 'hostname', 'address_type', 'expires',
-#                   'description', 'dhcp_group')
+    content_object = autocomplete_light.ModelChoiceField('HostAutocomplete')

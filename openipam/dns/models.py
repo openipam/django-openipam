@@ -200,10 +200,14 @@ class DnsRecord(models.Model):
                 names.pop(0)
 
             if names_list:
-                self.domain = (
+                domain = (
                     Domain.objects.filter(reduce(operator.or_, names_list))
                     .extra(select={'length': 'Length(name)'}).order_by('-length').first()
                 )
+                if domain:
+                    self.domain = domain
+                else:
+                    raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
             else:
                 self.domain = None
 
@@ -235,16 +239,6 @@ class DnsRecord(models.Model):
         self.ip_content = None
         self.text_content = None
 
-    def user_has_ownership(self, user):
-        if user.is_ipamadmin:
-            return True
-        if self.ip_content and self.ip_content.host and self.ip_content.host.mac in user.host_owner_permissions:
-            return True
-        elif self.domain.name in user.domain_owner_permissions:
-            return True
-
-        return False
-
     class Meta:
         db_table = 'dns_records'
         ordering = ('dns_type', 'name')
@@ -271,7 +265,7 @@ class DnsRecordMunged(models.Model):
 
 class DhcpDnsRecord(models.Model):
     did = models.ForeignKey('Domain', db_column='did')
-    name = models.ForeignKey('hosts.Host', unique=True, db_column='name')
+    name = models.ForeignKey('hosts.Host', unique=True, db_column='name', to_field='hostname')
     ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
