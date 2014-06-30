@@ -204,11 +204,11 @@ class Host(models.Model):
         super(Host, self).__init__(*args, **kwargs)
 
         # Initialize setters
-        self.user = None
+        self._expire_days = None
         self.user_owners = None
         self.group_owners = None
+        self.user = None
         self.ip_addresses = None
-        #self.ip_address = None
         self.network = None
         self.pool = None
 
@@ -220,32 +220,18 @@ class Host(models.Model):
 
     @property
     def expire_days(self):
-        return self.get_expire_days()
+        if self._expire_days:
+            return self._expire_days
+        else:
+            return self.get_expire_days()
+
+    @expire_days.setter
+    def expire_days(self, days):
+        self._expire_days = days
 
     @property
     def is_dynamic(self):
         return True if self.pools.all() else False
-
-    @property
-    def is_expired(self):
-        return True if self.expires < timezone.now() else False
-
-    @property
-    def mac_is_disabled(self):
-        return True if Disabled.objects.filter(host=self) else False
-
-    @property
-    def mac_last_seen(self):
-        # if self.gul_recent_arp_bymac is None:
-        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
-
-        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
-
-        if gul_mac:
-            return gul_mac[0].stopstamp
-        else:
-            return None
 
     @property
     def address_type(self):
@@ -275,6 +261,31 @@ class Host(models.Model):
                 self.address_type_id = None
 
         return self.address_type_id
+
+    @address_type.setter
+    def address_type(self, value):
+        self.address_type_id = value
+
+    @property
+    def is_expired(self):
+        return True if self.expires < timezone.now() else False
+
+    @property
+    def mac_is_disabled(self):
+        return True if Disabled.objects.filter(host=self) else False
+
+    @property
+    def mac_last_seen(self):
+        # if self.gul_recent_arp_bymac is None:
+        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
+
+        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+
+        if gul_mac:
+            return gul_mac[0].stopstamp
+        else:
+            return None
 
     @cached_property
     def owners(self):
@@ -451,10 +462,7 @@ class Host(models.Model):
             raise Exception('A User must be given to set a network or pool')
 
         # Set the pool if attached to model otherwise find it by address type
-        if getattr(self, 'pool', None):
-            pool = self.pool
-        else:
-            pool = self.address_type.pool
+        pool = self.pool if self.pool else self.address_type.pool
 
         if delete:
             # Remove all pools
@@ -467,15 +475,23 @@ class Host(models.Model):
             # Remove all addresses
             self.addresses.release()
 
-            # Assign new pool if it doesn't already exist
-            HostToPool.objects.get_or_create(
-                host=self,
-                pool=self.address_type.pool,
-                changed_by=user
-            )
+            host_pool = HostToPool.objects.filter(host=self, pool=pool).first()
+            if host_pool:
+                host_pool.changed_by = user
+                host_pool.save()
+            else:
+                # Assign new pool if it doesn't already exist
+                HostToPool.objects.create(
+                    host=self,
+                    pool=pool,
+                    changed_by=user
+                )
 
         # If we have an IP address, then assign that address to host
         else:
+            # Remove all pools
+            self.pools.clear()
+
             self.add_ip_addresses(
                 user=user,
                 ip_addresses=self.ip_addresses,
