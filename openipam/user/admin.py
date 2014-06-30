@@ -131,7 +131,7 @@ class AuthUserAdmin(UserAdmin):
         qs = super(AuthUserAdmin, self).get_queryset(request)
 
         if not len(request.GET):
-            qs = qs.filter(last_login__gte='1969-12-31')
+            qs = qs.filter(last_login__gte='1970-01-01')
         return qs
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
