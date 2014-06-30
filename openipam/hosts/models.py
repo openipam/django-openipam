@@ -384,6 +384,9 @@ class Host(models.Model):
             address.changed_by = user
             address.save()
 
+        all_addresses = self.addresses.all()
+
+        for address in all_addresses:
             # Update A and PTR dns records
             if hostname:
                 a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
