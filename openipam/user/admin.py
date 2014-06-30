@@ -101,6 +101,7 @@ class AuthUserAdmin(UserAdmin):
     form = AuthUserChangeAdminForm
     list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'last_login')
     list_filter = ('is_staff', 'is_superuser', 'is_active', IPAMAdminFilter, IPAMGroupFilter, 'last_login')
+    ordering = ('-last_login',)
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -126,22 +127,12 @@ class AuthUserAdmin(UserAdmin):
     #     invalidate_model(UserObjectPermission)
     #     invalidate_model(GroupObjectPermission)
 
-    def changelist_view(self, request, extra_context=None):
+    def get_queryset(self, request):
+        qs = super(AuthUserAdmin, self).get_queryset(request)
 
-        login_gte = request.GET.get('last_login__gte', '')
-        login_lt = request.GET.get('last_login__lt', '')
-        search = request.GET.get('q', '')
-
-        if not login_gte and not login_lt and not search:
-            q = request.GET.copy()
-            q['last_login__gte'] = date(date.today().year, 1, 1)
-            q['last_login__lt'] = date(date.today().year+1, 1, 1)
-            request.GET = q
-            request.META['QUERY_STRING'] = request.GET.urlencode()
-
-            messages.info(request, "Only showing usings who have logged in this year.")
-
-        return super(AuthUserAdmin,self).changelist_view(request, extra_context=extra_context)
+        if not len(request.GET):
+            qs = qs.filter(last_login__gte='1969-12-31')
+        return qs
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
