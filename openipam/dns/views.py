@@ -83,7 +83,10 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 if search_item.startswith('id:') and search_str:
                     qs = qs.filter(pk=search_item[3:].lower())
                 elif search_item.startswith('host:') and search_str:
-                    qs = qs.filter(ip_content__host__hostname__startswith=search_item[5:].lower())
+                    qs = qs.filter(
+                        Q(ip_content__host__hostname__startswith=search_item[5:].lower()) |
+                        Q(text_content__icontains=search_item[5:])
+                    )
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
                     try:
