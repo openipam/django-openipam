@@ -454,8 +454,6 @@ class Host(models.Model):
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
-        from openipam.network.models import Address, HostToPool
-
         if not user and self.user:
             user = self.user
         else:
@@ -475,13 +473,13 @@ class Host(models.Model):
             # Remove all addresses
             self.addresses.release()
 
-            host_pool = HostToPool.objects.filter(host=self, pool=pool).first()
+            host_pool = self.host_pools.filter(pool=pool).first()
             if host_pool:
                 host_pool.changed_by = user
                 host_pool.save()
             else:
                 # Assign new pool if it doesn't already exist
-                HostToPool.objects.create(
+                self.host_pools.create(
                     host=self,
                     pool=pool,
                     changed_by=user
