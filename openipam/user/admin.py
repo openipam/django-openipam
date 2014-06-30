@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+from django.http import Http404
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
@@ -135,6 +136,9 @@ class AuthUserAdmin(UserAdmin):
         return qs
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
+        if not isinstance(object_id, int):
+            raise Http404
+
         user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
 
         if user_add_form.is_valid():
