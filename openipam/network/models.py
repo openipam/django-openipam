@@ -137,8 +137,8 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 
 class HostToPool(models.Model):
-    host = models.ForeignKey('hosts.Host', db_column='mac', db_index=True)
-    pool = models.ForeignKey('Pool', db_index=True)
+    host = models.ForeignKey('hosts.Host', db_column='mac', db_index=True, related_name='host_pools')
+    pool = models.ForeignKey('Pool', db_index=True, related_name='host_pools')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
