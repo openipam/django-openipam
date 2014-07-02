@@ -471,10 +471,12 @@ class Host(models.Model):
 
         # If we have a pool, this dynamic and we assign
         if pool:
+            from openipam.network.models import Pool
+
             # Remove all addresses
             self.addresses.release()
 
-            host_pool = self.host_pools.filter(pool=pool).first()
+            host_pool = self.host_pools.filter(pool__name=pool).first()
             if host_pool:
                 host_pool.changed_by = user
                 host_pool.save()
@@ -482,7 +484,7 @@ class Host(models.Model):
                 # Assign new pool if it doesn't already exist
                 self.host_pools.create(
                     host=self,
-                    pool=pool,
+                    pool=Pool.objects.get(name=pool),
                     changed_by=user
                 )
 
