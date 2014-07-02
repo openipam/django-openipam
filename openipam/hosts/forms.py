@@ -459,6 +459,15 @@ class HostForm(forms.ModelForm):
                 any_perm=True
             )
 
+            user_nets = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                any_perm=True
+            )
+            if network not in user_nets:
+                raise ValidationError(mark_safe('You do not have access to assign this host to the '
+                                      'network specified: %s.<br />Please contact an IPAM Administrator.' % network))
+
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
                 Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
@@ -468,8 +477,8 @@ class HostForm(forms.ModelForm):
             ).order_by('address')
 
             if not address:
-                raise ValidationError(mark_safe('There is no addresses available from this network.<br />'
-                                      'Please contact an IPAM Administrator.'))
+                raise ValidationError(mark_safe('There is no addresses available from the network specified: %s.<br />'
+                                      'Please contact an IPAM Administrator.' % network))
         return network
 
     def clean_ip_addresses(self):
