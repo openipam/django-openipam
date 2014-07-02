@@ -461,6 +461,7 @@ class HostForm(forms.ModelForm):
 
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                 network=network,
                 host__isnull=True,
                 reserved=False,
@@ -513,7 +514,7 @@ class HostForm(forms.ModelForm):
                     any_perm=True
                 )
 
-                # Chekc address that are assigned and free to use
+                # Check address that are assigned and free to use
                 addresses = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
                     Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
