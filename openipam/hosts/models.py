@@ -351,6 +351,7 @@ class Host(models.Model):
 
             network_address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                 network=network,
                 host__isnull=True,
                 reserved=False,
