@@ -136,10 +136,12 @@ class AuthUserAdmin(UserAdmin):
         return qs
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        if not isinstance(object_id, int):
+        try:
+            obj_id = int(object_id)
+        except:
             raise Http404
 
-        user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': object_id})
+        user_add_form = UserObjectPermissionAdminForm(request.POST or None, initial={'user': obj_id})
 
         if user_add_form.is_valid():
             instance = user_add_form.save(commit=False)
