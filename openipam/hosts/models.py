@@ -614,8 +614,8 @@ class Host(models.Model):
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
                     Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    Q(host__isnull=True) | Q(host=self),
                     address=ip_address,
-                    host__isnull=True,
                     reserved=False
                 )
                 if not address:
