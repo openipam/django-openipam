@@ -86,7 +86,6 @@ class HostMixin(object):
             return None
 
 
-
 class HostQuerySet(QuerySet, HostMixin):
     pass
 
@@ -107,35 +106,51 @@ class HostManager(NetManager):
         return owners
 
     #TODO!  Finish this and use it for everthing except the web form
-    def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, description=None, dhcp_group=None,
+    def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=None,
                            pool=None, ip_addresses=None, network=None, user_owners=None, group_owners=None, instance=None):
 
         if isinstance(user, str):
             user = User.objects.get(username=user)
 
+        if not instance and mac:
+            instance = self.filter(mac=mac).first()
         if not instance:
             instance = self.model()
 
-        # Set mac address
-        instance.set_mac_address(mac)
-
         instance.user = instance.changed_by = user
 
-        instance.hostname = hostname
-        instance.description = description
+        # Set mac address
+        if mac:
+            instance.set_mac_address(mac)
 
-        if expire_days:
-            instance.expire_days = expire_days
+        if hostname:
+            instance.hostname = hostname
+
+        if description is not None:
+            instance.description = description
+
+        if expires:
+            instance.exipires = expires
+        elif expire_days:
             instance.exipires = instance.set_expiration(timedelta(int(expire_days)))
 
-        if isinstance(dhcp_group, str):
-            dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
+        if dhcp_group:
+            if isinstance(dhcp_group, int):
+                dhcp_group = DhcpGroup.objects.get(pk=dhcp_group)
+            elif isinstance(dhcp_group, str) or isinstance(dhcp_group, unicode):
+                dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
+        else:
+            dhcp_group = None
         instance.dhcp_group = dhcp_group
 
         if pool:
             if isinstance(pool, int):
+                pool = Pool.objects.get(pk=pool)
+            elif isinstance(pool, str) or isinstance(pool, unicode):
                 pool = Pool.objects.get(name=pool)
-            instance.pool = pool
+        else:
+            pool = None
+        instance.pool = pool
 
         if ip_addresses:
             instance.ip_addresses = ip_addresses
@@ -148,33 +163,44 @@ class HostManager(NetManager):
 
         if instance.pool or instance.network or instance.ip_addresses:
             instance.set_network_ip_or_pool()
-
             instance.address_type_id = instance.address_type
             instance.save()
 
-        user_groups = []
 
-        if user_owners or group_owners:
-            if isinstance(user_owners, list):
-                users_to_add = User.objects.filter(username__in=[user_owner.lower() for user_owner in user_owners])
-            else:
-                users_to_add = User.objects.filter(username__iexact=user_owners)
-            users_to_add = list(users_to_add)
-            user_groups += users_to_add
-
-            if isinstance(group_owners, list):
-                groups_to_add = Group.objects.filter(name__in=group_owners)
-            else:
-                groups_to_add = Group.objects.filter(name=group_owners)
-            groups_to_add = list(groups_to_add)
-            user_groups += groups_to_add
-
+        if user_owners is not None or group_owners is not None:
+            # Remove owners
             instance.remove_owners()
-            for user_group in user_groups:
-                instance.assign_owner(user_group)
-        else:
-            has_users, has_groups = instance.get_owners()
-            if not has_users and not has_groups:
-                instance.assign_owner(user)
+            user_groups = []
+
+            if user_owners:
+                if isinstance(user_owners, list):
+                    #u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
+                    #users_to_add = User.objects.filter(reduce(operator.or_, u_list))
+                    users_to_add = User.objects.filter(username__in=[user_owner for user_owner in user_owners])
+                else:
+                    #users_to_add = User.objects.filter(username__iexact=user_owners)
+                    users_to_add = User.objects.filter(username=user_owners)
+                users_to_add = list(users_to_add)
+                user_groups += users_to_add
+
+            if group_owners:
+                if isinstance(group_owners, list):
+                    #g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
+                    #groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
+                    groups_to_add = Group.objects.filter(name__in=[group_owner for group_owner in group_owners])
+                else:
+                    #groups_to_add = Group.objects.filter(name__iexact=group_owners)
+                    groups_to_add = Group.objects.filter(name=group_owners)
+                groups_to_add = list(groups_to_add)
+                user_groups += groups_to_add
+
+            if user_groups:
+                for user_group in user_groups:
+                    instance.assign_owner(user_group)
+
+        # Make sure a user is assigned.
+        has_users, has_groups = instance.get_owners()
+        if not has_users and not has_groups:
+            instance.assign_owner(user)
 
         return instance
