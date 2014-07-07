@@ -205,8 +205,8 @@ class Host(models.Model):
 
         # Initialize setters
         self._expire_days = None
-        self.user_owners = None
-        self.group_owners = None
+        self._user_owners = None
+        self._group_owners = None
         self.user = None
         self.ip_addresses = None
         self.network = None
@@ -228,6 +228,28 @@ class Host(models.Model):
     @expire_days.setter
     def expire_days(self, days):
         self._expire_days = days
+
+    @property
+    def user_owners(self):
+        if self._user_owners:
+            return self._user_owners
+        else:
+            return [owner.username for owner in self.owners[0]]
+
+    @user_owners.setter
+    def user_owners(self, owners):
+        self._user_owners = owners
+
+    @property
+    def group_owners(self):
+        if self._group_owners:
+            return self._group_owners
+        else:
+            return [owner.name for owner in self.owners[1]]
+
+    @group_owners.setter
+    def group_owners(self, owners):
+        self._group_owners = owners
 
     @property
     def is_dynamic(self):
@@ -438,7 +460,7 @@ class Host(models.Model):
 
     def get_expire_days(self):
         if self.expires:
-            delta = self.expires - timezone.now()
+            delta = self.expires - timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
             return delta.days if delta.days > 0 else None
         else:
             return None
@@ -530,73 +552,75 @@ class Host(models.Model):
                     ' Please contact an IPAM Administrator.' % (self.hostname))
 
         # Perform permission checks if user is attached to this instance
-        # and user is not an IPAM admin
-        if self.user and not self.user.is_ipamadmin:
+        # Domain permission checks
+        if self.hostname:
+            domain_from_host = self.hostname.split('.')[1:]
+            domain_from_host = '.'.join(domain_from_host)
 
-            # Domain permission checks
-            if self.hostname:
-                domain_from_host = self.hostname.split('.')[1:]
-                domain_from_host = '.'.join(domain_from_host)
+            valid_domain = get_objects_for_user(
+                self.user,
+                ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
+                any_perm=True
+            ).filter(name=domain_from_host)
+            if not valid_domain:
+                raise ValidationError('You do not have sufficient permissions to add hosts '
+                                      'for this domain. Please contact an IPAM Administrator.')
 
-                valid_domain = get_objects_for_user(
-                    self.user,
-                    ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
-                    #klass=Domain,
-                    any_perm=True
-                ).filter(name=domain_from_host)
+        # Pool and Network permission checks
+        # Check for pool assignment and perms
+        if self.address_type and self.address_type.pool:
+            #assert False, self.address_type.pool
+            valid_pools = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_pool', 'network.change_pool'],
+                any_perm=True
+            )
+            if self.address_type.pool not in valid_pools:
+                raise ValidationError('You do not have sufficient permissions to add hosts to '
+                                      'the assigned pool. Please contact an IPAM Administrator.')
 
-                if not valid_domain:
-                    raise ValidationError('You do not have sufficient permissions to add hosts '
-                                          'for this domain. Please contact an IPAM Administrator.')
+        # If network defined check for address assignment and perms
+        if self.network:
+            valid_network = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                any_perm=True
+            )
+            if self.network not in [network.network for network in valid_network]:
+                raise ValidationError('You do not have sufficient permissions to add hosts to '
+                  'the assigned network. Please contact an IPAM Administrator.')
 
-            # Pool and Network permission checks
-            # Check for pool assignment and perms
-            if self.address_type and self.address_type.pool:
-                #assert False, self.address_type.pool
-                valid_pools = get_objects_for_user(
-                    self.user,
-                    ['network.add_records_to_pool', 'network.change_pool'],
-                    any_perm=True
-                )
-                if self.address_type.pool not in valid_pools:
-                    raise ValidationError('You do not have sufficient permissions to add hosts to '
-                                          'the assigned pool. Please contact an IPAM Administrator.')
+        # If IP Address defined, check validity and perms
+        if self.ip_addresses:
+            if isinstance(self.ip_addresses, str) or isinstance(self.ip_addresses, unicode):
+                ip_addresses = [self.ip_addresses]
+            else:
+                ip_addresses = self.ip_addresses
 
-            # If network defined check for address assignment and perms
-            if self.network:
-                valid_network = get_objects_for_user(
-                    self.user,
-                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                    any_perm=True
-                )
-                if self.network not in [network.network for network in valid_network]:
-                    raise ValidationError('You do not have sufficient permissions to add hosts to '
-                      'the assigned network. Please contact an IPAM Administrator.')
+            user_pools = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_pool', 'network.change_pool'],
+                any_perm=True
+            )
+            user_nets = get_objects_for_user(
+                self.user,
+                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+                any_perm=True
+            )
 
-            # If IP Address defined, check validity and perms
-            if self.ip_address:
+            for ip_address in ip_addresses:
                 # Make sure this is valid.
-                validate_ipv46_address(self.ip_address)
-
-                user_pools = get_objects_for_user(
-                    self.user,
-                    ['network.add_records_to_pool', 'network.change_pool'],
-                    any_perm=True
-                )
-                user_nets = get_objects_for_user(
-                    self.user,
-                    ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                    any_perm=True
-                )
-
+                validate_ipv46_address(ip_address)
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    address=self.ip_address,
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    address=ip_address,
                     host__isnull=True,
                     reserved=False
                 )
                 if not address:
-                    raise ValidationError('The IP Address is reserved, in use, or not allowed.')
+                    raise ValidationError('The IP Address is reserved, in use, or not allowed. '
+                                          'Please contact an IPAM Administrator.')
 
     class Meta:
         db_table = 'hosts'
