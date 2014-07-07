@@ -33,8 +33,8 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
 
     def get_queryset(self, request):
         qs = super(OpjectPermissionAdmin, self).get_queryset(request)
-        self.group_permissions = GroupObjectPermission.objects.filter(content_type__model=self.model._meta.model_name).cache()
-        self.user_permissions = UserObjectPermission.objects.filter(content_type__model=self.model._meta.model_name).cache()
+        self.group_permissions = GroupObjectPermission.objects.filter(content_type__model=self.model._meta.model_name)
+        self.user_permissions = UserObjectPermission.objects.filter(content_type__model=self.model._meta.model_name)
         return qs
 
     def sgroup_permissions(self, obj):
