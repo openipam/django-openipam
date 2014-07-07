@@ -67,7 +67,7 @@ class HostForm(forms.ModelForm):
         super(HostForm, self).__init__(*args, **kwargs)
 
         # Attach user to form and model
-        self.user = request.user
+        self.instance.user = self.user = request.user
 
         self.previous_form_data = request.session.get('host_form_add')
 
