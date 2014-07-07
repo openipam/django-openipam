@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone
+from django.core.serializers import serialize
 
 from rest_framework import serializers
 
@@ -18,6 +19,8 @@ from netaddr.core import AddrFormatError
 
 from datetime import timedelta
 
+from ast import literal_eval
+
 User = get_user_model()
 
 
@@ -30,6 +33,7 @@ class HostMacSerializer(serializers.ModelSerializer):
 
 
 class HostListSerializer(serializers.ModelSerializer):
+    expire_days = serializers.SerializerMethodField('get_expire_days')
     addresses = serializers.SerializerMethodField('get_addresses')
     is_dynamic = serializers.SerializerMethodField('get_is_dynamic')
 
@@ -43,14 +47,18 @@ class HostListSerializer(serializers.ModelSerializer):
         }
         return addresses
 
+    def get_expire_days(self, obj):
+        return obj.expire_days
+
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'expires', 'description', 'addresses',)
+        fields = ('mac', 'hostname', 'expires', 'expire_days', 'description', 'addresses',)
 
 
 class HostDetailSerializer(serializers.ModelSerializer):
     owners = serializers.SerializerMethodField('get_owners')
     addresses = serializers.SerializerMethodField('get_addresses')
+    expire_days = serializers.SerializerMethodField('get_expire_days')
     #last_ip_address_seen = serializers.SerializerMethodField('get_last_ip_seen')
     address_type = serializers.SerializerMethodField('get_address_type')
     is_dynamic = serializers.SerializerMethodField('get_is_dynamic')
@@ -61,6 +69,9 @@ class HostDetailSerializer(serializers.ModelSerializer):
 
     # def get_last_ip_seen(self, obj):
     #     return obj.last_ip_address_seen
+
+    def get_expire_days(self, obj):
+        return obj.expire_days
 
     def get_addresses(self, obj):
         addresses = {
@@ -95,11 +106,11 @@ class HostDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'address_type', 'expires', 'is_dynamic', 'description', 'owners',
+        fields = ('mac', 'hostname', 'address_type', 'expires', 'expire_days', 'is_dynamic', 'description', 'owners',
                   'addresses', 'attributes',)
 
 
-class HostCreateUpdateSerializer(serializers.ModelSerializer):
+class HostCreateUpdateSerializer(serializers.Serializer):
     mac = MACAddressField(label='MAC Address', required=False)
     hostname = serializers.CharField(required=False)
     expire_days = serializers.ChoiceField(required=False)
@@ -119,50 +130,25 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         self.fields['pool'].choices = blank_choice + [(pool.name, pool.name) for pool in Pool.objects.all()]
         self.fields['dhcp_group'].choices = blank_choice + [(dhcp_group.pk, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()]
 
-    # def restore_object(self, attrs, instance=None):
-    #     instance = super(HostCreateUpdateSerializer, self).restore_object(attrs, instance)
-    #     assert False, instance
-        #assert False
-        # # Set mac address
-        # instance.set_mac_address(attrs.get('mac', instance.mac))
 
-        # instance.user = instance.changed_by = self.context['request'].user
+    def restore_object(self, attrs, instance=None):
+        instance_dict = attrs
 
-        # instance.hostname = attrs.get('hostname', instance.hostname)
-        # instance.description = attrs.get('description', instance.description)
+        user_owners = attrs.get('user_owners')
+        if user_owners and isinstance(user_owners, unicode):
+            instance_dict['user_owners'] = literal_eval(user_owners)
 
+        group_owners = attrs.get('group_owners')
+        if group_owners and isinstance(group_owners, unicode):
+            instance_dict['group_owners'] = literal_eval(group_owners)
 
-        # if attrs.get('expire_days'):
-        #     instance.expire_days = attrs['expire_days']
-        #     instance.exipires = instance.set_expiration(timedelta(int(attrs.get('expire_days'))))
-
-        # if attrs.get('dhcp_group'):
-        #     instance.dhcp_group = DhcpGroup.objects.get(pk=attrs['dhcp_group'])
-        # else:
-        #     attrs['dhcp_group'] = instance.dhcp_group
-
-        # if attrs.get('pool'):
-        #     instance.pool = Pool.objects.get(name=attrs['pool'])
-
-        # if attrs.get('ip_addresses'):
-        #     instance.ip_addresses = attrs['ip_addresses']
-
-        # if attrs.get('network'):
-        #     instance.network = attrs['network']
-
-        # return instance
+        instance_dict.update({'instance': instance})
+        return instance_dict
 
     def save(self, **kwargs):
         data = self.data.copy()
-
-        keys_to_remove = ('expires', 'address_type_id', 'changed_by', 'changed', 'pools')
-        for key in keys_to_remove:
-            data.pop(key, None)
-
-        if isinstance(self.object, Host):
-            data['instance'] = self.object
-
-        data['user'] = self.context['user']
+        data.update(self.object)
+        data['user'] = self.context['request'].user
 
         instance = Host.objects.add_or_update_host(**data)
 
@@ -213,7 +199,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
         if pool:
             user_pools = get_objects_for_user(
-                self.context['user'],
+                self.context['request'].user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
@@ -235,7 +221,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Please enter a valid network.')
 
             user_pools = get_objects_for_user(
-                self.context['user'],
+                self.context['request'].user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
@@ -255,17 +241,17 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_ip_addresses(self, attrs, source):
         ip_addresses = attrs.get(source)
 
-        if isinstance(ip_addresses, str) or isinstance(ip_addresses, unicode):
+        if ip_addresses and (isinstance(ip_addresses, str) or isinstance(ip_addresses, unicode)):
             ip_addresses = [ip_addresses]
 
         if ip_addresses:
             user_pools = get_objects_for_user(
-                self.context['user'],
+                self.context['request'].user,
                 ['network.add_records_to_pool', 'network.change_pool'],
                 any_perm=True
             )
             user_nets = get_objects_for_user(
-                self.context['user'],
+                self.context['request'].user,
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
@@ -284,10 +270,6 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError("The IP Address '%s' is reserved, in use, or not allowed." % ip_address)
         return attrs
 
-    class Meta:
-        model = Host
-        read_only_fields = ('changed_by', 'address_type_id', 'expires',)
-
 
 class HostRenewSerializer(serializers.ModelSerializer):
     expire_days = serializers.ChoiceField(required=True)
@@ -298,6 +280,7 @@ class HostRenewSerializer(serializers.ModelSerializer):
 
     def restore_object(self, attrs, instance):
         instance.expire_days = attrs['expire_days']
+        instance.user = self.context['request'].user
         instance.exipires = instance.set_expiration(timedelta(int(attrs.get('expire_days'))))
 
         return instance

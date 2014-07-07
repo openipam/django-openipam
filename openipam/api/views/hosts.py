@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -13,6 +14,7 @@ from rest_framework import status
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, StructuredAttributeValue
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
+from openipam.api.permissions import IPAMChangeHostPermission
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -59,6 +61,8 @@ class HostList(generics.ListAPIView):
 
 
 class HostMac(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, format=None, **kwargs):
         ip_address = request.GET.get('ip_address')
         leased_ip = request.GET.get('leased_ip')
@@ -117,11 +121,26 @@ class HostCreate(generics.CreateAPIView):
                 "expire_days": "30"
             }
     """
+    permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
 
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super(HostCreate, self).create(request, *args, **kwargs)
+            return response
+        except ValidationError, e:
+            error_list = []
+            if hasattr(e, 'error_dict'):
+                for key, errors in e.message_dict.items():
+                    for error in errors:
+                        error_list.append(error)
+            else:
+                error_list.append(e.message)
+            return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
 
-class HostUpdate(APIView):
+
+class HostUpdate(generics.RetrieveUpdateAPIView):
     """
         Updates registration for a host.
 
@@ -149,27 +168,48 @@ class HostUpdate(APIView):
                 "expire_days": "30"
             }
     """
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
+    serializer_class = host_serializers.HostCreateUpdateSerializer
+    model = Host
 
-    def get(self, request, format=None, **kwargs):
-        DetailView = HostDetail.as_view()
-        return DetailView(request, pk=kwargs['pk'])
+    def pre_save(self, obj):
+        pass
 
     def post(self, request, *args, **kwargs):
-        host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostCreateUpdateSerializer(
-            context={'user': request.user},
-            data=request.DATA,
-            instance=host
-        )
+        return self.update(request, *args, **kwargs)
 
-        if serializer.is_valid():
-            serializer.save()
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        self.object = self.get_object_or_none()
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(self.object, data=request.DATA,
+                                         files=request.FILES, partial=partial)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if self.object is None:
+                self.object = serializer.save(force_insert=True)
+                self.post_save(self.object, created=True)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            self.object = serializer.save(force_update=True)
+            self.post_save(self.object, created=False)
+        except ValidationError, e:
+            error_list = []
+            if hasattr(e, 'error_dict'):
+                for key, errors in e.message_dict.items():
+                    for error in errors:
+                        error_list.append(error)
+            else:
+                error_list.append(e.message)
+            return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class HostRenew(generics.UpdateAPIView):
+class HostRenew(generics.RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostRenewSerializer
     model = Host
 
@@ -183,6 +223,7 @@ class HostDelete(generics.DestroyAPIView):
 
         All that is required for this to execute is calling it via a POST or DELETE request.
     """
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostMacSerializer
     model = Host
 
@@ -203,6 +244,8 @@ class HostOwnerList(generics.RetrieveAPIView):
 
 
 class HostOwnerAdd(APIView):
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
+
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
         serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
@@ -233,6 +276,8 @@ class HostOwnerAdd(APIView):
 
 
 class HostOwnerDelete(APIView):
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
+
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
         serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
@@ -309,6 +354,7 @@ class HostAddAttribute(APIView):
                 }
             }
     """
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
@@ -358,6 +404,7 @@ class HostDeleteAttribute(APIView):
                 "attributes": ["border-profile", "location"]
             }
     """
+    permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])

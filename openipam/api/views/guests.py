@@ -7,9 +7,10 @@ from rest_framework.views import APIView
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import GuestTicket, Host
-from openipam.network.models import AddressType
+from openipam.network.models import AddressType, Pool
 from openipam.api.serializers.guests import GuestDeleteSerializer, GuestTicketListCreateSerializer, GuestRegisterSerializer
 from openipam.api.filters.guests import GuestTicketFilter
+from openipam.api.permissions import IPAMGuestEnablePermission
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -17,7 +18,7 @@ User = get_user_model()
 
 
 class GuestTicketList(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
     queryset = GuestTicket.objects.all()
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
@@ -25,8 +26,8 @@ class GuestTicketList(generics.ListAPIView):
     max_paginate_by = 5000
 
     def list(self, request, *args, **kwargs):
-        if not CONFIG.get('GUESTS_ENABLED', False):
-            return Response({'detail': 'Guest access has been disabled.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_ipamadmin:
+            self.queryset = GuestTicket.objects.filter(user=request.user)
         return super(GuestTicketList, self).list(request, *args, **kwargs)
 
     def get_paginate_by(self, queryset=None):
@@ -39,19 +40,14 @@ class GuestTicketList(generics.ListAPIView):
 
 
 class GuestTicketCreate(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
     queryset = GuestTicket.objects.all()
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
 
-    def post(self, request, format=None, **kwargs):
-        if not CONFIG.get('GUESTS_ENABLED', False):
-            return Response({'detail': 'Guest access has been disabled.'}, status=status.HTTP_401_UNAUTHORIZED)
-        return super(GuestTicketCreate, self).post(request, format, **kwargs)
-
 
 class GuestTicketDelete(generics.RetrieveDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
     serializer_class = GuestDeleteSerializer
     model = GuestTicket
     lookup_field = 'ticket'
@@ -59,18 +55,11 @@ class GuestTicketDelete(generics.RetrieveDestroyAPIView):
     def post(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
-    def destroy(self, request, *args, **kwargs):
-        if not CONFIG.get('GUESTS_ENABLED', False):
-            return Response({'detail': 'Guest access has been disabled.'}, status=status.HTTP_401_UNAUTHORIZED)
-        return super(GuestTicketDelete, self).destroy(request, *args, **kwargs)
-
 
 class GuestRegister(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny, IPAMGuestEnablePermission)
 
     def post(self, request, format=None, **kwargs):
-        if not CONFIG.get('GUESTS_ENABLED', False):
-            return Response({'detail': 'Guest access has been disabled.'}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = GuestRegisterSerializer(data=request.DATA)
 
         if serializer.is_valid():
@@ -82,25 +71,18 @@ class GuestRegister(APIView):
                 .first()
             )
             hostname_index = int(last_hostname.hostname[len(hostname_prefix):last_hostname.hostname.find(hostname_suffix)])
+            guest_user = User.objects.get(username__iexact=CONFIG.get('GUEST_USER'))
 
-            # Find the host or create a new one
-            host = Host.objects.get_or_create(
-                mac=serializer.data.get('mac_address')
+            # Add or update host
+            Host.objects.add_or_update_host(
+                user=request.user,
+                hostname='%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix),
+                mac=serializer.data.get('mac_address'),
+                expires=serializer.data.get('ends'),
+                description=serializer.data.get('description', ''),
+                pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
+                user_owners=[request.user.username, guest_user],
             )
-            # Set the guest hostname, desctription, expires and dynamic address type
-            host.hostname = '%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix)
-            host.description = serializer.data.get('description', '')
-            host.expires = serializer.data.get('ends')
-            host.address_type_id = AddressType.objects.get(pool__name=CONFIG.get('GUEST_POOL'))
-            host.save()
-
-            # Set the pool relationships
-            host.set_network_ip_or_pool()
-
-            # Remove all previous woners and add 'guest' and ticket user as owners.
-            host.remove_owners()
-            host.assign_owner(User.objects.get(username__iexact=CONFIG.get('GUEST_USER')))
-            host.assign_owner(request.user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

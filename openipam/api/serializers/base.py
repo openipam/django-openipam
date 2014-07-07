@@ -45,10 +45,12 @@ class MACAddressField(serializers.CharField):
         """
         Check to see if the provided value is a valid choice.
         """
-        try:
-            value = EUI(str(value))
-        except (ValueError, TypeError, AddrFormatError):
-            raise ValidationError(self.error_messages['invalid'] % {'value': value})
+        super(MACAddressField, self).validate(value)
+        if value:
+            try:
+                value = EUI(str(value))
+            except (ValueError, TypeError, AddrFormatError):
+                raise ValidationError(self.error_messages['invalid'] % {'value': value})
 
 
 class IPAddressField(serializers.CharField):
