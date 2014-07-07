@@ -50,3 +50,7 @@ nosetests.xml
 
 # For Ipam
 fabfile.py
+.anaconda_bak
+.dump.rdb
+static/*
+dump.rdb
