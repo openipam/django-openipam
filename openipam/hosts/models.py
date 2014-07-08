@@ -586,7 +586,7 @@ class Host(models.Model):
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
-            if self.network not in [network.network for network in valid_network]:
+            if self.network.network not in [network.network for network in valid_network]:
                 raise ValidationError('You do not have sufficient permissions to add hosts to '
                   'the assigned network. Please contact an IPAM Administrator.')
 
