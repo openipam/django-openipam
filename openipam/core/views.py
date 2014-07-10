@@ -21,6 +21,7 @@ from django.views.generic.base import TemplateView
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
 from openipam.user.forms import IPAMAuthenticationForm
+from openipam.conf.ipam_settings import CONFIG
 
 import os
 import random
@@ -38,8 +39,8 @@ def index(request):
         return redirect('profile')
     else:
         context = {
-            'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
-            'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
+            'email': CONFIG.get('EMAIL_ADDRESS'),
+            'legacy_domain': CONFIG.get('LEGACY_DOAMIN'),
         }
         return AdminSite().index(request, extra_context=context)
 
@@ -128,8 +129,8 @@ def page_error(request, template_name, extra_context=None):
     context = {
         'request_path': request.path,
         'kitty': kitty,
-        'email': getattr(settings, 'IPAM_EMAIL_ADDRESS', ''),
-        'legacy_domain': getattr(settings, 'IPAM_LEGACY_DOAMIN', ''),
+        'email': CONFIG.get('EMAIL_ADDRESS'),
+        'legacy_domain': CONFIG.get('LEGACY_DOAMIN'),
         'request_path': request.path
     }
     if extra_context:
