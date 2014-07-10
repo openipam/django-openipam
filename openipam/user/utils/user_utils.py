@@ -209,16 +209,19 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
                 assign_perm('hosts.is_owner_host', auth_group, host_group.host)
 
 
-def populate_user_from_ldap(username=None):
+def populate_user_from_ldap(username=None, user=None):
+    ldap_backend = LDAPBackend()
+
     if username:
         users = User.objects.filter(username__iexact=username)
+    elif user:
+        return ldap_backend.populate_user(username=user.username)
     else:
         users = User.objects.all()
-    ldap_backend = LDAPBackend()
     for user in queryset_iterator(users):
         if not user.first_name or not user.last_name or not user.email:
             print timezone.now(), 'Updating user: %s' % user.username
-            ldap_user = ldap_backend.populate_user(username=user.username)
+            ldap_backend.populate_user(username=user.username)
         else:
             print timezone.now(), 'NOT Updating user: %s' % user.username
 
