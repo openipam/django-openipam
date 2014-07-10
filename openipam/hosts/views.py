@@ -61,7 +61,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         is_owner = self.json_data.get('owner_filter', None)
 
         if is_owner:
-            qs = Host.objects.by_owner(self.request.user)
+            qs = Host.objects.by_owner(self.request.user, user_groups=True)
         # Otherwise get hosts based on permissions
         else:
             qs = Host.objects.all()
