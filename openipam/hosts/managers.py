@@ -2,6 +2,7 @@ from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.db import connection
 
 from openipam.network.models import DhcpGroup, Pool
 
@@ -66,17 +67,26 @@ class HostMixin(object):
             else:
                 return qs
 
-    def expiring(self):
-        host_macs = self.raw('''
-            SELECT DISTINCT h.mac, h.hostname, h.expires, h.description, n.notification
-            FROM hosts h
-                INNER JOIN notifications_to_hosts nh ON (h.mac = nh.mac)
-                INNER JOIN notifications n ON (n.id = nh.nid)
-                INNER JOIN addresses a ON (h.mac = a.mac)
-                WHERE (h.expires - n.notification) <= now()
-        ''')
-        host_macs = [host.mac for host in host_macs]
-        hosts = self.filter(mac__in=host_macs)
+    def by_expiring(self, ids_only=False):
+        cursor = connection.cursor()
+        try:
+            cursor.execute('''
+                SELECT DISTINCT h.mac from hosts h
+                    CROSS JOIN notifications n
+                    WHERE h.expires > now()
+                        AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
+                        AND (h.expires - n.notification) < now();
+
+
+
+            ''')
+            hosts = [host[0] for host in cursor.fetchall()]
+        finally:
+            cursor.close()
+
+        if not ids_only:
+            hosts = self.filter(mac__in=hosts)
+
         return hosts
 
     def get_or_none(self, **kwargs):
