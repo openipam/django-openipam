@@ -7,8 +7,6 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 
-from openipam.network.models import Address
-
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 from netaddr.core import AddrFormatError
@@ -170,6 +168,7 @@ class DnsManager(Manager):
 
     def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
         from openipam.dns.models import Domain
+        from openipam.network.models import Address
 
         try:
             if record:
