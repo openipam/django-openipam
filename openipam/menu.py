@@ -104,6 +104,7 @@ class IPAMMenu(Menu):
                             [
                                 'django.contrib.admin.models.LogEntry',
                                 'openipam.log.models.HostLog',
+                                'openipam.log.models.EmailLog'
                             ]
                         ),
                         items.ModelList('Feature Requests',

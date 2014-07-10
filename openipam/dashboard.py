@@ -78,6 +78,7 @@ class IPAMIndexDashboard(Dashboard):
                 'django.contrib.*',
                 'guardian.*',
                 'openipam.core.*',
+                'openipam.log.models.EmailLog'
             ),
         ))
 
