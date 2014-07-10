@@ -19,7 +19,7 @@ class Command(BaseCommand):
         ipam_user_group, u_created = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))
         ipam_admin_group, a_created = Group.objects.get_or_create(name=CONFIG.get('ADMIN_GROUP'))
 
-        default_perms = getattr(settings, 'IPAM_DEFAULT_PERMISSIONS', {})
+        default_perms = CONFIG.get('DEFAULT_PERMISSIONS')
 
         for app, model in default_perms.items():
             for model, lst in model.items():
