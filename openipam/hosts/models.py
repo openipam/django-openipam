@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
@@ -197,6 +198,7 @@ class Host(models.Model):
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    last_notified = models.DateTimeField(blank=True, null=True)
 
     objects = HostManager()
 
@@ -256,6 +258,10 @@ class Host(models.Model):
         return True if self.pools.all() else False
 
     @property
+    def is_static(self):
+        return True if self.is_dynamic is False else False
+
+    @property
     def address_type(self):
         # Get and Set address type if receord is not new.
         if self.pk and not self.address_type_id:
@@ -313,7 +319,7 @@ class Host(models.Model):
     def owners(self):
         return self.get_owners(ids_only=False)
 
-    def get_owners(self, ids_only=True, owner_detail=False):
+    def get_owners(self, ids_only=True, owner_detail=False, users_only=False):
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
 
@@ -326,6 +332,12 @@ class Host(models.Model):
         for group, permissions in groups_dict.iteritems():
             if 'is_owner_host' in permissions:
                 groups.append(group)
+
+        if users_only:
+            User = get_user_model()
+            users_from_groups = [user for user in User.objects.filter(groups__in=groups)]
+            users = list(set(users + users_from_groups))
+            return users
 
         if owner_detail:
             users = [(user.pk, user.username, user.get_full_name(), user.email) for user in users]
@@ -569,7 +581,6 @@ class Host(models.Model):
         # Pool and Network permission checks
         # Check for pool assignment and perms
         if self.address_type and self.address_type.pool:
-            #assert False, self.address_type.pool
             valid_pools = get_objects_for_user(
                 self.user,
                 ['network.add_records_to_pool', 'network.change_pool'],
