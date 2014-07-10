@@ -32,6 +32,9 @@
                     <strong>Expires</strong>
                 </td>
                 <td>
+                    <strong>Last Notified</strong>
+                </td>
+                <td>
                     <strong>Address Type</strong>
                 </td>
                 <td>
@@ -42,6 +45,7 @@
                 <td>{{ object.hostname }}</td>
                 <td>{{ object.mac }}</td>
                 <td>{{ object.expires }}</td>
+                <td>{{ object.last_notified }}</td>
                 <td>{{ object.address_type }}</td>
                 <td>
                     {% if object.description %}
