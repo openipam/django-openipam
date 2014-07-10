@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django import forms
 
-from openipam.log.models import HostLog
+from openipam.log.models import HostLog, EmailLog
 
 import autocomplete_light
 
@@ -50,9 +50,30 @@ class LogEntryAdmin(admin.ModelAdmin):
     object_name.short_description = 'Model object'
 
 
+class EmailLogAdmin(admin.ModelAdmin):
+    list_display = ('to', 'when', 'subject',)
+    list_filter = ('when',)
+    readonly_fields = ('when', 'to', 'subject', 'email_body',)
+    search_fields = ('subject', 'body', 'to',)
+    exclude = ('body',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
 class HostLogAdmin(admin.ModelAdmin):
     list_display = ('mac', 'hostname', 'changed', 'changed_by',)
 
+    def has_delete_permission(self, request, obj=None):
+        return False
 
+    def has_add_permission(self, request):
+        return False
+
+
+admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
-#admin.site.register(HostLog, HostLogAdmin)
+admin.site.register(HostLog, HostLogAdmin)

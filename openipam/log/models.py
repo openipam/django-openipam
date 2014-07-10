@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils.safestring import mark_safe
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -58,11 +58,26 @@ class UserLog(BaseLog):
     date_joined = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-
     class Meta:
         managed = True
         db_table = 'users_log'
 
+
+class EmailLog(models.Model):
+    """
+    Model to store all the outgoing emails.
+    """
+    when = models.DateTimeField(null=False, auto_now_add=True)
+    to = models.EmailField(null=False, blank=False)
+    subject = models.CharField(null=False, max_length=128)
+    body = models.TextField(null=False, max_length=1024)
+    #ok = models.BooleanField(null=False, default=True)
+
+    def email_body(self):
+        return mark_safe('<pre>%s</pre>' % self.body)
+
+    class Meta:
+        db_table = 'email_log'
 
 # class AddressLog(BaseLog):
 #     address = models.GenericIPAddressField()
