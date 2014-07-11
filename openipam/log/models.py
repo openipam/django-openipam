@@ -67,10 +67,10 @@ class EmailLog(models.Model):
     """
     Model to store all the outgoing emails.
     """
-    when = models.DateTimeField(null=False, auto_now_add=True)
-    to = models.EmailField(null=False, blank=False)
-    subject = models.CharField(null=False, max_length=128)
-    body = models.TextField(null=False, max_length=1024)
+    when = models.DateTimeField(auto_now_add=True)
+    to = models.EmailField(max_length=255)
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
     #ok = models.BooleanField(null=False, default=True)
 
     def email_body(self):
