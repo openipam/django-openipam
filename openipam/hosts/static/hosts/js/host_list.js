@@ -281,10 +281,11 @@ $(function(){
     //Triger filtering on owners
     $("#filter-owners button").on('click', function() {
         if (!$(this).hasClass('active')) {
-            $("#filter-owners button").removeClass('active');
-            $(this).addClass('active');
+            $("#filter-owners button").removeClass('btn-primary');
+            $(this).addClass('btn-primary');
             $.cookie('owner_filter', $(this).val(), {expires: 1, path: '/hosts/'});
             results.clearPipeline().draw();
+            $(this).blur();
         }
     });
 
