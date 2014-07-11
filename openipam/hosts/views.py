@@ -344,7 +344,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
 
-        context['owner_filter'] = self.request.COOKIES.get('owner_filter', None)
+        owner_filter = self.request.COOKIES.get('owner_filter', None)
+        context['owner_filter'] = self.request.GET.get('mine', owner_filter)
         context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)

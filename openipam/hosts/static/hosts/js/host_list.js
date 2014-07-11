@@ -1,4 +1,12 @@
 $(function(){
+    $.getUrlVars = function() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+    $.urlVars = $.getUrlVars();
 
     //
     // Pipelining function for DataTables. To be used to the `ajax` option of DataTables
@@ -130,8 +138,13 @@ $(function(){
             "url": "data/",
             "pages": 5,
             "data": function(d) {
-                d.owner_filter = $.cookie('owner_filter');
-                d.search_filter = $.cookie('search_filter');
+                $.each(d.columns, function(key, obj){
+                    if (obj.name in $.urlVars) {
+                        obj.search.value = $.urlVars[obj.name];
+                    }
+                });
+                d.owner_filter = (('mine' in $.urlVars) ? $.urlVars['mine'] : $.cookie('owner_filter'));
+                d.search_filter = (('q' in $.urlVars) ? $.urlVars['q'] : $.cookie('search_filter'));
                 // We do this to work with the data better.
                 d.json_data = JSON.stringify(d);
             }
@@ -149,6 +162,7 @@ $(function(){
             "search": ""
         },
         "stateLoaded": function (settings, data) {
+            //$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.aoSearchCols[1].sSearch);
             $("#s_host").val(data.aoSearchCols[1].sSearch);
             $("#s_mac").val(data.aoSearchCols[2].sSearch);
             $("#s_ip").val(data.aoSearchCols[3].sSearch);
@@ -313,16 +327,15 @@ $(function(){
 
     // Clear all filters logic
     $("#clear-filters").on('click', function(e) {
+        if ($.isEmptyObject($.urlVars)) {
+            $.removeCookie('search_filter', {path: '/hosts/'});
 
-        $.removeCookie('search_filter', {path: '/hosts/'});
+            $(".search_init").val('');
+            $("#id_search").val('');
+            $(".search_init, #id_search").removeClass('red-highlight');
 
-        $(".search_init").val('');
-        $("#id_search").val('');
-        $(".search_init, #id_search").removeClass('red-highlight');
-
-        results.clearPipeline().columns().search('').draw();
-
-        return false;
+            results.clearPipeline().columns().search('').draw();
+        }
     });
 
     $(".search_init").on('input', function(e) {

@@ -72,16 +72,15 @@
                         <input type="radio" name="owner-filter" id="owner-all" value="" {% if not owner_filter %}checked="checked"{% endif %} />Show All
                     </label>
                     {% endcomment %}
-
                     <button type="button" class="btn btn-default {% if owner_filter %}active{% endif %}" value="1">Show Mine</button>
                     <button type="button" class="btn btn-default {% if not owner_filter %}active{% endif %}" value="">Show All</button>
                 </div>
 
                 <div id="changelist-search" class="pull-right">
-                    <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
-                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign"></div>
-                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
-                    <a id="clear-filters" class="pull-right btn btn-default" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
+                    <span id="filtered-label" class="label label-primary pull-left">Records Filtered {% if request.GET|length != 0 %}from the URL{% endif %}</span>
+                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
+                    <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
+                    <a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="help-content">
                     <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
@@ -116,6 +115,7 @@
                         <th scope="col">Edit</th>
                     </tr>
                 </thead>
+                {% if request.GET|length == 0 %}
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
@@ -170,6 +170,7 @@
                         <th>&nbsp;</th>
                     </tr>
                 </tfoot>
+                {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
