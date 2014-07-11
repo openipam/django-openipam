@@ -63,6 +63,8 @@
 #filtered-label
 {
     margin: 5px;
+    font-size: 15px;
+    display: none;
 }
 #footer
 {
