@@ -62,9 +62,7 @@
 
                 </div>
                 <div id="filter-owners" class="btn-group pull-left">
-
                     {% comment %}
-
                     <label class="btn btn-default {% if owner_filter %}active{% endif %}">
                         <input type="radio" name="owner-filter" id="owner-mine" value="1" {% if owner_filter %}checked="checked"{% endif %} />Show Mine
                     </label>
@@ -77,7 +75,11 @@
                 </div>
 
                 <div id="changelist-search" class="pull-right">
-                    <span id="filtered-label" class="label label-primary pull-left">Records Filtered {% if request.GET|length != 0 %}from the URL{% endif %}</span>
+                    {% if request.GET|length == 0 %}
+                        <span id="filtered-label" class="label label-primary pull-left">Records Filtered</span>
+                    {% else %}
+                        <span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
+                    {% endif %}
                     <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
                     <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
                     <a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
