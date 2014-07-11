@@ -55,16 +55,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
     max_display_length = 1500
 
     def get_initial_queryset(self):
-        # return queryset used as base for futher sorting/filtering
-        # these are simply objects displayed in datatable
-        # Get my hosts /hosts/mine
-        is_owner = self.json_data.get('owner_filter', None)
-
-        if is_owner:
-            qs = Host.objects.by_owner(self.request.user, use_groups=True)
-        # Otherwise get hosts based on permissions
-        else:
-            qs = Host.objects.all()
+        qs = Host.objects.all()
         return qs
 
     def filter_queryset(self, qs):
@@ -78,9 +69,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             ip_search = column_data[3]['search']['value']
             expired_search = column_data[4]['search']['value']
             search = self.json_data.get('search_filter', '')
+            is_owner = self.json_data.get('owner_filter', None)
 
             #group_filter = self.json_data.get('group_filter', None)
             #user_filter = self.json_data.get('user_filter', None)
+
+            if is_owner:
+                qs = qs.by_owner(self.request.user, use_groups=True)
 
             search_list = search.strip().split(' ') if search else []
             for search_item in search_list:
