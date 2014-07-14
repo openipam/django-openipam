@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.db import connection
 
 from openipam.network.models import DhcpGroup, Pool
+from openipam.conf.ipam_settings import CONFIG
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
 
@@ -67,7 +68,8 @@ class HostMixin(object):
             else:
                 return qs
 
-    def by_expiring(self, ids_only=False):
+    def by_expiring(self, ids_only=False, omit_guests=False):
+
         cursor = connection.cursor()
         try:
             cursor.execute('''
@@ -75,7 +77,9 @@ class HostMixin(object):
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
-                        AND (h.expires - n.notification) < now();
+                        AND (h.expires - n.notification) < now()
+                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(g-%)
+                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(%.guests.usu.edu)
 
 
 
@@ -84,7 +88,16 @@ class HostMixin(object):
         finally:
             cursor.close()
 
-        if not ids_only:
+        if omit_guests is True:
+            guest_hostname_prefix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[0]
+            guest_hostname_suffix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[1]
+
+            hosts = self.filter(mac__in=hosts).exclude(
+                hostname__istartswith=guest_hostname_prefix,
+                hostname__iendswith=guest_hostname_suffix
+            )
+
+        if ids_only is False:
             hosts = self.filter(mac__in=hosts)
 
         return hosts
