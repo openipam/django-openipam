@@ -4,6 +4,7 @@ from django.conf import settings
 CONFIG_DEFAULTS = {
     'GUESTS_ENABLED': True,
     'GUEST_USER': 'guest',
+    'GUEST_GROUP': 'guests',
     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.example.com'],
     'GUEST_POOL': 'routable-dynamic',
     'APPS': [app.split('.')[1] for app in filter(lambda x: x.split('.')[0] == 'openipam', settings.INSTALLED_APPS)],
