@@ -79,7 +79,7 @@ class HostMac(APIView):
         elif leased_ip:
             lease = Lease.objects.filter(address=leased_ip).first()
             if lease:
-                return Response({'mac': lease.mac})
+                return Response({'mac': lease.hoist_id})
 
         elif registered_ip:
             host = Host.objects.filter(addresses__address=registered_ip).first()
