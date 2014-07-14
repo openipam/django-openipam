@@ -258,7 +258,6 @@ $(function(){
 
     $('#id_search').on('keyup selectChoice', function(){
         var value = $(this).val() ? $(this).val() : '';
-        console.log('hi');
         delay(function(){
             $.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
             results.clearPipeline().draw();
@@ -280,12 +279,17 @@ $(function(){
 
     //Triger filtering on owners
     $("#filter-owners button").on('click', function() {
-        if (!$(this).hasClass('active')) {
-            $("#filter-owners button").removeClass('btn-primary');
-            $(this).addClass('btn-primary');
+        if (!$(this).hasClass('btn-primary')) {
             $.cookie('owner_filter', $(this).val(), {expires: 1, path: '/hosts/'});
-            results.clearPipeline().draw();
-            $(this).blur();
+            if ($.isEmptyObject($.urlVars)) {
+                $("#filter-owners button").removeClass('btn-primary');
+                $(this).addClass('btn-primary');
+                results.clearPipeline().draw();
+                $(this).blur();
+            }
+            else {
+                location.href = '/hosts/';
+            }
         }
     });
 
@@ -330,7 +334,9 @@ $(function(){
     $("#clear-filters").on('click', function(e) {
         if ($.isEmptyObject($.urlVars)) {
             $.removeCookie('search_filter', {path: '/hosts/'});
+            $.removeCookie('owner_filter', {path: '/hosts/'});
 
+            $("#owner-all").click();
             $(".search_init").val('');
             $("#id_search").val('');
             $(".search_init, #id_search").removeClass('red-highlight');

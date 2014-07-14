@@ -70,8 +70,8 @@
                         <input type="radio" name="owner-filter" id="owner-all" value="" {% if not owner_filter %}checked="checked"{% endif %} />Show All
                     </label>
                     {% endcomment %}
-                    <button type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
-                    <button type="button" class="btn btn-default {% if not owner_filter %}btn-primary{% endif %}" value="">Show All</button>
+                    <button id="owner-mine" type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
+                    <button id="owner-all" type="button" class="btn btn-default {% if not owner_filter %}btn-primary{% endif %}" value="">Show All</button>
                 </div>
 
                 <div id="changelist-search" class="pull-right">
