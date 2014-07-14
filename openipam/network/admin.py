@@ -93,6 +93,8 @@ class LeaseAdmin(admin.ModelAdmin):
     form = autocomplete_light.modelform_factory(Lease)
     list_display = ('address', 'host', 'starts', 'ends', 'server', 'abandoned',)
     readonly_fields = ('starts', 'ends',)
+    search_fields = ('address', 'host__mac', 'host__hostname',)
+
 
 class HasHostFilter(admin.SimpleListFilter):
     title = 'has host'
