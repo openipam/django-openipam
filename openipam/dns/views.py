@@ -53,13 +53,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         if owner_filter:
             qs = qs.by_change_perms(self.request.user)
 
-        # host = self.kwargs.get('host', '')
-        # if host:
-        #     qs = qs.filter(
-        #         Q(ip_content__host__hostname=host) |
-        #         Q(text_content=host)
-        #     )
-
         return qs
 
     def filter_queryset(self, qs):
@@ -279,7 +272,8 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
         context = super(DNSListView, self).get_context_data(**kwargs)
         context['dns_types'] = DnsType.objects.exclude(min_permissions__name='NONE')
 
-        context['change_filter'] = self.request.COOKIES.get('change_filter', None)
+        change_filter = self.request.COOKIES.get('change_filter', None)
+        context['change_filter'] = self.request.GET.get('mine', change_filter)
         if kwargs.get('host'):
             context['search_filter'] = 'host:%s' % kwargs['host']
         else:

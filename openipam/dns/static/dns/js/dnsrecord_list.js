@@ -1,4 +1,12 @@
 $(function(){
+    $.getUrlVars = function() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+    $.urlVars = $.getUrlVars();
 
     //
     // Pipelining function for DataTables. To be used to the `ajax` option of DataTables
@@ -128,8 +136,14 @@ $(function(){
             "url": "/dns/data/",
             "pages": 5,
             "data": function(d) {
-                d.change_filter = $.cookie('change_filter');
-                d.search_filter = $.cookie('search_filter');
+                $.each(d.columns, function(key, obj){
+                    if (obj.name in $.urlVars) {
+                        obj.search.value = $.urlVars[obj.name];
+                    }
+                });
+                d.change_filter = (('mine' in $.urlVars) ? $.urlVars['mine'] : $.cookie('change_filter'));
+                d.search_filter = (('q' in $.urlVars) ? $.urlVars['q'] : $.cookie('search_filter'));
+
                 // We do this to work with the data better.
                 d.json_data = JSON.stringify(d);
             }
@@ -379,10 +393,19 @@ $(function(){
 
     //Triger filtering on change perms
     $("#filter-change button").on('click', function() {
-        $("#filter-change button").removeClass('active');
-        $(this).addClass('active');
-        $.cookie('change_filter', $(this).val(), {expires: 1, path: '/dns/'});
-        results.clearPipeline().draw();
+        if (!$(this).hasClass('btn-primary')) {
+            $.cookie('change_filter', $(this).val(), {expires: 1, path: '/dns/'});
+
+            if ($.isEmptyObject($.urlVars)) {
+                $("#filter-change button").removeClass('btn-primary');
+                $(this).addClass('btn-primary');
+                results.clearPipeline().draw();
+                $(this).blur();
+            }
+            else {
+                location.href = '/dns/';
+            }
+        }
     });
 
     // JS Styling :/
@@ -398,16 +421,15 @@ $(function(){
 
     // Clear all filters logic
     $("#clear-filters").on('click', function(e) {
+        if ($.isEmptyObject($.urlVars)) {
+            $.removeCookie('search_filter', {path: '/dns/'});
 
-        $.removeCookie('search_filter', {path: '/dns/'});
+            $(".search_init").val('');
+            $("#id_search").val('');
+            $(".search_init, #id_search").removeClass('red-highlight');
 
-        $(".search_init").val('');
-        $("#id_search").val('');
-        $(".search_init, #id_search").removeClass('red-highlight');
-
-        results.clearPipeline().columns().search('').draw();
-
-        return false;
+            results.clearPipeline().columns().search('').draw();
+        }
     });
 
     $(".search_init").on('input', function() {

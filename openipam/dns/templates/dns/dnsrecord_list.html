@@ -65,16 +65,20 @@
                     </div>
                 </div>
                 {% if not request.user.is_ipamadmin %}
-                <div id="filter-change" class="btn-group radio-btn-group pull-left" data-toggle="buttons-radio">
-                    <button type="button" class="btn btn-default {% if change_filter %}active{% endif %}" value="1">Show Mine</button>
-                    <button type="button" class="btn btn-default {% if not change_filter %}active{% endif %}" value="">Show All</button>
+                <div id="filter-change" class="btn-group pull-left">
+                    <button type="button" class="btn btn-default {% if change_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
+                    <button type="button" class="btn btn-default {% if not change_filter %}btn-primary{% endif %}" value="">Show All</button>
                 </div>
                 {% endif %}
                 <div id="changelist-search" class="pull-right">
-                    <span id="filtered-label"class="label label-important pull-left hide">Records Filtered</span>
-                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign"></div>
-                    <div id="advanced-search" class="pull-left"><label><input type="text" id="id_search" placeholder="Advanced Search" value="{{ search_filter }}" class="form-control" /></label></div>
-                    <a id="clear-filters" class="pull-right btn btn-default" href="javascript:void(0);" stlye="margin-left: 10px;">Clear</a>
+                    {% if request.GET|length == 0 %}
+                        <span id="filtered-label" class="label label-primary pull-left">Records Filtered</span>
+                    {% else %}
+                        <span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
+                    {% endif %}
+                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
+                    <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" value="{{ search_filter }}" class="form-control" /></label></div>
+                    <a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_dns' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="help-content">
                     <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
@@ -109,6 +113,7 @@
                         <th scope="col" style="width: 70px;">Edit</th>
                     </tr>
                 </thead>
+                {% if request.GET|length == 0 %}
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
@@ -129,6 +134,7 @@
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
                     </tr>
                 </tfoot>
+                {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
