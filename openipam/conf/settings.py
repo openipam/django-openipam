@@ -179,7 +179,7 @@ INSTALLED_APPS = (
 ) + LOCAL_INSTALLED_APPS
 
 OPENIPAM = {
-    'GUEST_HOSTNAME_FORMAT': 'g-%s.guests.usu.edu'
+    'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.usu.edu'],
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = (
