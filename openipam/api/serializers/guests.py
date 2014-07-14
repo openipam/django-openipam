@@ -51,9 +51,10 @@ class GuestDeleteSerializer(serializers.ModelSerializer):
 
 
 class GuestRegisterSerializer(serializers.Serializer):
-    mac_address = MACAddressField(required=False)
-    ip_address = IPAddressField()
+    name = serializers.CharField()
     ticket = serializers.CharField()
+    ip_address = IPAddressField()
+    mac_address = MACAddressField(required=False)
     description = serializers.CharField(required=False)
 
     def validate_ticket(self, attrs, source):

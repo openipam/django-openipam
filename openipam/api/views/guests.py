@@ -73,14 +73,18 @@ class GuestRegister(APIView):
             hostname_index = int(last_hostname.hostname[len(hostname_prefix):last_hostname.hostname.find(hostname_suffix)])
             guest_user = User.objects.get(username__iexact=CONFIG.get('GUEST_USER'))
             user_owner = serializer.valid_ticket.user
+            description = serializer.data.get('description')
+            name = serializer.data.get('name')
+            ticket = serializer.data.get('ticket')
+            mac_address = serializer.data.get('mac_address')
 
             # Add or update host
             Host.objects.add_or_update_host(
                 user=guest_user,
                 hostname='%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix),
-                mac=serializer.data.get('mac_address'),
-                expires=serializer.data.get('ends'),
-                description=serializer.data.get('description', ''),
+                mac=mac_address,
+                expires=serializer.valid_ticket.ends,
+                description=description if description else 'Name: %s; Ticket used: %s' % (name, ticket),
                 pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
                 user_owners=[user_owner],
                 group_owners=[CONFIG.get('GUEST_GROUP')]
