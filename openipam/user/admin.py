@@ -4,6 +4,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
@@ -97,6 +98,14 @@ class IPAMGroupFilter(ListFilter):
         return queryset
 
 
+class AuthUserChangeList(ChangeList):
+    def get_queryset(self, request):
+        qs = super(AuthUserChangeList, self).get_queryset(request)
+        if not len(request.GET):
+            qs = qs.filter(last_login__gte='1970-01-01')
+        return qs
+
+
 class AuthUserAdmin(UserAdmin):
     add_form = AuthUserCreateAdminForm
     form = AuthUserChangeAdminForm
@@ -128,12 +137,8 @@ class AuthUserAdmin(UserAdmin):
     #     invalidate_model(UserObjectPermission)
     #     invalidate_model(GroupObjectPermission)
 
-    def get_queryset(self, request):
-        qs = super(AuthUserAdmin, self).get_queryset(request)
-
-        if not len(request.GET):
-            qs = qs.filter(last_login__gte='1970-01-01')
-        return qs
+    def get_changelist(self, request, **kwargs):
+        return AuthUserChangeList
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         try:
