@@ -91,9 +91,13 @@ class NetworkToVlanAdmin(ChangedAdmin):
 
 class LeaseAdmin(admin.ModelAdmin):
     form = autocomplete_light.modelform_factory(Lease)
-    list_display = ('address', 'host', 'starts', 'ends', 'server', 'abandoned',)
+    list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
     readonly_fields = ('starts', 'ends',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
+
+    def mac(self, obj):
+        return obj.host_id
+    mac.short_description = 'Host'
 
 
 class HasHostFilter(admin.SimpleListFilter):
