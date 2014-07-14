@@ -74,17 +74,17 @@ class GuestRegisterSerializer(serializers.Serializer):
         mac_address = attrs.get(source)
 
         if not mac_address:
-            lease = Lease.objects.filter(address__address=attrs.get('ip_address')).first()
+            lease = Lease.objects.filter(address=attrs.get('ip_address')).first()
             if not lease:
                 raise serializers.ValidationError(
-                    "The MAC Address for this guest could not be found. \Ticket: %s, IP: %s" % (attrs.get('ticket'), attrs.get('ip_address'))
+                    "The MAC Address for this guest could not be found.  Ticket: %s, IP: %s" % (attrs.get('ticket'), attrs.get('ip_address'))
                 )
             else:
-                attrs['mac_address'] = lease.host.mac
+                attrs['mac_address'] = lease.host_id
 
             host_exists = Host.objects.filter(mac=mac_address, expires__gte=timezone.now()).first()
             if host_exists:
                 raise serializers.ValidationError(
-                    "The MAC Address for this guest is already registered on the network. MAC: %s, IP: %s" % (mac_address, attrs.get('ip_address'))
+                    "The MAC Address for this guest is already registered on the network.  MAC: %s, IP: %s" % (mac_address, attrs.get('ip_address'))
                 )
         return attrs
