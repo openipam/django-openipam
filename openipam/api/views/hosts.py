@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, StructuredAttributeValue
+from openipam.network.models import Lease
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
 from openipam.api.permissions import IPAMChangeHostPermission
@@ -67,24 +68,26 @@ class HostMac(APIView):
         ip_address = request.GET.get('ip_address')
         leased_ip = request.GET.get('leased_ip')
         registered_ip = request.GET.get('registered_ip')
+        host = None
 
         if ip_address:
-            hosts = Host.objects.filter(
+            host = Host.objects.filter(
                 Q(leases__address__address=ip_address) |
                 Q(addresses__address=ip_address)
-            )
+            ).first()
 
         elif leased_ip:
-            hosts = Host.objects.filter(leases__address__address=leased_ip)
-        elif registered_ip:
-            hosts = Host.objects.filter(addresses__address=registered_ip)
-        else:
-            hosts = None
+            lease = Lease.objects.filter(address=leased_ip).first()
+            if lease:
+                return Response({'mac': lease.mac})
 
-        if hosts:
-            return Response({'mac': hosts[0].mac})
-        else:
-            return Response({})
+        elif registered_ip:
+            host = Host.objects.filter(addresses__address=registered_ip).first()
+
+        if host:
+            return Response({'mac': host.mac})
+
+        return Response({})
 
 
 class HostDetail(generics.RetrieveAPIView):
