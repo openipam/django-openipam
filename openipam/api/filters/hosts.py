@@ -49,7 +49,10 @@ class AttributeFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             attribute_name = value.split(':')[0]
-            attribute_value = value.split(':')[1]
+            if len(value) == 2:
+                attribute_value = value.split(':')[1]
+            else:
+                attribute_value = None
 
             if attribute_name and attribute_value:
                 qs = qs.filter(

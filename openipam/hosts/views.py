@@ -31,6 +31,8 @@ from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
+from netaddr.core import AddrFormatError
+
 from braces.views import PermissionRequiredMixin
 
 import json
@@ -197,6 +199,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 qs = qs.filter(expires__lt=timezone.now())
 
         except DatabaseError:
+            pass
+
+        except AddrFormatError:
             pass
 
         self.qs = qs

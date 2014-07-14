@@ -23,6 +23,8 @@ from openipam.core.views import BaseDatatableView
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
+from netaddr.core import AddrFormatError
+
 from braces.views import PermissionRequiredMixin
 
 import json
@@ -138,6 +140,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             #     qs = qs.filter(domain__in=[domain.id for domain in user_permited_domains])
 
         except DatabaseError:
+            pass
+
+        except AddrFormatError:
             pass
 
         self.qs = qs
