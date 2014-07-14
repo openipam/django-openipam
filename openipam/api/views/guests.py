@@ -71,7 +71,7 @@ class GuestRegister(APIView):
                 .first()
             )
             hostname_index = int(last_hostname.hostname[len(hostname_prefix):last_hostname.hostname.find(hostname_suffix)])
-            guest_user = User.objects.get(username__iexact=CONFIG.get('GUEST_USER'))
+            guest_user = serializer.valid_ticket.user
 
             # Add or update host
             Host.objects.add_or_update_host(
@@ -81,7 +81,8 @@ class GuestRegister(APIView):
                 expires=serializer.data.get('ends'),
                 description=serializer.data.get('description', ''),
                 pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
-                user_owners=[request.user.username, guest_user],
+                user_owners=[guest_user],
+                group_owners=[CONFIG.get('GUEST_GROUP')]
             )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)

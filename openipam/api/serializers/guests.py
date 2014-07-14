@@ -68,6 +68,8 @@ class GuestRegisterSerializer(serializers.Serializer):
         if not valid_ticket:
             raise serializers.ValidationError("Sponsor Code '%s' is expired or invalid" % ticket)
 
+        self.valid_ticket = valid_ticket
+
         return attrs
 
     def validate_mac_address(self, attrs, source):
