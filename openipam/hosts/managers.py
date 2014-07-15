@@ -153,9 +153,9 @@ class HostManager(NetManager):
             instance.description = description
 
         if expires:
-            instance.exipires = expires
+            instance.expires = expires
         elif expire_days:
-            instance.exipires = instance.set_expiration(timedelta(int(expire_days)))
+            instance.expires = instance.set_expiration(timedelta(int(expire_days)))
 
         if dhcp_group:
             if isinstance(dhcp_group, int):
