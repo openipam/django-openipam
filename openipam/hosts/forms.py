@@ -250,6 +250,7 @@ class HostForm(forms.ModelForm):
 
     def _init_expire_date(self):
         if self.instance.pk:
+            local = timezone.get_current_timezone()
             self.expire_date = HTML('''
                 <div class="form-group">
                     <label class="col-md-2 col-lg-2 control-label">Expire Date:</label>
@@ -260,7 +261,7 @@ class HostForm(forms.ModelForm):
                         </h4>
                     </div>
                 </div>
-            ''' % self.instance.expires.strftime('%b %d %Y'))
+            ''' % self.instance.expires.astimezone(local).strftime('%b %d %Y'))
             self.fields['expire_days'].required = False
 
         elif self.previous_form_data and 'expire_days' in self.previous_form_data:
