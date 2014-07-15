@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
@@ -78,6 +79,7 @@ class GuestRegister(APIView):
             ticket = serializer.data.get('ticket')
             mac_address = serializer.data.get('mac_address')
 
+            #try:
             # Add or update host
             Host.objects.add_or_update_host(
                 user=guest_user,
@@ -89,8 +91,19 @@ class GuestRegister(APIView):
                 user_owners=[user_owner],
                 group_owners=[CONFIG.get('GUEST_GROUP')]
             )
+            # except ValidationError:
+            #     return Response({
+            #         'non_field_errors': [
+            #             'There has been an error processing your request',
+            #             'Please contact an Administrator.'
+            #         ]
+            #     }, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            data = {
+                'starts': serializer.valid_ticket.starts,
+                'ends': serializer.valid_ticket.ends
+            }
+            data.update(serializer.data)
+
+            return Response(data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-

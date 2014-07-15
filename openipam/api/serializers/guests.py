@@ -28,15 +28,17 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def restore_object(self, attrs, instance=None):
-        if not instance:
-            instance = GuestTicket()
-            instance.set_ticket()
-
         instance = super(GuestTicketListCreateSerializer, self).restore_object(attrs, instance)
         if attrs.get('username'):
             instance.user = User.objects.get(username__iexact=attrs['username'])
-
         return instance
+
+    def save(self, **kwargs):
+        instance = self.object
+        instance.set_ticket()
+        instance.ends = instance.ends.replace(hour=23, minute=59, second=59)
+        instance.save()
+
 
     class Meta:
         model = GuestTicket
@@ -80,7 +82,8 @@ class GuestRegisterSerializer(serializers.Serializer):
             lease = Lease.objects.filter(address=attrs.get('ip_address')).first()
             if not lease:
                 raise serializers.ValidationError(
-                    "The MAC Address for this guest could not be found.  Ticket: %s, IP: %s" % (attrs.get('ticket'), attrs.get('ip_address'))
+                    "The MAC Address for this guest could not be found.",
+                    "Ticket: %s, IP: %s" % (attrs.get('ticket'), attrs.get('ip_address'))
                 )
             else:
                 attrs['mac_address'] = lease.host_id
@@ -88,6 +91,7 @@ class GuestRegisterSerializer(serializers.Serializer):
             host_exists = Host.objects.filter(mac=mac_address, expires__gte=timezone.now()).first()
             if host_exists:
                 raise serializers.ValidationError(
-                    "The MAC Address for this guest is already registered on the network.  MAC: %s, IP: %s" % (mac_address, attrs.get('ip_address'))
+                    "The MAC Address for this guest is already registered on the network.",
+                    "MAC: %s, IP: %s" % (mac_address, attrs.get('ip_address'))
                 )
         return attrs
