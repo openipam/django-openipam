@@ -279,6 +279,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 return '<span class="flagged">No Data</span>'
 
         def get_expires(expires):
+            local = timezone.get_current_timezone()
+            expires = expires.astimezone(local)
             if expires < timezone.now():
                 return '<span class="flagged">%s</span>' % expires.strftime('%Y-%m-%d')
             else:
