@@ -30,18 +30,12 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
     def restore_object(self, attrs, instance=None):
         if not instance:
             instance = GuestTicket()
+            instance.set_ticket()
         instance = super(GuestTicketListCreateSerializer, self).restore_object(attrs, instance)
         if attrs.get('username'):
             instance.user = User.objects.get(username__iexact=attrs['username'])
 
         return instance
-
-    def save(self, **kwargs):
-        instance = self.object
-        instance.set_ticket()
-        instance.ends = instance.ends.replace(hour=23, minute=59, second=59)
-        instance.save()
-
 
     class Meta:
         model = GuestTicket
