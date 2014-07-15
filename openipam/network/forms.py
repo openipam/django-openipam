@@ -21,6 +21,15 @@ class AddressAdminForm(forms.ModelForm):
         model = Address
 
 
+class LeaseAdminForm(forms.ModelForm):
+    host = forms.CharField(label='Host Mac')
+    address = forms.ModelChoiceField(queryset=Address.objects.all(), widget=forms.TextInput)
+
+    class Meta:
+        model = Address
+        exclude = ('host',)
+
+
 class AddressTypeAdminForm(forms.ModelForm):
 
     def clean(self):

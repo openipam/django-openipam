@@ -4,7 +4,7 @@ from django import forms
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Pool, Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
-from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, AddressAdminForm
+from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, AddressAdminForm, LeaseAdminForm
 from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
@@ -90,10 +90,14 @@ class NetworkToVlanAdmin(ChangedAdmin):
 
 
 class LeaseAdmin(admin.ModelAdmin):
-    form = autocomplete_light.modelform_factory(Lease)
+    form = LeaseAdminForm
+    #form = autocomplete_light.modelform_factory(Lease)
     list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
-    readonly_fields = ('starts', 'ends',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
+
+    def save_model(self, request, obj, form, change):
+        obj.host_id = form.cleaned_data['host']
+        obj.save()
 
     def mac(self, obj):
         return obj.host_id
