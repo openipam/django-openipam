@@ -28,9 +28,12 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def restore_object(self, attrs, instance=None):
+        if not instance:
+            instance = GuestTicket()
         instance = super(GuestTicketListCreateSerializer, self).restore_object(attrs, instance)
         if attrs.get('username'):
             instance.user = User.objects.get(username__iexact=attrs['username'])
+
         return instance
 
     def save(self, **kwargs):
