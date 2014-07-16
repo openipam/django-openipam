@@ -36,8 +36,7 @@ def convert_groups():
         converted_groups.append(AuthGroup.objects.get_or_create(name=group.name))
 
     for group in converted_groups:
-        if group[1]:
-            convert_permissions(groupname=group[0].name)
+        convert_permissions(groupname=group[0].name)
 
 
 def convert_permissions(delete=False, groupname=None, user=None, username=None):
