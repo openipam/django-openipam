@@ -132,14 +132,6 @@ class AuthUserAdmin(UserAdmin):
     is_ipamadmin.short_description = 'IPAM Admin Status'
     is_ipamadmin.boolean = True
 
-    # def save_model(self, request, obj, form, change):
-    #     super(AuthUserAdmin, self).save_model(request, obj, form, change)
-    #     invalidate_model(UserObjectPermission)
-    #     invalidate_model(GroupObjectPermission)
-
-    def get_changelist(self, request, **kwargs):
-        return AuthUserChangeList
-
     def change_view(self, request, object_id, form_url='', extra_context=None):
         try:
             obj_id = int(object_id)
@@ -294,7 +286,6 @@ class GroupTypeFilter(admin.SimpleListFilter):
                 }, []),
                 'display': title,
             }
-
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -483,8 +474,10 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
         obj.save()
 
     def object_name(self, obj):
-        #c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
-        return '%s - %s' % (obj.content_type.model, obj.content_object)
+        if obj.content_type.model == 'network':
+            return '%s - %s' % (obj.content_type.model, obj.object_pk)
+        else:
+            return '%s - %s' % (obj.content_type.model, obj.content_object)
         #return obj.content_object
     object_name.short_description = 'Object'
 
