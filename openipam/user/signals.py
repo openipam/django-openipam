@@ -35,8 +35,8 @@ def convert_user_permissions(sender, request, user, **kwargs):
     user_utils.convert_min_permissions(user=user)
 
     # Convert groups for IPAM admins.
-    if user.is_ipamadmin:
-        user_utils.convert_groups()
+    #if user.is_ipamadmin:
+    #    user_utils.convert_groups()
 
 
 # Automatically assign new users to IPAM_USER_GROUP
