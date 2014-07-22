@@ -319,7 +319,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             if not host_ips:
                 is_flagged = True
             else:
-                is_flagged = False if last_ip_stamp or last_mac_stamp else True
+                is_flagged = False# if last_ip_stamp or last_mac_stamp else True
 
             json_data.append([
                 get_selector(host, change_permissions),
