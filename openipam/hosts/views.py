@@ -313,8 +313,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             host_edit_href = reverse_lazy('update_host', args=(slugify(host['mac']),))
             host_ips = get_ips(host)
             expires = get_expires(host['expires'])
-            last_mac_stamp = get_last_mac_stamp(host)
-            last_ip_stamp = get_last_ip_stamp(host)
+            #last_mac_stamp = get_last_mac_stamp(host)
+            #last_ip_stamp = get_last_ip_stamp(host)
 
             if not host_ips:
                 is_flagged = True
