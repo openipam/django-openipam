@@ -54,10 +54,11 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
 
         if self.instance:
             printable = True
-            for c in self.instance.value:
-                if not isprint(c):
-                    printable = False
-                    break
+            if self.instance.value:
+                for c in self.instance.value:
+                    if not isprint(c):
+                        printable = False
+                        break
 
             if printable:
                 self.fields['readable_value'].initial = self.instance.value
