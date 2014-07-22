@@ -10,6 +10,7 @@ from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 
 from netfields import InetAddressField, MACAddressField, NetManager
+from netaddr.core import AddrFormatError
 
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
@@ -18,7 +19,7 @@ from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import string
 import random
@@ -210,7 +211,7 @@ class Host(models.Model):
         self._user_owners = None
         self._group_owners = None
         self.user = None
-        self.ip_addresses = None
+        self.ip_address = None
         self.network = None
         self.pool = None
 
@@ -219,6 +220,12 @@ class Host(models.Model):
 
     def __unicode__(self):
         return self.hostname
+
+    @property
+    def mac_stripped(self):
+        mac = str(self.mac)
+        mac = [c for c in mac if c.isdigit() or c.isalpha()]
+        return ''.join(mac)
 
     @property
     def expire_days(self):
@@ -356,7 +363,7 @@ class Host(models.Model):
         else:
             return None
 
-    def add_ip_addresses(self, user=None, ip_addresses=None, network=None, hostname=None):
+    def add_ip_address(self, user=None, ip_address=None, network=None, hostname=None):
         from openipam.network.models import Network, Address
         from openipam.dns.models import DnsRecord, DnsType
 
@@ -368,71 +375,55 @@ class Host(models.Model):
         elif not user:
             raise Exception('A User must be specified to an address to this host.')
 
-        if network and (isinstance(network, str) or isinstance(network, unicode)):
-            network = Network.objects.get(network=network)
-
         user_pools = get_objects_for_user(
             user,
             ['network.add_records_to_pool', 'network.change_pool'],
             any_perm=True
         )
 
-        addresses = []
+        address = None
 
         if network:
-            # Remove all addresses
-            self.addresses.release()
-
-            network_address = Address.objects.filter(
-                Q(pool__in=user_pools) | Q(pool__isnull=True),
-                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
-                network=network,
-                host__isnull=True,
-                reserved=False,
-            ).order_by('address').first()
+            try:
+                network_address = Address.objects.filter(
+                    Q(pool__in=user_pools) | Q(pool__isnull=True),
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    network=network,
+                    host__isnull=True,
+                    reserved=False,
+                ).order_by('address').first()
+            except AddrFormatError:
+                raise ValidationError('Enter a valid Network Address.')
 
             if not network_address:
                 raise Address.DoesNotExist
             else:
-                addresses.append(network_address)
+                address = network_address
 
-        elif ip_addresses:
-            if isinstance(ip_addresses, str) or isinstance(ip_addresses, unicode):
-                ip_addresses = [ip_addresses]
+        elif ip_address:
+            #Validate IP Address
+            try:
+                validate_ipv46_address(ip_address)
+            except ValidationError:
+                raise ValidationError('IP Address %s is invalid.  Enter a valid IPv4 or IPv6 address.' % ip_address)
 
-            new_ip_addresses = ip_addresses
-            current_ip_addresses = self.addresses.all().values_list('address', flat=True)
-
-            # Adding new ip adresses
-            for ip_address in new_ip_addresses:
-                if ip_address not in current_ip_addresses:
-                    addresses.append(
-                        Address.objects.get(
-                            Q(pool__in=user_pools) | Q(pool__isnull=True),
-                            Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
-                            address=ip_address,
-                            host__isnull=True,
-                            reserved=False,
-                        )
-                    )
-            # Removing deleted ip addresses
-            for ip_address in current_ip_addresses:
-                if ip_address not in new_ip_addresses:
-                    Address.objects.filter(address=ip_address).release()
-
+            address = Address.objects.get(
+                Q(pool__in=user_pools) | Q(pool__isnull=True),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                Q(host__isnull=True) | Q(host=self),
+                address=ip_address,
+                reserved=False,
+            )
         else:
             raise Exception('A Network or IP Address must be given to assign this host.')
 
-        # Make sure pool is clear on addresses we are assigning.
-        for address in addresses:
+        if address and address.host != self:
+            # Make sure pool is clear on addresses we are assigning.
             address.pool_id = None
             address.host = self
             address.changed_by = user
             address.save()
 
-        all_addresses = self.addresses.all()
-
-        for address in all_addresses:
             # Update A and PTR dns records
             if hostname:
                 a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
@@ -458,6 +449,7 @@ class Host(models.Model):
                         content=address.address,
                         dns_type=a_type
                     )
+        return address
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -472,14 +464,16 @@ class Host(models.Model):
 
     def get_expire_days(self):
         if self.expires:
-            delta = self.expires - timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            delta = self.expires - timezone.now()
             return delta.days if delta.days > 0 else None
         else:
             return None
 
     def set_expiration(self, expire_days):
+        if isinstance(expire_days, int) or isinstance(expire_days, unicode) or isinstance(expire_days, str):
+            expire_days = timedelta(int(expire_days))
         now = timezone.now()
-        self.expires = datetime(now.year, now.month, now.day, 11, 59, 59).replace(tzinfo=utc) + expire_days
+        self.expires = datetime(now.year, now.month, now.day).replace(tzinfo=utc) + timedelta(1) + expire_days
 
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk != new_mac_address:
@@ -527,9 +521,16 @@ class Host(models.Model):
             # Remove all pools
             self.pools.clear()
 
-            self.add_ip_addresses(
+            # Remove addresses if we are assinging a network
+            # This implies that we want a new address even
+            # if its in the same network
+            current_addresses = self.addresses.values_list('address', flat=True)
+            if self.network or (self.ip_address and self.ip_address not in current_addresses):
+                self.addresses.release()
+
+            self.add_ip_address(
                 user=user,
-                ip_addresses=self.ip_addresses,
+                ip_address=self.ip_address,
                 network=self.network,
                 hostname=self.hostname
             )
@@ -575,8 +576,8 @@ class Host(models.Model):
                 any_perm=True
             ).filter(name=domain_from_host)
             if not valid_domain:
-                raise ValidationError('You do not have sufficient permissions to add hosts '
-                                      'for this domain. Please contact an IPAM Administrator.')
+                raise ValidationError('Insufficient permissions to add hosts '
+                                      'for domain: %s. Please contact an IPAM Administrator.' % domain_from_host)
 
         # Pool and Network permission checks
         # Check for pool assignment and perms
@@ -587,8 +588,8 @@ class Host(models.Model):
                 any_perm=True
             )
             if self.address_type.pool not in valid_pools:
-                raise ValidationError('You do not have sufficient permissions to add hosts to '
-                                      'the assigned pool. Please contact an IPAM Administrator.')
+                raise ValidationError('Insufficient permissions to add hosts to '
+                                      'the assigned pool: %s. Please contact an IPAM Administrator.' % self.address_type.pool)
 
         # If network defined check for address assignment and perms
         if self.network:
@@ -598,15 +599,12 @@ class Host(models.Model):
                 any_perm=True
             )
             if self.network.network not in [network.network for network in valid_network]:
-                raise ValidationError('You do not have sufficient permissions to add hosts to '
-                  'the assigned network. Please contact an IPAM Administrator.')
+                raise ValidationError('Insufficient permissions to add hosts to '
+                  'the assigned network: %s. Please contact an IPAM Administrator.' % self.network.network)
 
         # If IP Address defined, check validity and perms
-        if self.ip_addresses:
-            if isinstance(self.ip_addresses, str) or isinstance(self.ip_addresses, unicode):
-                ip_addresses = [self.ip_addresses]
-            else:
-                ip_addresses = self.ip_addresses
+        if self.ip_address:
+            ip_address = self.ip_address
 
             user_pools = get_objects_for_user(
                 self.user,
@@ -619,19 +617,18 @@ class Host(models.Model):
                 any_perm=True
             )
 
-            for ip_address in ip_addresses:
-                # Make sure this is valid.
-                validate_ipv46_address(ip_address)
-                address = Address.objects.filter(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
-                    Q(host__isnull=True) | Q(host=self),
-                    address=ip_address,
-                    reserved=False
-                )
-                if not address:
-                    raise ValidationError('The IP Address is reserved, in use, or not allowed. '
-                                          'Please contact an IPAM Administrator.')
+            # Make sure this is valid.
+            validate_ipv46_address(ip_address)
+            address = Address.objects.filter(
+                Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                Q(host__isnull=True) | Q(host=self),
+                address=ip_address,
+                reserved=False
+            )
+            if not address:
+                raise ValidationError('The IP Address is reserved, in use, or not allowed. '
+                                      'Please contact an IPAM Administrator.')
 
     class Meta:
         db_table = 'hosts'

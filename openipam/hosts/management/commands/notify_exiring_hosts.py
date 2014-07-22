@@ -58,6 +58,7 @@ The following computer registrations are going to expire soon.
 To renew your servers and clients for another year:
 
 1. Log in to https://openipam.usu.edu from on-campus (or use the VPN)
+2. Click on the "Hosts" tab in the upper left to view hosts.
 2. Click "Show my hosts expiring within 60 days"
 3. Check the boxes next to those hosts you wish to renew
 4. At the bottom, choose "Renew selected hosts" and click "Go"
@@ -89,7 +90,7 @@ http://footprints.usu.edu (Issue Tracking System)
         row_fmt = "%(hostname)-40s %(mac)-22s %(days)3s days      %(description)s"
 
         # Get list of people who need to be notified.
-        host_qs = Host.objects.prefetch_related('pools').by_expiring()
+        host_qs = Host.objects.prefetch_related('pools').by_expiring(omit_guests=True)
 
         users_to_notify = {}
         messages = []

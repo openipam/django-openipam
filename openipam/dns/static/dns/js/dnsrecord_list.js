@@ -136,13 +136,18 @@ $(function(){
             "url": "/dns/data/",
             "pages": 5,
             "data": function(d) {
-                $.each(d.columns, function(key, obj){
-                    if (obj.name in $.urlVars) {
-                        obj.search.value = $.urlVars[obj.name];
-                    }
-                });
-                d.change_filter = (('mine' in $.urlVars) ? $.urlVars['mine'] : $.cookie('change_filter'));
-                d.search_filter = (('q' in $.urlVars) ? $.urlVars['q'] : $.cookie('search_filter'));
+                if (!$.isEmptyObject($.urlVars)) {
+                    $.each(d.columns, function(key, obj){
+                        obj.search.value = (obj.name in $.urlVars) ? $.urlVars[obj.name] : '';
+                    })
+                    d.change_filter = ('mine' in $.urlVars) ? $.urlVars['mine'] : '';
+                    d.search_filter = ('q' in $.urlVars) ? $.urlVars['q'] : '';
+
+                }
+                else {
+                    d.change_filter = $.cookie('change_filter');
+                    d.search_filter = $.cookie('search_filter');
+                }
 
                 // We do this to work with the data better.
                 d.json_data = JSON.stringify(d);

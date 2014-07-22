@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
-from django.views.generic.detail import DetailView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import UpdateView, CreateView
-from django.views.generic import TemplateView
+from django.views.generic.base import ContextMixin
+from django.views.generic import TemplateView, View
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
@@ -26,14 +27,18 @@ from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
-from openipam.network.models import AddressType, Lease
+from openipam.network.models import AddressType, Lease, Network, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
+import autocomplete_light
+
+from guardian.shortcuts import get_objects_for_user
+
 from netaddr.core import AddrFormatError
 
-from braces.views import PermissionRequiredMixin
+from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
 import json
 import re
@@ -330,12 +335,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 expires,
                 render_cell(last_mac_stamp, is_flagged),
                 render_cell(last_ip_stamp, is_flagged),
-                '<a href="%s">DNS Records</a>' % reverse_lazy('list_dns', kwargs={'host': host['hostname']}) if host['hostname'] else '',
+                '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy('list_dns'), host['hostname']),
                 '<a href="%s">%s</a>' % (
                     host_edit_href if change_permissions else host_view_href,
                     'Edit' if change_permissions else 'View'
                 ),
             ])
+
         return json_data
 
 
@@ -512,6 +518,146 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             return redirect(reverse_lazy('add_hosts_bulk'))
 
         return valid_form
+
+
+class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
+    model = Host
+    template_name = 'hosts/host_address_form.html'
+
+    @method_decorator(permission_change_host)
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.is_static is False:
+            return redirect('update_host', pk=self.object.mac_stripped)
+        return super(HostAddressCreateView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        from openipam.dns.models import DnsRecord
+
+        context = super(HostAddressCreateView, self).get_context_data(**kwargs)
+        self.host_addresses = self.object.addresses.values_list('address', flat=True)
+        self.addresses = Address.objects.filter(host=self.object).exclude(arecords__name=self.object.hostname)
+
+        addresses_data = []
+        for address in self.addresses:
+            name = address.arecords.filter(
+                Q(dns_type__name='A') | Q(dns_type__name='AAAA')
+            ).first()
+            addresses_data.append({
+                'ip_address': address.address,
+                'name': name
+            })
+        context['address_data'] = addresses_data
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        new_addresses = request.POST.getlist('new-address', [])
+        new_names = request.POST.getlist('new-hostname', [])
+        new_ips = request.POST.getlist('new-ip', [])
+        new_networks = request.POST.getlist('new-network', [])
+
+        host = self.object
+        context = self.get_context_data(object=self.object)
+        current_hostnames = [data['name'] for data in context['address_data']]
+        data = context['form_data'] = []
+        error_list = []
+
+        user_nets = get_objects_for_user(
+            request.user,
+            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+            any_perm=True
+        )
+
+        try:
+            for index, address in enumerate(new_addresses):
+                if new_names[index] or new_networks[index] or new_ips[index]:
+                    context['form_data'].append({
+                        'a_type': request.POST.get('new-type-%s' % index),
+                        'hostname': new_names[index],
+                        'ip_address': new_ips[index],
+                        'network': new_networks[index]
+                    })
+
+            for address in data:
+                # Required Fields
+                if not address['hostname']:
+                    raise ValidationError('A Hostname is required.')
+                if address['a_type'] == 'ip' and not address['ip_address']:
+                    raise ValidationError('A IP Address is required.')
+                if address['a_type'] == 'network' and not address['network']:
+                    raise ValidationError('A Network is required.')
+
+                # Specific Validation
+                if address['ip_address'] in self.host_addresses:
+                    raise ValidationError('IP address %s is already assigned to this host.' % address['ip_address'])
+                if address['hostname'] in current_hostnames:
+                    raise ValidationError('Hostname %s is already assigned to this host.' % address['hostname'])
+                if address['network'] not in user_nets:
+                    raise ValidationError(
+                        mark_safe('You do not have access to assign hostname %s to the '
+                                  'network specified: %s.<br />Please contact an '
+                                  'IPAM Administrator.' % (address['hostname'], address['network']))
+                    )
+
+                try:
+                    added_address = host.add_ip_address(
+                        user=request.user,
+                        ip_address=address['ip_address'] or None,
+                        network=address['network'] or None,
+                        hostname=address['hostname'] or None
+                    )
+                    messages.info(request, 'Address %s has been assigned to Host %s' % (added_address.address, host.hostname))
+
+                except Address.DoesNotExist:
+                    error_message = 'There are no avaiable addresses for the %s entered: %s'
+                    if address['ip_address']:
+                        error_list.append(error_message % ('IP', address['ip_address']))
+                    else:
+                        error_list.append(error_message % ('Network', address['network']))
+
+                    error_list.append('Please try again.')
+                    messages.error(request, mark_safe('<br />'.join(error_list)))
+                    return render(request, self.template_name, context)
+
+        except ValidationError as e:
+            if hasattr(e, 'error_dict'):
+                for key, errors in e.message_dict.items():
+                    for error in errors:
+                        error_list.append(error)
+            else:
+                error_list.append(e.message)
+
+            error_list.append('Please try again.')
+            messages.error(request, mark_safe('<br />'.join(error_list)))
+            return render(request, self.template_name, context)
+
+        return redirect('add_addresses_host', pk=host.mac_stripped)
+
+
+class HostAddressDeleteView(SuperuserRequiredMixin, View):
+
+    @method_decorator(permission_change_host)
+    def dispatch(self, request, *args, **kwargs):
+        return super(HostAddressDeleteView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        host = get_object_or_404(Host, pk=self.kwargs.get('pk'))
+        address = request.REQUEST.get('address', None)
+        if address:
+            try:
+                Address.objects.filter(
+                    host=host,
+                    address=address
+                ).release()
+            except AddrFormatError:
+                return redirect('add_addresses_host', pk=host.mac_stripped)
+
+            messages.info(request, 'Address %s has been removed and released.' % address)
+        return redirect('add_addresses_host', pk=host.mac_stripped)
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 
 def change_owners(request):

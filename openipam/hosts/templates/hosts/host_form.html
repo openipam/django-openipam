@@ -3,8 +3,8 @@
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-    {% if form.instance.pk %}
-        Edit Host: {{ form.instance.mac }}
+    {% if object %}
+        Edit Host: {{ object.hostname }}
     {% else %}
         Add Host
     {% endif %}
@@ -46,16 +46,6 @@
             });
 
             $("#id_address_type").on('change', function(){
-                // var aType = $("#id_address_type").val();
-
-                // if (aType) {
-                //     $.get('/api/web/networkselects/'+ $("#id_address_type").val(), function(data) {
-                //         $("#id_network").html(data);
-                //         $.networkIPToggle();
-                //     });
-                // }
-                // else{
-                // }
                 $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
                     'atype': $(this).val()
                 }
@@ -88,9 +78,11 @@
                 var netSelect = $(":radio[name='network_or_ip']:checked").val();
                 var aType = parseInt($("#id_address_type").val());
 
+                console.log(netSelect);
+
                 if (isNaN(aType) || dynamicAddressTypes.indexOf(aType) != -1) {
                     $("#div_id_network_or_ip:not(.has-error)").hide();
-                    $("#div_id_ip_addresses:not(.has-error)").hide();
+                    $("#div_id_ip_address:not(.has-error)").hide();
                     $("#div_id_network:not(.has-error)").hide();
                 }
                 else {
@@ -98,15 +90,15 @@
 
                     if (netSelect === '0') {
                         $("#div_id_network").show();
-                        $("#div_id_ip_addresses:not(.has-error)").hide();
+                        $("#div_id_ip_address:not(.has-error)").hide();
                     }
                     else if (netSelect === '1') {
                         $("#div_id_network:not(.has-error)").hide();
-                        $("#div_id_ip_addresses").show();
+                        $("#div_id_ip_address").show();
                     }
                     else {
                         $("#div_id_network:not(.has-error)").hide();
-                        $("#div_id_ip_addresses:not(.has-error)").hide();
+                        $("#div_id_ip_address:not(.has-error)").hide();
                     }
                 }
             }
@@ -132,7 +124,7 @@
                     $("#div_id_address_type:not(.has-error)").hide();
                     $("#div_id_network_or_ip:not(.has-error)").hide();
                     $("#div_id_network:not(.has-error)").hide();
-                    $("#div_id_ip_addresses:not(.has-error)").hide();
+                    $("#div_id_ip_address:not(.has-error)").hide();
                 }
                 else {
                     $.networkIPToggle();
@@ -150,7 +142,7 @@
     {{ block.super }}
         ../|{% trans "Hosts" %}
         {% if object %}
-            {{ object.pk }}
+            {{ object.hostname }}
         {% else %}
             {% trans "Host" %}
         {% endif %}
@@ -181,7 +173,13 @@
 
                 {% crispy form %}
 
-                <div class="text-right">
+                {% if object and object.is_static and request.user.is_ipamadmin %}
+                    <div class="pull-left">
+                         <a href="{% url 'add_addresses_host' pk=object.mac_stripped %}" class="btn btn-primary">Add/Delete Additional Addresses</a>
+                    </div>
+                {% endif %}
+
+                <div class="pull-right">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
                     {% if request.user.is_ipamadmin %}
                         {% url 'add_hosts' as add_url %}
@@ -193,6 +191,8 @@
                     {% endif %}
                     <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
                 </div>
+
+                <div class="clear"><!-- --></div>
             </div>
         </form>
     </div>

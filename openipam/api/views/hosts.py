@@ -137,7 +137,7 @@ class HostCreate(generics.CreateAPIView):
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
-                        error_list.append(error)
+                        error_list.append('%s: %s' % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
             return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)

@@ -578,6 +578,13 @@
     color: #b94a48;
     margin: 10px 15px;
 }
+.form-label {
+    margin-top: 5px;
+}
+.form-label p span {
+    margin-right: 5px;
+    font-size: 14px;
+}
 .filter-autocomplete
 {
     margin-bottom: 20px !important;

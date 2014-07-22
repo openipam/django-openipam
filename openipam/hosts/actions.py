@@ -111,6 +111,11 @@ def renew_hosts(request, selected_hosts):
                     "<br/>%s" % '<br />'.join(error_list)))
 
 
+def change_addresses(request, selected_hosts):
+    pass
+
+
+
 def change_perms_check(user, selected_hosts):
     # Check onwership of hosts for users with only object level permissions.
     host_perms_qs = Host.objects.filter(mac__in=[host.mac for host in selected_hosts]).by_change_perms(user)

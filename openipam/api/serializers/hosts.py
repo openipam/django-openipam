@@ -117,7 +117,7 @@ class HostCreateUpdateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False)
     network = serializers.ChoiceField(required=False)
     pool = serializers.ChoiceField(required=False)
-    ip_addresses = ListOrItemField(IPAddressField(required=False), required=False)
+    ip_address = IPAddressField(required=False)
     dhcp_group = serializers.ChoiceField(required=False)
     user_owners = ListOrItemField(serializers.CharField(required=False), required=False)
     group_owners = ListOrItemField(serializers.CharField(required=False), required=False)
@@ -151,7 +151,6 @@ class HostCreateUpdateSerializer(serializers.Serializer):
         data['user'] = self.context['request'].user
 
         instance = Host.objects.add_or_update_host(**data)
-
         return instance
 
     def validate(self, attrs):
@@ -238,13 +237,10 @@ class HostCreateUpdateSerializer(serializers.Serializer):
                                       'Please contact an IPAM Administrator.')
         return attrs
 
-    def validate_ip_addresses(self, attrs, source):
-        ip_addresses = attrs.get(source)
+    def validate_ip_address(self, attrs, source):
+        ip_address = attrs.get(source)
 
-        if ip_addresses and (isinstance(ip_addresses, str) or isinstance(ip_addresses, unicode)):
-            ip_addresses = [ip_addresses]
-
-        if ip_addresses:
+        if ip_address:
             user_pools = get_objects_for_user(
                 self.context['request'].user,
                 ['network.add_records_to_pool', 'network.change_pool'],
@@ -261,13 +257,12 @@ class HostCreateUpdateSerializer(serializers.Serializer):
                 Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
                 Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                 Q(host__isnull=True) | Q(host=self.object),
-                address__in=ip_addresses,
+                address=ip_address,
                 reserved=False
             ).values_list('address', flat=True)
 
-            for ip_address in ip_addresses:
-                if ip_address not in addresses:
-                    raise serializers.ValidationError("The IP Address '%s' is reserved, in use, or not allowed." % ip_address)
+            if ip_address not in addresses:
+                raise serializers.ValidationError("The IP Address '%s' is reserved, in use, or not allowed." % ip_address)
         return attrs
 
 
@@ -281,7 +276,7 @@ class HostRenewSerializer(serializers.ModelSerializer):
     def restore_object(self, attrs, instance):
         instance.expire_days = attrs['expire_days']
         instance.user = self.context['request'].user
-        instance.exipires = instance.set_expiration(timedelta(int(attrs.get('expire_days'))))
+        instance.exipires = instance.set_expiration(attrs.get('expire_days'))
 
         return instance
 

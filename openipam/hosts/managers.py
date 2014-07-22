@@ -130,7 +130,7 @@ class HostManager(NetManager):
 
     #TODO!  Finish this and use it for everthing except the web form
     def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=None,
-                           pool=None, ip_addresses=None, network=None, user_owners=None, group_owners=None, instance=None):
+                           pool=None, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
 
         if isinstance(user, str):
             user = User.objects.get(username=user)
@@ -155,7 +155,7 @@ class HostManager(NetManager):
         if expires:
             instance.expires = expires
         elif expire_days:
-            instance.expires = instance.set_expiration(timedelta(int(expire_days)))
+            instance.set_expiration(expire_days)
 
         if dhcp_group:
             if isinstance(dhcp_group, int):
@@ -175,16 +175,17 @@ class HostManager(NetManager):
             pool = None
         instance.pool = pool
 
-        if ip_addresses:
-            instance.ip_addresses = ip_addresses
+        if ip_address:
+            instance.ip_address = ip_address
 
         if network:
             instance.network = network
 
-        instance.full_clean()
+        if full_clean is True:
+            instance.full_clean()
         instance.save()
 
-        if instance.pool or instance.network or instance.ip_addresses:
+        if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
             instance.address_type_id = instance.address_type
             instance.save()
