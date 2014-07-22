@@ -213,10 +213,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
         qs = Host.objects.filter(mac__in=qs_macs)
-        # value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
-        #     'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
         value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
-            'leases__address')))
+            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
 
         user = self.request.user
         user_change_permissions = qs.by_change_perms(user, ids_only=True)
@@ -313,13 +311,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             host_edit_href = reverse_lazy('update_host', args=(slugify(host['mac']),))
             host_ips = get_ips(host)
             expires = get_expires(host['expires'])
-            #last_mac_stamp = get_last_mac_stamp(host)
-            #last_ip_stamp = get_last_ip_stamp(host)
+            last_mac_stamp = get_last_mac_stamp(host)
+            last_ip_stamp = get_last_ip_stamp(host)
 
             if not host_ips:
                 is_flagged = True
             else:
-                is_flagged = False# if last_ip_stamp or last_mac_stamp else True
+                is_flagged = False if last_ip_stamp or last_mac_stamp else True
 
             json_data.append([
                 get_selector(host, change_permissions),
@@ -332,10 +330,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 host['mac'],
                 host_ips,
                 expires,
-                '',
-                '',
-                #render_cell(last_mac_stamp, is_flagged),
-                #render_cell(last_ip_stamp, is_flagged),
+                render_cell(last_mac_stamp, is_flagged),
+                render_cell(last_ip_stamp, is_flagged),
                 '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy('list_dns'), host['hostname']),
                 '<a href="%s">%s</a>' % (
                     host_edit_href if change_permissions else host_view_href,
