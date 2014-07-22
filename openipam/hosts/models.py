@@ -488,7 +488,7 @@ class Host(models.Model):
             raise Exception('A User must be given to set a network or pool')
 
         # Set the pool if attached to model otherwise find it by address type
-        pool = self.pool if self.pool else self.address_type.pool
+        pool = self.pool or self.address_type.pool
 
         if delete:
             # Remove all pools
@@ -503,11 +503,18 @@ class Host(models.Model):
             # Remove all addresses
             self.addresses.release()
 
+            # TODO: Kill this later.
+            host_pool_check = self.host_pools.all()
+            if len(host_pool_check) > 1:
+                self.pools.clear()
+
             host_pool = self.host_pools.filter(pool__name=pool).first()
             if host_pool:
                 host_pool.changed_by = user
                 host_pool.save()
             else:
+                # Delete what is there and create a new one.
+                self.pools.clear()
                 # Assign new pool if it doesn't already exist
                 self.host_pools.create(
                     host=self,

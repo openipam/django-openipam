@@ -183,8 +183,9 @@ class HostManager(NetManager):
             instance.full_clean()
         instance.save()
 
-        if instance.pool or instance.network or instance.ip_address:
+        if instance.address_type.pool or instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
+            #assert False, instance.pool
             instance.address_type_id = instance.address_type
             instance.save()
 
