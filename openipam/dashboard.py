@@ -31,21 +31,6 @@ class IPAMIndexDashboard(Dashboard):
 
     def init_with_context(self, context):
         site_name = get_admin_site_name(context)
-        # append a link list module for "quick links"
-
-        # self.children.append(modules.LinkList(
-        #     _('Quick links'),
-        #     layout='inline',
-        #     draggable=False,
-        #     deletable=False,
-        #     collapsible=False,
-        #     children=[
-        #         [_('Return to site'), '/'],
-        #         [_('Change password'),
-        #          reverse('%s:password_change' % site_name)],
-        #         [_('Log out'), reverse('%s:logout' % site_name)],
-        #     ]
-        # ))
 
         #append an app list module for "IPAM"
         self.children.append(modules.ModelList(
@@ -107,7 +92,6 @@ class IPAMAppList(modules.AppList):
 
     def init_with_context(self, context):
         super(IPAMAppList, self).init_with_context(context)
-        #assert False, self.children
 
 
 class IPAMAppIndexDashboard(AppIndexDashboard):
