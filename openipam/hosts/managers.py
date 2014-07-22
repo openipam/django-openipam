@@ -127,8 +127,8 @@ class HostManager(NetManager):
         return owners
 
     #TODO!  Finish this and use it for everthing except the web form
-    def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=None,
-                           pool=None, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
+    def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=False,
+                           pool=False, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
 
         if isinstance(user, str):
             user = User.objects.get(username=user)
@@ -161,15 +161,17 @@ class HostManager(NetManager):
             elif isinstance(dhcp_group, str) or isinstance(dhcp_group, unicode):
                 dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
             instance.dhcp_group = dhcp_group
+        elif dhcp_group is None:
+            instance.dhcp_group = None
 
         if pool:
             if isinstance(pool, int):
                 pool = Pool.objects.get(pk=pool)
             elif isinstance(pool, str) or isinstance(pool, unicode):
                 pool = Pool.objects.get(name=pool)
-        else:
-            pool = None
-        instance.pool = pool
+            instance.pool = pool
+        elif pool is None:
+            instance.pool = None
 
         if ip_address:
             instance.ip_address = ip_address
@@ -185,7 +187,6 @@ class HostManager(NetManager):
             instance.set_network_ip_or_pool()
             instance.address_type_id = instance.address_type
             instance.save()
-
 
         if user_owners is not None or group_owners is not None:
             # Remove owners
