@@ -213,8 +213,10 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
         qs = Host.objects.filter(mac__in=qs_macs)
+        # value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
+        #     'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
         value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
-            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
+            'leases__address')))
 
         user = self.request.user
         user_change_permissions = qs.by_change_perms(user, ids_only=True)
