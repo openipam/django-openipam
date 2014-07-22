@@ -302,10 +302,13 @@ class HostForm(forms.ModelForm):
 
         # Call manager function for adding and updating hosts.
         # All host creation should run through this function now.
+        user_owners = self.cleaned_data['user_owners'] or None
+        group_owners = self.cleaned_data['group_owners'] or None
+
         instance = Host.objects.add_or_update_host(
             user=self.user,
-            user_owners=None,
-            group_owners=None,
+            user_owners=user_owners,
+            group_owners=group_owners,
             instance=self.instance,
             full_clean=False
         )

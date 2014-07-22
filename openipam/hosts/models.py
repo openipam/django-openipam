@@ -478,7 +478,6 @@ class Host(models.Model):
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk != new_mac_address:
             Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
-
         self.pk = new_mac_address
 
     # TODO: Clean this up, I dont like where this is at.

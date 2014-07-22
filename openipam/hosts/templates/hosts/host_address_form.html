@@ -1,0 +1,255 @@
+{% extends "hosts/base.html" %}
+{% load i18n static crispy_forms_tags %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+    Add/Change Additional Addresses: {{ object.hostname }}
+  </h3>
+{% endblock %}
+
+
+{% block breadcrumbs %}
+    {{ block.super }}
+        ../../|{% trans "Hosts" %}
+        ../|{{ object.hostname }}
+        Add/Delete Addresses
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <style type="text/css">
+        .radio-inline {
+            padding-left: 10px;
+            margin-left: 0px !important;
+        }
+        .a-controls {
+            margin-left: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
+    <script type="text/javascript">
+        $(function(){
+            var results = $("#host-addresses-table").DataTable({
+                paging: false,
+                searching: false,
+                sort: false,
+            });
+
+            $.netAutocompleteInit = function(selector) {
+                $(selector).yourlabsAutocomplete({
+                    url: '/api/web/NetworkAutocomplete',
+                    choiceSelector: '[data-value]',
+                    minimumCharacters: 2,
+                    getQuery: function() {
+                        return this.input.val();
+                    },
+                    // refresh: function() {
+                    //     this.value = this.getQuery();
+                    // }
+                }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                    var value = choice.attr('data-value');
+                    this.value = value;
+                });
+            }
+
+            $.hostAutoCompleteInit = function(selector) {
+                $(selector).yourlabsAutocomplete({
+                    url: '/api/web/DomainAutocomplete/',
+                    choiceSelector: '[data-value]',
+                    minimumCharacters: 1,
+                    getQuery: function() {
+                        var value = this.input.val();
+                        return value.substr(value.indexOf('.') + 1)
+                    },
+                    refresh: function() {
+                        if (this.input.val().indexOf('.') == -1){
+                            this.hide();
+                        }
+                        else {
+                            // Set the new current value.
+                            this.value = this.getQuery();
+
+                            // If the input doesn't contain enought characters then abort, else fetch.
+                            this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
+                        }
+                    }
+                }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                    var value = choice.text();
+                    var pre_value = this.value.split('.')[0]
+                    this.value = pre_value + '.' + value;
+                });
+            }
+
+            $('.host-autocomplete').each(function(index) {
+                $.hostAutoCompleteInit(this);
+            });
+
+            $('.network-autocomplete').each(function(index) {
+                $.netAutocompleteInit(this);
+            });
+
+            $('.a-edit').on('click', function(){
+                var text = $(this).text();
+                var tr = $(this).parents('tr');
+
+                if (text == 'Edit') {
+                    $(this).text('Cancel');
+                    $(this).closest("tr").find(".a-select").attr('checked', 'checked');
+                }
+                else {
+                    $(this).text('Edit');
+                    $(this).closest("tr").find(".a-select").removeAttr('checked');
+                }
+
+                tr.toggleClass('info');
+                tr.find('.a-data, .a-info').toggle();
+                //$(this).parents('tr').find('.a-info').toggle();
+                return false;
+            });
+
+            $("#host-addresses-table").on('click', ".a-radio", function(){
+                $(this).parent().parent().find("input[type='text']").hide();
+                $(this).parent().parent().find("input[rel='" + $(this).val() + "']").show();
+            });
+
+            $("#host-addresses-table").on('click', "a.add", function() {
+                var thisRow = $(this).closest('tr');
+                var p = parseInt(thisRow.find('input:radio').attr('name').split("-")[2]);
+                var newRow = thisRow.clone().find('input:radio').attr('name', 'new-type-' + ++p).end();
+                var netAutocomplete = newRow.find(".network-autocomplete");
+                var hostAutocomplete = newRow.find(".host-autocomplete");
+
+                thisRow.find("a.add").remove();
+                thisRow.find("a.remove").show();
+
+                newRow.find("input[type='text']").val('');
+                newRow.appendTo("#host-addresses-table");
+
+                $.netAutocompleteInit(netAutocomplete);
+                $.hostAutocompleteInit(hostAutocomplete);
+            });
+
+            $("#host-addresses-table").on('click', "a.remove", function() {
+                $(this).closest('tr').remove();
+            });
+
+            $(".a-select").each(function(){
+                if ($(this).is(':checked')) {
+                    $(this).closest("tr").toggleClass('info');
+                    $(this).closest("tr").find('.a-data, .a-info').toggle();
+                    $(this).closest("tr").find('.a-edit').text('Cancel');
+                }
+            })
+        });
+    </script>
+{% endblock %}
+
+
+{% block contentbody %}
+    <div class="well well-sm">
+        <form id="host-addresses-form" action="" method="post" class="form-inline" role="form">
+            {% csrf_token %}
+            <table id="host-addresses-table" class="table table-striped table-condensed table-curved">
+                <thead>
+                    <tr>
+                        <th>Hostname</th>
+                        <th>Network or IP</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if address_data %}
+                        {% for row in address_data %}
+                            <tr>
+                                <td>
+                                    {{ row.name }}
+                                </td>
+                                <td>
+                                    {{ row.ip_address }}
+                                </td>
+                                <td>
+                                    <a href="{% url 'remove_addresses_host' pk=object.mac_stripped %}?address={{ row.ip_address }}" class="a-remove">Remove</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td>
+                                No Additional Addresses found.  Please add one.
+                            </td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                    {% endif %}
+
+                    {% for row in form_data %}
+                        <tr>
+                            <td>
+                                <input type="hidden" name="new-address" value="1" />
+                                <div class="form-group">
+                                    <input type="text" name="new-hostname" class="form-control input-sm host-autocomplete" placeholder="Enter a hostname" value="{{ row.hostname }}" />
+                                </div>
+                            </td>
+                            <td>
+                                <div class="radio form-group">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="new-type-post-{{ forloop.counter0 }}" value="ip" checked="checked" class="a-radio" {% if row.ip_address or not row.network %}checked="checked"{% endif %} /> IP
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="new-type-post-{{ forloop.counter0 }}" value="network" class="a-radio" {% if row.network %}checked="checked"{% endif %} /> Network
+                                    </label>
+                                    <span class="a-controls form-group">
+                                        <input type="text" name="new-ip" rel="ip" class="form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" value="{{ row.ip_address }}" />
+                                        <input type="text" name="new-network" rel="network" class="network-autocomplete form-control input-sm"  placeholder="Enter a Network" {% if row.ip_address or not row.network %}style="display: none;"{% endif %} value="{{ row.network }}" />
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <a class="remove" href="javascript:void(0);">Remove</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="add-row extra">
+                        <td>
+                            <input type="hidden" name="new-address" value="1" />
+                            <div class="form-group">
+                                <input type="text" name="new-hostname" class="form-control input-sm host-autocomplete" placeholder="Enter a hostname" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="radio form-group">
+                                <label class="radio-inline">
+                                    <input type="radio" name="new-type-0" value="ip" checked="checked" class="a-radio" checked="checked" /> IP
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="new-type-0" value="network" class="a-radio" /> Network
+                                </label>
+                                <span class="a-controls form-group">
+                                    <input type="text" name="new-ip" rel="ip" class="form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" />
+                                    <input type="text" name="new-network" rel="network" class="network-autocomplete form-control input-sm"  placeholder="Enter a Network" style="display: none;" />
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <a class="add" href="javascript:void(0);">Add</a>
+                            <a class="remove" href="javascript:void(0);" style="display:none;">Remove</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="form-group pull-right">
+                <div class="form-buttons">
+                    <input type="submit" value="Save Changes" class="btn btn-primary" />
+                    <a href="../" class="btn">Cancel</a>
+                </div>
+            </div>
+            <div class="clear"><!-- --></div>
+        </form>
+    </div>
+{% endblock %}

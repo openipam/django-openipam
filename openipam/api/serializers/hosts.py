@@ -17,8 +17,6 @@ from guardian.shortcuts import get_users_with_perms, get_groups_with_perms, get_
 
 from netaddr.core import AddrFormatError
 
-from datetime import timedelta
-
 from ast import literal_eval
 
 User = get_user_model()

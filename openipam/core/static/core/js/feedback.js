@@ -3,7 +3,6 @@ $(function() {
         var leftStr = "0px";
         ($("div#feedback").css("left") == "0px") ? leftStr="-280px" : leftStr="0px";
         $("div#feedback").animate({ left: leftStr }, 500 );
-        console.log('hi')
     });
 
     $('#feedback-form input[type="submit"]').click( function() {

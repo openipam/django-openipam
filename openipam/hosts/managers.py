@@ -12,8 +12,6 @@ from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_
 from netfields import NetManager
 from netfields.managers import NetWhere, NetQuery
 
-from datetime import timedelta
-
 import operator
 
 User = get_user_model()
@@ -162,9 +160,7 @@ class HostManager(NetManager):
                 dhcp_group = DhcpGroup.objects.get(pk=dhcp_group)
             elif isinstance(dhcp_group, str) or isinstance(dhcp_group, unicode):
                 dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
-        else:
-            dhcp_group = None
-        instance.dhcp_group = dhcp_group
+            instance.dhcp_group = dhcp_group
 
         if pool:
             if isinstance(pool, int):
@@ -197,7 +193,9 @@ class HostManager(NetManager):
             user_groups = []
 
             if user_owners:
-                if isinstance(user_owners, list):
+                if isinstance(user_owners, QuerySet):
+                    users_to_add = user_owners
+                elif isinstance(user_owners, list):
                     #u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
                     #users_to_add = User.objects.filter(reduce(operator.or_, u_list))
                     users_to_add = User.objects.filter(username__in=[user_owner for user_owner in user_owners])
@@ -208,7 +206,9 @@ class HostManager(NetManager):
                 user_groups += users_to_add
 
             if group_owners:
-                if isinstance(group_owners, list):
+                if isinstance(group_owners, QuerySet):
+                    groups_to_add = group_owners
+                elif isinstance(group_owners, list):
                     #g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
                     #groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
                     groups_to_add = Group.objects.filter(name__in=[group_owner for group_owner in group_owners])
