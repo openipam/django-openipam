@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.utils.timezone import localtime
 from django import forms
 
 from openipam.log.models import HostLog, EmailLog
@@ -31,7 +32,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         return qs.select_related('content_type')
 
     def change_time(self, obj):
-        return '<span class="nowrap">%s</span>' % obj.action_time.strftime("%d %b %Y %H:%M:%S")
+        return '<span class="nowrap">%s</span>' % localtime(obj.action_time).strftime("%d %b %Y %H:%M:%S")
     change_time.short_description = 'Timestamp'
     change_time.admin_order_field = 'action_time'
     change_time.allow_tags = True

@@ -2,7 +2,6 @@ from django.db.models import Model, Manager
 from django.db.models.query import QuerySet
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.timezone import utc, now
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 

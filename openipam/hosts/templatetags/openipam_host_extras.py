@@ -1,5 +1,5 @@
 from django import template
-from django.utils.timezone import utc, localtime
+from django.utils.timezone import localtime
 
 register = template.Library()
 

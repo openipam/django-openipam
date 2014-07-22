@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from django.utils.timezone import utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -473,7 +472,7 @@ class Host(models.Model):
         if isinstance(expire_days, int) or isinstance(expire_days, unicode) or isinstance(expire_days, str):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
-        self.expires = datetime(now.year, now.month, now.day).replace(tzinfo=utc) + timedelta(1) + expire_days
+        self.expires = datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
 
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk != new_mac_address:

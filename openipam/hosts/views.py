@@ -281,12 +281,10 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 return '<span class="flagged">No Data</span>'
 
         def get_expires(expires):
-            local = timezone.get_current_timezone()
-            expires = expires.astimezone(local)
             if expires < timezone.now():
-                return '<span class="flagged">%s</span>' % expires.strftime('%Y-%m-%d')
+                return '<span class="flagged">%s</span>' % timezone.localtime(expires).strftime('%Y-%m-%d')
             else:
-                return expires.strftime('%Y-%m-%d')
+                return timezone.localtime(expires).strftime('%Y-%m-%d')
 
         def get_selector(host, change_permissions):
             if change_permissions or global_delete_permission:
