@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic.detail import DetailView, SingleObjectMixin
+from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView
-from django.views.generic.base import ContextMixin
 from django.views.generic import TemplateView, View
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
@@ -31,8 +30,6 @@ from openipam.network.models import AddressType, Lease, Network, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
-
-import autocomplete_light
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -333,8 +330,10 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 host['mac'],
                 host_ips,
                 expires,
-                render_cell(last_mac_stamp, is_flagged),
-                render_cell(last_ip_stamp, is_flagged),
+                '',
+                '',
+                #render_cell(last_mac_stamp, is_flagged),
+                #render_cell(last_ip_stamp, is_flagged),
                 '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy('list_dns'), host['hostname']),
                 '<a href="%s">%s</a>' % (
                     host_edit_href if change_permissions else host_view_href,
