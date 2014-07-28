@@ -164,6 +164,7 @@ class HostManager(NetManager):
         elif dhcp_group is None:
             instance.dhcp_group = None
 
+        address_type_pool = getattr(instance.address_type, 'pool', None)
         if pool:
             if isinstance(pool, int):
                 pool = Pool.objects.get(pk=pool)
@@ -172,6 +173,8 @@ class HostManager(NetManager):
             instance.pool = pool
         elif pool is None:
             instance.pool = None
+        elif address_type_pool:
+            instance.pool = address_type_pool
 
         if ip_address:
             instance.ip_address = ip_address
@@ -183,9 +186,8 @@ class HostManager(NetManager):
             instance.full_clean()
         instance.save()
 
-        if instance.address_type.pool or instance.pool or instance.network or instance.ip_address:
+        if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
-            #assert False, instance.pool
             instance.address_type_id = instance.address_type
             instance.save()
 
