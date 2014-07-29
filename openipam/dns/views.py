@@ -29,6 +29,8 @@ from braces.views import PermissionRequiredMixin
 
 import json
 
+import copy
+
 User = get_user_model()
 
 
@@ -80,7 +82,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 elif search_item.startswith('host:') and search_str:
                     qs = qs.filter(
                         Q(ip_content__host__hostname__startswith=search_item[5:].lower()) |
-                        Q(text_content__icontains=search_item[5:])
+                        Q(text_content__iexact=search_item[5:]) |
+                        Q(name__iexact=search_item[5:])
                     )
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
@@ -151,13 +154,19 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
 
     def prepare_results(self, qs):
 
-        user = self.request.user
         change_permissions = DnsRecord.objects.filter(
             pk__in=[record.pk for record in qs]
-        ).by_change_perms(user).values_list('pk', flat=True)
-        global_delete_permission = user.has_perm('dns.change_dnsrecord')
+        ).by_change_perms(self.request.user).values_list('pk', flat=True)
+        global_delete_permission = self.request.user.has_perm('dns.change_dnsrecord')
 
-        dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
+        dns_user = copy.deepcopy(self.request.user)
+        dns_user.is_superuser = False
+        dns_types = get_objects_for_user(
+            dns_user,
+            ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
+            any_perm=True,
+            use_groups=True
+        )
 
         def get_dns_types(dtype):
             #dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
@@ -275,7 +284,15 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DNSListView, self).get_context_data(**kwargs)
-        context['dns_types'] = DnsType.objects.exclude(min_permissions__name='NONE')
+        user = copy.deepcopy(self.request.user)
+        user.is_superuser = False
+        context['dns_types_change'] = get_objects_for_user(
+            user,
+            ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
+            any_perm=True,
+            use_groups=True
+        )
+        context['dns_types'] = DnsType.objects.filter(records__isnull=False).distinct()
 
         change_filter = self.request.COOKIES.get('change_filter', None)
         context['change_filter'] = self.request.GET.get('mine', change_filter)
