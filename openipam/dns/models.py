@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address, validate_ipv6_address
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 
 from openipam.dns.managers import DnsManager, DomainManager, DnsTypeManager
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
@@ -41,11 +41,14 @@ class Domain(models.Model):
 
 class DnsRecord(models.Model):
     domain = models.ForeignKey('Domain', db_column='did', verbose_name='Domain')
-    dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type', error_messages={'blank': 'Type fields for DNS records cannot be blank.'})
+    host = models.ForeignKey('hosts.Host', db_column='mac', related_name='dns_records', blank=True, null=True)
+    dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type', related_name='records',
+        error_messages={'blank': 'Type fields for DNS records cannot be blank.'})
     dns_view = models.ForeignKey('DnsView', db_column='vid', verbose_name='View', blank=True, null=True)
     name = models.CharField(max_length=255, error_messages={'blank': 'Name fields for DNS records cannot be blank.'})
     text_content = models.CharField(max_length=255, blank=True, null=True)
-    ip_content = models.ForeignKey('network.Address', db_column='ip_content', verbose_name='IP Content', blank=True, null=True, related_name='arecords')
+    ip_content = models.ForeignKey('network.Address', db_column='ip_content',
+        verbose_name='IP Content', blank=True, null=True, related_name='arecords')
     ttl = models.IntegerField(default=86400, blank=True, null=True)
     priority = models.IntegerField(verbose_name='Priority', blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
@@ -74,6 +77,17 @@ class DnsRecord(models.Model):
         # But we cannot have both text and ip content
         if self.text_content and self.ip_content:
             raise ValidationError('Text Content and IP Content cannot both exist for %s.' % (self.name if self.name else 'record',))
+
+        # Make sure PTR for desired host has the address already assigned.
+        if self.dns_type.is_ptr_record:
+            from openipam.network.models import Address
+
+            host_addresses = Address.objects.filter(host__hostname=self.text_content).values_list('address', flat=True)
+            address = self.name.split('.')
+            address.reverse()
+            address = '.'.join(address[2:])
+            if address not in host_addresses:
+                raise ValidationError('Invalid PTR Record.  Host %s has no address %s.' % (self.text_content, address))
 
     def clean_fields(self, exclude=None):
         errors = {}
@@ -121,11 +135,21 @@ class DnsRecord(models.Model):
         self.name = self.name.lower()
 
         # Clean name if PTR record
-        if hasattr(self, 'dns_type') and self.dns_type.name == 'PTR' and self.domain:
+        if self.dns_type and self.dns_type.is_ptr_record and self.domain:
             if 'in-addr.arpa' not in self.name and 'ip6.arpa' not in self.name:
                 raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
+            else:
+                dns_exists = DnsRecord.objects.filter(
+                    name=self.name,
+                    dns_type=DnsType.objects.PTR,
+                ).exclude(pk=self.pk)
+
+                if dns_exists:
+                    raise ValidationError({'name': ['Invalid name for PTR: %s. Name already exists.' % self.name]})
+
 
     def clean_text_content(self):
+
         error = None
 
         # Validate text content based on dns type
@@ -239,6 +263,17 @@ class DnsRecord(models.Model):
         self.ip_content = None
         self.text_content = None
 
+    @classmethod
+    def pre_save(cls, sender, instance, *args, **kwargs):
+        from openipam.hosts.models import Host
+
+        if instance.dns_type.name in ['A', 'AAAA']:
+            instance.host = instance.ip_content.host
+        elif instance.dns_type.name in ['PTR', 'HINFO', 'TXT', 'SSHFP']:
+            dns_host = Host.objects.filter(hostname__iexact=instance.text_content).first()
+            if dns_host:
+                instance.host = dns_host
+
     class Meta:
         db_table = 'dns_records'
         ordering = ('dns_type', 'name')
@@ -287,21 +322,16 @@ class DnsType(models.Model):
     def __unicode__(self):
         return '%s' % self.name
 
-    @property
-    def is_a_record(self):
-        return True if self.name in ['A', 'AAAA'] else False
-
-    @property
-    def is_cname_record(self):
-        return True if self.name == 'CNAME' else False
-
-    @property
-    def is_mx_record(self):
-        return True if self.name == 'MX' else False
-
-    @property
-    def is_srv_record(self):
-        return True if self.name == 'SRV' else False
+    def __getattr__(self, name):
+        if name.startswith('is_') and name.endswith('_record'):
+            def _is_record(abrev):
+                if abrev == 'a':
+                    return True if self.name in ['A', 'AAAA'] else False
+                else:
+                    return True if self.name == abrev.upper() else False
+            return _is_record(name.split('_')[1])
+        else:
+            raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
     class Meta:
         db_table = 'dns_types'
@@ -400,3 +430,4 @@ class RecordMunged(models.Model):
 
 #Register Signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=DnsType)
+pre_save.connect(DnsRecord.pre_save, sender=DnsRecord)
