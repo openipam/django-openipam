@@ -151,7 +151,7 @@
                         <td>
                             <select name="type-new" class="form-control input-sm" style="max-width: 80px;">
                                 <option value="">---</option>
-                                {% for type in dns_types %}
+                                {% for type in dns_types_change %}
                                     <option value="{{ type.pk }}" {% ifequal row.type type.pk|stringformat:"s" %}selected="selected"{% endifequal %}>{{ type.name }}</option>
                                 {% endfor %}
                             </select>
@@ -170,7 +170,7 @@
                     <td>
                         <select name="type-new" class="form-control input-sm" style="max-width: 80px;">
                             <option value="">---</option>
-                            {% for type in dns_types %}
+                            {% for type in dns_types_change %}
                                 <option value="{{ type.pk }}">{{ type.name }}</option>
                             {% endfor %}
                         </select>
