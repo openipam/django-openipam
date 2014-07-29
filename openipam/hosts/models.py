@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from django.db.models.signals import pre_save, post_save, pre_delete
+from django.db.models.signals import pre_delete
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 
@@ -416,39 +416,41 @@ class Host(models.Model):
         else:
             raise Exception('A Network or IP Address must be given to assign this host.')
 
-        if address and address.host != self:
-            # Make sure pool is clear on addresses we are assigning.
-            address.pool_id = None
-            address.host = self
-            address.changed_by = user
-            address.save()
+        # Make sure pool is clear on addresses we are assigning.
+        address.pool_id = None
+        address.host = self
+        address.changed_by = user
+        address.save()
 
-            # Update A and PTR dns records
-            if hostname:
-                a_type = DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
+        # Update A and PTR dns records
+        self.add_dns_records(hostname, address)
 
-                # Check for existing dns records and for now delete PTRs automatically.
-                DnsRecord.objects.filter(dns_type=DnsType.objects.PTR, name=address.address.reverse_dns[:-1]).delete()
-                # Delete A Record if hostsname changes only.
-                if self.original_hostsname != self.hostname:
-                    DnsRecord.objects.filter(dns_type=a_type, name=self.original_hostsname, ip_content=address).delete()
-                has_a_record = DnsRecord.objects.filter(dns_type=a_type, name=hostname, ip_content=address)
-
-                DnsRecord.objects.add_or_update_record(
-                    user=user,
-                    name=address.address.reverse_dns[:-1],
-                    content=hostname,
-                    dns_type=DnsType.objects.PTR,
-                )
-
-                if not has_a_record:
-                    DnsRecord.objects.add_or_update_record(
-                        user=user,
-                        name=hostname,
-                        content=address.address,
-                        dns_type=a_type
-                    )
         return address
+
+    def add_dns_records(self, hostname, address):
+        from openipam.dns.models import DnsRecord, DnsType
+
+        # Delete Assocatiated PTR and A or AAAA records.
+        self.dns_records.filter(
+            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address),
+            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+        ).delete()
+
+        # Add Associated PTR
+        DnsRecord.objects.add_or_update_record(
+            user=self.user,
+            name=address.address.reverse_dns[:-1],
+            content=hostname,
+            dns_type=DnsType.objects.PTR,
+        )
+
+        # Add Associated A or AAAA record
+        DnsRecord.objects.add_or_update_record(
+            user=self.user,
+            name=hostname,
+            content=address.address,
+            dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA
+        )
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
