@@ -10,11 +10,14 @@ from openipam.dns.models import DnsRecord, DnsType
 from openipam.hosts.models import Host
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 
+from guardian.shortcuts import get_objects_for_user
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout
 
 import autocomplete_light
 
+import copy
 
 User = get_user_model()
 
@@ -104,12 +107,21 @@ class DNSUpdateForm(forms.ModelForm):
 
 class DSNCreateFrom(forms.Form):
     name = forms.CharField(required=True)
-    dns_type = forms.ModelChoiceField(queryset=DnsType.objects.exclude(min_permissions__name='NONE'), required=True)
+    dns_type = forms.ModelChoiceField(queryset=DnsType.objects.all(), required=True)
     ttl = forms.IntegerField(label='TTL', required=True, initial=14400)
     content = forms.CharField(required=True)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super(DSNCreateFrom, self).__init__(*args, **kwargs)
+
+        dns_user = copy.deepcopy(user)
+        dns_user.is_superuser = False
+        self.fields['dns_type'].queryset = get_objects_for_user(
+            dns_user,
+            ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
+            any_perm=True,
+            use_groups=True
+        )
 
         self.helper = FormHelper()
         self.helper.label_class = 'col-sm-2 col-md-2 col-lg-2'

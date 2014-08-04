@@ -166,9 +166,10 @@ class DnsManager(Manager):
     def get_query_set(self):
         return DNSQuerySet(self.model)
 
-    def add_or_update_record(self, user, name, content, dns_type, ttl=None, record=None):
+    def add_or_update_record(self, user, name, content, dns_type, host=None, ttl=None, record=None):
         from openipam.dns.models import Domain
         from openipam.network.models import Address
+        from openipam.hosts.models import Host
 
         try:
             if record:
@@ -178,12 +179,9 @@ class DnsManager(Manager):
                 created = True
                 dns_record = self.model()
 
-            # Permission Checks
-            if created and not user.has_perm('dns.add_dnsrecord'):
-                raise ValidationError('Invalid credentials: user %s does not have permissions'
-                    ' to add DNS records. Please contact an IPAM administrator.' % user)
+            dns_record.changed_by = user
 
-            # Clear content if we are changing dnstype
+           # Clear content if we are changing dnstype
             if created is False and dns_record.dns_type != dns_type:
                 dns_record.clear_content()
 
@@ -194,34 +192,26 @@ class DnsManager(Manager):
                 dns_record.ip_content = address
             else:
                 dns_record.text_content = content
-                parsed_content = content.strip().split(' ')
-                if dns_record.dns_type.is_mx_record and len(parsed_content) != 2:
-                    raise ValidationError('Content for MX records need to have a priority and FQDN.')
-                elif dns_record.dns_type.is_srv_record and len(parsed_content) != 4:
-                    raise ValidationError('Content for SRV records need to only have a priority, weight, port, and FQDN.')
+
+            if dns_record.dns_type.is_a_record:
+                dns_record.host = dns_record.ip_content.host
+            elif dns_record.dns_type.name in ['PTR', 'HINFO', 'SSHFP']:
+                if host:
+                    dns_record.host = host
                 else:
-                    dns_record.set_priority()
+                    try:
+                        dns_record.host = Host.objects.get(addresses__arecords__name=content)
+                    except Host.DoesNotExist:
+                        raise ValidationError("An 'A' Record for '%s' needs tp exists before this can be created." % content)
+
+            # Set the piority (used for SRV and MX)
+            dns_record.set_priority()
 
             if ttl:
                 dns_record.ttl = ttl
 
             dns_record.name = name
             dns_record.set_domain_from_name()
-
-            allowed_domains = Domain.objects.by_dns_change_perms(user).filter(pk=dns_record.domain.pk)
-            allowed_addresses = Address.objects.by_dns_change_perms(user)
-
-            # Users must either have domain permissions, host permission or network permission.
-            if not allowed_domains and not allowed_addresses.count():
-                raise ValidationError('Invalid credentials: user %s does not have permissions'
-                    ' to add DNS records to the domain, host and/or network provided. Please contact an IPAM administrator '
-                    'to ensure you have the proper permissions.' % user)
-            elif dns_record.dns_type.is_a_record and not allowed_addresses.filter(address=content):
-                raise ValidationError('Invalid credentials: user %s does not have permissions'
-                    ' to add DNS records to the address provided. Please contact an IPAM administrator '
-                    'to ensure you have the proper host and/or network permissions.' % user)
-
-            dns_record.changed_by = user
 
             dns_record.full_clean()
 

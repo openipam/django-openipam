@@ -83,7 +83,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                     qs = qs.filter(
                         Q(ip_content__host__hostname__startswith=search_item[5:].lower()) |
                         Q(text_content__iexact=search_item[5:]) |
-                        Q(name__iexact=search_item[5:])
+                        Q(name__iexact=search_item[5:]) |
+                        Q(host__hostname=search_item[5:])
                     )
                 elif search_item.startswith('mac:') and search_str:
                     mac_str = search_item[4:]
@@ -421,6 +422,9 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
 
         return super(DNSCreateUpdateView, self).get_context_data(**kwargs)
 
+    def get_form(self, form_class):
+        return form_class(user=self.request.user, **self.get_form_kwargs())
+
     def dispatch(self, request, *args, **kwargs):
         if kwargs.get('pk'):
             self.record = get_object_or_404(DnsRecord, pk=kwargs.get('pk'))
@@ -437,7 +441,6 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
         return super(DNSCreateUpdateView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         if form.is_valid():
@@ -449,7 +452,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     content=form.cleaned_data['content'],
                     dns_type=form.cleaned_data['dns_type'],
                     ttl=form.cleaned_data['ttl'],
-                    record=self.record.pk or None,
+                    record=self.record.pk if hasattr(self.record, 'pk') else None,
                 )
             except ValidationError, e:
                 if hasattr(e, 'error_dict'):

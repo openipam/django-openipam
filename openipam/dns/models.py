@@ -9,6 +9,8 @@ from openipam.dns.validators import validate_fqdn, validate_soa_content, \
     validate_srv_content, validate_sshfp_content
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
+from guardian.shortcuts import get_objects_for_user
+
 from netaddr.core import AddrFormatError
 
 import re
@@ -78,16 +80,73 @@ class DnsRecord(models.Model):
         if self.text_content and self.ip_content:
             raise ValidationError('Text Content and IP Content cannot both exist for %s.' % (self.name if self.name else 'record',))
 
+        # Make sure the Hosts are assigned for valid types
+        if self.dns_type.is_host_type and not self.host:
+            raise ValidationError("A Host needs to be assigned DNS Records of type '%s'" % self.dns_type.name)
+
         # Make sure PTR for desired host has the address already assigned.
         if self.dns_type.is_ptr_record:
             from openipam.network.models import Address
 
-            host_addresses = Address.objects.filter(host__hostname=self.text_content).values_list('address', flat=True)
+            host_addresses = Address.objects.filter(host=self.host).values_list('address', flat=True)
             address = self.name.split('.')
             address.reverse()
             address = '.'.join(address[2:])
             if address not in host_addresses:
                 raise ValidationError('Invalid PTR Record.  Host %s has no address %s.' % (self.text_content, address))
+
+        # If these records, then they must have valid A records first, and user must have Host permission
+        if self.dns_type.name in ['HINFO', 'SSHFP']:
+            arecords = DnsRecord.objects.filter(
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                name=self.text_content
+            ).first()
+            if not arecords:
+                raise ValidationError("Invalid DNS Record.  A record for '%s' needs to exist first." % self.text_content)
+
+        # Run permission checks
+        self.clean_permissions()
+
+    def clean_permissions(self):
+        from openipam.network.models import Address
+        from openipam.hosts.models import Host
+
+        user = self.changed_by
+
+        # Validate ability to add dns records
+        if not self.pk and not user.has_perm('dns.add_dnsrecord'):
+            raise ValidationError('Invalid credentials: user %s does not have permissions'
+                ' to add DNS records. Please contact an IPAM administrator.' % self.changed_by)
+
+        # Validate permissions on DNS Type
+        valid_dns_types = get_objects_for_user(
+            user,
+            ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
+            any_perm=True,
+            use_groups=True
+        )
+        if self.dns_type not in valid_dns_types:
+            raise ValidationError("Invalid credentials: user %s does not have permissions"
+                " to add '%s' records" % (user, self.dns_type.name))
+
+        valid_domains = Domain.objects.by_dns_change_perms(user).filter(pk=self.domain.pk)
+        valid_addresses = Address.objects.by_dns_change_perms(user)
+
+        # Users must either have domain permissions, host permission or network permission.
+        if not valid_domains and not valid_addresses.count():
+            raise ValidationError('Invalid credentials: user %s does not have permissions'
+                ' to add DNS records to the domain, host and/or network provided. Please contact an IPAM administrator '
+                'to ensure you have the proper permissions.' % user)
+
+        # If A or AAAA, then users must have Address / Network / Host permission
+        if self.dns_type.is_a_record and not valid_addresses.filter(address=self.ip_content.address):
+            raise ValidationError('Invalid credentials: user %s does not have permissions'
+                ' to add DNS records to the address provided. Please contact an IPAM administrator '
+                'to ensure you have the proper host and/or network permissions.' % user)
+
+        if self.dns_type.is_ptr_record and not valid_addresses.filter(host=self.host):
+            raise ValidationError("Invalid credentials: user %s does not have permissions"
+                " to add or modify DNS Records for Host '%s'" % (user, self.text_content))
 
     def clean_fields(self, exclude=None):
         errors = {}
@@ -102,12 +161,6 @@ class DnsRecord(models.Model):
             self.clean_name()
         except ValidationError as e:
             errors = e.update_error_dict(errors)
-
-        # Clean the domain
-        # try:
-        #     self.clean_domain()
-        # except ValidationError as e:
-        #     errors = e.update_error_dict(errors)
 
         # Clean the text_content
         try:
@@ -134,22 +187,28 @@ class DnsRecord(models.Model):
         # Make sure name is lowercase
         self.name = self.name.lower()
 
+        #Clean name if A or AAAA record
+        if self.dns_type.is_a_record:
+            dns_exists = DnsRecord.objects.filter(
+                name=self.name,
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+            ).exclude(pk=self.pk)
+            if dns_exists:
+                raise ValidationError({'name': ['Invalid name for A or AAAA record: %s. Name already exists.' % self.name]})
+
         # Clean name if PTR record
-        if self.dns_type and self.dns_type.is_ptr_record and self.domain:
+        if self.dns_type.is_ptr_record and self.domain:
             if 'in-addr.arpa' not in self.name and 'ip6.arpa' not in self.name:
-                raise ValidationError({'name': ['Invalid name for PTR: %s' % self.name]})
+                raise ValidationError({'name': ['Invalid name for PTR record: %s' % self.name]})
             else:
                 dns_exists = DnsRecord.objects.filter(
                     name=self.name,
                     dns_type=DnsType.objects.PTR,
                 ).exclude(pk=self.pk)
-
                 if dns_exists:
-                    raise ValidationError({'name': ['Invalid name for PTR: %s. Name already exists.' % self.name]})
-
+                    raise ValidationError({'name': ['Invalid name for PTR record: %s. Name already exists.' % self.name]})
 
     def clean_text_content(self):
-
         error = None
 
         # Validate text content based on dns type
@@ -162,18 +221,18 @@ class DnsRecord(models.Model):
                 if not re_fqdn.search(self.text_content):
                     error = 'Invalid Content: %s'
 
-            elif self.dns_type.name == 'SOA':
+            elif self.dns_type.is_soa_record:
                 validate_soa_content(self.text_content)
                 re_soa = re.compile('^%s [A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$' % fqdn)
                 if not re_soa.search(self.text_content):
                     error = 'Invalid SOA Content: %s'
 
-            elif self.dns_type.name == 'SRV':
+            elif self.dns_type.is_srv_record:
                 re_srv = re.compile('^(\d+ \d+ %s)$' % fqdn)
                 if not re_srv.search(self.text_content):
                     error = 'Invalid SRV Content: %s'
 
-            elif self.dns_type.name == 'SSHFP':
+            elif self.dns_type.is_sshfp_record:
                 if not re.match('^[12] 1 [0-9A-F]{40}', self.text_content):
                     error = 'Invalid SSHFP Content: %s'
 
@@ -189,31 +248,40 @@ class DnsRecord(models.Model):
             raise ValidationError({'priority': ['Prority must exist for MX and SRV records.']})
 
     def clean_dns_type(self):
-        error = None
+        error_list = []
 
-        if hasattr(self, 'dns_type'):
+        if self.dns_type:
             # Text content cannot exist for A records and IP must exist for A records
             if self.dns_type.is_a_record:
                 if self.text_content:
-                    error = 'Text Content must not exist for A records.'
+                    error_list.append('Text Content must not exist for A records.')
                 if not self.ip_content:
-                    error = 'IP Content must exist for A records.'
+                    error_list.append('IP Content must exist for A records.')
+
+            else:
+                # Validation for Priority
+                parsed_content = self.text_content.strip().split(' ')
+                if self.dns_type.is_mx_record and len(parsed_content) != 2:
+                    error_list.append('Content for MX records need to have a priority and FQDN.')
+                elif self.dns_type.is_srv_record and len(parsed_content) != 4:
+                    error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
 
             # Name and text content cannot be the same if its not an CNAME
-            if self.dns_type.name != 'CNAME' and self.name == self.text_content:
-                error = 'Name and Text Content cannot match for records order than CNAME.'
+            if not self.dns_type.is_cname_record and self.name == self.text_content:
+                error_list.append('Name and Text Content cannot match for records other than CNAME.')
 
-            if self.dns_type.name == 'CNAME':
+            if self.dns_type.is_cname_record:
                 records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
                 if records:
-                    error = 'Trying to create CNAME record while other records exist: %s' % records[0].name
-            else: # not CNAME
+                    error_list.append('Trying to create CNAME record while other records exist: %s' % records[0].name)
+            # not CNAME
+            else:
                 records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5)
                 if records:
-                    error = 'Trying to create record while CNAME record exists:  %s' % records[0].name
+                    error_list.append('Trying to create record while CNAME record exists:  %s' % records[0].name)
 
-            if error:
-                raise ValidationError({'dns_type': (error,)})
+            if error_list:
+                raise ValidationError({'dns_type': error_list})
 
     def set_domain_from_name(self):
         if self.name:
@@ -249,6 +317,7 @@ class DnsRecord(models.Model):
         """
         # Make sure that priority was set, or set it if they passed it
         match = None
+
         if self.dns_type.is_mx_record: # MX
             match = re.compile('^([0-9]{1,2}) (.*)$').search(self.text_content)
         elif self.dns_type.is_srv_record: # SRV
@@ -262,17 +331,6 @@ class DnsRecord(models.Model):
     def clear_content(self):
         self.ip_content = None
         self.text_content = None
-
-    @classmethod
-    def pre_save(cls, sender, instance, *args, **kwargs):
-        from openipam.hosts.models import Host
-
-        if instance.dns_type.name in ['A', 'AAAA']:
-            instance.host = instance.ip_content.host
-        elif instance.dns_type.name in ['PTR', 'HINFO', 'TXT', 'SSHFP']:
-            dns_host = Host.objects.filter(hostname__iexact=instance.text_content).first()
-            if dns_host:
-                instance.host = dns_host
 
     class Meta:
         db_table = 'dns_records'
@@ -332,6 +390,10 @@ class DnsType(models.Model):
             return _is_record(name.split('_')[1])
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+
+    @property
+    def is_host_type(self):
+        return True if self.name in ['A', 'AAAA', 'PTR', 'HINFO', 'SSHFP', 'TXT'] else False
 
     class Meta:
         db_table = 'dns_types'
@@ -430,4 +492,3 @@ class RecordMunged(models.Model):
 
 #Register Signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=DnsType)
-pre_save.connect(DnsRecord.pre_save, sender=DnsRecord)
