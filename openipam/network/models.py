@@ -252,24 +252,14 @@ class Address(models.Model):
     @property
     def last_mac_seen(self):
         from openipam.hosts.models import GulRecentArpBymac
-
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
-
-        if gul_mac:
-            return gul_mac[0].mac
-        else:
-            return None
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp').first()
+        return gul_mac[0].mac if gul_mac else None
 
     @property
     def last_seen(self):
         from openipam.hosts.models import GulRecentArpByaddress
-
-        gul_ip = GulRecentArpByaddress.objects.filter(address=self.address).order_by('-stopstamp')
-
-        if gul_ip:
-            return gul_ip[0].stopstamp
-        else:
-            return None
+        gul_ip = GulRecentArpByaddress.objects.filter(address=self.address).order_by('-stopstamp').first()
+        return gul_ip.stopstamp if gul_ip else None
 
     def clean(self):
         if self.host and self.pool:
