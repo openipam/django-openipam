@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 
 from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView
 # from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
@@ -21,10 +22,11 @@ class BaseDNSAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         cl = super(BaseDNSAdmin, self).changelist_view(request, extra_context)
-        #assert False, cl.context_data
-        cl.context_data.update({
-            'app_label': 'DNS'
-        })
+
+        if not isinstance(cl, HttpResponseRedirect):
+            cl.context_data.update({
+                'app_label': 'DNS'
+            })
 
         return cl
 
