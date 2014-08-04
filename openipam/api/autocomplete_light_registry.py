@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.utils import timezone
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
@@ -217,12 +219,35 @@ autocomplete_light.register(Permission,
     choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
 )
 
+class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
+    search_fields = ['^address']
+    attrs = {'placeholder': 'Search Networks'}
+
+    def __init__(self, *args, **kwargs):
+        super(AddressAvailableAutocomplete, self).__init__(*args, **kwargs)
+
+        user_pools = get_objects_for_user(
+            self.request.user,
+            ['network.add_records_to_pool', 'network.change_pool'],
+            any_perm=True
+        )
+        user_nets = get_objects_for_user(
+            self.request.user,
+            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+            any_perm=True
+        )
+        self.choices = Address.objects.filter(
+            Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+            Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+            host__isnull=True,
+            reserved=False
+        )
+autocomplete_light.register(Address, AddressAvailableAutocomplete)
 
 autocomplete_light.register(Address,
     search_fields=['address'],
     attrs={'placeholder': 'Search Addresses'},
 )
-
 
 autocomplete_light.register(Host,
     search_fields=['mac', 'hostname'],
