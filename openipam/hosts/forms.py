@@ -75,7 +75,8 @@ class HostForm(forms.ModelForm):
         self.addresses = self.instance.addresses.all()
 
         #Populate some fields if we are editing the record
-        self.current_address_html = None
+        self.primary_address_html = None
+        self.secondary_address_html = None
         self.expire_date = None
 
         # Set networks based on address type if form is bound
@@ -203,9 +204,6 @@ class HostForm(forms.ModelForm):
 
 
     def _init_ip_address(self):
-        self.primary_address_html = ''
-        self.secondary_address_html = ''
-
         if self.instance.pk:
             master_ip_address = self.instance.master_ip_address
 
