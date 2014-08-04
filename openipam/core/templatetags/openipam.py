@@ -224,9 +224,34 @@ def admin_select_filter(cl, spec):
     }))
 
 
+@register.simple_tag
+def admin_filter_selected(cl, spec):
+    tpl = get_template("admin/filter_selected.html")
+    value = None
+    query_string_list = cl.get_query_string()[1:].split('&')
+    href = None
+
+    for index, choice in enumerate(spec.choices(cl)):
+        if choice['selected'] is True and (index > 0 or isinstance(choice['display'], unicode)):
+            value = choice['display']
+            param_name = spec.parameter_name if hasattr(spec, 'parameter_name') else spec.lookup_kwarg or None
+            if param_name:
+                for qs in query_string_list:
+                    if qs.startswith(param_name):
+                        query_string_list.remove(qs)
+                        href = '&'.join(query_string_list)
+            break
+
+    return tpl.render(Context({
+        'title': spec.title.capitalize(),
+        'value': value,
+        'href': href
+    }))
+
+
 @register.filter
-def replace ( string, args ):
-    search  = args.split(args[0])[1]
+def replace(string, args):
+    search = args.split(args[0])[1]
     replace = args.split(args[0])[2]
 
-    return re.sub( search, replace, string )
+    return re.sub(search, replace, string)

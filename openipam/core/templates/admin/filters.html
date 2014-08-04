@@ -5,10 +5,15 @@
         Filters
         <span class="caret"></span>
     </button>
+
     <div id="changelist-filter-actions" class="well well-sm action-wrapper">
         {% for spec in cl.filter_specs %}
           {% admin_select_filter cl spec %}
         {% endfor %}
-    <div class="clear"><!-- --></div>
+        <div class="clear"><!-- --></div>
+    </div>
+
+    <div class="clear">
+        {% for spec in cl.filter_specs %}{% admin_filter_selected cl spec %}{% endfor %}
     </div>
 {% endif %}
