@@ -168,15 +168,17 @@ class DnsRecord(models.Model):
         except ValidationError as e:
             errors = e.update_error_dict(errors)
 
-        # Clean the priority
-        try:
-            self.clean_priority()
-        except ValidationError as e:
-            errors = e.update_error_dict(errors)
-
         # Clean the dns_type
         try:
             self.clean_dns_type()
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+
+        # Clean the priority
+        if self.dns_type.is_mx_record or self.dns_type.is_srv_record:
+            self.set_priority()
+        try:
+            self.clean_priority()
         except ValidationError as e:
             errors = e.update_error_dict(errors)
 
@@ -258,20 +260,20 @@ class DnsRecord(models.Model):
                 if not self.ip_content:
                     error_list.append('IP Content must exist for A records.')
 
-            # else:
-            #     # Validation for Priority
-            #     parsed_content = self.text_content.strip().split(' ')
-            #     if self.dns_type.is_mx_record and len(parsed_content) != 2:
-            #         error_list.append('Content for MX records need to have a priority and FQDN.')
-            #     elif self.dns_type.is_srv_record and len(parsed_content) != 4:
-            #         error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
+            else:
+                # Validation for Priority
+                parsed_content = self.text_content.strip().split(' ')
+                if self.dns_type.is_mx_record and len(parsed_content) != 2:
+                    error_list.append('Content for MX records need to have a priority and FQDN.')
+                elif self.dns_type.is_srv_record and len(parsed_content) != 4:
+                    error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
 
             # Name and text content cannot be the same if its not an CNAME
             if not self.dns_type.is_cname_record and self.name == self.text_content:
                 error_list.append('Name and Text Content cannot match for records other than CNAME.')
 
             if self.dns_type.is_cname_record:
-                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name, dns_type=self.dns_type).exclude(pk=self.pk)
                 if records:
                     error_list.append('Trying to create CNAME record while other records exist: %s' % records[0].name)
             # not CNAME
