@@ -112,7 +112,7 @@ class AddressMixin(object):
             elif not isinstance(pool, Model):
                 obj_pool = Pool.objects.get(pk=pool)
 
-            # Delete dns PTR records
+            # Delete dns records and are linked via name
             DnsRecord.objects.filter(name=obj.address.reverse_dns[:-1]).delete()
             # Delete dns A records
             DnsRecord.objects.filter(ip_content=obj).delete()
