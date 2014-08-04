@@ -45,6 +45,14 @@
                 this.value = pre_value + '.' + value;
             });
 
+            $('#id_ip_address').yourlabsAutocomplete({
+                url: '/api/web/AddressAvailableAutocomplete/',
+                choiceSelector: '[data-value]',
+                minimumCharacters: 3,
+            }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                this.value = choice.text();
+            });
+
             $("#id_address_type").on('change', function(){
                 $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
                     'atype': $(this).val()

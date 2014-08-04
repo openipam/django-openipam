@@ -39,7 +39,7 @@ class DisabledAdmin(ChangedAdmin):
 class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'user', 'starts', 'ends')
     list_filter = ('starts', 'ends')
-    search_fields = ('uid', 'ticket')
+    search_fields = ('user__username', 'ticket')
     form = autocomplete_light.modelform_factory(GuestTicket)
 
 

@@ -38,7 +38,7 @@
                     <strong>Address Type</strong>
                 </td>
                 <td>
-                    <strong>Description</strong>
+                    <strong>Last Changed</strong>
                 </td>
             </tr>
             <tr>
@@ -48,12 +48,16 @@
                 <td>{{ object.last_notified }}</td>
                 <td>{{ object.address_type }}</td>
                 <td>
-                    {% if object.description %}
-                        {{ object.description }}
-                    {% else %}
-                        N/A
-                    {% endif %}
+                    {{ object.changed }} ({{ object.changed_by }} - {{ object.changed_by.get_full_name }})
                 </td>
+            </tr>
+            <tr class="active">
+                <td colspan="7">
+                    <strong>Description</strong>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="7">{{ object.description }}</td>
             </tr>
         </tbody>
     </table>
@@ -235,7 +239,7 @@
     <table class="table table-condensed table-bordered">
         <thead>
             <tr>
-                <th>
+                <th colspan="2">
                     <h5>
                         Host Attributes
                     </h5>

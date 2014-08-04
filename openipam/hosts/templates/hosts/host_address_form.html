@@ -58,6 +58,16 @@
                 });
             }
 
+            $.ipAutocompleteInit = function(selector) {
+                $(selector).yourlabsAutocomplete({
+                    url: '/api/web/AddressAvailableAutocomplete/',
+                    choiceSelector: '[data-value]',
+                    minimumCharacters: 3,
+                }).input.bind('selectChoice', function(event, choice, autocomplete) {
+                    this.value = choice.text();
+                });
+            }
+
             $.hostAutoCompleteInit = function(selector) {
                 $(selector).yourlabsAutocomplete({
                     url: '/api/web/DomainAutocomplete/',
@@ -88,6 +98,10 @@
 
             $('.host-autocomplete').each(function(index) {
                 $.hostAutoCompleteInit(this);
+            });
+
+            $('.ip-autocomplete').each(function(index) {
+                $.ipAutocompleteInit(this);
             });
 
             $('.network-autocomplete').each(function(index) {
@@ -205,7 +219,7 @@
                                         <input type="radio" name="new-type-post-{{ forloop.counter0 }}" value="network" class="a-radio" {% if row.network %}checked="checked"{% endif %} /> Network
                                     </label>
                                     <span class="a-controls form-group">
-                                        <input type="text" name="new-ip" rel="ip" class="form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" value="{{ row.ip_address }}" />
+                                        <input type="text" name="new-ip" rel="ip" class="ip-autocomplete form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" value="{{ row.ip_address }}" />
                                         <input type="text" name="new-network" rel="network" class="network-autocomplete form-control input-sm"  placeholder="Enter a Network" {% if row.ip_address or not row.network %}style="display: none;"{% endif %} value="{{ row.network }}" />
                                     </span>
                                 </div>
@@ -215,32 +229,34 @@
                             </td>
                         </tr>
                     {% endfor %}
-                    <tr class="add-row extra">
-                        <td>
-                            <input type="hidden" name="new-address" value="1" />
-                            <div class="form-group">
-                                <input type="text" name="new-hostname" class="form-control input-sm host-autocomplete" placeholder="Enter a hostname" />
-                            </div>
-                        </td>
-                        <td>
-                            <div class="radio form-group">
-                                <label class="radio-inline">
-                                    <input type="radio" name="new-type-0" value="ip" checked="checked" class="a-radio" checked="checked" /> IP
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="new-type-0" value="network" class="a-radio" /> Network
-                                </label>
-                                <span class="a-controls form-group">
-                                    <input type="text" name="new-ip" rel="ip" class="form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" />
-                                    <input type="text" name="new-network" rel="network" class="network-autocomplete form-control input-sm"  placeholder="Enter a Network" style="display: none;" />
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            <a class="add" href="javascript:void(0);">Add</a>
-                            <a class="remove" href="javascript:void(0);" style="display:none;">Remove</a>
-                        </td>
-                    </tr>
+                    {% if not request.POST %}
+                        <tr class="add-row extra">
+                            <td>
+                                <input type="hidden" name="new-address" value="1" />
+                                <div class="form-group">
+                                    <input type="text" name="new-hostname" class="form-control input-sm host-autocomplete" placeholder="Enter a hostname" />
+                                </div>
+                            </td>
+                            <td>
+                                <div class="radio form-group">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="new-type-0" value="ip" checked="checked" class="a-radio" checked="checked" /> IP
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="new-type-0" value="network" class="a-radio" /> Network
+                                    </label>
+                                    <span class="a-controls form-group">
+                                        <input type="text" name="new-ip" rel="ip" class="ip-autocomplete form-control input-sm" value="{{ row.ip_address }}" placeholder="Enter a IP Address" />
+                                        <input type="text" name="new-network" rel="network" class="network-autocomplete form-control input-sm"  placeholder="Enter a Network" style="display: none;" />
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <a class="add" href="javascript:void(0);">Add Another</a>
+                                <a class="remove" href="javascript:void(0);" style="display:none;">Remove</a>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
             <div class="form-group pull-right">

@@ -204,37 +204,48 @@ class HostForm(forms.ModelForm):
 
     def _init_ip_address(self):
         if self.instance.pk:
-            html_addresses = []
-            addresses = list(self.addresses)
+            master_ip_address = self.instance.master_ip_address
+
+            self.fields['ip_address'].initial = master_ip_address
+            self.fields['ip_address'].label = 'New IP Address'
+            self.fields['network_or_ip'].initial = '1'
+
+            addresses = [str(address) for address in self.addresses]
+            addresses.pop(addresses.index(master_ip_address))
+
+            html_primary_address = '''
+                <p class="pull-left"><span class="label label-primary">%s</span></p>
+                <a href="javascript:void(0);" id="ip-change" class="pull-left renew">Change Address</a>
+            ''' % master_ip_address
+
+            self.primary_address_html = HTML('''
+                <div class="form-group">
+                    <label class="col-sm-2 col-md-2 col-lg-2 control-label">Primary IP Address:</label>
+                    <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
+                            %s
+                    </div>
+                </div>
+            ''' % ''.join(html_primary_address))
+
+            self.secondary_address_html = ''
+            html_secondary_addresses = []
             for address in addresses:
-                html_addresses.append('<p class="pull-left"><span class="label label-primary">%s</span></p>' % address)
+                html_secondary_addresses.append('<p class="pull-left"><span class="label label-primary">%s</span></p>' % address)
+            if html_secondary_addresses:
+                add_link = ''
+                if self.user.is_ipamadmin:
+                    add_link = ('<a href="%s" class="pull-left renew">Add/Delete Additional Addresses</a>'
+                        % reverse('add_addresses_host', kwargs={'pk':self.instance.mac_stripped}))
 
-            if html_addresses:
-                if len(self.addresses) == 1:
-                    change_html = '<a href="javascript:void(0);" id="ip-change" class="pull-left renew">Change IP Address</a>'
-                else:
-                    change_html = ''
-
-                self.current_address_html = HTML('''
-                    <div class="form-group" >
-                        <label class="col-sm-2 col-md-2 col-lg-2 control-label">Current IP Address%s:</label>
+                self.secondary_address_html = HTML('''
+                    <div class="form-group">
+                        <label class="col-sm-2 col-md-2 col-lg-2 control-label">Additional IP Addresses:</label>
                         <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
                                 %s
                                 %s
                         </div>
                     </div>
-                ''' % ('es' if len(addresses) > 1 else '', ''.join(html_addresses), change_html))
-
-                if len(self.addresses) > 1:
-                    del self.fields['address_type']
-                    del self.fields['network_or_ip']
-                    del self.fields['network']
-                    del self.fields['ip_address']
-                else:
-                    self.fields['ip_address'].initial = self.addresses[0]
-                    self.fields['ip_address'].label = 'New IP Address'
-                    self.fields['network_or_ip'].initial = '1'
-
+                ''' % (''.join(html_secondary_addresses), add_link))
         elif self.previous_form_data:
             if 'network_or_ip' in self.previous_form_data:
                 self.fields['network_or_ip'].initial = self.previous_form_data.get('network_or_ip')
@@ -266,7 +277,8 @@ class HostForm(forms.ModelForm):
                 'Host Details',
                 'mac_address',
                 'hostname',
-                self.current_address_html,
+                self.primary_address_html,
+                self.secondary_address_html,
                 'address_type',
                 'network_or_ip',
                 'network',
@@ -436,7 +448,7 @@ class HostForm(forms.ModelForm):
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
-            if network not in user_nets:
+            if user_nets.filter(network=network):
                 raise ValidationError(mark_safe('You do not have access to assign this host to the '
                                       'network specified: %s.<br />Please contact an IPAM Administrator.' % network))
 

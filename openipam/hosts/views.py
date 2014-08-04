@@ -26,6 +26,7 @@ from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
+from openipam.dns.models import DnsRecord, DnsType
 from openipam.network.models import AddressType, Lease, Network, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
@@ -438,8 +439,10 @@ class HostUpdateCreateMixin(object):
 
     def post(self, request, *args, **kwargs):
         try:
-            return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
+            with transaction.atomic():
+                return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
         except ValidationError as e:
+            transaction.rollback()
             error_list = []
             form_class = self.get_form_class()
             form = self.get_form(form_class)
@@ -466,7 +469,8 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        self.original_object = serializers.serialize('json', [self.get_object()])
+        self.object = self.get_object()
+        self.original_object = serializers.serialize('json', [self.object])
         return super(HostUpdateView, self).post(request, *args, **kwargs)
 
     @transaction.atomic
@@ -527,8 +531,6 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
         return super(HostAddressCreateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        from openipam.dns.models import DnsRecord
-
         context = super(HostAddressCreateView, self).get_context_data(**kwargs)
         self.host_addresses = self.object.addresses.values_list('address', flat=True)
         self.addresses = Address.objects.filter(host=self.object).exclude(arecords__name=self.object.hostname)
@@ -554,15 +556,8 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
 
         host = self.object
         context = self.get_context_data(object=self.object)
-        current_hostnames = [data['name'] for data in context['address_data']]
         data = context['form_data'] = []
         error_list = []
-
-        user_nets = get_objects_for_user(
-            request.user,
-            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-            any_perm=True
-        )
 
         try:
             for index, address in enumerate(new_addresses):
@@ -575,47 +570,18 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
                     })
 
             for address in data:
-                # Required Fields
-                if not address['hostname']:
-                    raise ValidationError('A Hostname is required.')
-                if address['a_type'] == 'ip' and not address['ip_address']:
-                    raise ValidationError('A IP Address is required.')
-                if address['a_type'] == 'network' and not address['network']:
-                    raise ValidationError('A Network is required.')
-
-                # Specific Validation
-                if address['ip_address'] in self.host_addresses:
-                    raise ValidationError('IP address %s is already assigned to this host.' % address['ip_address'])
-                if address['hostname'] in current_hostnames:
-                    raise ValidationError('Hostname %s is already assigned to this host.' % address['hostname'])
-                if address['network'] not in user_nets:
-                    raise ValidationError(
-                        mark_safe('You do not have access to assign hostname %s to the '
-                                  'network specified: %s.<br />Please contact an '
-                                  'IPAM Administrator.' % (address['hostname'], address['network']))
-                    )
-
-                try:
+                with transaction.atomic():
                     added_address = host.add_ip_address(
                         user=request.user,
                         ip_address=address['ip_address'] or None,
                         network=address['network'] or None,
                         hostname=address['hostname'] or None
                     )
-                    messages.info(request, 'Address %s has been assigned to Host %s' % (added_address.address, host.hostname))
-
-                except Address.DoesNotExist:
-                    error_message = 'There are no avaiable addresses for the %s entered: %s'
-                    if address['ip_address']:
-                        error_list.append(error_message % ('IP', address['ip_address']))
-                    else:
-                        error_list.append(error_message % ('Network', address['network']))
-
-                    error_list.append('Please try again.')
-                    messages.error(request, mark_safe('<br />'.join(error_list)))
-                    return render(request, self.template_name, context)
+                messages.info(request, 'Address %s has been assigned to Host %s' % (added_address.address, host.hostname))
 
         except ValidationError as e:
+            transaction.rollback()
+
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
