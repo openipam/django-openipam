@@ -410,7 +410,7 @@ class Host(DirtyFieldsMixin, models.Model):
         )
 
         if network:
-            if not user_nets.filter(network=network):
+            if not user_nets.filter(network=network.network):
                 raise ValidationError(
                     "You do not have access to assign host '%s' to the "
                     "network specified: %s." % (hostname, network)
