@@ -203,6 +203,9 @@ class HostForm(forms.ModelForm):
 
 
     def _init_ip_address(self):
+        self.primary_address_html = ''
+        self.secondary_address_html = ''
+
         if self.instance.pk:
             master_ip_address = self.instance.master_ip_address
 
@@ -227,7 +230,6 @@ class HostForm(forms.ModelForm):
                 </div>
             ''' % ''.join(html_primary_address))
 
-            self.secondary_address_html = ''
             html_secondary_addresses = []
             for address in addresses:
                 html_secondary_addresses.append('<p class="pull-left"><span class="label label-primary">%s</span></p>' % address)
