@@ -448,7 +448,7 @@ class HostForm(forms.ModelForm):
                 ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
                 any_perm=True
             )
-            if user_nets.filter(network=network):
+            if user_nets.filter(network=network.network):
                 raise ValidationError(mark_safe('You do not have access to assign this host to the '
                                       'network specified: %s.<br />Please contact an IPAM Administrator.' % network))
 
