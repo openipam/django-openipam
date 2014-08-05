@@ -399,9 +399,9 @@ class HostForm(forms.ModelForm):
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
-        host_exists = Host.objects.filter(hostname=hostname)
+        host_exists = Host.objects.filter(hostname__iexact=hostname)
         if self.instance.pk:
-            host_exists = host_exists.exclude(hostname=self.instance.hostname)
+            host_exists = host_exists.exclude(hostname__iexact=self.instance.hostname)
 
         if host_exists:
             if host_exists[0].is_expired:
