@@ -234,12 +234,18 @@ def admin_filter_selected(cl, spec):
     for index, choice in enumerate(spec.choices(cl)):
         if choice['selected'] is True and (index > 0 or isinstance(choice['display'], unicode)):
             value = choice['display']
-            param_name = spec.parameter_name if hasattr(spec, 'parameter_name') else spec.lookup_kwarg or None
+            if hasattr(spec, 'parameter_name'):
+                param_name = spec.parameter_name
+            elif hasattr(spec, 'field_generic'):
+                param_name = spec.field_generic
+            else:
+                param_name = spec.lookup_kwarg or None
             if param_name:
-                for qs in query_string_list:
+                href_list = list(query_string_list)
+                for qs in href_list:
                     if qs.startswith(param_name):
                         query_string_list.remove(qs)
-                        href = '&'.join(query_string_list)
+                href = '&'.join(query_string_list)
             break
 
     return tpl.render(Context({
