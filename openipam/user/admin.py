@@ -8,7 +8,6 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
-from django.contrib.admin.views.main import ChangeList
 from django.conf.urls import patterns, url
 from django.db.models import Q
 from django.shortcuts import redirect
@@ -546,7 +545,6 @@ admin.site.register(AuthGroup, AuthGroupAdmin)
 admin.site.register(AuthPermission, AuthPermissionAdmin)
 admin.site.unregister(Token)
 admin.site.register(Token, TokenAdmin)
-
 
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Permission, PermissionAdmin)
