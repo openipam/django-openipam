@@ -57,6 +57,7 @@ class IPAMGroupFilter(ListFilter):
     parameter_name = 'groups'
     template = 'admin/filter_autocomplete.html'
     autocomplete_url = '/api/web/GroupAutocomplete/'
+    placeholder = 'Search Groups'
 
     def has_output(self):
         """
@@ -93,8 +94,62 @@ class IPAMGroupFilter(ListFilter):
 
         if value:
             self.value = value
-            queryset = queryset.filter(groups__pk=value)
+            queryset = queryset.filter(**{'%s__pk' % self.parameter_name: value})
         return queryset
+
+
+class IPAMObjGroupFilter(IPAMGroupFilter):
+    parameter_name = 'group'
+
+
+class IPAMUserFilter(ListFilter):
+    title = 'users'
+    parameter_name = 'users'
+    template = 'admin/filter_autocomplete.html'
+    autocomplete_url = '/api/web/UserAutocomplete/'
+    placeholder = 'Search Users'
+
+    def has_output(self):
+        """
+        Returns True if some choices would be output for this filter.
+        """
+        return True
+
+    def choices(self, cl):
+        """
+        Returns choices ready to be output in the template.
+        """
+        if getattr(self, 'value', None):
+            user = User.objects.filter(pk=self.value).first()
+
+            if user:
+                return [{
+                    'selected': True,
+                    'query_string': cl.get_query_string({}, [self.parameter_name]),
+                    'display': user.username,
+                    'value': user.username
+                }]
+
+        return []
+
+    def expected_parameters(self):
+        """
+        Returns the list of parameter names that are expected from the
+        request's query string and that will be used by this filter.
+        """
+        return [self.parameter_name]
+
+    def queryset(self, request, queryset):
+        value = request.GET.get(self.parameter_name, '')
+
+        if value:
+            self.value = value
+            queryset = queryset.filter(**{'%s__pk' % self.parameter_name: value})
+        return queryset
+
+
+class IPAMObjUserFilter(IPAMUserFilter):
+    parameter_name = 'user'
 
 
 class AuthUserChangeList(ChangeList):
@@ -369,7 +424,7 @@ class ObjectPermissionFilter(SimpleListFilter):
         permissions = AuthPermission.objects.select_related().filter(
             Q(codename__icontains='is_owner') | Q(codename__icontains='add_records_to')
         )
-        permisssion_filters = [(permission.id, permission,) for permission in permissions]
+        permisssion_filters = [(permission.id, permission.codename,) for permission in permissions]
 
         return tuple(permisssion_filters)
 
@@ -378,26 +433,6 @@ class ObjectPermissionFilter(SimpleListFilter):
         if self.value():
             permission = AuthPermission.objects.get(id=self.value())
             queryset = queryset.filter(permission=permission)
-
-        return queryset
-
-
-class ObjectFilter(SimpleListFilter):
-    title = 'Object'
-    parameter_name = 'object'
-
-    def lookups(self, request, model_admin):
-        objects = ContentType.objects.select_related().filter(
-            Q(permission__codename__icontains='is_owner') | Q(permission__codename__icontains='add_records_to')
-        ).distinct()
-        objects_filters = [(obj.id, obj,) for obj in objects]
-
-        return tuple(objects_filters)
-
-    def queryset(self, request, queryset):
-
-        if self.value():
-            queryset = queryset.filter(content_type__id=self.value())
 
         return queryset
 
@@ -422,11 +457,40 @@ class ObjectPermissionSearchChangeList(ChangeList):
 
         return qs
 
+class ObjectFilter(admin.SimpleListFilter):
+    title = 'object'
+    parameter_name = 'object'
+
+    def lookups(self, request, model_admin):
+        groups = Group.objects.exclude(name__istartswith='user_')
+        group_vals = [(group.pk, group.name) for group in groups]
+
+        return tuple(group_vals)
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(group__pk=self.value())
+
+    def choices(self, cl):
+        yield {
+            'selected': self.value() is None,
+            'query_string': cl.get_query_string({}, [self.parameter_name]),
+            'display': _('All'),
+        }
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == force_text(lookup),
+                'query_string': cl.get_query_string({
+                    self.parameter_name: lookup,
+                }, []),
+                'display': title,
+            }
+
 
 class UserObjectPermissionAdmin(admin.ModelAdmin):
     form = UserObjectPermissionAdminForm
-    list_display = ('user', 'object_name', 'permission',)
-    list_filter = (ObjectPermissionFilter,)
+    list_display = ('user', 'object_name', 'permission_name',)
+    list_filter = (ObjectPermissionFilter, IPAMObjUserFilter)
     search_fields = ('user__username', '^object_pk')
 
     def get_changelist(self, request, **kwargs):
@@ -447,6 +511,11 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
         obj.object_pk = form.cleaned_data['object_id'].split('-')[1]
         obj.save()
 
+    def permission_name(self, obj):
+        return obj.permission.codename
+    permission_name.short_description = 'Permission'
+
+
     def object_name(self, obj):
         c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
         return '%s - %s' % (obj.content_type.model, c_obj)
@@ -454,8 +523,8 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
 
 
 class GroupObjectPermissionAdmin(admin.ModelAdmin):
-    list_display = ('group', 'object_name', 'permission',)
-    list_filter = (ObjectPermissionFilter, ObjectFilter)
+    list_display = ('group', 'object_name', 'permission_name',)
+    list_filter = (ObjectPermissionFilter, IPAMObjGroupFilter)
     form = GroupObjectPermissionAdminForm
     search_fields = ('group__name', '^object_pk',)
 
@@ -471,6 +540,10 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
         obj.content_type_id = form.cleaned_data['object_id'].split('-')[0]
         obj.object_pk = form.cleaned_data['object_id'].split('-')[1]
         obj.save()
+
+    def permission_name(self, obj):
+        return obj.permission.codename
+    permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
         if obj.content_type.model == 'network':
