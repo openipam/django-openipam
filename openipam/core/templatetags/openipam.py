@@ -14,8 +14,6 @@ from urllib import unquote
 
 import re
 
-import autocomplete_light
-
 register = template.Library()
 
 CLASS_PATTERN = re.compile(r'\bclass="[\w\d]*"')
