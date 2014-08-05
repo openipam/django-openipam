@@ -24,24 +24,49 @@ User = get_user_model()
 class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
     choices = (
         Domain.objects.all(),
-        DnsType.objects.all(),
         Network.objects.all(),
         Pool.objects.all(),
+        DnsType.objects.all(),
         Host.objects.all(),
     )
 
     search_fields = (
+        ('^name',),
+        ('^network',),
         ('name',),
         ('name',),
-        ('network',),
-        ('name',),
-        ('hostname',),
+        ('^hostname',),
     )
 
     attrs = {
         'minimum_characters': 1,
         'placeholder': 'Search Objects',
     }
+
+    #WTF?
+    def choices_for_request(self):
+        """
+        Return a list of choices from every queryset in :py:attr:`choices`.
+        """
+        assert self.choices, 'autocomplete.choices should be a queryset list'
+
+        q = self.request.GET.get('q', '')
+
+        request_choices = []
+        querysets_left = len(self.choices)
+
+        i = 0
+
+        for queryset in self.choices:
+            conditions = self._choices_for_request_conditions(q, self.search_fields[i])
+
+            for choice in queryset.filter(conditions)[:self.limit_choices]:
+                request_choices.append(choice)
+
+            querysets_left -= 1
+            i += 1
+
+        return request_choices
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
