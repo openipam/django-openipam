@@ -346,9 +346,8 @@ $(function(){
     // Add another row to table when add record is clicked
     $("#result_list").on('click', "a.add-record", function() {
         var thisRow = $(this).parents('tr');
-        var newRow = thisRow.clone();
-        thisRow.find("a.add-record").remove();
-        thisRow.find("a.remove-record").show();
+        var newRow = thisRow.clone().find("input").val('').end().find('.dns-ttl').val('14400').end();
+        thisRow.removeClass("extra").find("a.add-record").remove().end().find("a.remove-record").show();
         newRow.appendTo("#result_list");
     });
 
@@ -382,7 +381,8 @@ $(function(){
         $("a.cancel-dns").click();
         $("#form-actions").hide();
         $("#action-toggle").removeAttr('checked');
-        $(".add-row input, .add-row select").val('');
+        $('.add-row:not(.extra)').remove();
+        $('.add-row.extra').find('input').val('').end().find('.dns-ttl').val('14400');
     });
 
 

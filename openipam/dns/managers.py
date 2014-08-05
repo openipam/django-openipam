@@ -187,6 +187,9 @@ class DnsManager(Manager):
 
             dns_record.dns_type = dns_type
 
+            if not content:
+                raise ValidationError("Content is required to create a DNS record.")
+
             if dns_record.dns_type.is_a_record:
                 address = Address.objects.get(address=content)
                 dns_record.ip_content = address
@@ -202,15 +205,13 @@ class DnsManager(Manager):
                     try:
                         dns_record.host = Host.objects.get(addresses__arecords__name=content)
                     except Host.DoesNotExist:
-                        raise ValidationError("An 'A' Record for '%s' needs tp exists before this can be created." % content)
-
-            # Set the piority (used for SRV and MX)
-            dns_record.set_priority()
+                        raise ValidationError("An 'A' Record for '%s' needs to exists to create '%s' records." % (content, dns_record.dns_type.name))
 
             if ttl:
                 dns_record.ttl = ttl
 
             dns_record.name = name
+            dns_record.set_priority()
             dns_record.set_domain_from_name()
 
             dns_record.full_clean()

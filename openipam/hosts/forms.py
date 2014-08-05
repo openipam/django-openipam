@@ -204,7 +204,7 @@ class HostForm(forms.ModelForm):
 
 
     def _init_ip_address(self):
-        if self.instance.pk:
+        if self.instance.pk and self.instance.is_static:
             master_ip_address = self.instance.master_ip_address
 
             self.fields['ip_address'].initial = master_ip_address

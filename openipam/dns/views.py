@@ -313,12 +313,14 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
             for index, value in enumerate(new_records):
                 name_new = self.request.POST.getlist('name-new')[index]
+                ttl_new = self.request.POST.getlist('ttl-new')[index]
                 content_new = self.request.POST.getlist('content-new')[index]
                 type_new = self.request.POST.getlist('type-new')[index]
 
                 if name_new or content_new or type_new:
                     context['form_data_new'].append({
                         'name': name_new,
+                        'ttl': ttl_new,
                         'content': content_new,
                         'type': type_new,
                     })
@@ -358,6 +360,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                     continue
 
                 try:
+                    if not new_types[index]:
+                        raise ValidationError('A Dns Type is required.')
+
                     dns_record, created = DnsRecord.objects.add_or_update_record(
                         user=request.user,
                         name=new_names[index],
@@ -378,12 +383,15 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             # Updated records
             for record in selected_records:
                 try:
+                    dns_type_pk = request.POST.get('type-%s' % record, '')
+                    if not dns_type_pk:
+                        raise ValidationError('A Dns Type is required.')
 
                     dns_record, created = DnsRecord.objects.add_or_update_record(
                         user=request.user,
                         name=request.POST.get('name-%s' % record, ''),
                         content=request.POST.get('content-%s' % record, ''),
-                        dns_type=DnsType.objects.get(pk=int(request.POST.get('type-%s' % record, ''))),
+                        dns_type=DnsType.objects.get(pk=int(dns_type_pk)),
                         ttl=request.POST.get('ttl-%s' % record, ''),
                         record=record
                     )
@@ -398,6 +406,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                     continue
 
             if error_list:
+                error_list = list(set(error_list))
                 error_list.append('Please try again.')
                 messages.error(self.request, mark_safe('<br />'.join(error_list)))
             else:
