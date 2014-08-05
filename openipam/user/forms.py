@@ -77,11 +77,17 @@ class IPAMAuthenticationForm(AuthenticationForm):
     }
 
 
+class PermissionModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return '%s' % obj.codename
+
+
 class UserObjectPermissionAdminForm(forms.ModelForm):
     user = autocomplete_light.ModelChoiceField('UserAutocomplete')
-    permission = forms.ModelChoiceField(
-        Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
-        label='Permission'
+    permission = PermissionModelChoiceField(
+        queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
+        label='Permission',
+        empty_label='Select A Permssion'
     )
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
@@ -98,7 +104,11 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 
 class GroupObjectPermissionAdminForm(forms.ModelForm):
     group = autocomplete_light.ModelChoiceField('GroupAutocomplete')
-    permission = forms.ModelChoiceField(Permission.objects.filter(reduce(operator.or_, PERMISSION_FILTER)), label='Permission')
+    permission = PermissionModelChoiceField(
+        queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
+        label='Permission',
+        empty_label='Select A Permssion'
+    )
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     # def __init__(self, *args, **kwargs):
