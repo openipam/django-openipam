@@ -10,7 +10,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from django_auth_ldap.backend import LDAPBackend
 
 from openipam.conf.ipam_settings import CONFIG
-from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup
+from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup, GroupSource, AuthSource
 from openipam.hosts.models import Host
 
 import gc
@@ -30,9 +30,14 @@ def get_objects_for_owner(user, app_label):
 
 def convert_groups():
     groups = Group.objects.exclude(name__istartswith='user_')
+    source = AuthSource.objects.get(name='INTERNAL')
 
     converted_groups = []
     for group in groups:
+        auth_group, created = AuthGroup.objects.get_or_create(name=group.name)
+        auth_group.source.source = source
+        auth_group.source.save()
+
         converted_groups.append(AuthGroup.objects.get_or_create(name=group.name))
 
     for group in converted_groups:
