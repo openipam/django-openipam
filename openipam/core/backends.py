@@ -68,16 +68,18 @@ class _IPAMLDAPUser(_LDAPUser):
         source = AuthSource.objects.get(name='LDAP')
         # Get the LDAP group names from LDAP for user
         user_ldap_group_names = self._get_groups().get_group_names()
+        # Get existing LDAP groups.
+        existing_ldap_groups_names = set([group.name for group in Group.objects.filter(name__in=user_ldap_group_names)])
+        # Get groups to add
+        groups_to_add = list(user_ldap_group_names - existing_ldap_groups_names)
 
         # Add new LDAP groups
-        ldap_user_groups = Group.objects.none()
-        if user_ldap_group_names:
-            ldap_groups_selected = []
-            for group in user_ldap_group_names:
-                group, created = Group.objects.get_or_create(name=group)
-                ldap_groups_selected.append(group)
-            # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
-            ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
+        if groups_to_add:
+            for group in groups_to_add:
+                Group.objects.get_or_create(name=group)
+
+        # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
+        ldap_user_groups = Group.objects.select_related('source').filter(name__in=[group for group in user_ldap_group_names])
 
         # Make sure all LDAP groups are sources as LDAP
         for group in ldap_user_groups:
