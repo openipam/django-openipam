@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
@@ -16,7 +16,8 @@ from django.contrib import messages
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
 from openipam.network.models import Network
-from openipam.user.models import User, Group, Permission, UserToGroup, HostToGroup, NetworkToGroup, PoolToGroup, DomainToGroup
+from openipam.user.models import User, Group, Permission, UserToGroup, HostToGroup, NetworkToGroup, \
+    PoolToGroup, DomainToGroup, GroupSource, AuthSource
 from openipam.user.forms import AuthUserCreateAdminForm, AuthUserChangeAdminForm, AuthGroupAdminForm, \
     UserObjectPermissionAdminForm, GroupObjectPermissionAdminForm
 
@@ -148,6 +149,27 @@ class IPAMUserFilter(ListFilter):
         return queryset
 
 
+class GroupSourceFilter(SimpleListFilter):
+    title = 'Group Source'
+    parameter_name = 'source'
+
+    def lookups(self, request, model_admin):
+        return [(source.pk, source.name) for source in AuthSource.objects.all()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            queryset = queryset.filter(source__source=AuthSource.objects.get(pk=self.value()))
+        else:
+            internal_source = AuthSource.objects.get(name='INTERNAL')
+            queryset = queryset.filter(
+                Q(source__source=internal_source) |
+                Q(permissions__isnull=False) |
+                Q(groupobjectpermission__isnull=False)
+            ).distinct()
+
+        return queryset
+
+
 class IPAMObjUserFilter(IPAMUserFilter):
     parameter_name = 'user'
 
@@ -239,7 +261,8 @@ class TokenAdmin(TokenAdmin):
 
 
 class AuthGroupAdmin(GroupAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'source')
+    list_filter = (IPAMObjUserFilter, GroupSourceFilter)
     form = AuthGroupAdminForm
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
