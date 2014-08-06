@@ -26,13 +26,10 @@ from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host
-from openipam.dns.models import DnsRecord, DnsType
-from openipam.network.models import AddressType, Lease, Network, Address
+from openipam.network.models import AddressType, Lease, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
-
-from guardian.shortcuts import get_objects_for_user
 
 from netaddr.core import AddrFormatError
 
@@ -112,11 +109,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     qs = qs.filter(mac__startswith=mac_str.lower())
                 elif search_item.startswith('ip:') and search_str:
                     ip = search_item.split(':')[-1]
-                    ip_blocks = ip.split('.')
+                    ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith=ip) |
-                            Q(leases__address__address__startswith=ip)
+                            Q(addresses__address__startswith='.'.join(ip_blocks)) |
+                            Q(leases__address__address__startswith='.'.join(ip_blocks))
                         ).distinct()
                     else:
                         qs = qs.filter(
@@ -171,20 +168,20 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
                     qs = qs.filter(
                         Q(addresses__address__net_contained_or_equal=ip_search) |
-                        Q(leases__address__address__net_contained_or_equal=ip_search)
+                        Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
                     ).distinct()
                 else:
                     ip = ip_search.split(':')[-1]
-                    ip_blocks = ip.split('.')
+                    ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith=ip) |
-                            Q(leases__address__address__startswith=ip)
+                            Q(addresses__address__startswith='.'.join(ip_blocks)) |
+                            Q(leases__address__address__startswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
                         qs = qs.filter(
                             Q(addresses__address=ip) |
-                            Q(leases__address__address=ip)
+                            Q(leases__address__address=ip, leases__ends__gt=timezone.now()  )
                         ).distinct()
 
             # if group_filter:
@@ -215,7 +212,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         qs_macs = [q.mac for q in qs]
         qs = Host.objects.filter(mac__in=qs_macs)
         value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
-            'leases__address', 'ip_history__stopstamp', 'mac_history__stopstamp')))
+            'leases__address', 'leases__ends', 'ip_history__stopstamp', 'mac_history__stopstamp')))
 
         user = self.request.user
         user_change_permissions = qs.by_change_perms(user, ids_only=True)
@@ -239,6 +236,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 return None
 
         def get_last_ip(host):
+            #assert False, host
             if host.is_dynamic:
                 leases = host.leases.all()
                 if leases:
@@ -254,7 +252,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         def get_ips(host):
             addresses = []
-
             if host['addresses__address']:
                 if isinstance(host['addresses__address'], list):
                     addresses += [address for address in host['addresses__address']]
@@ -263,11 +260,16 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             if host['leases__address']:
                 if not isinstance(host['leases__address'], list):
                     host['leases__address'] = [host['leases__address']]
+                if not isinstance(host['leases__ends'], list):
+                    host['leases__ends'] = [host['leases__ends']]
 
-                valid_leases = list(
-                    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
-                )
-                addresses += valid_leases
+                for index, lease in enumerate(host['leases__address']):
+                    if host['leases__ends'][index] > timezone.now():
+                        addresses.append(lease)
+                #valid_leases = list(
+                #    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
+                #)
+                #addresses += valid_leases
 
             if addresses:
                 #addresses = [str(address) for address in addresses]
@@ -442,7 +444,6 @@ class HostUpdateCreateMixin(object):
             with transaction.atomic():
                 return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
         except ValidationError as e:
-            transaction.rollback()
             error_list = []
             form_class = self.get_form_class()
             form = self.get_form(form_class)
@@ -580,8 +581,6 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
                 messages.info(request, 'Address %s has been assigned to Host %s' % (added_address.address, host.hostname))
 
         except ValidationError as e:
-            transaction.rollback()
-
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
