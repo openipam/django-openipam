@@ -68,42 +68,30 @@ class _IPAMLDAPUser(_LDAPUser):
         source = AuthSource.objects.get(name='LDAP')
         # Get the LDAP group names from LDAP for user
         user_ldap_group_names = self._get_groups().get_group_names()
-        # Get existing ldap groups
-        existing_ldap_groups = Group.objects.select_related('source').filter(source__source=source)
-        # Get existing ldap groups names
-        existing_ldap_groups_names = set([group.name for group in existing_ldap_groups])
-        # Diff the groups to add from the user
-        groups_to_add = list(user_ldap_group_names - existing_ldap_groups_names)
 
         # Add new LDAP groups
         new_ldap_user_groups = Group.objects.none()
-        if groups_to_add:
-            created_groups = []
-            for group in groups_to_add:
+        if user_ldap_group_names:
+            ldap_groups_selected = []
+            for group in new_ldap_user_groups:
                 group, created = Group.objects.get_or_create(name=group)
-                created_groups.append(group)
+                new_ldap_user_groups.append(group)
             # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
-            new_ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in created_groups])
+            new_ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
+
         # Make sure all LDAP groups are sources as LDAP
-        ldap_groups = new_ldap_user_groups | existing_ldap_groups
-        for group in ldap_groups:
+        for group in new_ldap_user_groups:
             try:
                 assert group.source
             except:
                 group.save()
-        GroupSource.objects.filter(group__in=ldap_groups).update(source=source)
+        GroupSource.objects.filter(group__in=new_ldap_user_groups).update(source=source)
 
-        # Get existing users LDAP groups
-        existing_user_ldap_groups = self._user.groups.filter(source__source=source)
-        # Get exsting user LDAP groups names
-        existing_user_ldap_groups_names = set([group.name for group in existing_user_ldap_groups])
-        # LDAP groups that need to be removed from a user
-        user_ldap_groups_to_delete = list(user_ldap_group_names - existing_user_ldap_groups_names)
-        # Get user groups with the LDAP groups purged that they are not apart of anymore
-        purged_user_groups = self._user.groups.exclude(name__in=user_ldap_groups_to_delete)
+        # Get Static User Groups
+        static_user_groups = self._user.groups.exclude(source__source=source)
 
         # Set the Groups to the User
-        groups = purged_user_groups | new_ldap_user_groups
+        groups = static_user_groups | new_ldap_user_groups
         self._user.groups = groups
 
 
