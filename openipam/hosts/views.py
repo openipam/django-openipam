@@ -236,7 +236,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 return None
 
         def get_last_ip(host):
-            #assert False, host
             if host.is_dynamic:
                 leases = host.leases.all()
                 if leases:
