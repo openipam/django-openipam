@@ -374,6 +374,8 @@ class Host(DirtyFieldsMixin, models.Model):
 
         if len(addresses) == 1:
             address = addresses[0]
+        elif self.ip_address and not addresses:
+            address = self.ip_address
         else:
             address = addresses.filter(arecords__name=self.hostname).first()
             if not address:
