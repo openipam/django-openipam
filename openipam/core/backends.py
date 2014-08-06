@@ -73,9 +73,9 @@ class _IPAMLDAPUser(_LDAPUser):
         new_ldap_user_groups = Group.objects.none()
         if user_ldap_group_names:
             ldap_groups_selected = []
-            for group in new_ldap_user_groups:
+            for group in user_ldap_group_names:
                 group, created = Group.objects.get_or_create(name=group)
-                new_ldap_user_groups.append(group)
+                ldap_groups_selected.append(group)
             # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
             new_ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
 
