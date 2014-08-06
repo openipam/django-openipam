@@ -50,7 +50,6 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
 class AuthGroupAdminForm(forms.ModelForm):
     permissions = autocomplete_light.ModelMultipleChoiceField('PermissionAutocomplete', required=False)
-
     # def clean_name(self):
     #     name = self.cleaned_data['name'].lower()
 
