@@ -12,7 +12,7 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions
+   remove_obj_perms_connected_with_user, convert_user_permissions, add_group_souce
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -134,8 +134,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 
 
+class GroupSource(models.Model):
+    group = models.OneToOneField(AuthGroup, primary_key=True, related_name='source')
+    source = models.ForeignKey('AuthSource', db_column='source', default=1, related_name='group')
+
+    def __unicode__(self):
+        return self.source.name
+
+
 class AuthSource(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True)
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         managed = False
@@ -251,3 +262,4 @@ user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
+post_save.connect(add_group_souce, sender=AuthGroup)
