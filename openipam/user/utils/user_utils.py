@@ -35,8 +35,11 @@ def convert_groups():
     converted_groups = []
     for group in groups:
         auth_group, created = AuthGroup.objects.get_or_create(name=group.name)
-        auth_group.source.source = source
-        auth_group.source.save()
+        if created:
+            auth_group.source.source = source
+            auth_group.source.save()
+        else:
+            GroupSource.objects.create(group=auth_group)
 
         converted_groups.append(AuthGroup.objects.get_or_create(name=group.name))
 
