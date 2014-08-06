@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, url, include
+from django.core.urlresolvers import reverse
 from django.contrib.auth.views import logout, password_reset, password_reset_done, \
     password_reset_confirm, password_reset_complete, password_change, password_change_done
 from django.views.generic import TemplateView
@@ -26,7 +27,7 @@ urlpatterns = patterns('openipam.core.views',
     # Account URLS
     url(r'^mimic/$', 'mimic', name='mimic'),
     url(r'^login/$', 'login', name='login'),
-    url(r'^logout/$', logout, name='logout'),
+    url(r'^logout/$', logout, {'next_page': 'login'}, name='logout'),
     url(r'^profile/$', 'profile', name='profile'),
     url(r'^password/forgot/$',
         TemplateView.as_view(template_name='core/password_forgot.html'),
