@@ -367,7 +367,18 @@ class Host(DirtyFieldsMixin, models.Model):
 
     @cached_property
     def master_ip_address(self):
-        address = self.addresses.filter(arecords__name=self.hostname).first()
+        if self.is_dynamic:
+            return None
+
+        addresses = self.addresses.all()
+
+        if len(addresses) == 1:
+            address = addresses[0]
+        else:
+            address = addresses.filter(arecords__name=self.hostname).first()
+            if not address:
+                address = addresses[0]
+
         if address:
             return str(address)
 
