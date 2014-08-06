@@ -91,7 +91,7 @@ class _IPAMLDAPUser(_LDAPUser):
         static_user_groups = self._user.groups.exclude(source__source=source)
 
         # Set the Groups to the User
-        groups = static_user_groups | new_ldap_user_groups
+        groups = static_user_groups | ldap_user_groups
         self._user.groups = groups
 
 
