@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db import connection
 
-from openipam.network.models import DhcpGroup, Pool
+from openipam.network.models import DhcpGroup, Pool, Network
 from openipam.conf.ipam_settings import CONFIG
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
@@ -180,7 +180,10 @@ class HostManager(NetManager):
             instance.ip_address = ip_address
 
         if network:
-            instance.network = network
+            if isinstance(network, unicode) or isinstance(network, str):
+                instance.network = Network.objects.get(network=network)
+            else:
+                instance.network = network
 
         if full_clean is True:
             instance.full_clean()

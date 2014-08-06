@@ -5,6 +5,7 @@ from django.core.mail.backends.smtp import EmailBackend
 from django.core.mail.backends.console import EmailBackend as ConsoleEmailBackend
 
 from openipam.log.models import EmailLog
+from openipam.user.models import GroupSource, AuthSource
 
 # Dont require this.
 try:
@@ -54,6 +55,7 @@ class IPAMLDAPBackend(LDAPBackend):
 
 class _IPAMLDAPUser(_LDAPUser):
 
+    # TODO: How can we take users out of LDAP groups?
     def _mirror_groups(self):
         """
         Mirrors the user's LDAP groups in the Django database and updates the
@@ -62,22 +64,34 @@ class _IPAMLDAPUser(_LDAPUser):
         # groups = set([Group.objects.get_or_create(name=group_name)[0] for group_name
         #     in group_names] + [group for group in self._user.groups.all()])
 
-        group_names = self._get_groups().get_group_names()
-        existing_groups = self._user.groups.all()
+        # Get LDAP source
+        source = AuthSource.objects.get(name='LDAP')
+        # Get the LDAP group names from LDAP for user
+        user_ldap_group_names = self._get_groups().get_group_names()
 
-        db_groups_names = set([group.name for group in Group.objects.all()])
-        groups_to_add = list(group_names - db_groups_names)
+        # Add new LDAP groups
+        ldap_user_groups = Group.objects.none()
+        if user_ldap_group_names:
+            ldap_groups_selected = []
+            for group in user_ldap_group_names:
+                group, created = Group.objects.get_or_create(name=group)
+                ldap_groups_selected.append(group)
+            # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
+            ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
 
-        new_groups_to_assign = Group.objects.none()
-        if groups_to_add:
-            for group in groups_to_add:
-                Group.objects.get_or_create(name=group)
-            #Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
-            new_groups_to_assign = Group.objects.filter(name__in=groups_to_add)
+        # Make sure all LDAP groups are sources as LDAP
+        for group in ldap_user_groups:
+            try:
+                assert group.source
+            except:
+                group.save()
+        GroupSource.objects.filter(group__in=ldap_user_groups).update(source=source)
 
-        existing_groups_to_assign = Group.objects.filter(name__in=group_names)
-        groups = new_groups_to_assign | existing_groups | existing_groups_to_assign
+        # Get Static User Groups
+        static_user_groups = self._user.groups.exclude(source__source=source)
 
+        # Set the Groups to the User
+        groups = static_user_groups | ldap_user_groups
         self._user.groups = groups
 
 
