@@ -70,22 +70,22 @@ class _IPAMLDAPUser(_LDAPUser):
         user_ldap_group_names = self._get_groups().get_group_names()
 
         # Add new LDAP groups
-        new_ldap_user_groups = Group.objects.none()
+        ldap_user_groups = Group.objects.none()
         if user_ldap_group_names:
             ldap_groups_selected = []
             for group in user_ldap_group_names:
                 group, created = Group.objects.get_or_create(name=group)
                 ldap_groups_selected.append(group)
             # Group.objects.bulk_create([Group(name=group) for group in groups_to_add])
-            new_ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
+            ldap_user_groups = Group.objects.select_related('source').filter(pk__in=[group.pk for group in ldap_groups_selected])
 
         # Make sure all LDAP groups are sources as LDAP
-        for group in new_ldap_user_groups:
+        for group in ldap_user_groups:
             try:
                 assert group.source
             except:
                 group.save()
-        GroupSource.objects.filter(group__in=new_ldap_user_groups).update(source=source)
+        GroupSource.objects.filter(group__in=ldap_user_groups).update(source=source)
 
         # Get Static User Groups
         static_user_groups = self._user.groups.exclude(source__source=source)
