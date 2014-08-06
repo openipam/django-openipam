@@ -63,7 +63,7 @@
             <div class="form-group well">
                 <div class="pull-right">
                     {% if request.user.is_superuser %}
-                        <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{# {% url 'admin:auth_user_change' request.user.pk %} #}';" />
+                        <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
                     {% endif %}
                     <input type="submit" value="Save" class="default btn btn-success" name="save" />
                 </div>
