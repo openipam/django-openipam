@@ -31,9 +31,9 @@ django-filter==0.7
 
 # Pulling from GIT until changes are sent to PyPi
 -e git+https://github.com/jmacul2/django-guardian.git#django-guardian-ipam
--e git+https://github.com/jimfunk/django-postgresql-netfields.git#django-netfields-ipam
+#-e git+https://github.com/jimfunk/django-postgresql-netfields.git#django-netfields-ipam
 #django-guardian==1.2.0
-#django-netfields==0.2.1
+django-netfields==0.2.2
 
 django-otp==0.2.7
 django-supervisor==0.3.2
