@@ -121,6 +121,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             Q(leases__address__address=ip)
                         ).distinct()
                 elif search_item.startswith('net:') and search_str:
+                    if search_item.endswith('/'):
+                        qs = qs.none()
+                    else:
                         qs = qs.filter(addresses__address__net_contained_or_equal=search_item[4:]).distinct()
                 elif search_item:
                     like_search_term = search_item + '%'
@@ -166,11 +169,15 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if ip_search:
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
-                    qs = qs.filter(
-                        Q(addresses__address__net_contained_or_equal=ip_search) |
-                        Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
-                    ).distinct()
+                    if ip_search.endswith('/'):
+                        qs = qs.none()
+                    else:
+                        qs = qs.filter(
+                            Q(addresses__address__net_contained_or_equal=ip_search) |
+                            Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
+                        ).distinct()
                 else:
+
                     ip = ip_search.split(':')[-1]
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
