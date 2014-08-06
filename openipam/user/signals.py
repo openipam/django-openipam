@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -62,3 +63,11 @@ def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
     UserObjectPermission.objects.filter(filters).delete()
     GroupObjectPermission.objects.filter(filters).delete()
 
+
+def add_group_souce(sender, instance, created, **kwargs):
+    from openipam.user.models import GroupSource
+
+    try:
+        assert instance.source
+    except ObjectDoesNotExist:
+        GroupSource.objects.create(group=instance)
