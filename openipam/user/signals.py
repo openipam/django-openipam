@@ -3,8 +3,9 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
+from django.conf import settings
+
 from openipam.conf.ipam_settings import CONFIG
-from guardian.models import UserObjectPermission, GroupObjectPermission
 
 
 DIRECT_PERM_MODELS_LIST = (
@@ -42,6 +43,9 @@ def convert_user_permissions(sender, request, user, **kwargs):
 
 # Automatically assign new users to IPAM_USER_GROUP
 def assign_ipam_groups(sender, instance, created, **kwargs):
+    # Nasty hack for django-guardian auto-created user
+    if instance.id == settings.ANONYMOUS_USER_ID:
+        return
     # Get user group
     ipam_user_group = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))[0]
     # Check to make sure Admin Group exists
@@ -58,6 +62,7 @@ def assign_ipam_groups(sender, instance, created, **kwargs):
 # This is only used when there are row level permissions defined using
 # guadian tables.  Right now Host, Domain, DnsType, etc have explicit perm tables.
 def remove_obj_perms_connected_with_user(sender, instance, **kwargs):
+    from guardian.models import UserObjectPermission, GroupObjectPermission
     filters = Q(content_type=ContentType.objects.get_for_model(instance),
         object_pk=instance.pk)
     UserObjectPermission.objects.filter(filters).delete()
