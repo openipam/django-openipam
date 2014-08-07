@@ -136,7 +136,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         UNION
 
                         SELECT addresses.mac from addresses
-                            WHERE addresses.address::text = %(search)s
+                            WHERE HOST(addresses.address) = %(search)s
 
                         UNION
 
@@ -147,7 +147,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         UNION
 
                         SELECT leases.mac from leases
-                            WHERE leases.address::text = %(search)s
+                            WHERE HOST(leases.address) = %(search)s
                     ''', {'lsearch': like_search_term, 'search': search_item})
                     search_hosts = cursor.fetchall()
                     qs = qs.filter(mac__in=[host[0] for host in search_hosts])
