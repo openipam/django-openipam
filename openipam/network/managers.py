@@ -1,7 +1,5 @@
 from django.db.models import Model, Manager
 from django.db.models.query import QuerySet
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
@@ -10,15 +8,13 @@ from netfields.managers import NetWhere, NetQuery
 
 from guardian.shortcuts import get_objects_for_user
 
-import random
-import re
 import operator
-
-User = get_user_model()
 
 
 class NetworkMixin(object):
     def by_owner(self, user, use_groups=False, ids_only=False):
+        User = get_user_model()
+
         # Temporarily set superuser to false so we can get only permission relations
         perm_user = User.objects.get(pk=user.pk)
         perm_user.is_superuser = False

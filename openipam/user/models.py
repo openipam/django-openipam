@@ -149,7 +149,6 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        managed = False
         db_table = 'auth_sources'
 
 

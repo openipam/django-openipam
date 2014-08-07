@@ -3,14 +3,10 @@ from django.conf import settings
 from django.contrib.admin import widgets
 from django import forms
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.core.mail import mail_admins
 
 from admin_tools.menu import items
-
-User = get_user_model()
-
 
 TYPE_CHOICES = (
     ('feature', 'Feature',),
@@ -22,7 +18,7 @@ TYPE_CHOICES = (
 class FeatureRequest(models.Model):
     type = models.CharField('Request Type', max_length=255, choices=TYPE_CHOICES)
     comment = models.TextField('Comment Details')
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
     is_complete = models.BooleanField()
 

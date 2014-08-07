@@ -137,7 +137,12 @@ TEMPLATE_DIRS = (
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
     'openipam.core',
+    'openipam.user',
     'openipam.api',
+    'openipam.hosts',
+    'openipam.network',
+    'openipam.dns',
+    'openipam.log',
 
     'admin_tools',
     'admin_tools.theming',
@@ -147,7 +152,6 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'crispy_forms',
     'autocomplete_light',
-    'south',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
@@ -158,7 +162,6 @@ INSTALLED_APPS = (
     #'django_otp.plugins.otp_totp',
     #'two_factor',
 
-    'openipam.user',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -168,10 +171,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
-    'openipam.hosts',
-    'openipam.network',
-    'openipam.dns',
-    'openipam.log',
 
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

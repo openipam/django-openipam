@@ -372,10 +372,10 @@ class Host(DirtyFieldsMixin, models.Model):
 
         addresses = self.addresses.all()
 
-        if len(addresses) == 1:
+        if not addresses:
+            return None
+        elif len(addresses) == 1:
             address = addresses[0]
-        elif self.ip_address and not addresses:
-            address = self.ip_address
         else:
             address = addresses.filter(arecords__name=self.hostname).first()
             if not address:
@@ -423,6 +423,9 @@ class Host(DirtyFieldsMixin, models.Model):
         )
 
         if network:
+            if isinstance(network, unicode) or isinstance(network, str):
+                network = Network.objects.get(network=network)
+
             if not user_nets.filter(network=network.network):
                 raise ValidationError(
                     "You do not have access to assign host '%s' to the "
@@ -599,7 +602,8 @@ class Host(DirtyFieldsMixin, models.Model):
             current_addresses = self.addresses.values_list('address', flat=True)
             if self.network or (self.ip_address and self.ip_address not in current_addresses):
                 # Release the master IP to add another
-                self.addresses.filter(address=self.master_ip_address).release()
+                if self.master_ip_address:
+                    self.addresses.filter(address=self.master_ip_address).release()
 
                 # Add new master IP
                 self.add_ip_address(

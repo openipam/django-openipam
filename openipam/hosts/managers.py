@@ -14,11 +14,10 @@ from netfields.managers import NetWhere, NetQuery
 
 import operator
 
-User = get_user_model()
-
 
 class HostMixin(object):
     def by_owner(self, user, use_groups=False, ids_only=False):
+        User = get_user_model()
 
         # Temporarily set superuser to false so we can get only permission relations
         perm_user = User.objects.get(pk=user.pk)
@@ -129,6 +128,7 @@ class HostManager(NetManager):
     #TODO!  Finish this and use it for everthing except the web form
     def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=False,
                            pool=False, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
+        User = get_user_model()
 
         if isinstance(user, str):
             user = User.objects.get(username=user)

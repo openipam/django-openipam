@@ -13,13 +13,12 @@ from netaddr.core import AddrFormatError
 
 import operator
 
-User = get_user_model()
-
-
 
 class DomainMixin(object):
     def by_owner(self, user, use_groups=False, ids_only=False, names_only=False):
         # Temporarily set superuser to false so we can get only permission relations
+        User = get_user_model()
+
         perm_user = User.objects.get(pk=user.pk)
         perm_user.is_superuser = False
 
@@ -36,6 +35,8 @@ class DomainMixin(object):
             return domains
 
     def by_change_perms(self, user_or_group, pk=None, ids_only=False, names_only=False):
+        User = get_user_model()
+
         if (isinstance(user_or_group, User) and
                 (user_or_group.has_perm('dns.change_domain') or user_or_group.has_perm('dns.is_owner_domain'))):
             if pk:
@@ -107,6 +108,8 @@ class DomainManager(Manager):
 
 class DNSMixin(object):
     def by_change_perms(self, user_or_group, pk=None):
+        User = get_user_model()
+
         if isinstance(user_or_group, User) and user_or_group.has_perm('dns.change_dnsrecord'):
             if pk:
                 qs = self.filter(pk=pk)
