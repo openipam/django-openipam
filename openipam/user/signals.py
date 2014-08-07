@@ -2,7 +2,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-
 from django.conf import settings
 
 from openipam.conf.ipam_settings import CONFIG

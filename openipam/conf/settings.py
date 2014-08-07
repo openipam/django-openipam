@@ -162,7 +162,6 @@ INSTALLED_APPS = (
     #'django_otp.plugins.otp_totp',
     #'two_factor',
 
-
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

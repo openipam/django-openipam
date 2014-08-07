@@ -14,8 +14,6 @@ from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
    remove_obj_perms_connected_with_user, convert_user_permissions, add_group_souce
 
-from guardian.models import GroupObjectPermission, UserObjectPermission
-
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=50, unique=True)
