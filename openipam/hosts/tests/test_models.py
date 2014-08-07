@@ -144,6 +144,25 @@ class HostTest(IPAMTestCase):
 
         return super(HostTest, self).setUp()
 
+    def change_and_test(self, hostname, mac, ip_address, instance=None):
+        ip_h = Host.objects.add_or_update_host(user=self.user_model, hostname=hostname, expire_days=7, mac=mac, ip_address=ip_address, instance=instance)
+        ip_h_addresses = ip_h.addresses.all()
+        self.assertEqual(len(ip_h_addresses), 1)
+        if ip_h_addresses:
+            self.assertEqual(str(ip_h_addresses[0].address), ip_address)
+        ip_h_dns = ip_h.dns_records.all()
+        self.assertEqual(len(ip_h_dns), 2)
+        ip_h_a = ip_h.dns_records.filter(dns_type__name='A')
+        self.assertEqual(len(ip_h_a), 1)
+        self.assertEqual(ip_h_a[0].name, ip_h.hostname)
+        self.assertEqual(str(ip_h_a[0].ip_content), ip_address)
+        ip_h_ptr = ip_h.dns_records.filter(dns_type__name='PTR')
+        self.assertEqual(len(ip_h_ptr), 1)
+        ip_h_ptr = ip_h_ptr[0]
+        self.assertEqual(ip_h.addresses.all()[0].address.reverse_dns[:-1], ip_h_ptr.name)
+        self.assertEqual(ip_h_ptr.text_content, ip_h.hostname)
+        return ip_h
+
     def test_add_existing_hostname(self):
         with self.assertRaises(IntegrityError):
             Host.objects.create(changed_by=self.user_model, hostname='existing-host.invalid', mac='ffffff000001', expires=self.expires)
@@ -153,7 +172,7 @@ class HostTest(IPAMTestCase):
             # MAC already exists
             Host.objects.create(changed_by=self.user_model, hostname='not-existing.invalid', mac='ffffff000000', expires=self.expires)
 
-    def test_create_new_hosts(self):
+    def test_create_new_host(self):
         pool_h = Host.objects.add_or_update_host(user=self.user_model, hostname='new-pool.valid', expire_days=7, mac='123456123456', pool='pool1')
         self.assertEqual(len(pool_h.addresses.all()), 0)
 
@@ -162,25 +181,38 @@ class HostTest(IPAMTestCase):
 
         if pool_h_pools:
             self.assertEqual(pool_h_pools[0].name, 'pool1')
-      
+
         self.assertEqual(len(pool_h.dns_records.all()), 0)
 
-        ip_h = Host.objects.add_or_update_host(user=self.user_model, hostname='new-ip.valid', expire_days=7, mac='123456123456', ip_address='192.168.1.2')
-        ip_h_addresses = ip_h.addresses.all()
-        self.assertEqual(len(ip_h_addresses), 1)
-        if ip_h_addresses:
-            self.assertEqual(str(ip_h_addresses[0].address), '192.168.1.2')
-
-        ip_h_dns = ip_h.dns_records.all()
-        self.assertEqual(len(ip_h_dns), 2)
-        ip_h_a = ip_h.dns_records.filter(dns_type__name='A')
-        self.assertEqual(len(ip_h_a), 1)
-        self.assertEqual(ip_h_a[0].name, ip_h.hostname)
-        self.assertEqual(str(ip_h_a[0].ip_content), '192.168.1.2')
-        ip_h_ptr = ip_h.dns_records.filter(dns_type__name='PTR')
-        self.assertEqual(len(ip_h_ptr), 1)
-        print dir(ip_h_addresses[0].address)
-        self.assertEqual(ip_h.addresses.all()[0].address.reverse_dns()[:-1], ip_h_ptr.name)
-        self.assertEqual(ip_h_ptr.text_content, ip_h.hostname)
+        # add host
+        # Create host
+        h = self.change_and_test(hostname='new-ip.valid', mac='001020304050', ip_address='192.168.1.2')
         
-        net_h = Host.objects.add_or_update_host(user=self.user_model, hostname='new-net.valid', expire_days=7, mac='123456123456', network=Network.objects.get(network='192.168.1.0/24'))
+        # Change IP
+        h = self.change_and_test(hostname='new-ip.valid', mac='001020304050', ip_address='192.168.1.4', instance=h)
+        h = self.change_and_test(ip_address='192.168.1.3', instance=h)
+
+        # Change hostname
+        h = self.change_and_test('newer-ip.valid', '001020304050', '192.168.1.3', instance=h)
+        
+        # Change MAC
+        h = self.change_and_test('newer-ip.valid', 'ab0123456789', '192.168.1.3', instance=h)
+        self.assertEqual(len(h.addresses.all(), 1))
+
+        # Change ip, hostname
+        h = self.change_and_test('still-newer-ip.valid', 'ab0123456789', '192.168.1.10', instance=h)
+
+        # change ip, mac
+        h = self.change_and_test('newer-ip.valid', 'ab0123000000', '192.168.1.3', instance=h)
+
+        # change hostname, mac
+        h = self.change_and_test('newer-ip.valid', 'ab0123ffffff', '192.168.1.7', instance=h)
+        
+        # change hostname, mac, and IP all at once
+        h = self.change_and_test('new-ip.valid', '001020304050', '192.168.1.2', instance=h)
+
+    def test_add_addresses(self):
+        host = self.change_and_test('new-ip.valid', '001020304050', '192.168.1.15')
+        host.add_ip_address(self.user_model, hostname='new-ip-additional.valid', ip_address='192.168.1.20')
+        self.assertEqual(len(host.addresses.all()), 2)
+        self.assertEqual(str(DnsRecord.objects.get(name='new-ip-additional.valid').ip_content), '192.168.1.20')
