@@ -25,7 +25,7 @@ from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Lease, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
@@ -217,8 +217,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
-        qs = Host.objects.filter(mac__in=qs_macs)
-        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address',
+        qs = Host.objects.filter(mac__in=qs_macs).extra(select={'disabled': 'hosts.mac in (select mac from disabled)'})
+        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address', 'disabled',
             'leases__address', 'leases__ends', 'ip_history__stopstamp', 'mac_history__stopstamp')))
 
         user = self.request.user
@@ -301,7 +301,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return ''
 
-        def render_cell(value, is_flagged=False):
+        def render_cell(value, is_flagged=False, is_disabled=False):
             flagged = 'flagged' if is_flagged else ''
             no_data = '<span class="%s">No Data</span>' % flagged
             return value if value else no_data
@@ -326,19 +326,22 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 is_flagged = False if last_ip_stamp or last_mac_stamp else True
 
+            is_disabled = 'disabled' if host['disabled'] else ''
+
             json_data.append([
                 get_selector(host, change_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
-                 ' class="host-details" data-toggle="modal"><span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
+                 ' class="host-details %(is_disabled)s" data-toggle="modal"><span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
                                                                                     'hostname': host['hostname'] or 'N/A',
                                                                                     'view_href': host_view_href,
-                                                                                    'update_href': host_edit_href
+                                                                                    'update_href': host_edit_href,
+                                                                                    'is_disabled': is_disabled
                                                                                 }),
                 host['mac'],
                 host_ips,
                 expires,
-                render_cell(last_mac_stamp, is_flagged),
-                render_cell(last_ip_stamp, is_flagged),
+                render_cell(last_mac_stamp, is_flagged, is_disabled),
+                render_cell(last_ip_stamp, is_flagged, is_disabled),
                 '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy('list_dns'), host['hostname']),
                 '<a href="%s">%s</a>' % (
                     host_edit_href if change_permissions else host_view_href,
@@ -393,7 +396,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
     noaccess = False
 
     def get(self, request, *args, **kwargs):
-        if CONFIG['CONVERT_OLD_PERMISSIONS']:
+        if CONFIG.get('CONVERT_OLD_PERMISSIONS'):
            convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostDetailView, self).get(request, *args, **kwargs)
 
@@ -408,8 +411,10 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context['dns_records'] = self.object.get_dns_records()
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
-        context['leased_addresses'] = self.object.leases.all()
+        context['leased_addresses'] = self.object.leases.select_related('address').all()
         context['user_owners'], context['group_owners'] = self.object.get_owners(ids_only=False)
+        context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
+        context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
 
         return context
 
@@ -469,6 +474,12 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
     @method_decorator(permission_change_host)
     def dispatch(self, request, *args, **kwargs):
         return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(HostUpdateView, self).get_context_data(**kwargs)
+        context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
+        context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
+        return context
 
     def get(self, request, *args, **kwargs):
         if CONFIG['CONVERT_OLD_PERMISSIONS']:

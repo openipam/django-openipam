@@ -133,16 +133,21 @@ class HostManager(NetManager):
         if isinstance(user, str):
             user = User.objects.get(username=user)
 
-        if not instance and mac:
-            instance = self.filter(mac=mac).first()
+        # Create instance and Set mac depending on add or edit
+        if instance and mac:
+            instance.set_mac_address(mac)
+            instance = self.get(mac=mac)
+            from openipam.network.models import Address
+            print Address.objects.filter(host_id=mac)
+            print instance.addresses.all()
         if not instance:
             instance = self.model()
+            if mac:
+                instance.set_mac_address(mac)
+            else:
+                raise Exception('Mac address is required for new Hosts.')
 
         instance.user = instance.changed_by = user
-
-        # Set mac address
-        if mac:
-            instance.set_mac_address(mac)
 
         if hostname:
             instance.hostname = hostname

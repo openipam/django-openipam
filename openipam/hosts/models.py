@@ -28,8 +28,8 @@ import random
 class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
-    structured = models.BooleanField()
-    required = models.BooleanField()
+    structured = models.BooleanField(default=False)
+    required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
@@ -44,8 +44,8 @@ class Attribute(models.Model):
 class AttributeToHost(models.Model):
     attribute = models.IntegerField(null=True, blank=True, db_column='aid')
     name = models.CharField(max_length=255, blank=True, null=True)
-    structured = models.BooleanField()
-    required = models.BooleanField()
+    structured = models.BooleanField(default=None)
+    required = models.BooleanField(default=False)
     mac = MACAddressField(blank=True, null=True)
     avid = models.IntegerField(blank=True, null=True)
     value = models.TextField(blank=True, null=True)
@@ -274,6 +274,10 @@ class Host(DirtyFieldsMixin, models.Model):
         return True if self.pools.all() else False
 
     @property
+    def is_disabled(self):
+        return True if Disabled.objects.filter(host=self.pk) else False
+
+    @property
     def is_static(self):
         return True if self.is_dynamic is False else False
 
@@ -313,10 +317,6 @@ class Host(DirtyFieldsMixin, models.Model):
     @property
     def is_expired(self):
         return True if self.expires < timezone.now() else False
-
-    @property
-    def mac_is_disabled(self):
-        return True if Disabled.objects.filter(host=self) else False
 
     @property
     def mac_last_seen(self):
@@ -365,7 +365,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         return users, groups
 
-    @cached_property
+    @property
     def master_ip_address(self):
         if self.is_dynamic:
             return None
@@ -384,7 +384,7 @@ class Host(DirtyFieldsMixin, models.Model):
         if address:
             return str(address)
 
-    @cached_property
+    @property
     def ip_addresses(self):
         return [str(address) for address in self.addresses.all()]
 
@@ -778,7 +778,7 @@ class NotificationToHost(models.Model):
 class StructuredAttributeValue(models.Model):
     attribute = models.ForeignKey('Attribute', db_column='aid', related_name='choices')
     value = models.TextField()
-    is_default = models.BooleanField()
+    is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
@@ -807,12 +807,12 @@ class StructuredAttributeToHost(models.Model):
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
 
 
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], [
-        "^netfields\.fields\.InetAddressField",
-        "^netfields\.fields\.CidrAddressField",
-        "^netfields\.fields\.MACAddressField",
-    ])
-except ImportError:
-    pass
+# try:
+#     from south.modelsinspector import add_introspection_rules
+#     add_introspection_rules([], [
+#         "^netfields\.fields\.InetAddressField",
+#         "^netfields\.fields\.CidrAddressField",
+#         "^netfields\.fields\.MACAddressField",
+#     ])
+# except ImportError:
+#     pass

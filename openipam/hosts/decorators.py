@@ -11,7 +11,7 @@ def permission_change_host(view_func):
     """
     def _wrapped_view(request, pk, *args, **kwargs):
         permited_host = Host.objects.by_change_perms(request.user, pk=pk)
-        if permited_host:
+        if permited_host and not permited_host.is_disabled:
             return view_func(request, *args, **kwargs)
         else:
             from openipam.hosts.views import HostDetailView

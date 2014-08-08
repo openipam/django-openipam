@@ -184,7 +184,8 @@ $(function(){
             { "name": "edit", "orderable": false, "searchable": false  },
         ],
         "drawCallback": function(settings) {
-            $("#result_list span.flagged").parents('tr').addClass('flagged')
+            $("#result_list span.flagged").parents('tr').addClass('flagged');
+            $("#result_list a.disabled").parents('tr').addClass('disabled');
 
             // Set pagination to stick when scrolling
             var page_bar = $('.paginator')

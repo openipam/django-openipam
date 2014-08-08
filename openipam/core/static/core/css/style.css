@@ -159,7 +159,7 @@
 }
 #result_list tr.flagged td , #result_list tr.flagged th
 {
-    background-color: #FFEB84;
+    background-color: #fcf8e3;
 }
 #result_list tr.flagged td span.flagged, #result_list tr.flagged th span.flagged
 {
@@ -167,7 +167,16 @@
 }
 #result_list tr.flagged td.sorting_1, #result_list tr.flagged th.sorting_1
 {
-    background-color: #FFDF69 !important;
+    background-color: #faebcc !important;
+}
+#result_list tr.disabled td , #result_list tr.disabled th
+{
+    background-color: #f2dede;
+    border-color: #ebccd1;
+}
+#result_list tr.disabled td.sorting_1, #result_list tr.disabled th.sorting_1
+{
+    background-color: #ebccd1 !important;
 }
 #result_list_filter label, #result_list_filter input
 {

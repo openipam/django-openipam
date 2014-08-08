@@ -144,7 +144,7 @@ class HostTest(IPAMTestCase):
 
         return super(HostTest, self).setUp()
 
-    def change_and_test(self, hostname, mac, ip_address, instance=None):
+    def change_and_test(self, hostname=None, mac=None, ip_address=None, instance=None):
         ip_h = Host.objects.add_or_update_host(user=self.user_model, hostname=hostname, expire_days=7, mac=mac, ip_address=ip_address, instance=instance)
         ip_h_addresses = ip_h.addresses.all()
         self.assertEqual(len(ip_h_addresses), 1)
@@ -187,14 +187,14 @@ class HostTest(IPAMTestCase):
         # add host
         # Create host
         h = self.change_and_test(hostname='new-ip.valid', mac='001020304050', ip_address='192.168.1.2')
-        
+
         # Change IP
         h = self.change_and_test(hostname='new-ip.valid', mac='001020304050', ip_address='192.168.1.4', instance=h)
         h = self.change_and_test(ip_address='192.168.1.3', instance=h)
 
         # Change hostname
         h = self.change_and_test('newer-ip.valid', '001020304050', '192.168.1.3', instance=h)
-        
+
         # Change MAC
         h = self.change_and_test('newer-ip.valid', 'ab0123456789', '192.168.1.3', instance=h)
         self.assertEqual(len(h.addresses.all(), 1))
@@ -207,7 +207,7 @@ class HostTest(IPAMTestCase):
 
         # change hostname, mac
         h = self.change_and_test('newer-ip.valid', 'ab0123ffffff', '192.168.1.7', instance=h)
-        
+
         # change hostname, mac, and IP all at once
         h = self.change_and_test('new-ip.valid', '001020304050', '192.168.1.2', instance=h)
 

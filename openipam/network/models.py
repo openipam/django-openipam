@@ -14,7 +14,7 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
     host = models.ForeignKey('hosts.Host', db_column='mac', related_name='leases', unique=True, null=True)
-    abandoned = models.BooleanField()
+    abandoned = models.BooleanField(default=False)
     server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -52,9 +52,9 @@ class Lease(models.Model):
 class Pool(models.Model):
     name = models.SlugField()
     description = models.TextField(blank=True)
-    allow_unknown = models.BooleanField()
+    allow_unknown = models.BooleanField(default=False)
     lease_time = models.IntegerField()
-    assignable = models.BooleanField()
+    assignable = models.BooleanField(default=False)
     dhcp_group = models.ForeignKey('DhcpGroup', null=True, db_column='dhcp_group', blank=True)
 
     objects = PoolManager()
@@ -238,7 +238,7 @@ class Address(models.Model):
     # Force manual removal of addresses so they are unassigned and properly re-classified
     host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses', on_delete=models.SET_NULL)
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True, on_delete=models.SET_NULL)
-    reserved = models.BooleanField()
+    reserved = models.BooleanField(default=False)
     # Do we want to allow deletion of a network with addresses referencing it?
     network = models.ForeignKey('Network', db_column='network', related_name='net_addresses')
     changed = models.DateTimeField(auto_now=True)
@@ -283,7 +283,7 @@ class AddressType(models.Model):
     description = models.TextField(blank=True)
     ranges = models.ManyToManyField('NetworkRange', blank=True, null=True, related_name='address_ranges')
     pool = models.ForeignKey('Pool', blank=True, null=True)
-    is_default = models.BooleanField()
+    is_default = models.BooleanField(default=False)
 
     objects = AddressTypeManager()
 

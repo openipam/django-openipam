@@ -165,11 +165,15 @@
                             <h4>Host is expired: expired on {{ form.instance.expires }}</h4>
                         </div>
                     {% endif %}
-                    {% if form.instance.mac_is_disabled %}
-                        <div class="alert alert-danger">
-                            <h4>Mac is currently disabled.</h4>
+                    {% if disabled_info %}
+                        <div class="alert alert-danger top10">
+                            This host has been disabled by <strong>{{ disabled_info.changed_by.get_full_name }}</strong> on <strong>{{ disabled_info.changed }}</strong>
+                            <br /><strong>{{ disabled_info.reason }}</strong>
+                            {% if disabled_website %}
+                                <br />For more information, please visit: <a href="{{ disabled_website }}">{{ disabled_website }}</a>
+                            {% endif %}
                         </div>
-                    {% endif %}
+                    {% endif%}
                     {% if not form.instance.mac_last_seen %}
                         <div class="alert alert-danger">
                             <h4>Mac not seen: there is no data for this mac address and we have not seen it in over 3 months (if ever).</h4>

@@ -31,10 +31,10 @@ class PoolLog(BaseLog):
     id = models.IntegerField()
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    allow_unknown = models.BooleanField()
+    allow_unknown = models.BooleanField(default=False)
     lease_time = models.IntegerField()
     dhcp_group = models.IntegerField(null=True, blank=True)
-    assignable = models.BooleanField()
+    assignable = models.BooleanField(default=False)
 
     class Meta:
         managed = False

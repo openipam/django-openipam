@@ -24,6 +24,7 @@ CONFIG_DEFAULTS = {
     },
     'EMAIL_ADDRESS': 'openipam@lists.usu.edu',
     'LEGACY_DOMAIN': 'https://legacy.openipam.usu.edu',
+    'DISABLED_HOSTS_WEBSITE': 'https://usu.service-now.com/services/disabled.do',
 }
 
 USER_CONFIG = getattr(settings, 'OPENIPAM', {})

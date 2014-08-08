@@ -20,7 +20,7 @@ class FeatureRequest(models.Model):
     comment = models.TextField('Comment Details')
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
-    is_complete = models.BooleanField()
+    is_complete = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s - %s' % (self.type, self.comment)
@@ -36,7 +36,6 @@ class FeatureRequest(models.Model):
                 %s
                 ''' % (instance.type.capitalize(), instance.comment)
             )
-
 
     class Meta:
         db_table = 'feature_requests'
