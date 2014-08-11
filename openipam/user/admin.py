@@ -208,6 +208,10 @@ class AuthUserAdmin(UserAdmin):
     is_ipamadmin.short_description = 'IPAM Admin Status'
     is_ipamadmin.boolean = True
 
+    # Hide Guardian User
+    def get_queryset(self, request):
+        return super(AuthUserAdmin, self).get_queryset(request).exclude(pk=-1)
+
     def change_view(self, request, object_id, form_url='', extra_context=None):
         try:
             obj_id = int(object_id)

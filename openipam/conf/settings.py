@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.messages import constants as message_constants
 import hashlib
@@ -98,7 +99,7 @@ FIXTURE_DIRS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = locals().pop(
     'LOCAL_SECRET_KEY',
-    hashlib.md5(socket.gethostname() + ')*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@').hexdigest()
+    hashlib.md5((socket.gethostname() + ')*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@').encode('ascii')).hexdigest()
 )
 
 # List of callables that know how to import templates from various sources.

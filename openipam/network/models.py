@@ -13,7 +13,7 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 
 class Lease(models.Model):
     address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
-    host = models.ForeignKey('hosts.Host', db_column='mac', related_name='leases', unique=True, null=True)
+    host = models.ForeignKey('hosts.Host', db_column='mac', db_constraint=False, related_name='leases', unique=True, null=True)
     abandoned = models.BooleanField(default=False)
     server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()

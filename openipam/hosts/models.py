@@ -61,7 +61,7 @@ class AttributeToHost(models.Model):
 
 
 class Disabled(models.Model):
-    host = MACAddressField(primary_key=True, db_column='mac')
+    host = models.ForeignKey('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host')
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column='disabled')
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
@@ -155,7 +155,7 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='ip_history', primary_key=True)
+    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
     address = InetAddressField()
     stopstamp = models.DateTimeField()
 
@@ -169,7 +169,7 @@ class GulRecentArpByaddress(models.Model):
 
 
 class GulRecentArpBymac(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='mac_history', primary_key=True)
+    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
     address = InetAddressField()
     stopstamp = models.DateTimeField()
 
