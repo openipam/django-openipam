@@ -47,14 +47,11 @@ class HostMixin(object):
             domain_perms = get_objects_for_user(user, ['dns.is_owner_domain', 'dns.change_domain'], any_perm=True).values_list('name', flat=True)
             network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('network', flat=True)
 
-            qs = self.filter(
-                Q(mac__in=host_perms) |
-                Q(addresses__network__in=network_perms)
-            )
+            perms_q_list = [Q(hostname__endswith=name) for name in domain_perms]
+            perms_q_list.append(Q(mac__in=host_perms))
+            perms_q_list.append(Q(addresses__network__in=network_perms))
 
-            domain_q_list = [Q(hostname__endswith=name) for name in domain_perms]
-            if domain_q_list:
-                qs = qs.filter(reduce(operator.or_, domain_q_list))
+            qs = self.filter(reduce(operator.or_, perms_q_list))
 
             if pk:
                 qs = qs.filter(pk=pk).first()
