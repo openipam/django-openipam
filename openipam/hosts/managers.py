@@ -54,7 +54,7 @@ class HostMixin(object):
 
             domain_q_list = [Q(hostname__endswith=name) for name in domain_perms]
             if domain_q_list:
-                qs = qs.filter(reduce(operator.or_, domain_q_list))
+                qs = qs | qs.filter(reduce(operator.or_, domain_q_list))
 
             if pk:
                 qs = qs.filter(pk=pk).first()
