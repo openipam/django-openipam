@@ -80,10 +80,10 @@ class HostForm(forms.ModelForm):
         self.expire_date = None
 
         # Set networks based on address type if form is bound
-        if self.data.get('address_type'):
-            self.fields['network'].queryset = (
-                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
-            )
+        # if self.data.get('address_type'):
+        #     self.fields['network'].queryset = (
+        #         Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
+        #     )
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
@@ -360,6 +360,8 @@ class HostForm(forms.ModelForm):
         return instance
 
     def clean(self):
+        #assert False, self.data
+
         cleaned_data = super(HostForm, self).clean()
 
         self.instance.user = self.user
