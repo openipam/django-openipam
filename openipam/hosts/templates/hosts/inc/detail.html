@@ -88,7 +88,7 @@
                 <tr>
                     <td>{{ user.username }}</td>
                     <td>{{ user.get_full_name }}</td>
-                    <td><a href="{{ user.email }}">{{ user.email }}</a></td>
+                    <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
                 </tr>
                 {% endfor %}
             {% else %}
