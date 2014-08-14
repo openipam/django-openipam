@@ -3,7 +3,7 @@ from django.db import connection
 
 hack_sql = r"""SELECT 'ALTER TABLE '||pgn.nspname||'.'||tbl.relname||' DROP CONSTRAINT '||cons.conname||E';\n'
         || 'ALTER TABLE '||pgn.nspname||'.'||tbl.relname||' ADD CONSTRAINT '||cons.conname||' '
-        || regexp_replace(pg_get_constraintdef(cons.oid, true), '( DEFERRABLE|$)', ' ON UPDATE CASCADE ON DELETE SET NULL\1') || ';'
+        || regexp_replace(pg_get_constraintdef(cons.oid, true), '( DEFERRABLE|$)', ' ON UPDATE CASCADE ON DELETE SET NULL') || ';'
 FROM pg_constraint cons
   JOIN pg_class tbl ON cons.conrelid = tbl.oid
   JOIN pg_namespace pgn ON pgn.oid = tbl.relnamespace
