@@ -211,38 +211,27 @@ class DnsRecord(models.Model):
                     raise ValidationError({'name': ['Invalid name for PTR record: %s. Name already exists.' % self.name]})
 
     def clean_text_content(self):
-        error = None
-
         # Validate text content based on dns type
         # TODO: more of these need to be added
-        if self.text_content:
-            fqdn = "([0-9A-Za-z]+\.[0-9A-Za-z]+|[0-9A-Za-z]+[\-0-9A-Za-z\.]*[0-9A-Za-z])"
+        try:
+            if self.text_content:
+                if self.dns_type.name in ['NS', 'CNAME', 'PTR', 'MX']:
+                    validate_fqdn(self.text_content)
 
-            if self.dns_type.name in ['NS', 'CNAME', 'PTR', 'MX']:
-                re_fqdn = re.compile("^"+fqdn+"$")
-                if not re_fqdn.search(self.text_content):
-                    error = 'Invalid Content: %s'
+                elif self.dns_type.is_soa_record:
+                    validate_soa_content(self.text_content)
 
-            elif self.dns_type.is_soa_record:
-                validate_soa_content(self.text_content)
-                re_soa = re.compile('^%s [A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$' % fqdn)
-                if not re_soa.search(self.text_content):
-                    error = 'Invalid SOA Content: %s'
+                elif self.dns_type.is_srv_record:
+                    validate_srv_content(self.text_content)
 
-            elif self.dns_type.is_srv_record:
-                re_srv = re.compile('^(\d+ \d+ %s)$' % fqdn)
-                if not re_srv.search(self.text_content):
-                    error = 'Invalid SRV Content: %s'
+                elif self.dns_type.is_sshfp_record:
+                    validate_sshfp_content(self.text_content)
 
-            elif self.dns_type.is_sshfp_record:
-                if not re.match('^[12] 1 [0-9A-F]{40}', self.text_content):
-                    error = 'Invalid SSHFP Content: %s'
+                elif self.dns_type.is_a_record:
+                    raise ValidationError('Text Content should not be assigned with A records.')
 
-            elif self.dns_type.is_a_record:
-                error = 'Text Content should not be assigned with A records.'
-
-        if error:
-            raise ValidationError({'text_content': (error % self.text_content,)})
+        except ValidationError as e:
+            raise ValidationError({'text_content': e.messages})
 
     def clean_priority(self):
         # Priority must exist for MX and SRV records
