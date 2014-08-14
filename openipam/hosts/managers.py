@@ -133,9 +133,6 @@ class HostManager(NetManager):
         if instance and mac:
             instance.set_mac_address(mac)
             instance = self.get(mac=mac)
-            from openipam.network.models import Address
-            print Address.objects.filter(host_id=mac)
-            print instance.addresses.all()
         if not instance:
             instance = self.model()
             if mac:
