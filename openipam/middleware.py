@@ -38,7 +38,6 @@ class LoginRequiredMiddleware(object):
 
 
 class MimicUserMiddleware(object):
-
     def process_request(self, request):
         mimic_user = request.session.get('mimic_user')
         if mimic_user:
