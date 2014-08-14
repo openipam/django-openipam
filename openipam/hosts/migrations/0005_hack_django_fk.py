@@ -5,11 +5,14 @@ from django.db import models, migrations
 from openipam.core.utils.django_fk_hack import get_sql
 
 def hack_django_fk_constraints(apps, schema_editor):
+
+    cursor = schema_editor.connection.cursor()
+
     #not managed# migrations.RunSQL(get_sql('hosts_to_groups', 'hosts', 'mac')),
-    migrations.RunSQL(get_sql('structured_attributes_to_hosts', 'hosts', 'mac')),
-    migrations.RunSQL(get_sql('freeform_attributes_to_hosts', 'hosts', 'mac')),
-    migrations.RunSQL(get_sql('hosts_to_pools', 'hosts', 'mac')),
-    migrations.RunSQL(get_sql('notifications_to_hosts', 'hosts', 'mac')),
+    cursor.execute(get_sql('structured_attributes_to_hosts', 'hosts', 'mac'))
+    cursor.execute(get_sql('freeform_attributes_to_hosts', 'hosts', 'mac'))
+    cursor.execute(get_sql('hosts_to_pools', 'hosts', 'mac'))
+    cursor.execute(get_sql('notifications_to_hosts', 'hosts', 'mac'))
 
 class Migration(migrations.Migration):
 
@@ -18,6 +21,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-                  migrations.RunPython(hack_django_fk_constraints)
-                 ]
+        migrations.RunPython(hack_django_fk_constraints)
+    ]
 
