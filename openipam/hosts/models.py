@@ -657,8 +657,8 @@ class Host(DirtyFieldsMixin, models.Model):
                     ' Please contact an IPAM Administrator.' % (self.hostname))
 
         # Perform permission checks if user is attached to this instance
-        # Domain permission checks
-        if self.hostname:
+        # Domain permission checks if hostname has changed
+        if self.hostname and self.hostname != self.original_hostname:
             domain_from_host = self.hostname.split('.')[1:]
             domain_from_host = '.'.join(domain_from_host)
 
