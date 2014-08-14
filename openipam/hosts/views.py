@@ -20,6 +20,8 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.core import serializers
+from django.forms.forms import NON_FIELD_ERRORS
+from django.forms.util import ErrorList
 
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
@@ -455,9 +457,9 @@ class HostUpdateCreateMixin(object):
             with transaction.atomic():
                 return super(HostUpdateCreateMixin, self).post(request, *args, **kwargs)
         except ValidationError as e:
-            error_list = []
             form_class = self.get_form_class()
             form = self.get_form(form_class)
+            error_list = form._errors.setdefault(NON_FIELD_ERRORS, ErrorList())
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
@@ -466,7 +468,6 @@ class HostUpdateCreateMixin(object):
                 error_list.append(e.message)
 
             error_list.append('Please try again.')
-            messages.error(request, mark_safe('<br />'.join(error_list)))
             return self.form_invalid(form)
 
 
@@ -483,7 +484,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
         if CONFIG['CONVERT_OLD_PERMISSIONS']:
-           convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
+            convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

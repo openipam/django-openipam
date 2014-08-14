@@ -118,15 +118,15 @@
                     $("#div_id_dhcp_group").show();
                     dhcpGroup.prop('checked', 'checked');
                 }
-                else {
+                else if (!$("#host-form div.alert-danger").length > 0) {
                     $("#div_id_dhcp_group:not(.has-error)").hide();
                 }
 
-                if ($("a#host-renew").length > 0) {
+                if (($("a#host-renew").length > 0) && (!$("#host-form div.alert-danger").length > 0)) {
                     $("#div_id_expire_days:not(.has-error)").hide();
                 }
 
-                if ($("a#ip-change").length > 0) {
+                if (($("a#ip-change").length > 0) && (!$("#host-form div.alert-danger").length > 0)) {
                     $("#div_id_address_type:not(.has-error)").hide();
                     $("#div_id_network_or_ip:not(.has-error)").hide();
                     $("#div_id_network:not(.has-error)").hide();
@@ -134,6 +134,11 @@
                 }
                 else {
                     $.networkIPToggle();
+                }
+
+                if ($("#host-form div.alert-danger").length > 0) {
+                    $("a#ip-change").hide();
+                    $("a#host-renew").hide();
                 }
             }
 
