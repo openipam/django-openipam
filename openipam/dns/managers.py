@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.core.cache import cache
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
@@ -194,14 +195,13 @@ class DnsManager(Manager):
                 raise ValidationError("Content is required to create a DNS record.")
 
             if dns_record.dns_type.is_a_record:
-                address = Address.objects.get(address=content)
+                address = Address.objects.select_related('host').get(address=content)
                 dns_record.ip_content = address
+                dns_record.host = dns_record.ip_content.host
             else:
                 dns_record.text_content = content
 
-            if dns_record.dns_type.is_a_record:
-                dns_record.host = dns_record.ip_content.host
-            elif dns_record.dns_type.name in ['PTR', 'HINFO', 'SSHFP']:
+            if dns_record.dns_type.name in ['PTR', 'HINFO', 'SSHFP']:
                 if host:
                     dns_record.host = host
                 else:
@@ -241,13 +241,24 @@ class DnsManager(Manager):
 class DnsTypeManager(Manager):
 
     @property
+    def _cached_queryset(self):
+        queryset = cache.get('ipam_dns_types')
+        if not queryset:
+            queryset = list(super(DnsTypeManager, self).get_queryset().all())
+            cache.set('ipam_dns_types', queryset)
+        return queryset
+
+    @property
     def A(self):
-        return self.get(name='A')
+        filtered = [record for record in self._cached_queryset if record.name == 'A']
+        return filtered[0] if filtered else None
 
     @property
     def AAAA(self):
-        return self.get(name='AAAA')
+        filtered = [record for record in self._cached_queryset if record.name == 'AAAA']
+        return filtered[0] if filtered else None
 
     @property
     def PTR(self):
-        return self.get(name='PTR')
+        filtered = [record for record in self._cached_queryset if record.name == 'PTR']
+        return filtered[0] if filtered else None
