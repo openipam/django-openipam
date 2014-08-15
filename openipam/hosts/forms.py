@@ -35,10 +35,6 @@ NET_IP_CHOICES = (
     ('1', 'IP'),
 )
 
-ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT = [
-    address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True)).distinct()
-]
-
 
 class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
@@ -71,14 +67,17 @@ class HostForm(forms.ModelForm):
 
         self.previous_form_data = request.session.get('host_form_add')
 
-        # Get addresses of instance
-        self.addresses = self.instance.addresses.all()
-
         #Populate some fields if we are editing the record
         self.primary_address_html = None
         self.secondary_address_html = None
         self.expire_date = None
 
+        self.address_types_with_ranges_or_default = [
+            address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True)).distinct()
+        ]
+
+
+        # TODO: Do we need this?
         # Set networks based on address type if form is bound
         # if self.data.get('address_type'):
         #     self.fields['network'].queryset = (
@@ -125,7 +124,7 @@ class HostForm(forms.ModelForm):
     def _init_owners_groups(self):
         if self.instance.pk:
             # Get owners
-            user_owners, group_owners = self.instance.get_owners()
+            user_owners, group_owners = self.instance.owners
 
             self.fields['user_owners'].initial = user_owners
             self.fields['group_owners'].initial = group_owners
@@ -211,7 +210,7 @@ class HostForm(forms.ModelForm):
             self.fields['ip_address'].label = 'New IP Address'
             self.fields['network_or_ip'].initial = '1'
 
-            addresses = [str(address) for address in self.addresses]
+            addresses = self.instance.ip_addresses
             addresses.pop(addresses.index(master_ip_address))
 
             html_primary_address = '''
@@ -401,9 +400,9 @@ class HostForm(forms.ModelForm):
     def clean_hostname(self):
         hostname = self.cleaned_data.get('hostname', '')
 
-        host_exists = Host.objects.filter(hostname__iexact=hostname)
+        host_exists = Host.objects.filter(hostname=hostname.lower())
         if self.instance.pk:
-            host_exists = host_exists.exclude(hostname__iexact=self.instance.hostname)
+            host_exists = host_exists.exclude(hostname=self.instance.hostname)
 
         if host_exists:
             if host_exists[0].is_expired:
@@ -418,7 +417,7 @@ class HostForm(forms.ModelForm):
         address_type = self.cleaned_data.get('address_type', '')
 
         if address_type:
-            if address_type.pk in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT and not network_or_ip:
+            if address_type.pk in self.address_types_with_ranges_or_default and not network_or_ip:
                 raise ValidationError('This field is required.')
 
         return network_or_ip
@@ -429,7 +428,7 @@ class HostForm(forms.ModelForm):
         address_type = self.cleaned_data.get('address_type', '')
 
         # If this is a dynamic address type, then bypass
-        if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
+        if address_type and address_type.pk not in self.address_types_with_ranges_or_default:
             return network
 
         if network_or_ip and network_or_ip == '0' and not network:
@@ -471,10 +470,10 @@ class HostForm(forms.ModelForm):
         ip_address = self.cleaned_data.get('ip_address', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
-        current_addresses = [str(address) for address in self.instance.addresses.all()]
+        current_addresses = self.instance.ip_addresses
 
         # If this is a dynamic address type, then bypass
-        if address_type and address_type.pk not in ADDRESS_TYPES_WITH_RANGES_OR_DEFAULT:
+        if address_type and address_type.pk not in self.address_types_with_ranges_or_default:
             return ip_address
             #return ip_addresses
         elif ip_address in current_addresses:
