@@ -232,4 +232,7 @@ class HostManager(NetManager):
         if not has_users and not has_groups:
             instance.assign_owner(user)
 
+        # Reset instance state
+        instance.reset_state()
+
         return instance

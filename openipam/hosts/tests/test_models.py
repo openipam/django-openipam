@@ -197,7 +197,7 @@ class HostTest(IPAMTestCase):
 
         # Change MAC
         h = self.change_and_test('newer-ip.valid', 'ab0123456789', '192.168.1.3', instance=h)
-        self.assertEqual(len(h.addresses.all(), 1))
+        self.assertEqual(len(h.addresses.all()), 1)
 
         # Change ip, hostname
         h = self.change_and_test('still-newer-ip.valid', 'ab0123456789', '192.168.1.10', instance=h)

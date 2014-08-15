@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 
@@ -209,10 +209,11 @@ class Host(DirtyFieldsMixin, models.Model):
         self._expire_days = None
         self._user_owners = None
         self._group_owners = None
-        self.user = None
+        self._user = None
+
         self.ip_address = None
-        self.network = None
         self.pool = None
+        self.network = None
 
         super(Host, self).__init__(*args, **kwargs)
 
@@ -230,11 +231,13 @@ class Host(DirtyFieldsMixin, models.Model):
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
-    @property
-    def mac_stripped(self):
-        mac = str(self.mac)
-        mac = [c for c in mac if c.isdigit() or c.isalpha()]
-        return ''.join(mac)
+    @cached_property
+    def _addresses_cache(self):
+        return list(self.addresses.all())
+
+    @cached_property
+    def _pools_cache(self):
+        return list(self.pools.all())
 
     @property
     def expire_days(self):
@@ -246,90 +249,6 @@ class Host(DirtyFieldsMixin, models.Model):
     @expire_days.setter
     def expire_days(self, days):
         self._expire_days = days
-
-    @property
-    def user_owners(self):
-        if self._user_owners:
-            return self._user_owners
-        else:
-            return [owner.username for owner in self.owners[0]]
-
-    @user_owners.setter
-    def user_owners(self, owners):
-        self._user_owners = owners
-
-    @property
-    def group_owners(self):
-        if self._group_owners:
-            return self._group_owners
-        else:
-            return [owner.name for owner in self.owners[1]]
-
-    @group_owners.setter
-    def group_owners(self, owners):
-        self._group_owners = owners
-
-    @property
-    def is_dynamic(self):
-        return True if self.pools.all() else False
-
-    @property
-    def is_disabled(self):
-        return True if Disabled.objects.filter(host=self.pk) else False
-
-    @property
-    def is_static(self):
-        return True if self.is_dynamic is False else False
-
-    @property
-    def address_type(self):
-        # Get and Set address type if receord is not new.
-        if self.pk and not self.address_type_id:
-            from openipam.network.models import AddressType, NetworkRange
-
-            addresses = self.addresses.all()
-            pools = self.pools.all()
-
-            try:
-                # if (len(addresses) + len(pools)) > 1:
-                #     self.address_type = None
-                # elif addresses:
-                if addresses:
-                    try:
-                        ranges = NetworkRange.objects.filter(range__net_contains_or_equals=addresses[0].address)
-                        if ranges:
-                            self.address_type_id = AddressType.objects.get(ranges__in=ranges)
-                        else:
-                            raise AddressType.DoesNotExist
-                    except AddressType.DoesNotExist:
-                        self.address_type_id = AddressType.objects.get(is_default=True)
-                elif pools:
-                    self.address_type_id = AddressType.objects.get(pool=pools[0])
-            except AddressType.DoesNotExist:
-                self.address_type_id = None
-
-        return self.address_type_id
-
-    @address_type.setter
-    def address_type(self, value):
-        self.address_type_id = value
-
-    @property
-    def is_expired(self):
-        return True if self.expires < timezone.now() else False
-
-    @property
-    def mac_last_seen(self):
-        # if self.gul_recent_arp_bymac is None:
-        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
-
-        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
-
-        if gul_mac:
-            return gul_mac[0].stopstamp
-        else:
-            return None
 
     @cached_property
     def owners(self):
@@ -366,25 +285,123 @@ class Host(DirtyFieldsMixin, models.Model):
         return users, groups
 
     @property
-    def master_ip_address(self):
-        if self.is_dynamic:
-            return None
-
-        addresses = self.addresses.all()
-
-        if not addresses:
-            return None
-        elif len(addresses) == 1:
-            address = addresses[0]
+    def user_owners(self):
+        if self._user_owners:
+            return self._user_owners
         else:
-            address = addresses.filter(arecords__name=self.hostname).first()
-            if not address:
-                address = addresses[0]
+            return [owner.username for owner in self.owners[0]]
 
-        if address:
-            return str(address)
+    @user_owners.setter
+    def user_owners(self, owners):
+        self._user_owners = owners
 
     @property
+    def user(self):
+        if self._user:
+            return self._user
+        else:
+            return self.changed_by
+
+    @user.setter
+    def user(self, value):
+        self._user = value
+
+    @property
+    def group_owners(self):
+        if self._group_owners:
+            return self._group_owners
+        else:
+            return [owner.name for owner in self.owners[1]]
+
+    @group_owners.setter
+    def group_owners(self, owners):
+        self._group_owners = owners
+
+    @property
+    def is_dynamic(self):
+        if self.is_dirty() is False:
+            return True if self._pools_cache else False
+        else:
+            return True if self.pools.all() else False
+
+    @property
+    def is_static(self):
+        return True if self.is_dynamic is False else False
+
+    @property
+    def is_disabled(self):
+        return True if Disabled.objects.filter(host=self.pk) else False
+
+    @property
+    def is_expired(self):
+        return True if self.expires < timezone.now() else False
+
+    @property
+    def address_type(self):
+        # Get and Set address type if receord is not new.
+        if self.pk and not self.address_type_id:
+            from openipam.network.models import AddressType, NetworkRange
+
+            addresses = self.addresses.all()
+            pools = self.pools.all()
+
+            try:
+                # if (len(addresses) + len(pools)) > 1:
+                #     self.address_type = None
+                # elif addresses:
+                if addresses:
+                    try:
+                        ranges = NetworkRange.objects.filter(range__net_contains_or_equals=addresses[0].address)
+                        if ranges:
+                            self.address_type_id = AddressType.objects.get(ranges__in=ranges)
+                        else:
+                            raise AddressType.DoesNotExist
+                    except AddressType.DoesNotExist:
+                        self.address_type_id = AddressType.objects.get(is_default=True)
+                elif pools:
+                    self.address_type_id = AddressType.objects.get(pool=pools[0])
+            except AddressType.DoesNotExist:
+                self.address_type_id = None
+
+        return self.address_type_id
+
+    @address_type.setter
+    def address_type(self, value):
+        self.address_type_id = value
+
+    @property
+    def mac_stripped(self):
+        mac = str(self.mac)
+        mac = [c for c in mac if c.isdigit() or c.isalpha()]
+        return ''.join(mac)
+
+    @property
+    def mac_last_seen(self):
+        # if self.gul_recent_arp_bymac is None:
+        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
+
+        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+
+        if gul_mac:
+            return gul_mac[0].stopstamp
+        else:
+            return None
+
+    @cached_property
+    def master_ip_address(self):
+        if self.is_static:
+            if not self.ip_addresses:
+                return None
+            elif len(self.ip_addresses) == 1:
+                return self.ip_addresses[0]
+            else:
+                address = self.addresses.filter(arecords__name=self.hostname).first()
+                if not address:
+                    return self.ip_addresses[0]
+        return None
+
+    @cached_property
     def ip_addresses(self):
         return [str(address) for address in self.addresses.all()]
 
@@ -545,9 +562,11 @@ class Host(DirtyFieldsMixin, models.Model):
         self.expires = datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
 
     def set_mac_address(self, new_mac_address):
-        if self.pk and self.pk != new_mac_address:
+        if self.pk and self.pk.lower() != str(new_mac_address).lower():
             Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
-        self.pk = new_mac_address
+            self.pk = str(new_mac_address).lower()
+        elif not self.pk:
+            self.pk = str(new_mac_address).lower()
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
@@ -599,7 +618,7 @@ class Host(DirtyFieldsMixin, models.Model):
             # Remove addresses if we are assinging a network
             # This implies that we want a new address even
             # if its in the same network
-            current_addresses = self.addresses.values_list('address', flat=True)
+            current_addresses = self.ip_addresses
             if self.network or (self.ip_address and self.ip_address not in current_addresses):
                 # Release the master IP to add another
                 if self.master_ip_address:
@@ -722,6 +741,24 @@ class Host(DirtyFieldsMixin, models.Model):
                 raise ValidationError('The IP Address is reserved, in use, or not allowed. '
                                       'Please contact an IPAM Administrator.')
 
+    def reset_state(self):
+        self._expire_days = None
+        self._user_owners = None
+        self._group_owners = None
+        self._user = None
+
+        self.ip_address = None
+        self.pool = None
+        self.network = None
+
+        try:
+            del self.ip_addresses
+            del self.master_ip_address
+            del self._pools_cache
+            del self._addresses_cache
+        except AttributeError:
+            pass
+
     class Meta:
         db_table = 'hosts'
         permissions = (
@@ -805,14 +842,3 @@ class StructuredAttributeToHost(models.Model):
 
 # Host signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
-
-
-# try:
-#     from south.modelsinspector import add_introspection_rules
-#     add_introspection_rules([], [
-#         "^netfields\.fields\.InetAddressField",
-#         "^netfields\.fields\.CidrAddressField",
-#         "^netfields\.fields\.MACAddressField",
-#     ])
-# except ImportError:
-#     pass
