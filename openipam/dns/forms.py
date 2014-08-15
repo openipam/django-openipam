@@ -21,8 +21,6 @@ import copy
 
 User = get_user_model()
 
-DNSTYPE_CHOICES = [(type.pk, type.name) for type in DnsType.objects.exclude(min_permissions__name='NONE')]
-
 
 class DNSSearchForm(forms.Form):
     search_string = forms.CharField(
