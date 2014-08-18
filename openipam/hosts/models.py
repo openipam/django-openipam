@@ -456,7 +456,7 @@ class Host(DirtyFieldsMixin, models.Model):
                     network=network,
                     host__isnull=True,
                     reserved=False,
-                ).extra(where=['addresses.address not in (select address from gul_recent_arp_byaddress where address = addresses.address)']).first()
+                ).order_by('address').first()
             except AddrFormatError:
                 raise ValidationError("The network '%s' is invalid." % network)
             except Address.DoesNotExist:
@@ -484,7 +484,7 @@ class Host(DirtyFieldsMixin, models.Model):
                     Q(host__isnull=True) | Q(host=self),
                     address=ip_address,
                     reserved=False,
-                ).extra(where=['addresses.address not in (select address from gul_recent_arp_byaddress where address = addresses.address)'])
+                )
             except AddrFormatError:
                 raise ValidationError('There IP Address %s is not available.' % ip_address)
             except Address.DoesNotExist:

@@ -266,7 +266,7 @@ class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
             Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
             host__isnull=True,
             reserved=False
-        ).extra(where=['addresses.address not in (select address from gul_recent_arp_byaddress where address = addresses.address)'])
+        )
 autocomplete_light.register(Address, AddressAvailableAutocomplete)
 
 autocomplete_light.register(Address,
