@@ -18,7 +18,7 @@ def permission_change_host(view_func):
 
             host_view = HostDetailView.as_view()
             response = host_view(request, pk=pk, read_only=True, *args, **kwargs)
-            return response.render()
+            return response
     return wraps(view_func)(_wrapped_view)
 # TODO:  Temp function until perms changes.
 permission_owner_required = permission_change_host
