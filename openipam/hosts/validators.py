@@ -4,6 +4,6 @@ import re
 
 
 def validate_hostname(value):
-    allowed = re.compile("(?=^.{1,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+(?:[a-zA-Z]{2,})$)", re.IGNORECASE)
+    allowed = re.compile('(?i)^(([a-z0-9-]+\.)?[a-z0-9][a-z0-9-]*\.)+[a-z]{2,6}$')
     if not allowed.match(value):
-        raise ValidationError('Hostname not valid.')
+        raise ValidationError('Hostname not valid. Please use only numbers, letters, and dashes when creating hostnames.')
