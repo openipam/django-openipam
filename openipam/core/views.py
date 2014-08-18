@@ -17,6 +17,7 @@ from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
+from django.db.utils import DatabaseError, DataError
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -313,29 +314,36 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
         return data
 
     def get_context_data(self, *args, **kwargs):
-        self.initialize(*args, **kwargs)
+        try:
+            self.initialize(*args, **kwargs)
 
-        qs = self.get_initial_queryset()
+            qs = self.get_initial_queryset()
 
-        # number of records before filtering
-        records_total = qs.count()
+            # number of records before filtering
+            records_total = qs.count()
 
-        qs = self.filter_queryset(qs)
+            qs = self.filter_queryset(qs)
 
-        # number of records after filtering
-        records_filtered = qs.count()
+            # number of records after filtering
+            records_filtered = qs.count()
 
-        qs = self.ordering(qs)
-        qs = self.paging(qs)
+            qs = self.ordering(qs)
+            qs = self.paging(qs)
 
-        # prepare output data
-        data = self.prepare_results(qs)
+            # prepare output data
+            data = self.prepare_results(qs)
 
-        ret = {'draw': int(self.json_data.get('draw', 0)),
-               'recordsTotal': records_total,
-               'recordsFiltered': records_filtered,
-               'data': data
-               }
+            ret = {'draw': int(self.json_data.get('draw', 0)),
+                   'recordsTotal': records_total,
+                   'recordsFiltered': records_filtered,
+                   'data': data
+                   }
+        except DataError:
+            ret = {'draw': int(self.json_data.get('draw', 0)),
+                   'recordsTotal': records_total,
+                   'recordsFiltered': 0,
+                   'data': []
+                   }
 
         return ret
 
