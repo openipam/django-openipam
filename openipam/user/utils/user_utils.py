@@ -160,12 +160,12 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
             user_owners, group_owners = host.owners
             if user_owners or group_owners:
                 return
-        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups').filter(host__pk=host_pk))
+        host_groups = (HostToGroup.objects.select_related('host').prefetch_related('group__user_groups').filter(host__pk=host_pk))
     elif username:
-        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
+        host_groups = (HostToGroup.objects.select_related('host').prefetch_related('group__user_groups')
                        .filter(group__name__iexact='user_%s' % username))
     else:
-        host_groups = (HostToGroup.objects.prefetch_related('group__user_groups')
+        host_groups = (HostToGroup.objects.select_related('host').prefetch_related('group__user_groups')
                        .filter(host__expires__gte=timezone.now))
 
     if host_groups:
