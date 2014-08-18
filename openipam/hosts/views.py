@@ -21,7 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.util import ErrorList
+from django.forms.util import ErrorList, ErrorDict
 
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
@@ -459,7 +459,10 @@ class HostUpdateCreateMixin(object):
         except ValidationError as e:
             form_class = self.get_form_class()
             form = self.get_form(form_class)
+            if not getattr(form, '_errors'):
+                form._errors = ErrorDict()
             error_list = form._errors.setdefault(NON_FIELD_ERRORS, ErrorList())
+
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
@@ -487,18 +490,8 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.original_object = serializers.serialize('json', [self.object])
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    @transaction.atomic
     def form_valid(self, form):
+        original_object = serializers.serialize('json', [self.object])
         valid_form = super(HostUpdateView, self).form_valid(form)
 
         LogEntry.objects.log_action(
@@ -507,7 +500,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             object_id=self.object.pk,
             object_repr=force_unicode(self.object),
             action_flag=CHANGE,
-            change_message=self.original_object
+            change_message=original_object
         )
         messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
 
@@ -520,7 +513,6 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView):
     permission_required = 'hosts.add_host'
 
-    @transaction.atomic
     def form_valid(self, form):
         valid_form = super(HostCreateView, self).form_valid(form)
 

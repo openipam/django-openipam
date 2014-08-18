@@ -556,6 +556,9 @@ class Host(DirtyFieldsMixin, models.Model):
         else:
             return None
 
+    def set_address_type(self):
+        return self.address_type
+
     def set_expiration(self, expire_days):
         if isinstance(expire_days, int) or isinstance(expire_days, unicode) or isinstance(expire_days, str):
             expire_days = timedelta(int(expire_days))

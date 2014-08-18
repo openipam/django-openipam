@@ -9,7 +9,7 @@ class DirtyFieldsMixin(object):
         reset_state(sender=self.__class__, instance=self)
 
     def _as_dict(self):
-        return dict([(f, getattr(self, f)) for f in self.__dict__.keys() if not f.startswith('_')])
+        return dict([(f.name+'_id' if f.rel else f.name, f.to_python(getattr(self, f.name+'_id' if f.rel else f.name))) for f in self._meta.local_fields])
 
     def get_dirty_fields(self):
         new_state = self._as_dict()

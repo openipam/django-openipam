@@ -371,7 +371,7 @@ class HostForm(forms.ModelForm):
         if cleaned_data.get('expire_days'):
             self.instance.set_expiration(cleaned_data['expire_days'].expiration)
         if cleaned_data.get('address_type'):
-            self.instance.address_type_id = cleaned_data['address_type']
+            self.instance.address_type = cleaned_data['address_type']
         if cleaned_data.get('mac_address'):
             self.instance.set_mac_address(cleaned_data['mac_address'])
         if cleaned_data.get('hostname'):

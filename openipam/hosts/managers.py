@@ -189,7 +189,7 @@ class HostManager(NetManager):
 
         if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
-            instance.address_type_id = instance.address_type
+            instance.set_address_type()
             instance.save()
 
         if user_owners is not None or group_owners is not None:
