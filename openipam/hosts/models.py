@@ -457,15 +457,16 @@ class Host(DirtyFieldsMixin, models.Model):
                     host__isnull=True,
                     reserved=False,
                 ).order_by('address').first()
+
+                if not network_address:
+                    raise Address.DoesNotExist
+                else:
+                    address = network_address
+
             except AddrFormatError:
                 raise ValidationError("The network '%s' is invalid." % network)
             except Address.DoesNotExist:
                 raise ValidationError('There are no avaiable addresses for the network entered: %s' % network)
-
-            if not network_address:
-                raise Address.DoesNotExist
-            else:
-                address = network_address
 
         elif ip_address:
             #Validate IP Address
