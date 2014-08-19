@@ -481,7 +481,7 @@ $(function(){
 
         if (records.length > 0) {
             if (action == 'delete') {
-                var res = confirm("Are you sure you want to delete the selected hosts?")
+                var res = confirm("Are you sure you want to delete the selected dns records?")
                 if (res == true) {
                     return true;
                 }
