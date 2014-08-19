@@ -397,8 +397,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 return self.ip_addresses[0]
             else:
                 address = self.addresses.filter(arecords__name=self.hostname).first()
-                if not address:
-                    return self.ip_addresses[0]
+                return address if address else self.ip_addresses[0]
         return None
 
     @cached_property
