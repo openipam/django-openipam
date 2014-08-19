@@ -30,8 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # TODO: Remove later
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions', blank=True, null=True,
-                                        related_name='user_min_permissions', default=None)
-    source = models.ForeignKey('AuthSource', db_column='source', default=None, blank=True, null=True)
+                                        related_name='user_min_permissions')
+    source = models.ForeignKey('AuthSource', db_column='source', blank=True, null=True)
 
     objects = IPAMUserManager()
 
