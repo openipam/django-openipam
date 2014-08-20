@@ -92,10 +92,7 @@ class GuestRegister(APIView):
                     group_owners=[CONFIG.get('GUEST_GROUP')]
                 )
             except ValidationError as e:
-                error_list = [
-                    'There has been an error processing your request',
-                    'Please contact an Administrator.'
-                ]
+                error_list = []
                 if hasattr(e, 'error_dict'):
                     for key, errors in e.message_dict.items():
                         for error in errors:
