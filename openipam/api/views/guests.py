@@ -79,25 +79,30 @@ class GuestRegister(APIView):
             ticket = serializer.data.get('ticket')
             mac_address = serializer.data.get('mac_address')
 
-            #try:
-            # Add or update host
-            Host.objects.add_or_update_host(
-                user=guest_user,
-                hostname='%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix),
-                mac=mac_address,
-                expires=serializer.valid_ticket.ends,
-                description=description if description else 'Name: %s; Ticket used: %s' % (name, ticket),
-                pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
-                user_owners=[user_owner],
-                group_owners=[CONFIG.get('GUEST_GROUP')]
-            )
-            # except ValidationError:
-            #     return Response({
-            #         'non_field_errors': [
-            #             'There has been an error processing your request',
-            #             'Please contact an Administrator.'
-            #         ]
-            #     }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                # Add or update host
+                Host.objects.add_or_update_host(
+                    user=guest_user,
+                    hostname='%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix),
+                    mac=mac_address,
+                    expires=serializer.valid_ticket.ends,
+                    description=description if description else 'Name: %s; Ticket used: %s' % (name, ticket),
+                    pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
+                    user_owners=[user_owner],
+                    group_owners=[CONFIG.get('GUEST_GROUP')]
+                )
+            except ValidationError as e:
+                error_list = [
+                    'There has been an error processing your request',
+                    'Please contact an Administrator.'
+                ]
+                if hasattr(e, 'error_dict'):
+                    for key, errors in e.message_dict.items():
+                        for error in errors:
+                            error_list.append(error)
+                else:
+                    error_list.append(e.message)
+                return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
 
             data = {
                 'starts': serializer.valid_ticket.starts,
