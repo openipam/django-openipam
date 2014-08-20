@@ -180,7 +180,7 @@ class HostCreateUpdateSerializer(serializers.Serializer):
     def validate_hostname(self, attrs, source):
         hostname = attrs.get(source)
 
-        host_exists = Host.objects.filter(hostname=hostname)
+        host_exists = Host.objects.filter(hostname=hostname.lower())
         if self.object:
             host_exists = host_exists.exclude(hostname=self.object.hostname)
 
