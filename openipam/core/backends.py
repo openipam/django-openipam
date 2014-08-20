@@ -87,7 +87,7 @@ class _IPAMLDAPUser(_LDAPUser):
                 assert group.source
             except:
                 group.save()
-        GroupSource.objects.filter(group__in=ldap_user_groups).update(source=source)
+        GroupSource.objects.filter(group__in=ldap_user_groups).exclude(source=source).update(source=source)
 
         # Get Static User Groups
         static_user_groups = self._user.groups.exclude(source__source=source)
