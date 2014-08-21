@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
-    Pool, Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
+    Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
 from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, AddressAdminForm, LeaseAdminForm
 from openipam.core.admin import ChangedAdmin
@@ -30,9 +30,16 @@ class NetworkAdmin(ChangedAdmin):
                 reserved = False
                 if address in (obj.gateway, obj.network[0], obj.network[-1]):
                     reserved = True
+                pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
                 addresses.append(
                     #TODO: Need to set pool eventually.
-                    Address(address=address, network=obj, reserved=reserved, changed_by=request.user)
+                    Address(
+                        address=address,
+                        network=obj,
+                        reserved=reserved,
+                        pool=pool,
+                        changed_by=request.user,
+                    )
                 )
             Address.objects.bulk_create(addresses)
 
@@ -126,8 +133,11 @@ class AddressAdmin(ChangedAdmin):
     search_fields = ('address', 'host__mac', 'host__hostname',)
     list_filter = ('network', 'reserved', 'pool', HasHostFilter)
     list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed')
+    list_select_related = True
 
-
+    def get_queryset(self, request):
+        qs = super(AddressAdmin, self).get_queryset(request)
+        return qs.select_related('host', 'network', 'changed').all()
 
 
 admin.site.register(DefaultPool)
