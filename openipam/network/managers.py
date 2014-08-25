@@ -17,9 +17,13 @@ class NetworkMixin(object):
 
         # Temporarily set superuser to false so we can get only permission relations
         perm_user = User.objects.get(pk=user.pk)
-        perm_user.is_superuser = False
 
-        networks = get_objects_for_user(perm_user, 'network.is_owner_network', use_groups=use_groups)
+        networks = get_objects_for_user(
+            perm_user,
+            'network.is_owner_network',
+            use_groups=use_groups,
+            with_superuser=False
+        )
 
         if ids_only:
             return tuple([str(network.network) for network in networks])
