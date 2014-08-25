@@ -3,6 +3,8 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db import connection
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from openipam.network.models import DhcpGroup, Pool, Network
 from openipam.conf.ipam_settings import CONFIG
@@ -21,9 +23,13 @@ class HostMixin(object):
 
         # Temporarily set superuser to false so we can get only permission relations
         perm_user = User.objects.get(pk=user.pk)
-        perm_user.is_superuser = False
 
-        hosts = get_objects_for_user(perm_user, 'hosts.is_owner_host', use_groups=use_groups)
+        hosts = get_objects_for_user(
+            perm_user,
+            'hosts.is_owner_host',
+            use_groups=use_groups,
+            with_superuser=False
+        )
 
         if ids_only:
             return tuple([host.pk for host in hosts])
@@ -101,6 +107,17 @@ class HostMixin(object):
         except self.model.DoesNotExist:
             return None
 
+    def delete_and_free(self, user=None, **kwargs):
+        from openipam.network.models import Address
+        addresses = Address.objects.filter(host__in=self.all())
+        for address in addresses:
+            address.host = None
+            if user:
+                address.changed_by = user
+                address.changed = timezone.now()
+            address.save()
+        self.delete()
+
 
 class HostQuerySet(QuerySet, HostMixin):
     pass
@@ -136,9 +153,11 @@ class HostManager(NetManager):
         if not instance:
             instance = self.model()
             if mac:
+                # Delete existing expired host is it exists.
+                self.filter(mac=mac, expires__lt=timezone.now()).delete_and_free(user=user)
                 instance.set_mac_address(mac)
             else:
-                raise Exception('Mac address is required for new Hosts.')
+                raise ValidationError('Mac address is required for new Hosts.')
 
         instance.user = instance.changed_by = user
 
