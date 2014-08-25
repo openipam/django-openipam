@@ -166,11 +166,11 @@ $(function(){
             "search": ""
         },
         "stateLoaded": function (settings, data) {
-            //$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.aoSearchCols[1].sSearch);
-            $("#s_host").val(data.aoSearchCols[1].sSearch);
-            $("#s_mac").val(data.aoSearchCols[2].sSearch);
-            $("#s_ip").val(data.aoSearchCols[3].sSearch);
-            $("#s_expires").val(data.aoSearchCols[4].sSearch);
+            //$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.columns[1].sSearch);
+            $("#s_host").val(data.columns[1].sSearch);
+            $("#s_mac").val(data.columns[2].sSearch);
+            $("#s_ip").val(data.columns[3].sSearch);
+            $("#s_expires").val(data.columns[4].sSearch);
         },
         "columns": [
             { "name": "select", "orderable": false, "searchable": false  },
