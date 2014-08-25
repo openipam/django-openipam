@@ -166,15 +166,17 @@ class HostCreateUpdateSerializer(serializers.Serializer):
 
     def validate_mac(self, attrs, source):
         mac = attrs.get(source)
+        mac = ''.join([c for c in mac if c.isdigit() or c.isalpha()])
+
         host_exists = Host.objects.filter(mac=mac)
         if self.object:
-            host_exists = host_exists.exclude(mac=self.object.pk)
+            host_exists = host_exists.exclude(mac=self.object.pk).first()
 
         if host_exists:
-            if host_exists[0].is_expired:
-                host_exists[0].delete()
+            if host_exists.is_expired:
+                host_exists.delete()
             else:
-                raise serializers.ValidationError('The mac address entered already exists for host: %s.' % host_exists[0].hostname)
+                raise serializers.ValidationError('The mac address entered already exists for host: %s.' % host_exists.hostname)
         return attrs
 
     def validate_hostname(self, attrs, source):
@@ -182,13 +184,13 @@ class HostCreateUpdateSerializer(serializers.Serializer):
 
         host_exists = Host.objects.filter(hostname=hostname.lower())
         if self.object:
-            host_exists = host_exists.exclude(hostname=self.object.hostname)
+            host_exists = host_exists.exclude(hostname=self.object.hostname).first()
 
         if host_exists:
-            if host_exists[0].is_expired:
-                host_exists[0].delete()
+            if host_exists.is_expired:
+                host_exists.delete()
             else:
-                raise serializers.ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
+                raise serializers.ValidationError('The hostname entered already exists for host %s.' % host_exists.mac)
         return attrs
 
     def validate_pool(self, attrs, source):
