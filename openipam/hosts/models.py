@@ -673,6 +673,10 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Perform check to on hostname to not let users create a host
         if self.hostname and self.hostname != self.original_hostname:
+            existing_hostname = Host.objects.filter(hostname=self.hostname).first()
+            if existing_hostname:
+                raise ValidationError("The hostname '%s' already exists." % (self.hostname))
+
             existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
             if existing_dns_hostname:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
