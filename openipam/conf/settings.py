@@ -78,18 +78,18 @@ STATIC_ROOT = '%s/static/' % BASE_DIR
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
+# STATICFILES_DIRS = (
+#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+# )
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'djangobower.finders.BowerFinder',
 )
 
 FIXTURE_DIRS = (
@@ -135,8 +135,11 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
+    # openIPAM Apps
     'openipam.core',
     'openipam.user',
     'openipam.api',
@@ -145,10 +148,13 @@ INSTALLED_APPS = (
     'openipam.dns',
     'openipam.log',
 
+    # Admin Tools
     'admin_tools',
     'admin_tools.theming',
     'admin_tools.menu',
     'admin_tools.dashboard',
+
+    'djangobower',
     'django_extensions',
     'widget_tweaks',
     'crispy_forms',
@@ -156,6 +162,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
+    'netfields',
 
     # Two factor auth
     #'django_otp',
@@ -194,6 +201,24 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'openipam.core.context_processors.root_path',
     'openipam.core.context_processors.feature_form',
     'openipam.api.context_processors.api_version',
+)
+
+BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
+BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
+
+BOWER_INSTALLED_APPS = (
+    'jquery#2.1.1',
+    'bootstrap#3.2.0',
+    'datatables-bootstrap3',
+    'datatables#1.10.2',
+    'jquery.cookie#1.4.1',
+    'chosen-bower',
+    'intro.js#0.9.0',
+)
+
+# Hack to find bower components
+STATICFILES_DIRS = (
+    os.path.join(BOWER_COMPONENTS_ROOT, 'bower_components'),
 )
 
 MESSAGE_TAGS = {
