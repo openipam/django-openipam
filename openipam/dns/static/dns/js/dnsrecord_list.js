@@ -166,9 +166,9 @@ $(function(){
             "search": ""
         },
         "stateLoaded": function (settings, data) {
-            $("#name-search").val(data.aoSearchCols[1].sSearch);
-            $("#type-filter").val(data.aoSearchCols[3].sSearch);
-            $("#content-search").val(data.aoSearchCols[4].sSearch);
+            $("#name-search").val(data.columns[1].sSearch);
+            $("#type-filter").val(data.columns[3].sSearch);
+            $("#content-search").val(data.columns[4].sSearch);
         },
         "columns": [
             { "name": "select", "orderable": false, "searchable": false  },
