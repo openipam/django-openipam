@@ -53,4 +53,5 @@ fabfile.py
 .anaconda_bak
 .dump.rdb
 static/*
+components/*
 dump.rdb
