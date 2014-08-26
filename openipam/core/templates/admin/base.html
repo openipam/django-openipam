@@ -1,19 +1,19 @@
 {% load static theming_tags openipam admin_tools_menu_tags %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<html lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" dir="ltr" direction="ltr">
     <head>
         <title>{% block title %}{% endblock %}</title>
 
-        <link rel="stylesheet" type="text/css" href="{% static "core/bootstrap3/css/bootstrap.min.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}">
         <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
         {% block extrastyle %}{% endblock %}
 
         {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
         <script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
 
-        <script type="text/javascript" src="{% static "core/js/jquery-1.11.1.min.js" %}"></script>
-        <script type="text/javascript" src="{% static "core/js/jquery.cookie.js" %}"></script>
-        <script src="{% static "core/bootstrap3/js/bootstrap.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "jquery.cookie/jquery.cookie.js" %}"></script>
+        <script src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
 
         {% block extrahead %}{% endblock %}
         <!-- {% render_theming_css %} -->

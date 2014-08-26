@@ -173,10 +173,10 @@ $(function(){
         "columns": [
             { "name": "select", "orderable": false, "searchable": false  },
             { "name": "name", "orderable": true },
-            { "name": "ttl", "orderable": true, "searchable": false },
+            { "name": "ttl", "orderable": false, "searchable": false },
             { "name": "ttl", "orderable": true },
             { "name": "content", "orderable": true },
-            { "name": "view", "orderable": true, "searchable": false  },
+            { "name": "view", "orderable": false, "searchable": false  },
             { "name": "edit", "orderable": false, "searchable": false  },
         ],
         "initComplete": function() {

@@ -14,7 +14,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
     {% if selected_records or form_data %}
     <script type="text/javascript">
@@ -28,8 +28,8 @@
         });
     </script>
     {% endif %}
-    <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
+    <script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>
 {% endblock %}
 
