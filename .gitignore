@@ -9,7 +9,7 @@
 # Packages
 *.egg
 *.egg-info
-dist
+
 build
 eggs
 parts
@@ -54,3 +54,4 @@ fabfile.py
 .dump.rdb
 static/*
 dump.rdb
+!components/**
