@@ -168,8 +168,8 @@ class HostCreateUpdateSerializer(serializers.Serializer):
         mac = attrs.get(source)
         mac = ''.join([c for c in mac if c.isdigit() or c.isalpha()])
 
-        #if len(mac) != 12:
-        #    raise serializers.ValidationError('The mac address entered is not valid: %s.' % mac)
+        if len(mac) != 12:
+            raise serializers.ValidationError('The mac address entered is not valid: %s.' % mac)
 
         host_exists = Host.objects.filter(mac=mac)
         if self.object:
