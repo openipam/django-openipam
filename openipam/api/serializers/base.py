@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from netfields.forms import MACAddressFormField
 
-from netaddr import EUI, AddrFormatError
+from netaddr import EUI, AddrFormatError, mac_bare
 
 
 class MultipleChoiceField(serializers.WritableField):
@@ -48,7 +48,7 @@ class MACAddressField(serializers.CharField):
         super(MACAddressField, self).validate(value)
         if value:
             try:
-                value = EUI(str(value))
+                value = EUI(str(value), dialect=mac_bare)
             except (ValueError, TypeError, AddrFormatError):
                 raise ValidationError(self.error_messages['invalid'] % {'value': value})
 
