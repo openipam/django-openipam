@@ -94,6 +94,23 @@
             </div>
         </div>
     {% endif %}
+    <div id="dashboard-stats" class="dashboard-module">
+        <h2>Recent Stats</h2>
+        <div class="dashboard-module-content">
+            <div style="margin: 10px 20px;" class="well well-sm">
+                <h5>Hosts</h5>
+                <p><strong>{{ dashboard.hosts_stats.this_day }}</strong> hosts changed today.</p>
+                <p><strong>{{ dashboard.hosts_stats.this_week }}</strong> hosts changed this week.</p>
+                <p><strong>{{ dashboard.hosts_stats.this_month }}</strong> hosts changed this month.</p>
+            </div>
+            <div style="margin: 10px 20px;" class="well well-sm">
+                <h5>Users</h5>
+                <p><strong>{{ dashboard.users_stats.this_day }}</strong> users joined today.</p>
+                <p><strong>{{ dashboard.users_stats.this_week }}</strong> users joined this week.</p>
+                <p><strong>{{ dashboard.users_stats.this_month }}</strong> users joined this month.</p>
+            </div>
+        </div>
+    </div>
     {% if request.user.is_staff %}
         {% for module in dashboard.children %}
             {% admin_tools_render_dashboard_module module %}

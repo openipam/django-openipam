@@ -13,13 +13,21 @@ And to activate the app index dashboard::
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.utils.text import capfirst
+from django.contrib import admin
+from django.db.models.aggregates import Count
+from django.contrib.auth import get_user_model
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
 from admin_tools.menu import items, Menu
 from admin_tools.menu.items import MenuItem
-from django.contrib import admin
 
+from openipam.hosts.models import Host
+from openipam.user.models import User
+
+import qsstats
+
+User = get_user_model()
 
 class IPAMIndexDashboard(Dashboard):
     """
@@ -27,9 +35,13 @@ class IPAMIndexDashboard(Dashboard):
     """
 
     title = ''
-
+    hosts = Host.objects.all()
+    hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
+    users = User.objects.all()
+    users_stats = qsstats.QuerySetStats(users, 'date_joined')
 
     def init_with_context(self, context):
+
         site_name = get_admin_site_name(context)
 
         #append an app list module for "IPAM"
