@@ -41,6 +41,7 @@ class IPAMIndexDashboard(Dashboard):
     def init_with_context(self, context):
 
         site_name = get_admin_site_name(context)
+        request = context['request']
 
         #append an app list module for "IPAM"
         # self.children.append(modules.ModelList(
@@ -92,33 +93,56 @@ class IPAMIndexDashboard(Dashboard):
             }
         ))
 
+        if request.user.is_staff:
+            # append an app list module for "Administration"
+            self.children.append(modules.ModelList(
+                _('Administration'),
+                models=(
+                    'openipam.user.models.User',
+                    'rest_framework.authtoken.models.Token',
+                    'django.contrib.*',
+                    'guardian.*',
+                    'openipam.core.*',
+                    'openipam.log.models.EmailLog'
+                ),
+            ))
 
-        # append an app list module for "Administration"
-        self.children.append(modules.ModelList(
-            _('Administration'),
-            models=(
-                'openipam.user.models.User',
-                'rest_framework.authtoken.models.Token',
-                'django.contrib.*',
-                'guardian.*',
-                'openipam.core.*',
-                'openipam.log.models.EmailLog'
-            ),
-        ))
-
-        # append crap to delete.
-        self.children.append(modules.ModelList(
-            _('TO BE DELETED'),
-            models=(
-                'openipam.user.models.Permission',
-                'openipam.user.models.Group',
-                'openipam.user.models.UserToGroup',
-                'openipam.user.models.HostToGroup',
-                'openipam.user.models.DomainToGroup',
-                'openipam.user.models.NetworkToGroup',
-                'openipam.user.models.PoolToGroup',
-            ),
-        ))
+            # append crap to delete.
+            self.children.append(modules.ModelList(
+                _('TO BE DELETED'),
+                models=(
+                    'openipam.user.models.Permission',
+                    'openipam.user.models.Group',
+                    'openipam.user.models.UserToGroup',
+                    'openipam.user.models.HostToGroup',
+                    'openipam.user.models.DomainToGroup',
+                    'openipam.user.models.NetworkToGroup',
+                    'openipam.user.models.PoolToGroup',
+                ),
+            ))
+        else:
+            self.children.append(HTMLContentModule(
+                'Navigation',
+                html='''
+                    <ul>
+                        <li><a href="%(url_hosts)s">List Hosts</a></li>
+                        <li><a href="%(url_add_hosts)s">Add Host</a></li>
+                        <li><a href="%(url_dns)s">DNS Records</a></li>
+                    </ul>
+                    <ul>
+                        <li style="border-top: 1px solid #e5e5e5;">
+                            <a href="%(url_feature_request)s">Feature or Bug?</a>
+                        </li>
+                        <li><a href="%(url_profile)s">Profile</a></li>
+                    </ul>
+                ''' % {
+                    'url_hosts': reverse_lazy('list_hosts'),
+                    'url_add_hosts': reverse_lazy('add_hosts'),
+                    'url_dns': reverse_lazy('list_dns'),
+                    'url_feature_request': reverse_lazy('feature_request'),
+                    'url_profile': reverse_lazy('profile'),
+                }
+            ))
 
         # append recent stats module
         hosts = Host.objects.all()

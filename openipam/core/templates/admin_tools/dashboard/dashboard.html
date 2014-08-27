@@ -74,26 +74,7 @@
 {% endif %}
 
 <div id="{{ dashboard.get_id }}" class="dashboard-container">
-    {% if request.user.is_staff %}
-        {% for module in dashboard.children %}
-            {% admin_tools_render_dashboard_module module %}
-        {% endfor %}
-    {% else %}
-        <div id="dashboard-user-nav" class="dashboard-module">
-            <h2>Navigation</h2>
-            <div class="dashboard-module-content">
-                <ul>
-                    <li><a href="{% url 'list_hosts' %}">List Hosts</a></li>
-                    <li><a href="{% url 'add_hosts' %}">Add Host</a></li>
-                    <li><a href="{% url 'list_dns' %}">DNS Records</a></li>
-                </ul>
-            </div>
-            <div class="dashboard-module-content" style="margin-top: 10px;">
-                <ul>
-                    <li><a href="{% url 'feature_request' %}">Feature or Bug?</a></li>
-                    <li><a href="{% url 'profile' %}">Profile</a></li>
-                </ul>
-            </div>
-        </div>
-    {% endif %}
+    {% for module in dashboard.children %}
+        {% admin_tools_render_dashboard_module module %}
+    {% endfor %}
 </div>
