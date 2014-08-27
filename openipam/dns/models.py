@@ -175,8 +175,6 @@ class DnsRecord(models.Model):
             errors = e.update_error_dict(errors)
 
         # Clean the priority
-        if self.dns_type.is_mx_record or self.dns_type.is_srv_record:
-            self.set_priority()
         try:
             self.clean_priority()
         except ValidationError as e:
@@ -234,9 +232,22 @@ class DnsRecord(models.Model):
             raise ValidationError({'text_content': e.messages})
 
     def clean_priority(self):
+        error_list = []
+
         # Priority must exist for MX and SRV records
-        if hasattr(self, 'dns_type') and self.dns_type.name in ['MX', 'SRV'] and not self.priority:
-            raise ValidationError({'priority': ['Priority must exist for MX and SRV records.']})
+        if not self.priority:
+            if self.dns_type and self.dns_type.name in ['MX', 'SRV']:
+                error_list.append('Priority must exist for MX and SRV records.')
+
+                # Validation for Priority
+                parsed_content = self.text_content.strip().split(' ')
+                if self.dns_type.is_mx_record and len(parsed_content) != 2:
+                    error_list.append('Content for MX records need to have a priority and FQDN.')
+                elif self.dns_type.is_srv_record and len(parsed_content) != 4:
+                    error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
+
+        if error_list:
+            raise ValidationError({'priority': error_list})
 
     def clean_dns_type(self):
         error_list = []
@@ -248,15 +259,6 @@ class DnsRecord(models.Model):
                     error_list.append('Text Content must not exist for A records.')
                 if not self.ip_content:
                     error_list.append('IP Content must exist for A records.')
-
-            #else:
-                # Validation for Priority
-                # parsed_content = self.text_content.strip().split(' ')
-                # assert False, parsed_content
-                # if self.dns_type.is_mx_record and len(parsed_content) != 2:
-                #     error_list.append('Content for MX records need to have a priority and FQDN.')
-                # elif self.dns_type.is_srv_record and len(parsed_content) != 4:
-                #     error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
 
             # Name and text content cannot be the same if its not an CNAME
             if not self.dns_type.is_cname_record and self.name == self.text_content:
