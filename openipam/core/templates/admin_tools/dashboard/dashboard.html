@@ -67,50 +67,13 @@
     {% endif %}
 </div>
 
-
-<div class="alert alert-warning" style="margin: 15px 10px 5px 10px;">
-    Were are now in <strong>BETA 2</strong> of the new openIPAM interface.  If you are having problems, you can visit <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a>.<br />All bugs are logged, but feel free to use the feedback form if you you like to notify us.
-</div>
+{% if request.path == '/' %}
+    <div class="alert alert-warning" style="margin: 15px 10px 5px 10px;">
+        Were are now in <strong>BETA 2</strong> of the new openIPAM interface.  If you are having problems, you can visit <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a>.<br />All bugs are logged, but feel free to use the feedback form if you you like to notify us.
+    </div>
+{% endif %}
 
 <div id="{{ dashboard.get_id }}" class="dashboard-container">
-    {% if request.path == '/' %}
-        <div id="dashboard-user-welcome" class="dashboard-module">
-            <h2><strong>Welcome to the new openIPAM interface.</strong></h2>
-            <div class="dashboard-module-content">
-                <div style="margin: 10px 20px;">
-                    <p><strong>Thank you for taking time to try out the new IPAM interface.</strong></p>
-                    <p>Since we are still in beta with this project, you may experience bugs.  We have provided a <a href="{% url 'feature_request' %}">feature and bug submission tool</a> to help aid us with features and bugs.  Please use this tool whenever possible as it will give us great feedback.</p>
-                    <p>Item to consider when using the new interface:</p>
-                    <ul id="new-interface-list">
-                        <li>Permissions - Do you have all your permissions?</li>
-                        <li>Hosts - Do you see all your hosts?</li>
-                        <li>DNS Entries - Do you see all DNS Entries?</li>
-                        <li>Performance - Is the site slow?</li>
-                    </ul>
-                    <p>You may switch back to the old interface at anytime by going to <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a></p>
-                    <p>If you have any questions, please email:  <a href="{{ email }}">{{ email }}</a></p>
-                </div>
-
-            </div>
-        </div>
-    {% endif %}
-    <div id="dashboard-stats" class="dashboard-module">
-        <h2>Recent Stats</h2>
-        <div class="dashboard-module-content">
-            <div style="margin: 10px 20px;" class="well well-sm">
-                <h5>Hosts</h5>
-                <p><strong>{{ dashboard.hosts_stats.this_day }}</strong> hosts changed today.</p>
-                <p><strong>{{ dashboard.hosts_stats.this_week }}</strong> hosts changed this week.</p>
-                <p><strong>{{ dashboard.hosts_stats.this_month }}</strong> hosts changed this month.</p>
-            </div>
-            <div style="margin: 10px 20px;" class="well well-sm">
-                <h5>Users</h5>
-                <p><strong>{{ dashboard.users_stats.this_day }}</strong> users joined today.</p>
-                <p><strong>{{ dashboard.users_stats.this_week }}</strong> users joined this week.</p>
-                <p><strong>{{ dashboard.users_stats.this_month }}</strong> users joined this month.</p>
-            </div>
-        </div>
-    </div>
     {% if request.user.is_staff %}
         {% for module in dashboard.children %}
             {% admin_tools_render_dashboard_module module %}

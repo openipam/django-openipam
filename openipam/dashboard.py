@@ -11,7 +11,7 @@ And to activate the app index dashboard::
 """
 
 from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy
 from django.utils.text import capfirst
 from django.contrib import admin
 from django.db.models.aggregates import Count
@@ -22,8 +22,10 @@ from admin_tools.utils import get_admin_site_name
 from admin_tools.menu import items, Menu
 from admin_tools.menu.items import MenuItem
 
+from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
 from openipam.user.models import User
+from openipam.core.modules import HTMLContentModule
 
 import qsstats
 
@@ -35,36 +37,61 @@ class IPAMIndexDashboard(Dashboard):
     """
 
     title = ''
-    hosts = Host.objects.all()
-    hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
-    users = User.objects.all()
-    users_stats = qsstats.QuerySetStats(users, 'date_joined')
 
     def init_with_context(self, context):
 
         site_name = get_admin_site_name(context)
 
         #append an app list module for "IPAM"
-        self.children.append(modules.ModelList(
-            _('Hosts'),
-            models=(
-                'openipam.hosts.*',
-            ),
+        # self.children.append(modules.ModelList(
+        #     _('Hosts'),
+        #     models=(
+        #         'openipam.hosts.*',
+        #     ),
+        # ))
+
+        #self.children.append(modules.ModelList(
+        #    _('Network'),
+        #     models=(
+        #         'openipam.network.*',
+        #     ),
+        # ))
+
+        # self.children.append(modules.ModelList(
+        #     _('Domains & DNS'),
+        #     models=(
+        #         'openipam.dns.*',
+        #     ),
+        # ))
+
+        # append intro module
+        self.children.append(HTMLContentModule(
+            '<strong>Welcome to the new openIPAM interface.</strong>',
+            html='''
+                    <div style="margin: 10px 20px;">
+                        <p><strong>Thank you for taking time to try out the new IPAM interface.</strong></p>
+                        <p>
+                            Since we are still in beta with this project, you may experience bugs.
+                            We have provided a <a href="%(feature_request_link)s">feature and bug submission tool</a> to help aid us with features and bugs.
+                            Please use this tool whenever possible as it will give us great feedback.
+                        </p>
+                        <p>Item to consider when using the new interface:</p>
+                        <ul id="new-interface-list">
+                            <li>Permissions - Do you have all your permissions?</li>
+                            <li>Hosts - Do you see all your hosts?</li>
+                            <li>DNS Entries - Do you see all DNS Entries?</li>
+                            <li>Performance - Is the site slow?</li>
+                        </ul>
+                        <p>You may switch back to the old interface at anytime by going to <a href="%(legacy_domain)s">%(legacy_domain)s</a></p>
+                        <p>If you have any questions, please email:  <a href="%(email)s">%(email)s</a></p>
+                    </div>
+            ''' % {
+                'email': CONFIG.get('EMAIL_ADDRESS'),
+                'legacy_domain': CONFIG.get('LEGACY_DOMAIN'),
+                'feature_request_link': reverse_lazy('feature_request')
+            }
         ))
 
-        self.children.append(modules.ModelList(
-            _('Network'),
-            models=(
-                'openipam.network.*',
-            ),
-        ))
-
-        self.children.append(modules.ModelList(
-            _('Domains & DNS'),
-            models=(
-                'openipam.dns.*',
-            ),
-        ))
 
         # append an app list module for "Administration"
         self.children.append(modules.ModelList(
@@ -79,13 +106,7 @@ class IPAMIndexDashboard(Dashboard):
             ),
         ))
 
-        # append a recent actions module
-        self.children.append(modules.RecentActions(
-            _('Recent Actions'),
-            limit=5,
-
-        ))
-
+        # append crap to delete.
         self.children.append(modules.ModelList(
             _('TO BE DELETED'),
             models=(
@@ -97,6 +118,43 @@ class IPAMIndexDashboard(Dashboard):
                 'openipam.user.models.NetworkToGroup',
                 'openipam.user.models.PoolToGroup',
             ),
+        ))
+
+        # append recent stats module
+        hosts = Host.objects.all()
+        hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
+        users = User.objects.all()
+        users_stats = qsstats.QuerySetStats(users, 'date_joined')
+        self.children.append(HTMLContentModule(
+            'Recent Stats',
+            html='''
+                <div style="margin: 10px 20px;" class="well well-sm">
+                    <h5>Hosts</h5>
+                    <p><strong>%(hosts_today)s</strong> hosts changed today.</p>
+                    <p><strong>%(hosts_week)s</strong> hosts changed this week.</p>
+                    <p><strong>%(hosts_month)s</strong> hosts changed this month.</p>
+                </div>
+                <div style="margin: 10px 20px;" class="well well-sm">
+                    <h5>Users</h5>
+                    <p><strong>%(users_today)s</strong> users joined today.</p>
+                    <p><strong>%(users_week)s</strong> users joined this week.</p>
+                    <p><strong>%(users_month)s</strong> users joined this month.</p>
+                </div>
+            ''' % {
+                'hosts_today': hosts_stats.this_day(),
+                'hosts_week': hosts_stats.this_week(),
+                'hosts_month': hosts_stats.this_month(),
+                'users_today': users_stats.this_day(),
+                'users_week': users_stats.this_week(),
+                'users_month': users_stats.this_month(),
+            }
+        ))
+
+        # append a recent actions module
+        self.children.append(modules.RecentActions(
+            _('Recent Actions'),
+            limit=5,
+
         ))
 
 
