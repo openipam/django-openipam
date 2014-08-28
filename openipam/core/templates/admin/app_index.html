@@ -1,5 +1,5 @@
-{% extends "admin/index.html" %} 
-{% load i18n admin_tools_dashboard_tags %} 
+{% extends "admin/index.html" %}
+{% load i18n admin_tools_dashboard_tags %}
 
 {% if not is_popup %}
 
@@ -10,7 +10,7 @@
   {% endfor %}
 {% endblock %}
 
-{% endif %} 
+{% endif %}
 
 {% block content %}
 {% admin_tools_render_dashboard 'app_index' %}

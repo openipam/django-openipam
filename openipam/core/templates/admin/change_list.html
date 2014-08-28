@@ -57,10 +57,9 @@
 
 {% block breadcrumbs %}
 	{% if not is_popup %}
-		../../../|{% trans "Home" %}
-		{# ../../|{% trans "Admin" %} #}
-		../|{{ app_label|capfirst }}
-		{{ cl.opts.verbose_name_plural|capfirst }}
+		../../|{% trans "Home" %}
+		../|{{ opts.app_label|capfirst }}
+		*{{ cl.opts.verbose_name_plural|capfirst }}
 	{% endif %}
 {% endblock %}
 

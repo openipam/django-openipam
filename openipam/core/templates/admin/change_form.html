@@ -33,7 +33,7 @@
 {% block breadcrumbs %}
     {% if not is_popup %}
         ../../../|{% trans "Home" %}
-        ../../|{{ app_label|capfirst|escape }}
+        ../../|{{ opts.app_label|capfirst|escape }}
         *{% if has_change_permission %}../|{{ opts.verbose_name_plural|capfirst }}{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
         *{% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18"|replace:"/\|/-" }}{% endif %}
     {% endif %}
