@@ -173,10 +173,10 @@ class IPAMIndexDashboard(Dashboard):
         if users_today is None:
             users_today = users_stats.this_day()
             cache.set('users_today', users_today)
-        if not users_week is None:
-            hosts_week = users_stats.this_week()
+        if users_week is None:
+            users_week = users_stats.this_week()
             cache.set('users_week', users_week)
-        if not users_month is None:
+        if users_month is None:
             users_month = users_stats.this_month()
             cache.set('users_month', users_month)
 
