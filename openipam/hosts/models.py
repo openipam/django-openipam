@@ -53,7 +53,7 @@ class AttributeToHost(models.Model):
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s %s' % (self.aid, self.name)
+        return '%s %s' % (self.attribute.name, self.name)
 
     class Meta:
         managed = False
@@ -95,7 +95,7 @@ class FreeformAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s %s' % (self.host, self.attribute, self.value)
+        return '%s %s %s' % (self.host.hostname, self.attribute.name, self.value)
 
     class Meta:
         db_table = 'freeform_attributes_to_hosts'
@@ -813,7 +813,7 @@ class NotificationToHost(models.Model):
     host = models.ForeignKey('Host', db_column='mac')
 
     def __unicode__(self):
-        return '%s %s' % (self.nid, self.mac)
+        return '%s %s' % (self.notification.notification, self.host.hostname)
 
     class Meta:
         db_table = 'notifications_to_hosts'
@@ -841,7 +841,7 @@ class StructuredAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.host, self.structured_attribute_value)
+        return '%s %s' % (self.host.hostname, self.structured_attribute_value)
 
     class Meta:
         db_table = 'structured_attributes_to_hosts'
