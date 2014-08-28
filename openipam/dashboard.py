@@ -16,6 +16,7 @@ from django.utils.text import capfirst
 from django.contrib import admin
 from django.db.models.aggregates import Count
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
@@ -24,7 +25,6 @@ from admin_tools.menu.items import MenuItem
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
-from openipam.user.models import User
 from openipam.core.modules import HTMLContentModule
 
 from datetime import datetime
@@ -148,9 +148,38 @@ class IPAMIndexDashboard(Dashboard):
 
         # append recent stats module
         hosts = Host.objects.all()
-        hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'), today=datetime.utcnow())
+        hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'), today=datetime.now())
         users = User.objects.all()
-        users_stats = qsstats.QuerySetStats(users, 'date_joined', today=datetime.utcnow())
+        users_stats = qsstats.QuerySetStats(users, 'date_joined', today=datetime.now())
+
+        hosts_today = cache.get('hosts_today')
+        hosts_week = cache.get('hosts_week')
+        hosts_month = cache.get('hosts_month')
+
+        if hosts_today is None:
+            hosts_today = hosts_stats.this_day()
+            cache.set('hosts_today', hosts_today)
+        if hosts_week is None:
+            hosts_week = hosts_stats.this_week()
+            cache.set('hosts_week', hosts_week)
+        if hosts_month is None:
+            hosts_month = hosts_stats.this_month()
+            cache.set('hosts_month', hosts_month)
+
+        users_today = cache.get('users_today')
+        users_week = cache.get('users_week')
+        users_month = cache.get('users_month')
+
+        if users_today is None:
+            users_today = users_stats.this_day()
+            cache.set('users_today', users_today)
+        if not users_week is None:
+            hosts_week = users_stats.this_week()
+            cache.set('users_week', users_week)
+        if not users_month is None:
+            users_month = users_stats.this_month()
+            cache.set('users_month', users_month)
+
         self.children.append(HTMLContentModule(
             'Recent Stats',
             html='''
@@ -167,12 +196,12 @@ class IPAMIndexDashboard(Dashboard):
                     <p><strong>%(users_month)s</strong> users joined this month.</p>
                 </div>
             ''' % {
-                'hosts_today': hosts_stats.this_day(),
-                'hosts_week': hosts_stats.this_week(),
-                'hosts_month': hosts_stats.this_month(),
-                'users_today': users_stats.this_day(),
-                'users_week': users_stats.this_week(),
-                'users_month': users_stats.this_month(),
+                'hosts_today': hosts_today,
+                'hosts_week': hosts_week,
+                'hosts_month': hosts_month,
+                'users_today': users_today,
+                'users_week': users_week,
+                'users_month': users_month,
             }
         ))
 
