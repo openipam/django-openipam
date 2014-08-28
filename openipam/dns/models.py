@@ -459,7 +459,7 @@ class Record(models.Model):
     view_id = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return '%s %s' % (self.id, self.name)
+        return '%s %s' % (self.domain_id, self.name)
 
     class Meta:
         managed = False
@@ -477,7 +477,7 @@ class RecordMunged(models.Model):
     view_id = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return '%s %s' % (self.id, self.name)
+        return '%s %s' % (self.domain_id, self.name)
 
     class Meta:
         managed = False
