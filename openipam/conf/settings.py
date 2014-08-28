@@ -269,7 +269,7 @@ JWT_AUTH = {
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-ADMIN_TOOLS_MENU = 'openipam.menu.IPAMMenu'
-ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.dashboard.IPAMIndexDashboard'
-ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.dashboard.IPAMAppIndexDashboard'
+ADMIN_TOOLS_MENU = 'openipam.core.menu.IPAMMenu'
+ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.core.dashboard.IPAMIndexDashboard'
+ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.core.dashboard.IPAMAppIndexDashboard'
 
