@@ -16,8 +16,6 @@ from django.utils.text import capfirst
 from django.contrib import admin
 from django.db.models.aggregates import Count
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from django.utils.timezone import localtime
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
@@ -28,6 +26,8 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
 from openipam.user.models import User
 from openipam.core.modules import HTMLContentModule
+
+from datetime import datetime
 
 import qsstats
 
@@ -148,9 +148,9 @@ class IPAMIndexDashboard(Dashboard):
 
         # append recent stats module
         hosts = Host.objects.all()
-        hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'), today=timezone.now())
+        hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'), today=datetime.utcnow())
         users = User.objects.all()
-        users_stats = qsstats.QuerySetStats(users, 'date_joined', today=timezone.now())
+        users_stats = qsstats.QuerySetStats(users, 'date_joined', today=datetime.utcnow())
         self.children.append(HTMLContentModule(
             'Recent Stats',
             html='''
