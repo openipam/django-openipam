@@ -26,10 +26,11 @@ class LogEntryAdmin(admin.ModelAdmin):
     list_filter = ('action_time',)
     search_fields = ('object_repr', 'object_id', 'user__username')
     form = LogEntryAdminForm
+    list_select_related = True
 
     def get_queryset(self, request):
         qs = super(LogEntryAdmin, self).get_queryset(request)
-        return qs.select_related('content_type')
+        return qs.select_related('content_type', 'user')
 
     def change_time(self, obj):
         return '<span class="nowrap">%s</span>' % localtime(obj.action_time).strftime("%d %b %Y %H:%M:%S")
