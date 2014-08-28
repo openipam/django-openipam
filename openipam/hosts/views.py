@@ -272,8 +272,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     host['leases__ends'] = [host['leases__ends']]
 
                 for index, lease in enumerate(host['leases__address']):
-                    if host['leases__ends'][index] > timezone.now():
-                        addresses.append(lease)
+                    try:
+                        if host['leases__ends'][index] > timezone.now():
+                            addresses.append(lease)
+                    except IndexError:
+                        pass
                 #valid_leases = list(
                 #    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
                 #)
