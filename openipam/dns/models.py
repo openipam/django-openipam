@@ -148,6 +148,7 @@ class DnsRecord(models.Model):
             raise ValidationError("Invalid credentials: user %s does not have permissions"
                 " to add or modify DNS Records for Host '%s'" % (user, self.text_content))
 
+
     def clean_fields(self, exclude=None):
         errors = {}
 
@@ -227,6 +228,16 @@ class DnsRecord(models.Model):
 
                 elif self.dns_type.is_a_record:
                     raise ValidationError('Text Content should not be assigned with A records.')
+
+                # Validate Existing Records
+                dns_exists = DnsRecord.objects.filter(
+                    name=self.name,
+                    dns_type=self.dns_type,
+                    text_content=self.text_content
+                ).exclude(pk=self.pk)
+                if dns_exists:
+                        raise ValidationError("DNS Record with name: '%s', type: '%s', "
+                            "and content: '%s' already exists." % (self.name, self.dns_type, self.text_content))
 
         except ValidationError as e:
             raise ValidationError({'text_content': e.messages})
