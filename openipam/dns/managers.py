@@ -265,3 +265,8 @@ class DnsTypeManager(Manager):
     def PTR(self):
         filtered = [record for record in self._cached_queryset if record.name == 'PTR']
         return filtered[0] if filtered else None
+
+    @property
+    def MX(self):
+        filtered = [record for record in self._cached_queryset if record.name == 'MX']
+        return filtered[0] if filtered else None
