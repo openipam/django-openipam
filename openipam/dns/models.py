@@ -193,9 +193,11 @@ class DnsRecord(models.Model):
             dns_exists = DnsRecord.objects.filter(
                 name=self.name,
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                ip_content=self.ip_content,
             ).exclude(pk=self.pk)
             if dns_exists:
-                raise ValidationError({'name': ['Invalid name for A or AAAA record: %s. Name already exists.' % self.name]})
+                raise ValidationError({'name': ["Invalid name for A or AAAA record: '%s'. "
+                    "Name already exists for IP '%s'." % (self.name, self.ip_content)]})
 
         # Clean name if PTR record
         if self.dns_type.is_ptr_record and self.domain:
