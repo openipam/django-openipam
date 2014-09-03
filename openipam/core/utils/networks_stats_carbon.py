@@ -12,14 +12,18 @@ query = """SELECT addresses.network,
            count(leases.abandoned OR NULL) AS abandoned,
            count(leases.ends < now() OR NULL) AS expired,
            count( 1 ) AS total,
-           count(leases.address IS NULL AND addresses.pool IS NOT NULL OR NULL) AS unleased
+           count(leases.address IS NULL AND addresses.pool IS NOT NULL OR NULL) AS unleased,
+	   CASE WHEN count(addresses.pool) > 0
+		THEN (count(leases.ends < NOW() OR NULL) + (count(addresses.pool) - count(leases.address) - count(leases.abandoned OR NULL))) / count(addresses.pool)::float
+		ELSE 1.0
+	   END AS available_ratio
     FROM addresses  LEFT OUTER JOIN leases ON addresses.address = leases.address
     GROUP BY addresses.network;
 """
 
 query_colnames = ['network', 'epoch', 'available', 'available2', 'static',
                   'dynamic', 'leased', 'reserved', 'abandoned', 'expired',
-                  'total', 'unleased', ]
+                  'total', 'unleased', 'available_ratio']
 
 
 def push_data(carbon_server, carbon_port):
