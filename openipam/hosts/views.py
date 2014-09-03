@@ -137,7 +137,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
                         UNION
 
-                        SELECT dns_records.mac from dns_records
+                        SELECT DISTINCT dns_records.mac from dns_records
                             LEFT OUTER JOIN dns_records as d2 ON (dns_records.name = d2.text_content AND d2.tid = 5)
                             WHERE dns_records.name LIKE %(lsearch)s OR d2.name LIKE %(lsearch)s
 
@@ -148,7 +148,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
                         UNION
 
-                        SELECT addresses.mac from addresses
+                        SELECT DISTINCT addresses.mac from addresses
                             INNER JOIN dns_records ON addresses.address = dns_records.ip_content
                             WHERE dns_records.name LIKE %(lsearch)s
 
