@@ -106,11 +106,11 @@
 
 			{% block result_list %}
 				<div class="well well-sm">
-					{% if action_form and actions_on_top and cl.full_result_count %}
-						{% include "admin/actions.html" %}
-						{% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
-						{% include "admin/filters.html" %}
-					{% endif %}
+    					{% if action_form and actions_on_top and cl.full_result_count %}
+    						{% include "admin/actions.html" %}
+    					{% endif %}
+                        {% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
+                        {% include "admin/filters.html" %}
 					<div class="clear"><!-- --></div>
 				</div>
 				{% result_list cl %}

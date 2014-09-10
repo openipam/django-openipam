@@ -66,11 +66,16 @@ class EmailLogAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def save_model(self, request, obj, form, change):
+        #Return nothing to make sure user can't update any data
+        pass
+
 
 class HostLogAdmin(admin.ModelAdmin):
     list_display = ('mac', 'hostname', 'changed', 'nice_changed_by',)
     search_fields = ('mac', 'hostname', 'changed_by__username')
     list_select_related = True
+    readonly_fields = ('changed_by',)
 
     def nice_changed_by(self, obj):
         href = '<a href="%s">%s (%s)</a>'
@@ -91,7 +96,11 @@ class HostLogAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def save_model(self, request, obj, form, change):
+        #Return nothing to make sure user can't update any data
+        pass
 
+admin.site.disable_action('delete_selected')
 admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(HostLog, HostLogAdmin)
