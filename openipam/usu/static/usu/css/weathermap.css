@@ -15,3 +15,7 @@ body {
 #mapName {
     display: none;
 }
+
+#map .link {
+    fill: none;
+}
