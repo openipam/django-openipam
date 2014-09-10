@@ -5,6 +5,7 @@ from openipam.api.views import hosts
 from openipam.api.views import users
 from openipam.api.views import guests
 from openipam.api.views import dns
+from openipam.api.views import usu
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_framework.routers import DefaultRouter
 
@@ -18,6 +19,10 @@ urlpatterns = patterns('openipam.api.views',
 
     url(r'^web/networkselects/(?P<address_type_id>\d+)$', 'web.network_selects', name='api_network_select'),
     url(r'^web/', include('autocomplete_light.urls')),
+
+    #Reports
+    url(r'^reports/subnetdata/$', usu.subnet_data, name='api_reports_subnet_data'),
+    url(r'^reports/weatherdata/$', usu.weather_data, name='api_reports_weather_data'),
 
     # Users
     url(r'^users/$', users.UserList.as_view(), name='api_users_list'),
