@@ -148,6 +148,9 @@ INSTALLED_APPS = (
     'openipam.dns',
     'openipam.log',
 
+    # openIPAM for USU
+    'openipam.usu',
+
     # Admin Tools
     'admin_tools',
     'admin_tools.theming',
@@ -155,6 +158,7 @@ INSTALLED_APPS = (
     'admin_tools.dashboard',
 
     'djangobower',
+    'django_nvd3',
     'django_extensions',
     'widget_tweaks',
     'crispy_forms',
@@ -272,4 +276,3 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 ADMIN_TOOLS_MENU = 'openipam.core.menu.IPAMMenu'
 ADMIN_TOOLS_INDEX_DASHBOARD = 'openipam.core.dashboard.IPAMIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'openipam.core.dashboard.IPAMAppIndexDashboard'
-
