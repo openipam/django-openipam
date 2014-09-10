@@ -24,6 +24,9 @@ urlpatterns = patterns('openipam.core.views',
     # DNS
     url(r'^dns/', include('openipam.dns.urls')),
 
+    # USU Reports and Tools
+    url(r'^reports/', include('openipam.usu.urls')),
+
     # Account URLS
     url(r'^mimic/$', 'mimic', name='mimic'),
     url(r'^login/$', 'login', name='login'),
