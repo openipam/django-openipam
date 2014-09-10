@@ -538,8 +538,12 @@ class Host(DirtyFieldsMixin, models.Model):
         from openipam.dns.models import DnsRecord
 
         addresses = self.addresses.all()
-        a_record_names = DnsRecord.objects.select_related().filter(ip_content__in=addresses).values_list('name')
-        dns_records = DnsRecord.objects.select_related().filter(
+        a_record_names = (DnsRecord.objects
+            .select_related('ip_content', 'host', 'dns_type')
+            .filter(ip_content__in=addresses)
+            .values_list('name')
+        )
+        dns_records = DnsRecord.objects.select_related('ip_content', 'host', 'dns_type').filter(
             Q(text_content__in=a_record_names) |
             Q(name__in=a_record_names) |
             Q(ip_content__in=addresses) |
