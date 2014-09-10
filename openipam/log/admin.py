@@ -92,7 +92,7 @@ class HostLogAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(HostLogAdmin, self).get_queryset(request)
-        return qs.select_related('changed_by')
+        return qs.prefetch_related('changed_by')
 
     def has_delete_permission(self, request, obj=None):
         return False
