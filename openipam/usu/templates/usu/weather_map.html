@@ -1,6 +1,8 @@
 {% extends "core/base.html" %}
 {% load static nvd3_tags %}
 
+{% block page_title %}USU Weathermap{% endblock %}
+
 {% block extrahead %}
     {{ block.super }}
     <link media="all" href="{% static 'usu/css/weathermap.css' %}" type="text/css" rel="stylesheet" />

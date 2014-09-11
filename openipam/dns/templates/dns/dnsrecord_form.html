@@ -1,6 +1,8 @@
 {% extends "dns/base.html" %}
 {% load i18n static crispy_forms_tags %}
 
+{% block page_title %}{% if object %}Edit DNS Record: {{ object.name }}{% else %}Add DNS Record{% endif %}{% endblock %}
+
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
     {% if object %}Edit{% else %}Add{% endif %} DNS Record

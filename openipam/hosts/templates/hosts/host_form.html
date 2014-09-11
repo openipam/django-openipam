@@ -1,6 +1,8 @@
 {% extends "hosts/base.html" %}
 {% load i18n static crispy_forms_tags %}
 
+{% block page_title %}{% if object %}Edit Host: {{ object.hostname }}{% else %}Add Host{% endif %}{% endblock %}
+
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
     {% if object %}

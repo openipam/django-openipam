@@ -1,9 +1,11 @@
 {% extends "hosts/base.html" %}
 {% load i18n static crispy_forms_tags %}
 
+{% block page_title %}Add/Delete Addresses{% endblock %}
+
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-    Add/Change Additional Addresses: {{ object.hostname }}
+    Add/Delete Additional Addresses: {{ object.hostname }}
   </h3>
 {% endblock %}
 
