@@ -163,7 +163,7 @@ def subnet_data(request):
 
 
 @api_view(('GET',))
-@permission_classes((IsAuthenticated,))
+#@permission_classes((IsAuthenticated,))
 def weather_data(request):
 
     data = OrderedDict({
