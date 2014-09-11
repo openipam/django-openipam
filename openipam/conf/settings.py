@@ -242,6 +242,7 @@ ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
     'password/forgot/',
     'api/?.*',
+    'reports/weathermap/',
 )
 #LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'
