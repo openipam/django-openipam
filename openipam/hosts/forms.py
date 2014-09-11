@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, utc
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
@@ -264,7 +264,7 @@ class HostForm(forms.ModelForm):
                         </p>
                     </div>
                 </div>
-            ''' % localtime(self.instance.expires).strftime('%b %d %Y'))
+            ''' % localtime(self.instance.expires.replace(tzinfo=utc)).strftime('%b %d %Y'))
             self.fields['expire_days'].required = False
 
         elif self.previous_form_data and 'expire_days' in self.previous_form_data:
