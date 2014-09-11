@@ -90,10 +90,6 @@ class HostLogAdmin(admin.ModelAdmin):
     nice_changed_by.short_description = 'Changed By'
     nice_changed_by.allow_tags = True
 
-    def get_queryset(self, request):
-        qs = super(HostLogAdmin, self).get_queryset(request)
-        return qs.prefetch_related('changed_by')
-
     def has_delete_permission(self, request, obj=None):
         return False
 
