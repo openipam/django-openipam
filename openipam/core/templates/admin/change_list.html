@@ -13,6 +13,16 @@
     {{ block.super }}
     {{ media.js }}
     <script type="text/javascript" src="{% static "chosen-bower/chosen.jquery.min.js" %}"></script>
+    <script type="text/javascript">
+        $(function(){
+            $("#searchbar").on('keypress', function(e){
+                if (e.keyCode == 13) {
+                    location.href = './?q=' + $(this).val();
+                    return false;
+                }
+            });
+        });
+    </script>
     {% if cl.formset or action_form %}
         <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     {% endif %}
@@ -30,13 +40,6 @@
 
                 $("#changelist-filters-toggle").on('click', function(){
                     $("#changelist-filter-actions").toggle();
-                });
-
-                $("#searchbar").keypress(function(e){
-                    if (e.keyCode == 13) {
-                        location.href = './?q=' + $(this).val();
-                        return false;
-                    }
                 });
 
                 $("select[name='action'] option:selected")
