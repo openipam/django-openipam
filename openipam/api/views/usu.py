@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.views.decorators.cache import cache_page
 
@@ -163,7 +163,7 @@ def subnet_data(request):
 
 
 @api_view(('GET',))
-#@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
 def weather_data(request):
 
     data = OrderedDict({
