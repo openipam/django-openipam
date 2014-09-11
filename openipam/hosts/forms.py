@@ -211,7 +211,8 @@ class HostForm(forms.ModelForm):
             self.fields['network_or_ip'].initial = '1'
 
             addresses = self.instance.ip_addresses
-            addresses.pop(addresses.index(master_ip_address))
+            if master_ip_address in addresses:
+                addresses.pop(addresses.index(master_ip_address))
 
             html_primary_address = '''
                 <p class="pull-left"><span class="label label-primary">%s</span></p>
