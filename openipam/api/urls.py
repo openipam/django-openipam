@@ -32,6 +32,7 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^attributes/structured/values/$', hosts.StructuredAttributeValueList.as_view(), name='api_attributes_structured_values'),
 
     # Hosts
+    url(r'^hosts/mac/next/$', hosts.HostNextMac.as_view(), name='api_host_mac_next'),
     url(r'^hosts/mac/$', hosts.HostMac.as_view(), name='api_host_mac'),
     url(r'^hosts/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/attributes/add/$', hosts.HostAddAttribute.as_view(), name='api_host_attribute_add'),
     url(r'^hosts/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/attributes/delete/$', hosts.HostDeleteAttribute.as_view(), name='api_host_attribute_delete'),
