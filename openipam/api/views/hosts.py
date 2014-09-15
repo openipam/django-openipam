@@ -90,6 +90,19 @@ class HostMac(APIView):
         return Response({})
 
 
+class HostNextMac(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None, **kwargs):
+        vendor = request.GET.get('vendor')
+
+        if vendor:
+            next_mac = Host.objects.find_next_mac(vendor)
+            return Response({'mac': next_mac})
+
+        return Response({})
+
+
 class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
