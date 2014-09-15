@@ -130,7 +130,7 @@ class HostMixin(object):
         finally:
             cursor.close()
 
-        return next
+        return next[0] if next else None
 
     def get_or_none(self, **kwargs):
         try:
