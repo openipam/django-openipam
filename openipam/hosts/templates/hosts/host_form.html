@@ -84,8 +84,14 @@
                 return false;
             })
 
+            var allowSubmit = true;
             $("#host-form").submit(function(){
-                $("input[type='submit']").attr('disabled', 'disabled');
+                if(allowSubmit) {
+                    allowSubmit = false;
+                }
+                else {
+                    return false;
+                }
             });
 
             $.networkIPToggle = function() {
@@ -208,7 +214,7 @@
                         {% if request.get_full_path = add_url or request.get_full_path = add_url_bulk %}
                             <input type="submit" name="_add" value="Save and add another" class="btn btn-success" data-toggle="modal" data-target="#processing-modal" />
                         {% endif %}
-                        <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info" data-toggle="modal" data-target="#processing-modal" />
+                        <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info"  />
                     {% endif %}
                     <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
                 </div>
