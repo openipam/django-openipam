@@ -120,11 +120,10 @@ class HostMixin(object):
         try:
             cursor.execute('''
                 SELECT hosts.mac + 1 AS next FROM hosts
-                    WHERE hosts.mac IS NULL
-                        AND NOT EXISTS (
-                            SELECT mac from hosts as next WHERE hosts.mac + 1 == next.mac
+                    WHERE NOT EXISTS (
+                            SELECT mac from hosts as next WHERE hosts.mac + 1 = next.mac
                         )
-                        AND trunc_mac(hosts.mac + 1) == %s
+                        AND trunc(hosts.mac + 1) = %s
                     ORDER BY hosts.mac LIMIT 1
             ''', [oui])
             next = cursor.fetchone()
