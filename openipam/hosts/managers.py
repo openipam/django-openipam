@@ -49,9 +49,21 @@ class HostMixin(object):
             else:
                 return self.all()
         else:
-            host_perms = get_objects_for_user(user, ['hosts.is_owner_host', 'hosts.change_host'], any_perm=True).values_list('mac', flat=True)
-            domain_perms = get_objects_for_user(user, ['dns.is_owner_domain', 'dns.change_domain'], any_perm=True).values_list('name', flat=True)
-            network_perms = get_objects_for_user(user, ['network.is_owner_network', 'network.change_network'], any_perm=True).values_list('network', flat=True)
+            host_perms = get_objects_for_user(
+                user,
+                ['hosts.is_owner_host', 'hosts.change_host'],
+                any_perm=True
+            ).values_list('mac', flat=True)
+            domain_perms = get_objects_for_user(
+                user,
+                ['dns.is_owner_domain', 'dns.change_domain'],
+                any_perm=True
+            ).values_list('name', flat=True)
+            network_perms = get_objects_for_user(
+                user,
+                ['network.is_owner_network', 'network.change_network'],
+                any_perm=True
+            ).values_list('network', flat=True)
 
             perms_q_list = [Q(hostname__endswith=name) for name in domain_perms]
             perms_q_list.append(Q(mac__in=host_perms))
@@ -77,11 +89,8 @@ class HostMixin(object):
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
                         AND (h.expires - n.notification) < now()
-                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(g-%)
-                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(%.guests.usu.edu)
-
-
-
+                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(g-%%)
+                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(%%.guests.usu.edu)
             ''')
             hosts = [host[0] for host in cursor.fetchall()]
         finally:
@@ -100,6 +109,29 @@ class HostMixin(object):
             hosts = self.filter(mac__in=hosts)
 
         return hosts
+
+    def find_next_mac(self, vendor):
+        if vendor.lower() == 'vmware':
+            oui = '00:50:56:00:00:00'
+        else:
+            raise ValidationError("Don't know how to handle OUI: %s" % vendor)
+
+        cursor = connection.cursor()
+        try:
+            cursor.execute('''
+                SELECT hosts.mac + 1 AS next FROM hosts
+                    WHERE hosts.mac IS NULL
+                        AND NOT EXISTS (
+                            SELECT mac from hosts as next WHERE hosts.mac + 1 == next.mac
+                        )
+                        AND trunc_mac(hosts.mac + 1) == %s
+                    ORDER BY hosts.mac LIMIT 1
+            ''', [oui])
+            next = cursor.fetchone()
+        finally:
+            cursor.close()
+
+        return next
 
     def get_or_none(self, **kwargs):
         try:
