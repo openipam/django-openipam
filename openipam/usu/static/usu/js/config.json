@@ -39,7 +39,12 @@
         "BR":  { "coords": [950 , 100], "size": 25 },
 
         "UEN-A":  { "coords": [1200, 50], "type": "square", "size": 50 },
-        "UEN-B":  { "coords": [1200, 150], "type": "square", "size": 50 }
+        "UEN-B":  { "coords": [1200, 150], "type": "square", "size": 50 },
+
+        "CORE": {"coords": [1200, 500], "size": 25},
+        "NSER": {"coords": [1200, 250], "size": 25},
+        "DMZ": {"coords": [900, 550], "size": 25}
+
     },
 
     "links": {
@@ -57,7 +62,10 @@
         "SER-BR-BYP": { "bw": "4G", "nodes": ["SER", "BR"], "linkDelta": [-40, 0], "inLabelDelta": [-25, 0],  "outLabelDelta": [-25, -15] },
         "SER-BR-SEC": { "bw": "10G", "nodes": ["SER", "BR"], "linkDelta": [40, 0], "inLabelDelta": [25, 0], "outLabelDelta": [25, -10] },
         "BR-UEN-A": { "bw": "10G", "nodes": ["BR", "UEN-A"] },
-        "BR-UEN-B": { "bw": "10G", "nodes": ["BR", "UEN-B"] }
+        "BR-UEN-B": { "bw": "10G", "nodes": ["BR", "UEN-B"] },
+        "CORE-SER": {"bw": "10G", "linkDelta": [30, -30]},
+        "CORE-NEWSER": {"bw": "10G", "nodes": ["CORE", "NSER"]},
+        "CORE-DMZ": {"bw": "10G", "linkDelta": [10, 10]}
     },
 
     "utilizationURL": "/api/reports/weatherdata/?format=json&links=",
