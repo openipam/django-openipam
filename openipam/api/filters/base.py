@@ -10,13 +10,12 @@ User = get_user_model()
 class UsernameFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            user = User.objects.filter(username__iexact=value)
+            user = User.objects.filter(username__iexact=value).first()
             if user:
-                user[0].is_superuser = False
                 user_hosts = get_objects_for_user(
-                    user[0],
+                    user,
                     ['hosts.is_owner_host'],
-                    klass=Host,
+                    with_superuser=False
                 )
                 qs = qs.filter(pk__in=[host.pk for host in user_hosts])
             else:

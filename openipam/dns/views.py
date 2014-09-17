@@ -160,13 +160,12 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         ).by_change_perms(self.request.user).values_list('pk', flat=True)
         global_delete_permission = self.request.user.has_perm('dns.change_dnsrecord')
 
-        dns_user = copy.deepcopy(self.request.user)
-        dns_user.is_superuser = False
         dns_types = get_objects_for_user(
-            dns_user,
+            self.request.user,
             ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
             any_perm=True,
-            use_groups=True
+            use_groups=True,
+            with_superuser=False
         )
 
         def get_dns_types(dtype):
@@ -285,13 +284,12 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DNSListView, self).get_context_data(**kwargs)
-        user = copy.deepcopy(self.request.user)
-        user.is_superuser = False
         context['dns_types_change'] = get_objects_for_user(
-            user,
+            self.request.user,
             ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
             any_perm=True,
-            use_groups=True
+            use_groups=True,
+            with_superuser=False
         )
         context['dns_types'] = DnsType.objects.filter(records__isnull=False).distinct()
 

@@ -220,17 +220,18 @@ def populate_user_from_ldap(username=None, user=None):
     ldap_backend = LDAPBackend()
 
     if username:
-        users = User.objects.filter(username__iexact=username)
+        return ldap_backend.populate_user(username=username)
     elif user:
         return ldap_backend.populate_user(username=user.username)
     else:
         users = User.objects.all()
-    for user in queryset_iterator(users):
-        if not user.first_name or not user.last_name or not user.email:
-            print timezone.now(), 'Updating user: %s' % user.username
-            ldap_backend.populate_user(username=user.username)
-        else:
-            print timezone.now(), 'NOT Updating user: %s' % user.username
+
+        for user in queryset_iterator(users):
+            if not user.first_name or not user.last_name or not user.email:
+                print timezone.now(), 'Updating user: %s' % user.username
+                ldap_backend.populate_user(username=user.username)
+            else:
+                print timezone.now(), 'NOT Updating user: %s' % user.username
 
 
 

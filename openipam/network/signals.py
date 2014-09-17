@@ -8,6 +8,14 @@ def release_leases(sender, instance, **kwargs):
         Lease.objects.filter(address=instance).delete()
 
 
+def set_default_pool(sender, instance, **kwargs):
+    from openipam.network.models import DefaultPool
+
+    if not instance.host:
+        pool = DefaultPool.objects.get_pool_default(instance.address)
+        instance.pool = pool
+
+
 def validate_address_type(sender, instance, action, **kwargs):
     if action == 'pre_add':
         if instance.pool:

@@ -19,11 +19,14 @@ class DomainMixin(object):
     def by_owner(self, user, use_groups=False, ids_only=False, names_only=False):
         # Temporarily set superuser to false so we can get only permission relations
         User = get_user_model()
-
         perm_user = User.objects.get(pk=user.pk)
-        perm_user.is_superuser = False
 
-        domains = get_objects_for_user(perm_user, 'dns.is_owner_domain', use_groups=use_groups)
+        domains = get_objects_for_user(
+            perm_user,
+            'dns.is_owner_domain',
+            use_groups=use_groups,
+            with_superuser=False
+        )
 
         if names_only:
             domain_names = [domain.name for domain in domains]
@@ -261,4 +264,9 @@ class DnsTypeManager(Manager):
     @property
     def PTR(self):
         filtered = [record for record in self._cached_queryset if record.name == 'PTR']
+        return filtered[0] if filtered else None
+
+    @property
+    def MX(self):
+        filtered = [record for record in self._cached_queryset if record.name == 'MX']
         return filtered[0] if filtered else None

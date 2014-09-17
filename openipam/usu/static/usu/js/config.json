@@ -1,0 +1,65 @@
+{
+    "mapName": "Utah State University",
+    "acronym": "USU",
+    "logo": "",
+
+    "updateInterval": 30,
+
+    "linkStyle": { "maxWidth": 13, "minWidth": 8 },
+
+    "utilizationColors": {
+        "100": "#ff0000",
+        "90": "#ff0000",
+        "80": "#ff0f00",
+        "70": "#ff5f00",
+        "60": "#ff7f00",
+        "50": "#ffbf00",
+        "40": "#ffff00",
+        "30": "#dfef00",
+        "25": "#bfdf00",
+        "20": "#9fcf00",
+        "15": "#7fbf00",
+        "10": "#5faf00",
+        "5": "#3f9f00",
+        "2": "#1f8f00",
+        "1": "#006600",
+        "0": "#333333",
+        "-1": "blue"
+    },
+
+
+    "nodes": {
+        "MAIN":  { "coords": [1060, 480], "size": 25 },
+        "RPARK":  { "coords": [100, 550], "size": 25 },
+        "ED":   { "coords": [800, 430], "size": 25 },
+        "ASTE":   { "coords": [50, 380], "size": 25 },
+        "SPEC": { "coords": [620, 370], "size": 25 },
+        "SER":  { "coords": [950, 320], "size": 25 },
+        "HOUS":  { "coords": [625, 170], "size": 25 },
+        "BR":  { "coords": [950 , 100], "size": 25 },
+
+        "UEN-A":  { "coords": [1200, 50], "type": "square", "size": 50 },
+        "UEN-B":  { "coords": [1200, 150], "type": "square", "size": 50 }
+    },
+
+    "links": {
+        "MAIN-RPARK": { "bw": "10G" },
+        "MAIN-ED": { "bw": "10G" },
+        "MAIN-SER": { "bw": "10G" },
+        "RPARK-ASTE": { "bw": "10G" },
+        "RPARK-SER": { "bw": "10G", "linkDelta": [-80, -80] },
+        "RPARK-SPEC": { "bw": "10G" },
+        "SER-ED": { "bw": "10G" },
+        "SER-SPEC": { "bw": "10G" },
+        "SER-ASTE": { "bw": "10G", "linkDelta": [-80, -80] },
+        "SER-HOUS": { "bw": "10G" },
+        "SER-BR": { "bw": "10G" },
+        "SER-BR-BYP": { "bw": "4G", "nodes": ["SER", "BR"], "linkDelta": [-40, 0], "inLabelDelta": [-25, 0],  "outLabelDelta": [-25, -15] },
+        "SER-BR-SEC": { "bw": "10G", "nodes": ["SER", "BR"], "linkDelta": [40, 0], "inLabelDelta": [25, 0], "outLabelDelta": [25, -10] },
+        "BR-UEN-A": { "bw": "10G", "nodes": ["BR", "UEN-A"] },
+        "BR-UEN-B": { "bw": "10G", "nodes": ["BR", "UEN-B"] }
+    },
+
+    "utilizationURL": "/api/reports/weatherdata/?format=json&links=",
+    "recheckConfig": 60
+}

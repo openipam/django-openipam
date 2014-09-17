@@ -5,14 +5,24 @@
 {% block extrastyle %}
 	{{ block.super }}
     {{ media.css }}
-    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/chosen.min.css" %}" />
-    <link rel="stylesheet" type="text/css" href="{% static "core/chosen/bootstrap-chosen.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "chosen-bower/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
     {{ media.js }}
-    <script type="text/javascript" src="{% static "core/chosen/chosen.jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "chosen-bower/chosen.jquery.min.js" %}"></script>
+    <script type="text/javascript">
+        $(function(){
+            $("#searchbar").on('keypress', function(e){
+                if (e.keyCode == 13) {
+                    location.href = './?q=' + $(this).val();
+                    return false;
+                }
+            });
+        });
+    </script>
     {% if cl.formset or action_form %}
         <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     {% endif %}
@@ -30,13 +40,6 @@
 
                 $("#changelist-filters-toggle").on('click', function(){
                     $("#changelist-filter-actions").toggle();
-                });
-
-                $("#searchbar").keypress(function(e){
-                    if (e.keyCode == 13) {
-                        location.href = './?q=' + $(this).val();
-                        return false;
-                    }
                 });
 
                 $("select[name='action'] option:selected")
@@ -57,10 +60,9 @@
 
 {% block breadcrumbs %}
 	{% if not is_popup %}
-		../../../|{% trans "Home" %}
-		{# ../../|{% trans "Admin" %} #}
-		../|{{ app_label|capfirst }}
-		{{ cl.opts.verbose_name_plural|capfirst }}
+		../../|{% trans "Home" %}
+		../|{{ opts.app_label|capfirst }}
+		*{{ cl.opts.verbose_name_plural|capfirst }}
 	{% endif %}
 {% endblock %}
 
@@ -107,11 +109,11 @@
 
 			{% block result_list %}
 				<div class="well well-sm">
-					{% if action_form and actions_on_top and cl.full_result_count %}
-						{% include "admin/actions.html" %}
-						{% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
-						{% include "admin/filters.html" %}
-					{% endif %}
+    					{% if action_form and actions_on_top and cl.full_result_count %}
+    						{% include "admin/actions.html" %}
+    					{% endif %}
+                        {% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
+                        {% include "admin/filters.html" %}
 					<div class="clear"><!-- --></div>
 				</div>
 				{% result_list cl %}

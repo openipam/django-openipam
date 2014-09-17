@@ -53,7 +53,7 @@ class AttributeToHost(models.Model):
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s %s' % (self.aid, self.name)
+        return '%s %s' % (self.attribute.name, self.name)
 
     class Meta:
         managed = False
@@ -95,7 +95,7 @@ class FreeformAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s %s' % (self.host, self.attribute, self.value)
+        return '%s %s %s' % (self.host.hostname, self.attribute.name, self.value)
 
     class Meta:
         db_table = 'freeform_attributes_to_hosts'
@@ -538,8 +538,12 @@ class Host(DirtyFieldsMixin, models.Model):
         from openipam.dns.models import DnsRecord
 
         addresses = self.addresses.all()
-        a_record_names = DnsRecord.objects.select_related().filter(ip_content__in=addresses).values_list('name')
-        dns_records = DnsRecord.objects.select_related().filter(
+        a_record_names = (DnsRecord.objects
+            .select_related('ip_content', 'host', 'dns_type')
+            .filter(ip_content__in=addresses)
+            .values_list('name')
+        )
+        dns_records = DnsRecord.objects.select_related('ip_content', 'host', 'dns_type').filter(
             Q(text_content__in=a_record_names) |
             Q(name__in=a_record_names) |
             Q(ip_content__in=addresses) |
@@ -673,6 +677,10 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Perform check to on hostname to not let users create a host
         if self.hostname and self.hostname != self.original_hostname:
+            existing_hostname = Host.objects.filter(hostname=self.hostname).first()
+            if existing_hostname:
+                raise ValidationError("The hostname '%s' already exists." % (self.hostname))
+
             existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
             if existing_dns_hostname:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
@@ -809,7 +817,7 @@ class NotificationToHost(models.Model):
     host = models.ForeignKey('Host', db_column='mac')
 
     def __unicode__(self):
-        return '%s %s' % (self.nid, self.mac)
+        return '%s %s' % (self.notification.notification, self.host.hostname)
 
     class Meta:
         db_table = 'notifications_to_hosts'
@@ -837,7 +845,7 @@ class StructuredAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.host, self.structured_attribute_value)
+        return '%s %s' % (self.host.hostname, self.structured_attribute_value)
 
     class Meta:
         db_table = 'structured_attributes_to_hosts'

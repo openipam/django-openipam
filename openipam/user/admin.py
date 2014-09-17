@@ -268,6 +268,11 @@ class AuthGroupAdmin(GroupAdmin):
     list_display = ('name', 'source')
     list_filter = (IPAMObjUserFilter, GroupSourceFilter)
     form = AuthGroupAdminForm
+    list_select_related = True
+
+    def get_queryset(self, request):
+        qs = super(AuthGroupAdmin, self).get_queryset(request)
+        return qs.select_related('source__source').all()
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
@@ -519,6 +524,7 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     list_display = ('user', 'object_name', 'permission_name',)
     list_filter = (ObjectPermissionFilter, IPAMObjUserFilter)
     search_fields = ('user__username', '^object_pk')
+    list_select_related = True
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
@@ -544,8 +550,8 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
 
 
     def object_name(self, obj):
-        c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
-        return '%s - %s' % (obj.content_type.model, c_obj)
+        #c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
+        return '%s - %s' % (obj.content_type.model, obj.content_object)
     object_name.short_description = 'Object'
 
 

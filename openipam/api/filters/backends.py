@@ -14,10 +14,10 @@ class HostGroupFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         groupname = request.GET.get('group', '')
         if groupname:
-            group = Group.objects.filter(name=groupname)
+            group = Group.objects.filter(name=groupname).first()
             if group:
                 group_hosts = get_objects_for_group(
-                    group[0],
+                    group,
                     ['hosts.is_owner_host'],
                     klass=Host,
                 )
@@ -33,14 +33,14 @@ class HostOwnerFilterBackend(filters.BaseFilterBackend):
         owner = request.GET.get('owner', '')
         use_groups = request.GET.get('use_groups', '')
         if owner:
-            user = User.objects.filter(username__iexact=owner)
+            user = User.objects.filter(username__iexact=owner).first()
             if user:
-                user[0].is_superuser = False
                 user_hosts = get_objects_for_user(
-                    user[0],
+                    user,
                     ['hosts.is_owner_host'],
                     klass=Host,
-                    use_groups=True if use_groups else False
+                    use_groups=True if use_groups else False,
+                    with_superuser=False
                 )
                 return queryset.filter(pk__in=[host.pk for host in user_hosts])
             else:

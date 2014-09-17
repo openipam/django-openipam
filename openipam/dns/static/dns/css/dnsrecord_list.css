@@ -55,14 +55,36 @@ table tr.error td {
     white-space: nowrap;
 }
 
-@media screen and (max-width: 810px) {
-    .paginate_button:not(.first):not(.previous):not(.next):not(.last) {
+@media screen and (max-width: 600px) {
+    #changelist-search {
+        float: left !important;
+        margin-top: 10px;
+    }
+
+    ul.breadcrumb {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    #result_list td:nth-child(4),
+    #result_list th:nth-child(4),
+    #result_list td:nth-child(5),
+    #result_list th:nth-child(5) {
         display: none;
     }
 
+}
+
+
+@media screen and (max-width: 810px) {
     #result_list td:nth-child(3),
     #result_list th:nth-child(3) {
         display: none;
+    }
+
+    #type-filter {
+        width: 80px !important;
     }
 
     #search-help-button {
@@ -76,11 +98,38 @@ table tr.error td {
     .input-content {
         width: auto !important;
     }
+
+    #dns-action {
+        display: inline-block;
+    }
+
+    #result_list_length {
+        display: none;
+    }
 }
 
 @media screen and (max-width: 900px) {
     #result_list td:nth-child(6),
     #result_list th:nth-child(6) {
+        display: none;
+    }
+
+    .add-row.extra {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 980px) {
+    #id_search {
+        width: 200px !important;
+    }
+    #dns-action {
+        width: 200px !important;
+    }
+}
+
+@media screen and (max-width: 960px) {
+    .paginate_button:not(.first):not(.previous):not(.next):not(.last) {
         display: none;
     }
 }

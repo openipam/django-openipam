@@ -4,10 +4,10 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
-from django.db.models.signals import m2m_changed, post_save, pre_delete
+from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
-from openipam.network.signals import validate_address_type, release_leases
+from openipam.network.signals import validate_address_type, release_leases, set_default_pool
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
 
@@ -143,7 +143,7 @@ class HostToPool(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.host, self.pool)
+        return '%s %s' % (self.host.hostname, self.pool.name)
 
     class Meta:
         db_table = 'hosts_to_pools'
@@ -304,6 +304,7 @@ class AddressType(models.Model):
 
 
 # Network Signals
+pre_save.connect(set_default_pool, sender=Address)
 m2m_changed.connect(validate_address_type, sender=AddressType.ranges.through)
 post_save.connect(release_leases, sender=Address)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Network)

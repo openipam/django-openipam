@@ -112,13 +112,12 @@ class DSNCreateFrom(forms.Form):
     def __init__(self, user, *args, **kwargs):
         super(DSNCreateFrom, self).__init__(*args, **kwargs)
 
-        dns_user = copy.deepcopy(user)
-        dns_user.is_superuser = False
         self.fields['dns_type'].queryset = get_objects_for_user(
-            dns_user,
+            user,
             ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
             any_perm=True,
-            use_groups=True
+            use_groups=True,
+            with_superuser=False
         )
 
         self.helper = FormHelper()

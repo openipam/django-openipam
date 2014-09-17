@@ -49,6 +49,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
     form = AddressTypeAdminForm
     list_select_related = True
 
+    def get_queryset(self, request):
+        qs = super(AddressTypeAdmin, self).get_queryset(request)
+        return qs.prefetch_related('ranges', 'pool').all()
+
     def show_pool(self, obj):
         return obj.pool if obj.pool else ''
     show_pool.short_description = 'Network Pool'
@@ -66,18 +70,29 @@ class DhcpGroupAdmin(ChangedAdmin):
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
     list_display = ('combined_value', 'changed', 'changed_by',)
-
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ('group', 'option', 'readable_value', 'changed', 'changed_by',)
     readonly_fields = ('changed_by', 'changed',)
+    list_select_related = True
 
     def combined_value(self, obj):
         return '%s:%s=%r' % (obj.group.name, obj.option.name, str(obj.value))
     combined_value.short_description = 'Group:Option=Value'
 
+    def get_queryset(self, request):
+        qs = super(DhcpOptionToDhcpGroupAdmin, self).get_queryset(request)
+        return qs.prefetch_related('group', 'option').all()
+
     # def get_form(self, request, obj=None, **kwargs):
     #     super(DhcpOptionToDhcpGroupAdmin, self).get_form(request, obj, **kwargs)
 
+
+class DefaultPoolAdmin(admin.ModelAdmin):
+    list_select_related = True
+
+    def get_queryset(self, request):
+        qs = super(DefaultPoolAdmin, self).get_queryset(request)
+        return qs.select_related('pool').all()
 
 
 class PoolAdmin(admin.ModelAdmin):
@@ -137,10 +152,10 @@ class AddressAdmin(ChangedAdmin):
 
     def get_queryset(self, request):
         qs = super(AddressAdmin, self).get_queryset(request)
-        return qs.select_related('host', 'network', 'changed').all()
+        return qs.select_related('host', 'network', 'changed_by').all()
 
 
-admin.site.register(DefaultPool)
+admin.site.register(DefaultPool, DefaultPoolAdmin)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)

@@ -1,6 +1,8 @@
 {% extends "hosts/base.html" %}
 {% load i18n static openipam openipam_host_extras crispy_forms_tags widget_tweaks %}
 
+{% block page_title %}List Hosts{% endblock %}
+
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
       Hosts
@@ -14,14 +16,14 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'core/datatables/dataTables.bootstrap.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
-    <script type="text/javascript" src="{% static 'core/datatables/jquery.dataTables.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'core/datatables/dataTables.bootstrap.js' %}"></script>
+    <script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 
@@ -109,8 +111,8 @@
                             <div class="clear"></div>
                         </th>
                         <th scope="col">Hostname</th>
-                        <th scope="col">Ethernet Address</th>
-                        <th scope="col">IP Address</th>
+                        <th scope="col" style="min-width: 150px;">Ethernet Address</th>
+                        <th scope="col" style="min-width: 150px;">IP Address</th>
                         <th scope="col">Expires</th>
                         <th scope="col">Mac Address Last seen</th>
                         <th scope="col">Static IP Last seen</th>

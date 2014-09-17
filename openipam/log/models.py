@@ -20,7 +20,7 @@ class HostLog(BaseLog):
     dhcp_group = models.IntegerField(null=True, blank=True)
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.IntegerField()
+    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
 
     class Meta:
         managed = False

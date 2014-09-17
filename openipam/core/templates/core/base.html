@@ -1,6 +1,8 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static admin_tools_menu_tags openipam crispy_forms_tags %}
 
+{% block title %}{% block page_title %}{% endblock %} | {% atb_site_name %}{% endblock %}
+
 {% block coltype %}{% endblock %}
 
 {% block breadcrumbs %}

@@ -61,7 +61,7 @@
                 {% endif %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" href="#" data-toggle="dropdown">
-                        <img src="{{ gravatar }}?d=mm&amp;s=20" style="height: 20px; width: 20px; margin-right: 5px; top: -3px; position: relative;" alt="{{ request.user }}" class="glyphicon glyphicon-user white" />
+                        <img id="user-icon" src="{{ gravatar }}?d=mm&amp;s=20" alt="{{ request.user }}" class="glyphicon glyphicon-user white" />
                         {% filter force_escape %}
                             {% firstof user.first_name user.username %}
                         {% endfilter %}

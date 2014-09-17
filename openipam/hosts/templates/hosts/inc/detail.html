@@ -118,7 +118,7 @@
     <table class="table table-condensed table-bordered">
         <thead>
             <tr>
-                <th colspan="5">
+                <th colspan="6">
                     <h5>Addresses</h5>
                 </th>
             </tr>
@@ -127,6 +127,7 @@
             <tr class="active">
                 <td><strong>Static Addresses</strong></td>
                 <td><strong>Network</strong></td>
+                <td><strong>Netmask</strong></td>
                 <td><strong>Gateway</strong></td>
                 <td><strong>Last seen</strong></td>
                 <td><strong>Last seen MAC</strong></td>
@@ -136,6 +137,7 @@
                     <tr>
                         <td>{{ address.address }}</td>
                         <td>{{ address.network }}</td>
+                        <td>{{ address.network.network.netmask }}</td>
                         <td>{{ address.network.gateway }}</td>
                         <td>{{ address.mac.static_ip_last_seen }}</td>
                         <td>{{ address.mac.mac_last_seen }}</td>
@@ -143,12 +145,12 @@
                 {% endfor %}
             {% else %}
                 <tr class="danger">
-                    <td colspan="5">None Assigned</td>
+                    <td colspan="6">None Assigned</td>
                 </tr>
             {% endif %}
             <tr class="active">
                 <td><strong>Leased Addresses</strong></td>
-                <td colspan="2"><strong>Expires</strong></td>
+                <td colspan="3"><strong>Expires</strong></td>
                 <td><strong>Last seen</strong></td>
                 <td><strong>Last seen MAC</strong></td>
             </tr>
@@ -156,30 +158,30 @@
                 {% for address in leased_addresses %}
                     <tr>
                         <td>{{ address.address }}</td>
-                        <td colspan="2">{{ address.ends|date:"Y-m-d h:i:s A" }}</td>
+                        <td colspan="3">{{ address.ends|date:"Y-m-d h:i:s A" }}</td>
                         <td>{{ address.gul_last_seen|date:"Y-m-d h:i:s A" }}</td>
                         <td>{{ address.gul_last_seen_mac }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr class="danger">
-                    <td colspan="5">None Assigned</td>
+                    <td colspan="6">None Assigned</td>
                 </tr>
             {% endif %}
             <tr class="active">
                 <td><strong>Pools</strong></td>
-                <td colspan="4"><strong>Description</strong></td>
+                <td colspan="5"><strong>Description</strong></td>
             </tr>
             {% if pools %}
                 {% for pool in pools %}
                     <tr>
                         <td>{{ pool.name }}</td>
-                        <td colspan="4">{{ pool.description }}</td>
+                        <td colspan="5">{{ pool.description }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr class="danger">
-                    <td colspan="5">None Assigned</td>
+                    <td colspan="6">None Assigned</td>
                 </tr>
             {% endif %}
         </tbody>

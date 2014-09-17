@@ -1,0 +1,14 @@
+{% extends "core/base.html" %}
+{% load static nvd3_tags %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
+    <script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
+    {% load_chart charttype chartdata chartcontainer extra %}
+{% endblock %}
+
+{% block content %}
+    {% include_container chartcontainer 400 600 %}
+{% endblock %}

@@ -166,17 +166,18 @@ $(function(){
             "search": ""
         },
         "stateLoaded": function (settings, data) {
-            $("#name-search").val(data.aoSearchCols[1].sSearch);
-            $("#type-filter").val(data.aoSearchCols[3].sSearch);
-            $("#content-search").val(data.aoSearchCols[4].sSearch);
+            console.log(data.columns[1]);
+            $("#name-search").val(data.columns[1].search.search);
+            $("#type-filter").val(data.columns[3].search.search);
+            $("#content-search").val(data.columns[4].search.search);
         },
         "columns": [
             { "name": "select", "orderable": false, "searchable": false  },
             { "name": "name", "orderable": true },
-            { "name": "ttl", "orderable": true, "searchable": false },
+            { "name": "ttl", "orderable": false, "searchable": false },
             { "name": "ttl", "orderable": true },
             { "name": "content", "orderable": true },
-            { "name": "view", "orderable": true, "searchable": false  },
+            { "name": "view", "orderable": false, "searchable": false  },
             { "name": "edit", "orderable": false, "searchable": false  },
         ],
         "initComplete": function() {

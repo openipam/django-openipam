@@ -192,13 +192,12 @@
     float: right;
     font-size: 13px;
     font-weight: bold;
+    line-height: normal;
 }
 #result_list_length label
 {
     font-weight: bold;
     margin-bottom: 0;
-    position: relative;
-    top: 5px;
 }
 #result_list_processing
 {
@@ -232,6 +231,13 @@
 #search-info-close
 {
     cursor: pointer;
+}
+#user-icon {
+    height: 19px;
+    width: 19px;
+    margin-right: 5px;
+    top: -3px;
+    position: relative;
 }
 .accordion-body
 {
@@ -534,6 +540,7 @@
 }
 .dataTables_info
 {
+    padding-top: 6px !important;
     margin-right: 10px;
 }
 .date-hierarchy
@@ -696,6 +703,13 @@
     height: 5em;
     width: 90%;
 }
+.navbar-nav > li > a {
+    padding-top: 12px !important;
+    padding-bottom: 11px !important;
+}
+.navbar {
+    min-height: 43px !important
+}
 .navbar .nav a
 {
     font-size: 13px;
@@ -706,11 +720,15 @@
     background-position: 12px 7px;
     font-size: 20px;
     height: auto;
+    padding-top: 11px !important;
+    padding-bottom: 12px !important;
     padding-left: 50px !important;
 }
 .navbar-form
 {
     padding: 0px 5px;
+    margin-top: 5px !important;
+    margin-bottom: 6px !important;
 }
 .object-tools
 {
@@ -879,6 +897,9 @@
 {
     border-radius: 0 0 3px 0;
 }
+table.table tfoot {
+    display: table-header-group;
+}
 .timelist a
 {
     padding: 2px;
@@ -907,51 +928,6 @@
 .well
 {
     margin-bottom: 10px !important;
-}
-@media screen and (max-width: 767px)
-{
-    #container
-    {
-        margin-top: 50px !important;
-    }
-    #feature-dropdown
-    {
-        display: none !important;
-    }
-    #id_mimic_select
-    {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-        width: auto !important;
-    }
-    #id_mimic_select
-    {
-        margin-left: 15px !important;
-        width: auto;
-    }
-    .dashboard-column
-    {
-        float: none !important;
-        width: auto !important;
-    }
-    .navbar-collapse
-    {
-        margin-left: 5px !important;
-        overflow: hidden;
-    }
-    .navbar-form
-    {
-        padding: 10px 15px;
-    }
-}
-@media screen and (max-width: 900px)
-{
-    #id_mimic_select
-    {
-        padding-left: 5px;
-        padding-right: 5px;
-        width: 80px;
-    }
 }
 body.change-form .add-another
 {
@@ -1014,4 +990,49 @@ ul.timelist, .timelist li
     list-style-type: none;
     margin: 0;
     padding: 0;
+}
+@media screen and (max-width: 767px)
+{
+    #container
+    {
+        margin-top: 50px !important;
+    }
+    #feature-dropdown
+    {
+        display: none !important;
+    }
+    #id_mimic_select
+    {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        width: auto !important;
+    }
+    #id_mimic_select
+    {
+        margin-left: 15px !important;
+        width: auto;
+    }
+    .dashboard-column
+    {
+        float: none !important;
+        width: auto !important;
+    }
+    .navbar-collapse
+    {
+        margin-left: 5px !important;
+        overflow: hidden;
+    }
+    .navbar-form
+    {
+        padding: 10px 15px;
+    }
+}
+@media screen and (max-width: 900px)
+{
+    #id_mimic_select
+    {
+        padding-left: 5px;
+        padding-right: 5px;
+        width: 80px;
+    }
 }

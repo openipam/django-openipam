@@ -1,0 +1,562 @@
+{% extends "core/base.html" %}
+{% load static nvd3_tags %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+    <!--<script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
+    <script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>-->
+
+    <style type="text/css">
+      #chart {
+        width: 1350px;
+        height: 600px;
+        background: #fff;
+      }
+
+      text {
+        pointer-events: none;
+        font-size: 18px;
+      }
+
+      .grandparent text {
+        font-weight: bold;
+        font-size: 18px;
+        text-transform: uppercase;
+      }
+
+      rect {
+        fill: none;
+        stroke: #fff;
+      }
+
+      rect.parent,
+      .grandparent rect {
+        stroke-width: 2px;
+      }
+
+      .grandparent rect {
+        fill: #fff;
+      }
+
+      .grandparent:hover rect {
+        fill: #ee9700;
+      }
+
+      .children rect.parent,
+      .grandparent rect {
+        cursor: pointer;
+      }
+
+      .children rect.parent {
+        /*fill: #bbb;*/
+        /*fill-opacity: .5;*/
+      }
+
+      .children:hover rect.child {
+        /*fill: #bbb;*/
+        fill-opacity: .5;
+      }
+
+      .cell rect {
+        border: 1px solid #000;
+      }
+    </style>
+
+
+<!--<style>
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: auto;
+  position: relative;
+  width: 1850px;
+}
+
+form {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+path {
+  stroke: #fff;
+  fill-rule: evenodd;
+}
+
+</style>-->
+
+{% endblock %}
+
+{% block content %}
+    {# <p id="chart"> #}
+    <p id="chart2">
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+    <!--
+    <script>
+
+    var margin = {top: 30, right: 0, bottom: 0, left: 0},
+        width = 1350,
+        height = 600 - margin.top - margin.bottom,
+        formatNumber = d3.format(",d"),
+        transitioning;
+
+    var x = d3.scale.linear()
+        .domain([0, width])
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([0, height])
+        .range([0, height]);
+
+    var treemap = d3.layout.treemap()
+        .children(function(d, depth) { return depth ? null : d._children; })
+        .sort(function(a, b) { return a.value - b.value; })
+        .ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
+        .round(false);
+
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.bottom + margin.top)
+        .style("margin-left", -margin.left + "px")
+        .style("margin.right", -margin.right + "px")
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .style("shape-rendering", "crispEdges");
+
+    var grandparent = svg.append("g")
+        .attr("class", "grandparent");
+
+    grandparent.append("rect")
+        .attr("y", -margin.top)
+        .attr("width", width)
+        .attr("height", margin.top);
+
+    grandparent.append("text")
+        .attr("x", 6)
+        .attr("y", 6 - margin.top)
+        .attr("dy", ".75em");
+
+    d3.json("/api/reports/subnetdata/?format=json", function(root) {
+      initialize(root);
+      accumulate(root);
+      layout(root);
+      display(root);
+
+      function initialize(root) {
+        root.x = root.y = 0;
+        root.dx = width;
+        root.dy = height;
+        root.depth = 0;
+      }
+
+      // Aggregate the values for internal nodes. This is normally done by the
+      // treemap layout, but not here because of our custom implementation.
+      // We also take a snapshot of the original children (_children) to avoid
+      // the children being overwritten when when layout is computed.
+      function accumulate(d) {
+        return (d._children = d.children)
+            ? d.value = d.children.reduce(function(p, v) { return p + accumulate(v); }, 0)
+            : d.value;
+      }
+
+      // Compute the treemap layout recursively such that each group of siblings
+      // uses the same size (1×1) rather than the dimensions of the parent cell.
+      // This optimizes the layout for the current zoom state. Note that a wrapper
+      // object is created for the parent node for each group of siblings so that
+      // the parent’s dimensions are not discarded as we recurse. Since each group
+      // of sibling was laid out in 1×1, we must rescale to fit using absolute
+      // coordinates. This lets us use a viewport to zoom.
+      function layout(d) {
+        if (d._children) {
+          treemap.nodes({_children: d._children});
+          d._children.forEach(function(c) {
+            c.x = d.x + c.x * d.dx;
+            c.y = d.y + c.y * d.dy;
+            c.dx *= d.dx;
+            c.dy *= d.dy;
+            c.parent = d;
+            layout(c);
+          });
+        }
+      }
+
+      function display(d) {
+        grandparent
+            .datum(d.parent)
+            .on("click", transition)
+          .select("text")
+            .text(name(d));
+
+        var g1 = svg.insert("g", ".grandparent")
+            .datum(d)
+            .attr("class", "depth");
+
+        var g = g1.selectAll("g")
+            .data(d._children)
+          .enter().append("g");
+
+        g.filter(function(d) { return d._children; })
+            .classed("children", true)
+            .on("click", transition);
+
+        g.selectAll(".child")
+            .data(function(d) { return d._children || [d]; })
+          .enter().append("rect")
+            .style("fill", function(d) { return d.style; })
+            .attr("class", "child")
+            .call(rect);
+
+        g.append("rect")
+            .attr("class", "parent")
+            .call(rect)
+            //.style("fill", d.style)
+          .append("title")
+            .text(function(d) { return formatNumber(d.value); });
+
+        g.append("text")
+            .attr("dy", ".75em")
+            .text(function(d) { return d.name; })
+            .call(text);
+
+        function transition(d) {
+          if (transitioning || !d) return;
+          transitioning = true;
+
+          var g2 = display(d),
+              t1 = g1.transition().duration(750),
+              t2 = g2.transition().duration(750);
+
+          // Update the domain only after entering new elements.
+          x.domain([d.x, d.x + d.dx]);
+          y.domain([d.y, d.y + d.dy]);
+
+          // Enable anti-aliasing during the transition.
+          svg.style("shape-rendering", null);
+
+          // Draw child nodes on top of parent nodes.
+          svg.selectAll(".depth").sort(function(a, b) { return a.depth - b.depth; });
+
+          // Fade-in entering text.
+          g2.selectAll("text").style("fill-opacity", 0);
+
+          // Transition to the new view.
+          t1.selectAll("text").call(text).style("fill-opacity", 0);
+          t2.selectAll("text").call(text).style("fill-opacity", 1);
+          t1.selectAll("rect").call(rect);
+          t2.selectAll("rect").call(rect);
+
+          // Remove the old node when the transition is finished.
+          t1.remove().each("end", function() {
+            svg.style("shape-rendering", "crispEdges");
+            transitioning = false;
+          });
+        }
+
+        return g;
+      }
+
+      function text(text) {
+        text.attr("x", function(d) { return x(d.x) + 6; })
+            .attr("y", function(d) { return y(d.y) + 6; });
+      }
+
+      function rect(rect) {
+        rect.attr("x", function(d) { return x(d.x); })
+            .attr("y", function(d) { return y(d.y); })
+            .attr("width", function(d) { return x(d.x + d.dx) - x(d.x); })
+            .attr("height", function(d) { return y(d.y + d.dy) - y(d.y); });
+      }
+
+      function name(d) {
+        return d.parent
+            ? name(d.parent) + "." + d.name
+            : d.name;
+      }
+    });
+
+    </script> -->
+
+    <script>
+
+        var w = 1920 - 80,
+            h = 1080 - 180,
+            x = d3.scale.linear().range([0, w]),
+            y = d3.scale.linear().range([0, h]),
+            color = d3.scale.category20c(),
+            root,
+            node;
+
+        var treemap = d3.layout.treemap()
+            .round(false)
+            .size([w, h])
+            .sticky(true)
+            .value(function(d) { return d.size; });
+
+        var svg = d3.select("#chart2").append("div")
+            .attr("class", "chart")
+            .style("width", w + "px")
+            .style("height", h + "px")
+          .append("svg:svg")
+            .attr("width", w)
+            .attr("height", h)
+          .append("svg:g")
+            .attr("transform", "translate(.5,.5)");
+
+        d3.json("/api/reports/subnetdata/?format=json&network_blocks=129.123.0.0/16,144.39.0.0/16", function(data) {
+          node = root = data;
+
+          var nodes = treemap.nodes(root)
+              .filter(function(d) { return !d.children; });
+
+          var cell = svg.selectAll("g")
+              .data(nodes)
+            .enter().append("svg:g")
+              .attr("class", "cell")
+              .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+              .on("click", function(d) { return zoom(node == d.parent ? root : d.parent); });
+
+          cell.append("svg:rect")
+              .attr("width", function(d) { return d.dx - 1; })
+              .attr("height", function(d) { return d.dy - 1; })
+              .style("fill", function(d) { return d.style; });
+
+          cell.append("svg:text")
+              .attr("x", function(d) { return d.dx / 2; })
+              .attr("y", function(d) { return d.dy / 2; })
+              .attr("dy", ".35em")
+              .attr("text-anchor", "middle")
+              .text(function(d) { return d.name; })
+              .style("opacity", function(d) { d.w = this.getComputedTextLength(); return d.dx > d.w ? 1 : 0; });
+
+          d3.select(window).on("click", function() { zoom(root); });
+
+          d3.select("select").on("change", function() {
+            treemap.value(this.value == "size" ? size : count).nodes(root);
+            zoom(node);
+          });
+        });
+
+        function size(d) {
+          return d.size;
+        }
+
+        function count(d) {
+          return 1;
+        }
+
+        function zoom(d) {
+          var kx = w / d.dx, ky = h / d.dy;
+          x.domain([d.x, d.x + d.dx]);
+          y.domain([d.y, d.y + d.dy]);
+
+          var t = svg.selectAll("g.cell").transition()
+              .duration(d3.event.altKey ? 7500 : 750)
+              .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+          t.select("rect")
+              .attr("width", function(d) { return kx * d.dx - 1; })
+              .attr("height", function(d) { return ky * d.dy - 1; })
+
+          t.select("text")
+              .attr("x", function(d) { return kx * d.dx / 2; })
+              .attr("y", function(d) { return ky * d.dy / 2; })
+              .style("opacity", function(d) { return kx * d.dx > d.w ? 1 : 0; });
+
+          node = d;
+          d3.event.stopPropagation();
+        }
+
+    </script>
+
+
+<!-- <script>
+
+var width = 1850,
+    height = 1000,
+    radius = Math.min(width, height) / 2,
+    padding = 5,
+    duration = 1000;
+
+var x = d3.scale.linear()
+    .range([0, 2 * Math.PI]);
+
+var y = d3.scale.sqrt()
+    .range([0, radius]);
+
+var color = d3.scale.category20c();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
+
+var partition = d3.layout.partition()
+    .sort(null)
+    .value(function(d) { return 1; });
+
+var arc = d3.svg.arc()
+    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+    .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+    .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+// Keep track of the node that is currently being displayed as the root.
+var node;
+
+d3.json("/api/reports/subnetdata/?format=json", function(error, root) {
+  node = root;
+  var path = svg.datum(root).selectAll("path")
+      .data(partition.nodes)
+    .enter().append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { return d.style; })
+      .text('hi')
+      .on("click", click)
+      .each(stash);
+
+  var text = svg.datum(root).selectAll("text").data(partition.nodes);
+  var textEnter = text.enter().append("text")
+      .style("fill-opacity", 1)
+      .style("fill", function(d) {
+        return brightness(d3.rgb(colour(d))) < 125 ? "#eee" : "#000";
+      })
+      .attr("text-anchor", function(d) {
+        return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+      })
+      .attr("dy", ".2em")
+      .attr("transform", function(d) {
+        var multiline = (d.name || "").split(" ").length > 1,
+            angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+            rotate = angle + (multiline ? -.5 : 0);
+        return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+      })
+      .on("click", click);
+  textEnter.append("tspan")
+      .attr("x", 0)
+      .text(function(d) { return d.depth ? d.name.split(" ")[0] : ""; });
+  textEnter.append("tspan")
+      .attr("x", 0)
+      .attr("dy", "1em")
+      .text(function(d) { return d.depth ? d.name.split(" ")[1] || "" : ""; });
+
+  d3.selectAll("input").on("change", function change() {
+    var value = this.value === "count"
+        ? function() { return 1; }
+        : function(d) { return d.size; };
+
+    path
+        .data(partition.value(value).nodes)
+      .transition()
+        .duration(1000)
+        .attrTween("d", arcTweenData);
+  });
+
+  function click(d) {
+    node = d;
+    path.transition()
+      .duration(1000)
+      .attrTween("d", arcTweenZoom(d));
+
+    // Somewhat of a hack as we rely on arcTween updating the scales.
+    text.style("visibility", function(e) {
+          return isParentOf(d, e) ? null : d3.select(this).style("visibility");
+        })
+      .transition()
+        .duration(duration)
+        .attrTween("text-anchor", function(d) {
+          return function() {
+            return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+          };
+        })
+        .attrTween("transform", function(d) {
+          var multiline = (d.name || "").split(" ").length > 1;
+          return function() {
+            var angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+                rotate = angle + (multiline ? -.5 : 0);
+            return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+          };
+        })
+        .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
+        .each("end", function(e) {
+          d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
+        });
+  }
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+
+// Setup for switching data: stash the old values for transition.
+function stash(d) {
+  d.x0 = d.x;
+  d.dx0 = d.dx;
+}
+
+// When switching data: interpolate the arcs in data space.
+function arcTweenData(a, i) {
+  var oi = d3.interpolate({x: a.x0, dx: a.dx0}, a);
+  function tween(t) {
+    var b = oi(t);
+    a.x0 = b.x;
+    a.dx0 = b.dx;
+    return arc(b);
+  }
+  if (i == 0) {
+   // If we are on the first arc, adjust the x domain to match the root node
+   // at the current zoom level. (We only need to do this once.)
+    var xd = d3.interpolate(x.domain(), [node.x, node.x + node.dx]);
+    return function(t) {
+      x.domain(xd(t));
+      return tween(t);
+    };
+  } else {
+    return tween;
+  }
+}
+
+// When zooming: interpolate the scales.
+function arcTweenZoom(d) {
+  var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+      yd = d3.interpolate(y.domain(), [d.y, 1]),
+      yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+  return function(d, i) {
+    return i
+        ? function(t) { return arc(d); }
+        : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+  };
+}
+
+function colour(d) {
+  if (d.children) {
+    // There is a maximum of two children!
+    var colours = d.children.map(colour),
+        a = d3.hsl(colours[0]),
+        b = d3.hsl(colours[1]);
+    // L*a*b* might be better here...
+    return d3.hsl((a.h + b.h) / 2, a.s * 1.2, a.l / 1.2);
+  }
+  return d.colour || "#fff";
+}
+
+
+function isParentOf(p, c) {
+  if (p === c) return true;
+  if (p.children) {
+    return p.children.some(function(d) {
+      return isParentOf(d, c);
+    });
+  }
+  return false;
+}
+
+function brightness(rgb) {
+  return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
+}
+
+</script> -->
+
+
+{% endblock %}

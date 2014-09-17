@@ -148,6 +148,7 @@ class DnsRecord(models.Model):
             raise ValidationError("Invalid credentials: user %s does not have permissions"
                 " to add or modify DNS Records for Host '%s'" % (user, self.text_content))
 
+
     def clean_fields(self, exclude=None):
         errors = {}
 
@@ -175,8 +176,6 @@ class DnsRecord(models.Model):
             errors = e.update_error_dict(errors)
 
         # Clean the priority
-        if self.dns_type.is_mx_record or self.dns_type.is_srv_record:
-            self.set_priority()
         try:
             self.clean_priority()
         except ValidationError as e:
@@ -194,9 +193,11 @@ class DnsRecord(models.Model):
             dns_exists = DnsRecord.objects.filter(
                 name=self.name,
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                ip_content=self.ip_content,
             ).exclude(pk=self.pk)
             if dns_exists:
-                raise ValidationError({'name': ['Invalid name for A or AAAA record: %s. Name already exists.' % self.name]})
+                raise ValidationError({'name': ["Invalid name for A or AAAA record: '%s'. "
+                    "Name already exists for IP '%s'." % (self.name, self.ip_content)]})
 
         # Clean name if PTR record
         if self.dns_type.is_ptr_record and self.domain:
@@ -230,13 +231,36 @@ class DnsRecord(models.Model):
                 elif self.dns_type.is_a_record:
                     raise ValidationError('Text Content should not be assigned with A records.')
 
+                # Validate Existing Records
+                dns_exists = DnsRecord.objects.filter(
+                    name=self.name,
+                    dns_type=self.dns_type,
+                    text_content=self.text_content
+                ).exclude(pk=self.pk)
+                if dns_exists:
+                        raise ValidationError("DNS Record with name: '%s', type: '%s', "
+                            "and content: '%s' already exists." % (self.name, self.dns_type, self.text_content))
+
         except ValidationError as e:
             raise ValidationError({'text_content': e.messages})
 
     def clean_priority(self):
+        error_list = []
+
         # Priority must exist for MX and SRV records
-        if hasattr(self, 'dns_type') and self.dns_type.name in ['MX', 'SRV'] and not self.priority:
-            raise ValidationError({'priority': ['Priority must exist for MX and SRV records.']})
+        if not self.priority:
+            if self.dns_type and self.dns_type.name in ['MX', 'SRV']:
+                error_list.append('Priority must exist for MX and SRV records.')
+
+                # Validation for Priority
+                parsed_content = self.text_content.strip().split(' ')
+                if self.dns_type.is_mx_record and len(parsed_content) != 2:
+                    error_list.append('Content for MX records need to have a priority and FQDN.')
+                elif self.dns_type.is_srv_record and len(parsed_content) != 4:
+                    error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
+
+        if error_list:
+            raise ValidationError({'priority': error_list})
 
     def clean_dns_type(self):
         error_list = []
@@ -248,14 +272,6 @@ class DnsRecord(models.Model):
                     error_list.append('Text Content must not exist for A records.')
                 if not self.ip_content:
                     error_list.append('IP Content must exist for A records.')
-
-            else:
-                # Validation for Priority
-                parsed_content = self.text_content.strip().split(' ')
-                if self.dns_type.is_mx_record and len(parsed_content) != 2:
-                    error_list.append('Content for MX records need to have a priority and FQDN.')
-                elif self.dns_type.is_srv_record and len(parsed_content) != 4:
-                    error_list.append('Content for SRV records need to only have a priority, weight, port, and FQDN.')
 
             # Name and text content cannot be the same if its not an CNAME
             if not self.dns_type.is_cname_record and self.name == self.text_content:
@@ -456,7 +472,7 @@ class Record(models.Model):
     view_id = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return '%s %s' % (self.id, self.name)
+        return '%s %s' % (self.domain_id, self.name)
 
     class Meta:
         managed = False
@@ -474,7 +490,7 @@ class RecordMunged(models.Model):
     view_id = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return '%s %s' % (self.id, self.name)
+        return '%s %s' % (self.domain_id, self.name)
 
     class Meta:
         managed = False

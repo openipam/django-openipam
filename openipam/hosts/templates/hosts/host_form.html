@@ -1,6 +1,8 @@
 {% extends "hosts/base.html" %}
 {% load i18n static crispy_forms_tags %}
 
+{% block page_title %}{% if object %}Edit Host: {{ object.hostname }}{% else %}Add Host{% endif %}{% endblock %}
+
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
     {% if object %}
@@ -81,6 +83,16 @@
                 $(this).remove();
                 return false;
             })
+
+            var allowSubmit = true;
+            $("#host-form").submit(function(){
+                if(allowSubmit) {
+                    allowSubmit = false;
+                }
+                else {
+                    return false;
+                }
+            });
 
             $.networkIPToggle = function() {
                 var netSelect = $(":radio[name='network_or_ip']:checked").val();
@@ -195,14 +207,14 @@
                 {% endif %}
 
                 <div class="pull-right">
-                    <input type="submit" value="Save Changes" class="btn btn-primary" />
+                    <input type="submit" value="Save Changes" class="btn btn-primary" data-toggle="modal" data-target="#processing-modal" />
                     {% if request.user.is_ipamadmin %}
                         {% url 'add_hosts' as add_url %}
                         {% url 'add_hosts_bulk' as add_url_bulk %}
                         {% if request.get_full_path = add_url or request.get_full_path = add_url_bulk %}
-                            <input type="submit" name="_add" value="Save and add another" class="btn btn-success" />
+                            <input type="submit" name="_add" value="Save and add another" class="btn btn-success" data-toggle="modal" data-target="#processing-modal" />
                         {% endif %}
-                        <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info" />
+                        <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info"  />
                     {% endif %}
                     <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
                 </div>
@@ -210,5 +222,14 @@
                 <div class="clear"><!-- --></div>
             </div>
         </form>
+    </div>
+    <div id="processing-modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4>Processing....</h4>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

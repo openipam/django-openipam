@@ -137,12 +137,18 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
                         UNION
 
+                        SELECT DISTINCT dns_records.mac from dns_records
+                            LEFT OUTER JOIN dns_records as d2 ON (dns_records.name = d2.text_content AND d2.tid = 5)
+                            WHERE dns_records.name LIKE %(lsearch)s OR d2.name LIKE %(lsearch)s
+
+                        UNION
+
                         SELECT addresses.mac from addresses
                             WHERE HOST(addresses.address) = %(search)s
 
                         UNION
 
-                        SELECT addresses.mac from addresses
+                        SELECT DISTINCT addresses.mac from addresses
                             INNER JOIN dns_records ON addresses.address = dns_records.ip_content
                             WHERE dns_records.name LIKE %(lsearch)s
 
@@ -272,8 +278,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     host['leases__ends'] = [host['leases__ends']]
 
                 for index, lease in enumerate(host['leases__address']):
-                    if host['leases__ends'][index] > timezone.now():
-                        addresses.append(lease)
+                    try:
+                        if host['leases__ends'][index] > timezone.now():
+                            addresses.append(lease)
+                    except IndexError:
+                        pass
                 #valid_leases = list(
                 #    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
                 #)
@@ -413,7 +422,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context['dns_records'] = self.object.get_dns_records()
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
-        context['leased_addresses'] = self.object.leases.select_related('address').all()
+        context['leased_addresses'] = self.object.leases.select_related('address', 'host').all()
         context['user_owners'], context['group_owners'] = self.object.get_owners(ids_only=False)
         context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
         context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')

@@ -9,39 +9,26 @@ from guardian.models import GroupObjectPermission, UserObjectPermission
 import autocomplete_light
 
 
-class BaseDNSAdmin(admin.ModelAdmin):
-    """
-        Hack override of methods to custimize app_label.
-    """
-
-    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
-        context.update({
-            'app_label': 'DNS'
-        })
-        return super(BaseDNSAdmin, self).render_change_form(request, context, add, change, form_url, obj)
-
-    def changelist_view(self, request, extra_context=None):
-        cl = super(BaseDNSAdmin, self).changelist_view(request, extra_context)
-
-        if not isinstance(cl, HttpResponseRedirect):
-            cl.context_data.update({
-                'app_label': 'DNS'
-            })
-
-        return cl
-
-class OpjectPermissionAdmin(BaseDNSAdmin):
+class OpjectPermissionAdmin(admin.ModelAdmin):
     list_select_related = True
 
     def get_queryset(self, request):
         qs = super(OpjectPermissionAdmin, self).get_queryset(request)
-        self.group_permissions = GroupObjectPermission.objects.filter(content_type__model=self.model._meta.model_name)
-        self.user_permissions = UserObjectPermission.objects.filter(content_type__model=self.model._meta.model_name)
+        self.group_permissions = (
+            GroupObjectPermission.objects
+                .select_related('group', 'permission')
+                .filter(content_type__model=self.model._meta.model_name)
+        )
+        self.user_permissions = (
+            UserObjectPermission.objects
+                .select_related('user', 'permission')
+                .filter(content_type__model=self.model._meta.model_name)
+        )
         return qs
 
     def sgroup_permissions(self, obj):
         perms_list = []
-        perms = self.group_permissions.filter(object_pk=obj.pk)
+        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.group_permissions)
         for perm in perms:
             perms_list.append('<span class="label label-info">%s: %s</span>' % (perm.group.name, perm.permission.codename))
         return '%s' % ' '.join(perms_list)
@@ -50,7 +37,7 @@ class OpjectPermissionAdmin(BaseDNSAdmin):
 
     def suser_permissions(self, obj):
         perms_list = []
-        perms = self.user_permissions.filter(object_pk=obj.pk)
+        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.user_permissions)
         for perm in perms:
             perms_list.append('<span class="label label-info">%s: %s</span>' % (perm.user.username, perm.permission.codename))
         return '%s' % ' '.join(perms_list)
@@ -64,7 +51,7 @@ class DomainAdmin(OpjectPermissionAdmin, ChangedAdmin):
     search_fields = ('name',)
 
 
-class DnsRecordAdmin(BaseDNSAdmin, ChangedAdmin):
+class DnsRecordAdmin(ChangedAdmin):
     list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
     list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
     form = autocomplete_light.modelform_factory(DnsRecord)
