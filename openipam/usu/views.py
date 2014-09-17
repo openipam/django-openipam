@@ -4,6 +4,7 @@ from django.conf import settings
 from django.views.decorators.cache import cache_page
 
 from openipam.hosts.models import Host
+from openipam.network.models import Network
 
 import qsstats
 
@@ -42,9 +43,25 @@ def overview(request):
     return render(request, 'usu/overview.html', context)
 
 
+def lease_usage(request):
+    wifi_networks = Network.objects.filter(network__net_contained='144.39.128.0/17')
+    charts = []
+
+    # var used = graphite.metric("diffSeries(ipam.leases.129-123-240-0_20.dynamic,ipam.leases.129-123-240-0_20.available)");
+
+    for network in wifi_networks:
+        charts.append(str(network.network).replace('.', '-').replace('/', '_'))
+
+    data = {
+        'charts': charts
+    }
+
+    return render(request, 'usu/lease_utilization.html', data)
+
+
 #@cache_page(60)
-def available_leases(request):
-    return render(request, 'usu/available_leases.html')
+def leases_available(request):
+    return render(request, 'usu/leases_available.html', {'is_popup': True})
 
 
 def weather_map(request):
