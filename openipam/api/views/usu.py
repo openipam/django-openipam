@@ -216,8 +216,8 @@ def weather_data(request):
     })
 
     all_ports = []
-    for k, v in data.items:
-        all_ports.extend(v)
+    for k, v in data.items():
+        all_ports.extend(v['id'])
 
     ports = (
         Ports.select(Ports, Portsstate)
