@@ -195,37 +195,45 @@ def subnet_data(request):
 def weather_data(request):
 
     data = OrderedDict({
-        "MAIN-RPARK": {'id': 19299},
-        "MAIN-ED": {'id': 19298},
-        "MAIN-SER": {'id': 19300},
-        "RPARK-ASTE": {'id': 19977},
-        "RPARK-SER": {'id': 19975},
-        "RPARK-SPEC": {'id': 19972},
-        "SER-ED": {'id': 2502},
-        "SER-SPEC": {'id': 2500},
-        "SER-ASTE": {'id': 2503},
-        "SER-HOUS": {'id': 2506},
-        "SER-BR": {'id': 2509},
-        "BR-UEN-A": {'id': 19202},
-        "BR-UEN-B": {'id': 19200},
-        "SER-BR-BYP": {'id': 156616},
-        "SER-BR-SEC": {'id': 2510}
+        "MAIN-RPARK": {'id': [19299]},
+        "MAIN-ED": {'id': [19298]},
+        "MAIN-SER": {'id': [19300]},
+        "RPARK-ASTE": {'id': [19977]},
+        "RPARK-SER": {'id': [19975]},
+        "RPARK-SPEC": {'id': [19972]},
+        "SER-ED": {'id': [2502]},
+        "SER-SPEC": {'id': [2500]},
+        "SER-ASTE": {'id': [2503]},
+        "SER-HOUS": {'id': [2506]},
+        "SER-BR": {'id': [2509]},
+        "BR-UEN-A": {'id': [19202]},
+        "BR-UEN-B": {'id': [19200]},
+        "SER-BR-BYP": {'id': [156616]},
+        "SER-BR-SEC": {'id': [2510]},
+        "CORE-SER": {'id': [3129, 3125]},
+        "CORE-NEWSER": {'id': [3052, 3096, 3049, 3093]},
+        "CORE-DMZ": {'id': [3046, 3086, 3045, 3088]},
     })
+
+    all_ports = []
+    for k, v in data.items:
+        all_ports.extend(v)
 
     ports = (
         Ports.select(Ports, Portsstate)
             .join(Portsstate, on=(Portsstate.port == Ports.port).alias('portstate'))
-            .where(Ports.port << [value['id'] for key, value in data.items()])
+            .where(Ports.port << all_ports)
     )
 
     for port in ports:
         for key, value in data.items():
-            if value['id'] == port.port:
-                value['A'] = port.portstate.ifoutoctets_rate * 8
-                value['Z'] = port.portstate.ifinoctets_rate * 8
-                value['speed'] = port.ifspeed
-                value['timestamp'] = port.portstate.poll_time
-                value['poll_frequency'] = 300
+            for portid in value['id']:
+                if port.port == portid:
+                    value['A'] = value.get('A', 0) + port.portstate.ifoutoctets_rate * 8
+                    value['Z'] = value.get('Z', 0) + port.portstate.ifinoctets_rate * 8
+                    value['speed'] = value.get('speed', 0) + port.ifspeed
+                    value['timestamp'] = port.portstate.poll_time
+                    value['poll_frequency'] = 300
 
     for key, value in data.items():
         del value['id']
