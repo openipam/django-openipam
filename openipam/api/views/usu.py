@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.views.decorators.cache import cache_page
 
 from openipam.usu.models import Ports, Portsstate
+from openipam.network.models import Network
 
 from netaddr import IPNetwork
 
@@ -23,14 +24,64 @@ from collections import OrderedDict
 #@cache_page(60)
 def subnet_data(request):
     network_blocks = request.REQUEST.get('network_blocks')
+    network_tags = request.REQUEST.get('network_tags')
+    by_router = request.REQUEST.get('by_router')
+
     if network_blocks:
         show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
+        url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
+        lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
+    elif network_tags:
+        network_tags = network_tags.split(',')
+        networks = Network.objects.filter(dhcp_group__name__in=network_tags)
+        show_blocks = '&'.join(['show_blocks=%s' % str(n.network) for n in networks])
         url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
         lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
     else:
         lease_data = requests.get('https://gul.usu.edu/subnetparser.py?format=json',
             auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
     lease_data = sorted(lease_data, key=lambda k: (k['router'], IPNetwork(k['network'])))
+
+    def get_ratio(available, total):
+        ratio = 1
+        if total != 0:
+            ratio = available * 1.0 / total
+        else:
+            ratio = None
+        return ratio
+
+    def color(ratio):
+        # Convert a number in the range [0,1] to an HTML color code
+        if ratio is None:
+            return '#77f'
+        if ratio < 0: ratio = 0
+        if ratio > 1: ratio = 1
+
+        r = ratio * 2.0 - 1
+        g = ratio * 2.0
+
+        if r < 0.0: r = 0.0
+        if g > 1.0: g = 1.0
+
+        rgb = ((1-r) * 255, g * 255, 0)
+        color = "#%02x%02x%02x" % rgb
+        return color
+
+    if not by_router:
+        for item in lease_data:
+            child = item
+
+            if 'usage' in item:
+                child['ratio'] = get_ratio(item['usage']['available'], item['usage']['dynamic'])
+            else:
+                child['ratio'] = 1
+
+            if 'ratio' in item:
+                child['style'] = color(child['ratio'])
+            else:
+                child['style'] = '#77f'
+
+        return Response(lease_data, status=status.HTTP_200_OK)
 
     grouped_lease_data = {
         'name': 'routers',
@@ -60,30 +111,7 @@ def subnet_data(request):
         {'router': 'multiple', 'color': '#999', },
     ]
 
-    def get_ratio(available, total):
-        ratio = 1
-        if total != 0:
-            ratio = available * 1.0 / total
-        else:
-            ratio = None
-        return ratio
 
-    def color(ratio):
-        # Convert a number in the range [0,1] to an HTML color code
-        if ratio is None:
-            return '#77f'
-        if ratio < 0: ratio = 0
-        if ratio > 1: ratio = 1
-
-        r = ratio * 2.0 - 1
-        g = ratio * 2.0
-
-        if r < 0.0: r = 0.0
-        if g > 1.0: g = 1.0
-
-        rgb = ((1-r) * 255, g * 255, 0)
-        color = "#%02x%02x%02x" % rgb
-        return color
 
 
     for key, group in itertools.groupby(lease_data, lambda item: item['router']):
@@ -100,18 +128,18 @@ def subnet_data(request):
             router['style'] = '#00ff00'
 
 
-        # second_child = {
-        #     'name': 'smaller',
-        #     'children': [],
-        #     'style': '#77f',
-        #     'ratio': 1
-        # }
-        # third_child = {
-        #     'name': 'smaller',
-        #     'children': [],
-        #     'style': '#77f',
-        #     'ratio': 1
-        # }
+        second_child = {
+            'name': 'smaller',
+            'children': [],
+            'style': '#77f',
+            'ratio': 1
+        }
+        third_child = {
+            'name': 'smaller',
+            'children': [],
+            'style': '#77f',
+            'ratio': 1
+        }
         for item in group:
             network = IPNetwork(item['network'])
             child = item
@@ -131,31 +159,31 @@ def subnet_data(request):
                 child['style'] = '#77f'
 
             child['name'] = item['network']
-            child['size'] = 1
-            child['value'] = 1
+            child['size'] = network.prefixlen
+            child['value'] = network.prefixlen
             del child['router']
 
-            # if network.prefixlen > 28:
-            #     third_child['children'].append(child)
-            # elif network.prefixlen > 24:
-            #     second_child['children'].append(child)
-            # else:
-            router['children'].append(child)
+            if network.prefixlen > 28:
+                third_child['children'].append(child)
+            elif network.prefixlen > 24:
+                second_child['children'].append(child)
+            else:
+                router['children'].append(child)
 
-        # if third_child['children']:
-        #     ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
-        #     third_child['style'] = color(ratio_min)
-        #     second_child['children'].append(third_child)
+        if third_child['children']:
+            ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
+            third_child['style'] = color(ratio_min)
+            second_child['children'].append(third_child)
 
-        # if second_child['children']:
-        #     ratio_min = min([child['ratio'] for child in second_child['children'] if child['ratio'] is not None])
-        #     if router['name'] == 'FREE':
-        #         for child in second_child['children']:
-        #             if child['ratio'] < 1:
-        #                 print child
-        #     second_child['style'] = color(ratio_min)
+        if second_child['children']:
+            ratio_min = min([child['ratio'] for child in second_child['children'] if child['ratio'] is not None])
+            # if router['name'] == 'FREE':
+            #     for child in second_child['children']:
+            #         if child['ratio'] < 1:
+            #             print child
+            second_child['style'] = color(ratio_min)
 
-            #router['children'].append(second_child)
+            router['children'].append(second_child)
 
         grouped_lease_data['children'].append(router)
 
@@ -205,3 +233,5 @@ def weather_data(request):
     data["timestamp"] =  int(datetime.now().strftime('%s'))
 
     return Response(data, status=status.HTTP_200_OK)
+
+
