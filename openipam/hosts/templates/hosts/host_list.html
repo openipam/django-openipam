@@ -49,10 +49,8 @@
                             <select id="host-action" name="action" class="form-control">
                                 <option value="">Choose an action...</option>
                                 <option value="">--------------</option>
-                                    <option value="delete">Delete selected hosts</option>
-                                {% if request.user.is_ipamadmin %}
-                                    <option value="owners">Set owners on selected hosts</option>
-                                {% endif %}
+                                <option value="delete">Delete selected hosts</option>
+                                <option value="owners">Set owners on selected hosts</option>
                                 <option value="renew">Renew selected hosts</option>
                                 <option value="address">Add/Update addresses on selected hosts</option>
                             </select>
