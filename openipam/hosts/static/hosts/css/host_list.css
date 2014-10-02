@@ -49,6 +49,11 @@ input {
     color: #000;
 }
 
+#host-owners input.form-control {
+    display: block !important;
+    width: 230px !important;
+}
+
 .host-detail {
     padding-top: 5px;
     /*background-color: #eee;*/
