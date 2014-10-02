@@ -204,13 +204,14 @@ class HostForm(forms.ModelForm):
 
     def _init_ip_address(self):
         if self.instance.pk and self.instance.is_static:
-            master_ip_address = self.instance.master_ip_address
+            master_ip_address = str(self.instance.master_ip_address)
 
             self.fields['ip_address'].initial = master_ip_address
             self.fields['ip_address'].label = 'New IP Address'
             self.fields['network_or_ip'].initial = '1'
 
-            addresses = self.instance.ip_addresses
+            addresses = list(self.instance.ip_addresses)
+
             if master_ip_address in addresses:
                 addresses.pop(addresses.index(master_ip_address))
 
@@ -472,7 +473,7 @@ class HostForm(forms.ModelForm):
         ip_address = self.cleaned_data.get('ip_address', '')
         network_or_ip = self.cleaned_data.get('network_or_ip', '')
         address_type = self.cleaned_data.get('address_type', '')
-        current_addresses = self.instance.ip_addresses
+        current_addresses = list(self.instance.ip_addresses)
 
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in self.address_types_with_ranges_or_default:
