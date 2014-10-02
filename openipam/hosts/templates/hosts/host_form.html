@@ -55,6 +55,15 @@
                 this.value = choice.text();
             });
 
+            $("#id_mac_address").on('input', function(){
+                if ($(this).val() == 'vmware') {
+                    $.get('/api/hosts/mac/next/?vendor=vmware', function(data){
+                        $("#id_mac_address").val(data);
+                    });
+                }
+            });
+
+
             $("#id_address_type").on('change', function(){
                 $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
                     'atype': $(this).val()

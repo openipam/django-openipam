@@ -98,9 +98,9 @@ class HostNextMac(APIView):
 
         if vendor:
             next_mac = Host.objects.find_next_mac(vendor)
-            return Response({'mac': next_mac})
+            return Response(next_mac)
 
-        return Response({})
+        return Response('')
 
 
 class HostDetail(generics.RetrieveAPIView):
