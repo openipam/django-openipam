@@ -304,6 +304,7 @@ class HostForm(forms.ModelForm):
         accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
 
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.label_class = 'col-sm-2 col-md-2 col-lg-2'
         self.helper.field_class = 'col-sm-6 col-md-6 col-lg-6'
         self.helper.layout = Layout(
