@@ -503,18 +503,30 @@ class Host(DirtyFieldsMixin, models.Model):
 
         return address
 
-    def add_dns_records(self, user, hostname, address):
+    def delete_primary_dns_records(self, user, address):
         from openipam.dns.models import DnsRecord, DnsType
 
         if isinstance(address, str) or isinstance(address, unicode):
             from openipam.network.models import Address
             address = Address.objects.filter(address=address).first()
 
+        # Update Changed by Assocatiated PTR and A or AAAA records.
+        self.dns_records.filter(
+            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address, name=self.original_hostname),
+            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+        ).update(changed_by=user)
         # Delete Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address),
+            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address, name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
+
+    def add_dns_records(self, user, hostname, address):
+        from openipam.dns.models import DnsRecord, DnsType
+
+        if isinstance(address, str) or isinstance(address, unicode):
+            from openipam.network.models import Address
+            address = Address.objects.filter(address=address).first()
 
         # Add Associated PTR
         DnsRecord.objects.add_or_update_record(
@@ -651,7 +663,11 @@ class Host(DirtyFieldsMixin, models.Model):
                 else:
                     ptr_record = None
                 if not a_record or not ptr_record:
-                    self.add_dns_records(user, self.hostname, self.master_ip_address)
+                    from openipam.network.models import Address
+                    address = Address.objects.filter(address=self.master_ip_address).first()
+
+                    self.delete_primary_dns_records(user, address)
+                    self.add_dns_records(user, self.hostname, address)
 
     def remove_owners(self):
         users, groups = self.get_owners(ids_only=False)
