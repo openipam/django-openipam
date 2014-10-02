@@ -47,6 +47,40 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
                     "<br/>%s" % '<br />'.join(error_list)))
 
 
+def remove_owner_hosts(request, selected_hosts):
+    user = request.user
+
+    # User must have global change permission on hosts to use this action.
+    if not user.has_perm('hosts.change_host'):
+        messages.error(request, "You do not have permissions to change ownership on the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        owner_form = HostOwnerForm(request.POST)
+
+        if owner_form.is_valid():
+            user_owners = owner_form.cleaned_data['user_owners']
+            group_owners = owner_form.cleaned_data['group_owners']
+
+            for host in selected_hosts:
+                # Re-assign users
+                for user_onwer in user_owners:
+                    host.remove_owner(user_onwer)
+
+                # Re-assign groups
+                for group_owner in group_owners:
+                    host.remove_owner(group_owner)
+
+            messages.success(request, "Ownership for selected hosts has been updated.")
+
+        else:
+            error_list = []
+            for key, errors in owner_form.errors.items():
+                for error in errors:
+                    error_list.append(error)
+            messages.error(request, mark_safe("There was an error updating the ownership of the selected hosts. "
+                    "<br/>%s" % '<br />'.join(error_list)))
+
+
 def delete_hosts(request, selected_hosts):
     user = request.user
 

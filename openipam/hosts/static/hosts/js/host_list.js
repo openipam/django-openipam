@@ -399,8 +399,9 @@ $(function(){
         var hosts = $(".action-select:checked");
 
         if (hosts.length > 0) {
-            if (action == 'add-owners' || action == 'replace-owners') {
+            if (action == 'add-owners' || action == 'replace-owners' || action == 'remove-owners') {
                 $('#host-owners').modal();
+                $(".oaction").text(action.split('-')[0]);
             }
             else if (action == 'delete') {
                 var res = confirm("Are you sure you want to delete the selected hosts?")

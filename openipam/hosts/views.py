@@ -29,7 +29,7 @@ from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Lease, Address
-from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
+from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts
 from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
@@ -393,8 +393,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
             # If action is to change owners on host(s)
             if action == 'replace-owners':
                 assign_owner_hosts(request, selected_hosts)
-            if action == 'add-owners':
+            elif action == 'add-owners':
                 assign_owner_hosts(request, selected_hosts, add_only=True)
+            elif action == 'remove-owners':
+                remove_owner_hosts(request, selected_hosts)
             elif action == 'delete':
                 delete_hosts(request, selected_hosts)
             elif action == 'renew':

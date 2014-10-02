@@ -54,6 +54,10 @@ input {
     width: 230px !important;
 }
 
+#host-owners .oaction {
+    text-transform: capitalize;
+}
+
 .host-detail {
     padding-top: 5px;
     /*background-color: #eee;*/

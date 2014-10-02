@@ -660,6 +660,9 @@ class Host(DirtyFieldsMixin, models.Model):
         for group in groups:
             remove_perm('is_owner_host', group, self)
 
+    def remove_owner(self, user_or_group):
+        return remove_perm('is_owner_host', user_or_group, self)
+
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
