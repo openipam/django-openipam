@@ -9,7 +9,7 @@ from openipam.hosts.models import Host
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm
 
 
-def assign_owner_hosts(request, selected_hosts):
+def assign_owner_hosts(request, selected_hosts, add_only=False):
     user = request.user
 
     # User must have global change permission on hosts to use this action.
@@ -25,7 +25,8 @@ def assign_owner_hosts(request, selected_hosts):
 
             for host in selected_hosts:
                 # Delete user and group permissions first
-                host.remove_owners()
+                if not add_only:
+                    host.remove_owners()
 
                 # Re-assign users
                 for user_onwer in user_owners:
