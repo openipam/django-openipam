@@ -399,7 +399,7 @@ $(function(){
         var hosts = $(".action-select:checked");
 
         if (hosts.length > 0) {
-            if (action == 'owners') {
+            if (action == 'add-owners' || action == 'replace-owners') {
                 $('#host-owners').modal();
             }
             else if (action == 'delete') {
