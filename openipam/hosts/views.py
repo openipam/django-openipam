@@ -391,8 +391,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
 
             # If action is to change owners on host(s)
-            if action == 'owners':
+            if action == 'replace-owners':
                 assign_owner_hosts(request, selected_hosts)
+            if action == 'add-owners':
+                assign_owner_hosts(request, selected_hosts, add_only=True)
             elif action == 'delete':
                 delete_hosts(request, selected_hosts)
             elif action == 'renew':
