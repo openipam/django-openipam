@@ -68,11 +68,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         try:
 
-            host_search = column_data[1]['search']['value']
-            mac_search = column_data[2]['search']['value']
-            ip_search = column_data[3]['search']['value']
+            host_search = column_data[1]['search']['value'].strip()
+            mac_search = column_data[2]['search']['value'].strip()
+            ip_search = column_data[3]['search']['value'].strip()
             expired_search = column_data[4]['search']['value']
-            search = self.json_data.get('search_filter', '')
+            search = self.json_data.get('search_filter', '').strip()
             is_owner = self.json_data.get('owner_filter', None)
 
             #group_filter = self.json_data.get('group_filter', None)
