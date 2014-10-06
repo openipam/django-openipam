@@ -40,7 +40,7 @@ class HostListSerializer(serializers.ModelSerializer):
 
     def get_addresses(self, obj):
         addresses = {
-            'leased': obj.leases.all(),
+            'leased': obj.leases.filter(ends__gt=timezone.now()),
             'registered': obj.addresses.all()
         }
         return addresses
