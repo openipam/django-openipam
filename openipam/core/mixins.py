@@ -4,8 +4,8 @@ from django.db.models.signals import post_save
 class DirtyFieldsMixin(object):
     def __init__(self, *args, **kwargs):
         super(DirtyFieldsMixin, self).__init__(*args, **kwargs)
-        post_save.connect(reset_state, sender=self.__class__,
-            dispatch_uid='%s-DirtyFieldsMixin-sweeper' % self.__class__.__name__)
+        #post_save.connect(reset_state, sender=self.__class__,
+        #    dispatch_uid='%s-DirtyFieldsMixin-sweeper' % self.__class__.__name__)
         reset_state(sender=self.__class__, instance=self)
 
     def _as_dict(self):
