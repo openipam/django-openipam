@@ -283,13 +283,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             addresses.append(lease)
                     except IndexError:
                         pass
-                #valid_leases = list(
-                #    Lease.objects.filter(address__in=host['leases__address'], ends__gt=timezone.now()).values_list('address', flat=True)
-                #)
-                #addresses += valid_leases
 
             if addresses:
-                #addresses = [str(address) for address in addresses]
                 if len(addresses) == 1:
                     return '<span>%s</span>' % addresses[0]
                 else:
