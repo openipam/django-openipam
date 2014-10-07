@@ -14,4 +14,4 @@ class UserList(generics.ListAPIView):
     model = User
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('group__name', 'username', 'email',)
+    filter_fields = ('groups__name', 'username', 'email',)
