@@ -156,9 +156,17 @@
             </tr>
             {% if leased_addresses %}
                 {% for address in leased_addresses %}
-                    <tr>
+                    <tr {% if address.is_expired %}class="warning"{% endif %}>
                         <td>{{ address.address }}</td>
-                        <td colspan="3">{{ address.ends|date:"Y-m-d h:i:s A" }}</td>
+                        <td colspan="3">
+                            {% if address.is_expired %}
+                                <span class="flagged">
+                            {% endif %}
+                                {{ address.ends|date:"Y-m-d h:i:s A" }}
+                            {% if address.is_expired %}
+                                </span>
+                            {% endif %}
+                        </td>
                         <td>{{ address.gul_last_seen|date:"Y-m-d h:i:s A" }}</td>
                         <td>{{ address.gul_last_seen_mac }}</td>
                     </tr>
