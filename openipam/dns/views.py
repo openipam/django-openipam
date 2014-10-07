@@ -291,7 +291,8 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             use_groups=True,
             with_superuser=False
         )
-        context['dns_types'] = DnsType.objects.filter(records__isnull=False).distinct()
+        type_records = DnsRecord.objects.all().only('dns_type_id').values_list('id')
+        context['dns_types'] = DnsType.objects.filter(id__in=type_records)
 
         change_filter = self.request.COOKIES.get('change_filter', None)
         context['change_filter'] = self.request.GET.get('mine', change_filter)
