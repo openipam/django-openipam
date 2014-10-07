@@ -8,7 +8,7 @@ CONFIG_DEFAULTS = {
     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.example.com'],
     'GUEST_POOL': 'routable-dynamic',
     'APPS': [app.split('.')[1] for app in filter(lambda x: x.split('.')[0] == 'openipam', settings.INSTALLED_APPS)],
-    'CONVERT_OLD_PERMISSIONS': True,
+    'CONVERT_OLD_PERMISSIONS': False,
     'USER_GROUP': 'ipam-users',
     'ADMIN_GROUP': 'ipam-admins',
     'API_USER_GROUP': 'ipam-api-users',
