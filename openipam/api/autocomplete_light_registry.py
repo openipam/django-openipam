@@ -10,6 +10,8 @@ from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 from openipam.user.models import Group as OldGroup
 
+from taggit.models import Tag
+
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
 import autocomplete_light
@@ -300,4 +302,6 @@ autocomplete_light.register(Host, HostFilterAutocomplete)
 #     attrs={'placeholder': 'Search Domains'},
 # )
 
-
+autocomplete_light.register(Tag,
+    attrs = {'placeholder': 'Search Tags'}
+)
