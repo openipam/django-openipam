@@ -3,8 +3,12 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
+from django.utils import timezone
+
+from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
+
+from taggit.managers import TaggableManager
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
 from openipam.network.signals import validate_address_type, release_leases, set_default_pool
@@ -23,6 +27,10 @@ class Lease(models.Model):
 
     def __unicode__(self):
         return '%s' % self.pk
+
+    @property
+    def is_expired(self):
+        return True if self.ends <= timezone.now() else False
 
     @property
     def gul_last_seen(self):
@@ -174,6 +182,7 @@ class Network(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = NetworkManager()
+    tags = TaggableManager()
 
     # Forcing pk as string
     @property
