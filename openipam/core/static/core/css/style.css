@@ -161,7 +161,7 @@
 {
     background-color: #fcf8e3;
 }
-#result_list tr.flagged td span.flagged, #result_list tr.flagged th span.flagged
+#result_list tr.flagged td span.flagged, #result_list tr.flagged th span.flagged, td.host-detail span.flagged
 {
     color: #ff0000;
 }
