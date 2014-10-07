@@ -78,11 +78,15 @@ STATIC_ROOT = '%s/static/' % BASE_DIR
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-# STATICFILES_DIRS = (
-#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-# )
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+
+    # Hack to find bower components
+    '%s/components/bower_components' % BASE_DIR,
+    '%s/components/static_components' % BASE_DIR,
+)
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -167,6 +171,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'guardian',
     'netfields',
+    'taggit',
 
     # Two factor auth
     #'django_otp',
@@ -217,11 +222,6 @@ BOWER_INSTALLED_APPS = (
     'jquery.cookie#1.4.1',
     'chosen-bower',
     'intro.js#0.9.0',
-)
-
-# Hack to find bower components
-STATICFILES_DIRS = (
-    os.path.join(BOWER_COMPONENTS_ROOT, 'bower_components'),
 )
 
 MESSAGE_TAGS = {
