@@ -116,7 +116,7 @@ class LoggingEmailBackend(EmailBackend):
 class ConsoleLoggingEmailBackend(ConsoleEmailBackend):
 
     def send_messages(self, email_messages):
-        message_len = super(LoggingEmailBackend, self).send_messages(email_messages)
+        message_len = super(ConsoleLoggingEmailBackend, self).send_messages(email_messages)
         try:
             for email_message in email_messages:
                 EmailLog.objects.create(
