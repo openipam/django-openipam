@@ -337,7 +337,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             json_data.append([
                 get_selector(host, change_permissions),
                 ('<a href="%(view_href)s" rel="%(hostname)s" id="%(update_href)s"'
-                 ' class="host-details %(is_disabled)s" data-toggle="modal"><span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
+                 ' class="host-details %(is_disabled)s" data-toggle="modal">'
+                 '<span class="glyphicon glyphicon-chevron-right"></span> %(hostname)s</a>' % {
                                                                                     'hostname': host['hostname'] or 'N/A',
                                                                                     'view_href': host_view_href,
                                                                                     'update_href': host_edit_href,
@@ -510,7 +511,15 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             action_flag=CHANGE,
             change_message=original_object
         )
-        messages.success(self.request, "Host %s was successfully changed." % form.cleaned_data['hostname'],)
+        messages.success(
+            self.request,
+            mark_safe(
+                'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.' % (
+                    reverse_lazy('update_host', args=[self.object.mac_stripped]),
+                    self.object.hostname
+                )
+            )
+        )
 
         if self.request.POST.get('_continue'):
             return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
@@ -531,7 +540,16 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             object_repr=force_unicode(self.object),
             action_flag=ADDITION
         )
-        messages.success(self.request, "Host %s was successfully added." % form.cleaned_data['hostname'],)
+
+        messages.success(
+            self.request,
+            mark_safe(
+                'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.' % (
+                    reverse_lazy('update_host', args=[self.object.mac_stripped]),
+                    self.object.hostname
+                )
+            )
+        )
 
         if self.request.POST.get('_continue'):
             return redirect(reverse_lazy('update_host', kwargs={'pk': slugify(self.object.pk)}))
