@@ -1,10 +1,14 @@
 from django.contrib import admin
 from django import forms
+from django.shortcuts import redirect, render
+from django.conf.urls import url
+from django.contrib.contenttypes.models import ContentType
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
-from openipam.network.forms import AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, AddressAdminForm, LeaseAdminForm
+from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, \
+    AddressAdminForm, LeaseAdminForm
 from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
@@ -14,12 +18,40 @@ class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
     list_display = ('nice_network', 'name', 'description', 'gateway')
     search_fields = ('network',)
+    actions = ['tag_network']
 
     def nice_network(self, obj):
         url = str(obj.network).replace('/', '_2F')
         return '<a href="./%s/">%s</a>' % (url, obj.network)
     nice_network.short_description = 'Network'
     nice_network.allow_tags = True
+
+    def get_urls(self):
+        urls = super(NetworkAdmin, self).get_urls()
+        net_urls = [
+            url(r'^tag/$', self.tag_network_view),
+        ]
+        return net_urls + urls
+
+    def tag_network_view(self, request):
+        form = NetworkTagForm(request.POST or None)
+
+
+        if form.is_valid():
+            ids = request.REQUEST.get('ids').strip().split(',')
+            networks = Network.objects.filter(pk__in=ids)
+
+            for network in networks:
+                network.tags.add(form.cleaned_data['tags'])
+
+            return redirect('../')
+
+        return render(request, 'admin/actions/tag_network.html', {'form': form})
+
+    def tag_network(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return redirect("tag/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
     def save_model(self, request, obj, form, change):
         super(NetworkAdmin, self).save_model(request, obj, form, change)

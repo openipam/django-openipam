@@ -6,6 +6,9 @@ from django import forms
 from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup, Address
 
 import autocomplete_light
+from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
+
+from crispy_forms.helper import FormHelper
 
 from curses.ascii import isprint
 
@@ -81,3 +84,12 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
     class Meta:
         model = DhcpOptionToDhcpGroup
 
+
+class NetworkTagForm(forms.Form):
+    tags = TaggitField(widget=TaggitWidget('TagAutocomplete'))
+
+    def __init__(self, *args, **kwargs):
+        super(NetworkTagForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
