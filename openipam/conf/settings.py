@@ -222,6 +222,7 @@ BOWER_INSTALLED_APPS = (
     'jquery.cookie#1.4.1',
     'chosen-bower',
     'intro.js#0.9.0',
+    'qTip#1.0.0',
 )
 
 MESSAGE_TAGS = {
