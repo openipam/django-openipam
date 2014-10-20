@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 
+from taggit.models import TaggedItemBase
 from taggit.managers import TaggableManager
 
 from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
@@ -170,6 +171,10 @@ class SharedNetwork(models.Model):
         db_table = 'shared_networks'
 
 
+class TaggedNetworks(TaggedItemBase):
+    content_object = models.ForeignKey('Network')
+
+
 class Network(models.Model):
     network = CidrAddressField(primary_key=True)
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -182,7 +187,7 @@ class Network(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     objects = NetworkManager()
-    tags = TaggableManager()
+    tags = TaggableManager(through=TaggedNetworks, blank=True)
 
     # Forcing pk as string
     @property
