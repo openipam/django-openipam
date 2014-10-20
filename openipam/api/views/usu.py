@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 
 from django.views.decorators.cache import cache_page
 
@@ -20,12 +21,15 @@ from collections import OrderedDict
 
 
 @api_view(('GET',))
+@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 @permission_classes((IsAuthenticated,))
 #@cache_page(60)
 def subnet_data(request):
     network_blocks = request.REQUEST.get('network_blocks')
     network_tags = request.REQUEST.get('network_tags')
     by_router = request.REQUEST.get('by_router')
+    exclude_free = request.REQUEST.get('exclude_free')
+    html_output = request.REQUEST.get('html_output')
 
     if network_blocks:
         show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
@@ -69,19 +73,38 @@ def subnet_data(request):
 
     if not by_router:
         for item in lease_data:
+            network = IPNetwork(item['network'])
             child = item
 
             if 'usage' in item:
                 child['ratio'] = get_ratio(item['usage']['available'], item['usage']['dynamic'])
+                child['utilized'] = int((1 - child['ratio']) * 100) if child['ratio'] else 0
             else:
                 child['ratio'] = 1
+                child['utilized'] = 0
+
 
             if 'ratio' in item:
                 child['style'] = color(child['ratio'])
             else:
                 child['style'] = '#77f'
 
-        return Response(lease_data, status=status.HTTP_200_OK)
+            child['size'] = network.size
+            if network.prefixlen >= 28:
+                child['size_width'] = 50
+            else:
+                child['size_width'] = (32 - 4 - network.prefixlen) ** 1.5 * 20 + 50
+
+        lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] else 1.1)
+
+        if html_output:
+            context = {
+                'lease_data': lease_data,
+                'excluded_keys': ['style']
+            }
+            return Response(context, template_name='api/web/subnet_data.html')
+        else:
+            return Response(lease_data, status=status.HTTP_200_OK)
 
     grouped_lease_data = {
         'name': 'routers',
@@ -111,35 +134,36 @@ def subnet_data(request):
         {'router': 'multiple', 'color': '#999', },
     ]
 
-
-
-
     for key, group in itertools.groupby(lease_data, lambda item: item['router']):
+
+        if exclude_free and key is None:
+            continue
+
         router = {
-            'name': key if key is not None else 'FREE',
+            'name': key.replace('.gw.usu.edu', '') if key is not None else 'FREE',
             'children': [],
         }
 
-        if key is not None:
-            _color = filter(lambda x: x['router'] == key, routers_css)
-            if _color:
-                router['style'] = _color[0]['color']
-        else:
-            router['style'] = '#00ff00'
+        # if key is not None:
+        #     _color = filter(lambda x: x['router'] == key, routers_css)
+        #     if _color:
+        #         router['style'] = _color[0]['color']
+        # else:
+        #     router['style'] = '#00ff00'
 
 
-        second_child = {
-            'name': 'smaller',
-            'children': [],
-            'style': '#77f',
-            'ratio': 1
-        }
-        third_child = {
-            'name': 'smaller',
-            'children': [],
-            'style': '#77f',
-            'ratio': 1
-        }
+        # second_child = {
+        #     'name': 'smaller',
+        #     'children': [],
+        #     'style': '#77f',
+        #     'ratio': 1
+        # }
+        # third_child = {
+        #     'name': 'smaller',
+        #     'children': [],
+        #     'style': '#77f',
+        #     'ratio': 1
+        # }
         for item in group:
             network = IPNetwork(item['network'])
             child = item
@@ -159,31 +183,32 @@ def subnet_data(request):
                 child['style'] = '#77f'
 
             child['name'] = item['network']
-            child['size'] = network.prefixlen
-            child['value'] = network.prefixlen
+            child['desc'] = item['portdesc']
+            child['size'] = network.size
+            child['value'] = network.size if network.size > 256 else 256
             del child['router']
 
-            if network.prefixlen > 28:
-                third_child['children'].append(child)
-            elif network.prefixlen > 24:
-                second_child['children'].append(child)
-            else:
-                router['children'].append(child)
+            # if network.prefixlen > 28:
+            #     third_child['children'].append(child)
+            # elif network.prefixlen > 24:
+            #     second_child['children'].append(child)
+            # else:
+            router['children'].append(child)
 
-        if third_child['children']:
-            ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
-            third_child['style'] = color(ratio_min)
-            second_child['children'].append(third_child)
+        # if third_child['children']:
+        #     ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
+        #     third_child['style'] = color(ratio_min)
+        #     second_child['children'].append(third_child)
 
-        if second_child['children']:
-            ratio_min = min([child['ratio'] for child in second_child['children'] if child['ratio'] is not None])
-            # if router['name'] == 'FREE':
-            #     for child in second_child['children']:
-            #         if child['ratio'] < 1:
-            #             print child
-            second_child['style'] = color(ratio_min)
+        # if second_child['children']:
+        #     ratio_min = min([child['ratio'] for child in second_child['children'] if child['ratio'] is not None])
+        #     # if router['name'] == 'FREE':
+        #     #     for child in second_child['children']:
+        #     #         if child['ratio'] < 1:
+        #     #             print child
+        #     second_child['style'] = color(ratio_min)
 
-            router['children'].append(second_child)
+        #     router['children'].append(second_child)
 
         grouped_lease_data['children'].append(router)
 
@@ -241,5 +266,3 @@ def weather_data(request):
     data["timestamp"] =  int(datetime.now().strftime('%s'))
 
     return Response(data, status=status.HTTP_200_OK)
-
-
