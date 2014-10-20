@@ -17,7 +17,8 @@ import autocomplete_light
 class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
     list_display = ('nice_network', 'name', 'description', 'gateway')
-    search_fields = ('network',)
+    list_filter = ('tags',)
+    search_fields = ('network', 'description')
     actions = ['tag_network']
 
     def nice_network(self, obj):
@@ -36,13 +37,12 @@ class NetworkAdmin(ChangedAdmin):
     def tag_network_view(self, request):
         form = NetworkTagForm(request.POST or None)
 
-
         if form.is_valid():
             ids = request.REQUEST.get('ids').strip().split(',')
             networks = Network.objects.filter(pk__in=ids)
 
             for network in networks:
-                network.tags.add(form.cleaned_data['tags'])
+                network.tags.add(*form.cleaned_data['tags'])
 
             return redirect('../')
 
