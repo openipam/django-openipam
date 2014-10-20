@@ -98,6 +98,7 @@ class IPAMMenu(Menu):
                                 'django.contrib.auth.models.Permission',
                                 'guardian.models.UserObjectPermission',
                                 'guardian.models.GroupObjectPermission',
+                                'taggit.models.Tag',
                             ]
                         ),
                         items.ModelList('Logs',
