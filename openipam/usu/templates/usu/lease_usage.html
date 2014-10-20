@@ -1,0 +1,91 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block page_title %}USU Lease Usage{% endblock %}
+
+{% block page_nav %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extrahead %}
+    <style type="text/css">
+      body {
+        background: #111;
+      }
+      #container {
+        margin-top: 0px;
+      }
+      #usage-chart p {
+        padding: 0px;
+        margin: 0px;
+      }
+
+      div.network {
+        width: 200px;
+        float: left;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+
+      .tip {
+        display: none;
+        font-size: 14px;
+      }
+
+      .tip td {
+        padding: 3px;
+      }
+
+      h4 {
+        color: #ccc;
+        float: left;
+        margin-right: 50px;
+      }
+
+      .timer {
+        color: #ccc;
+        float: left;
+        margin: 10px 0px;
+      }
+    </style>
+
+    <link type="text/css" rel="stylesheet" href="{% static "qtip2/jquery.qtip.min.css" %}" />
+    <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "qtip2/jquery.qtip.min.js" %}"></script>
+    {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
+    <script type="text/javascript">
+      $(function(){
+        var start = new Date;
+        var updatePage = function() {
+          $.get('/api/reports/subnetdata/?html_output=1', function(data){
+            $("#usage-chart").html(data);
+          }).done(function(data){
+            $('div.network').each(function() {
+              $(this).qtip({
+                content: $(this).next('div'),
+                position: {
+                  viewport: $(window)
+                }
+              });
+            });
+          });
+          start = new Date;
+        }
+        var updateTime = function() {
+          $('.timer').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
+        }
+        updatePage();
+        setInterval(updateTime, 1000);
+        setInterval(updatePage, 150000);
+      });
+    </script>
+{% endblock %}
+
+
+{% block content %}
+  <div class="title">
+    <h4>USU Lease Usage</h4>
+    <div class="timer"></div>
+    <div class="clear"><!-- --></div>
+  </div>
+  <div id="usage-chart"></div>
+{% endblock %}
