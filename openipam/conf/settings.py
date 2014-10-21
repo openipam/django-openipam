@@ -244,6 +244,7 @@ LOGIN_EXEMPT_URLS = (
     'password/forgot/',
     'api/?.*',
     'reports/weathermap/',
+    'reports/leases/usage/',
 )
 #LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'
