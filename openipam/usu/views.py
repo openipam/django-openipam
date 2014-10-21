@@ -42,7 +42,7 @@ def overview(request):
 
 
 def lease_usage(request):
-    return render(request, 'usu/lease_usage.html', {'is_popup': True})
+    return render(request, 'usu/lease_usage.html')
 
 
 def leases_available(request):
@@ -50,4 +50,4 @@ def leases_available(request):
 
 
 def weather_map(request):
-    return render(request, 'usu/weather_map.html', {'is_popup': True})
+    return render(request, 'usu/weather_map.html')

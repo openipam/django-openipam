@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "usu/base.html" %}
 {% load static nvd3_tags %}
 
 {% block page_title %}USU Weathermap{% endblock %}
@@ -14,15 +14,17 @@
             -moz-background-size: cover;
             -o-background-size: cover;
             background-size: cover;
+            margin-top: 20px;
         }
     </style>
+    <script type="text/javascript">
+        $(function(){
+            $("#weathermap_link").addClass('active');
+        });
+    </script>
 {% endblock %}
 
-{% block page_nav %}{% endblock %}
-{% block footer %}{% endblock %}
-
 {% block content %}
-    <a id="time"></a>
     <span id="mapName" /></span>
     <img id="logo" />
 
@@ -41,5 +43,4 @@
         d3.select('span#site').text(site.toUpperCase().substr(0,site.length-1)).attr('style','display:inline');
       }
     </script>
-
 {% endblock %}

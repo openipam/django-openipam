@@ -1,18 +1,16 @@
-{% extends "core/base.html" %}
+{% extends "usu/base.html" %}
 {% load static %}
 
 {% block page_title %}USU Lease Usage{% endblock %}
 
-{% block page_nav %}{% endblock %}
-{% block footer %}{% endblock %}
-
 {% block extrahead %}
+    {{ block.super }}
     <style type="text/css">
       body {
         background: #111;
       }
-      #container {
-        margin-top: 0px;
+      #usage-chart {
+        margin-top: 10px;
       }
       #usage-chart p {
         padding: 0px;
@@ -41,10 +39,8 @@
         margin-right: 50px;
       }
 
-      .timer {
+      #time {
         color: #ccc;
-        float: left;
-        margin: 10px 0px;
       }
     </style>
 
@@ -54,6 +50,7 @@
     {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
     <script type="text/javascript">
       $(function(){
+        $("#lease_usage_link").addClass('active');
         var start = new Date;
         var updatePage = function() {
           $.get('/api/reports/subnetdata/?html_output=1', function(data){
@@ -71,7 +68,7 @@
           start = new Date;
         }
         var updateTime = function() {
-          $('.timer').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
+          $('#time').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
         }
         updatePage();
         setInterval(updateTime, 1000);
@@ -82,10 +79,5 @@
 
 
 {% block content %}
-  <div class="title">
-    <h4>USU Lease Usage</h4>
-    <div class="timer"></div>
-    <div class="clear"><!-- --></div>
-  </div>
   <div id="usage-chart"></div>
 {% endblock %}
