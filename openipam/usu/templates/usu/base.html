@@ -6,6 +6,9 @@
 
 {% block extrahead %}
   <style type="text/css">
+    body {
+      background: #111;
+    }
     #report-brand {
       font-size: 18px;
       font-weight: bold;
@@ -16,9 +19,9 @@
 
 {% block nav-global %}
     <ul class="nav navbar-nav">
-      <li><a href="/" id="report-brand">IPAM Reports</a></li>
-      <li id="weathermap_link"><a href="{% url 'weather_map' %}">Weathermap</a></li>
-      <li id="lease_usage_link"><a href="{% url 'lease_usage' %}">Lease Usage</a></li>
+      <li><a href="{% url 'reports_overview' %}" id="report-brand">IPAM Reports</a></li>
+      <li id="weathermap_link"><a href="{% url 'reports_weather_map' %}">Weathermap</a></li>
+      <li id="lease_usage_link"><a href="{% url 'reports_lease_usage' %}">Lease Usage</a></li>
     </ul>
     <ul class="nav navbar-nav pull-right">
       <li><a id="time"></a></li>

@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "usu/base.html" %}
 {% load static nvd3_tags %}
 
 {% block extrahead %}
@@ -6,9 +6,24 @@
     <link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
     <script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
     <script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
-    {% load_chart charttype chartdata chartcontainer extra %}
+    <script>
+        $(function(){
+            $.get('/api/reports/hoststats/', function(data){
+                $("#charts").append(data);
+            });
+            $.get('/api/reports/leasestats/', function(data){
+                $("#charts").append(data);
+            });
+        });
+    </script>
+
+    <style type="text/css">
+        svg {
+            background: #fff;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-    {% include_container chartcontainer 400 600 %}
+    <div id="charts"></div>
 {% endblock %}

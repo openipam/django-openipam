@@ -23,6 +23,8 @@ urlpatterns = patterns('openipam.api.views',
     #Reports
     url(r'^reports/subnetdata/$', usu.subnet_data, name='api_reports_subnet_data'),
     url(r'^reports/weatherdata/$', usu.weather_data, name='api_reports_weather_data'),
+    url(r'^reports/hoststats/$', usu.host_stats, name='api_reports_host_stats'),
+    url(r'^reports/leasestats/$', usu.lease_stats, name='api_reports_lease_stats'),
 
     # Users
     url(r'^users/$', users.UserList.as_view(), name='api_users_list'),

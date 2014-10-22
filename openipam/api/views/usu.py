@@ -5,9 +5,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 
 from django.views.decorators.cache import cache_page
+from django.db.models.aggregates import Count
 
+from openipam.hosts.models import Host
 from openipam.usu.models import Ports, Portsstate
-from openipam.network.models import Network
+from openipam.network.models import Network, Lease
+
+import qsstats
 
 from netaddr import IPNetwork
 
@@ -216,7 +220,7 @@ def subnet_data(request):
 
 
 @api_view(('GET',))
-@permission_classes((AllowAny,))
+@permission_classes((IsAuthenticated,))
 def weather_data(request):
 
     data = OrderedDict({
@@ -266,3 +270,71 @@ def weather_data(request):
     data["timestamp"] =  int(datetime.now().strftime('%s'))
 
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(('GET',))
+@renderer_classes((TemplateHTMLRenderer,))
+@permission_classes((IsAuthenticated,))
+def host_stats(request):
+
+    hosts = Host.objects.all()
+    hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
+    #users = User.objects.all()
+    #users_stats = qsstats.QuerySetStats(users, 'date_joined')
+
+    xdata = ['Today', 'This Week', 'This Month']
+    ydata = [hosts_stats.this_day(), hosts_stats.this_week(), hosts_stats.this_month()]
+
+    extra_serie1 = {"tooltip": {"y_start": "", "y_end": " hosts"}}
+    chartdata = {
+        'x': xdata, 'name1': 'Hosts', 'y1': ydata, 'extra1': extra_serie1,
+    }
+    charttype = "discreteBarChart"
+    chartcontainer = 'host_stats'
+    context = {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }
+
+    return Response(context, template_name='api/web/ipam_stats.html')
+
+
+@api_view(('GET',))
+@renderer_classes((TemplateHTMLRenderer,))
+@permission_classes((IsAuthenticated,))
+def lease_stats(request):
+
+    leases = Lease.objects.all()
+    lease_stats = qsstats.QuerySetStats(leases, 'starts', aggregate=Count('address'))
+    #users = User.objects.all()
+    #users_stats = qsstats.QuerySetStats(users, 'date_joined')
+
+    xdata = ['Today', 'This Week', 'This Month']
+    ydata = [lease_stats.this_day(), lease_stats.this_week(), lease_stats.this_month()]
+
+    extra_serie1 = {"tooltip": {"y_start": "", "y_end": " hosts"}}
+    chartdata = {
+        'x': xdata, 'name1': 'Leases', 'y1': ydata, 'extra1': extra_serie1,
+    }
+    charttype = "discreteBarChart"
+    chartcontainer = 'lease_stats'
+    context = {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }
+
+    return Response(context, template_name='api/web/ipam_stats.html')
