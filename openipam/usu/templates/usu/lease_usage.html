@@ -6,9 +6,6 @@
 {% block extrahead %}
     {{ block.super }}
     <style type="text/css">
-      body {
-        background: #111;
-      }
       #usage-chart {
         margin-top: 10px;
       }
@@ -42,11 +39,16 @@
       #time {
         color: #ccc;
       }
+
+      .modal-dialog {
+        width: 700px;
+      }
     </style>
 
     <link type="text/css" rel="stylesheet" href="{% static "qtip2/jquery.qtip.min.css" %}" />
     <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>
     <script type="text/javascript" src="{% static "qtip2/jquery.qtip.min.js" %}"></script>
+    <script src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
     {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
     <script type="text/javascript">
       $(function(){
@@ -64,9 +66,31 @@
                 }
               });
             });
+            $("div.network").on('click', function(){
+              var network = $(this).children('p').first().html();
+              var baseURL = 'http://graphite.ser321.usu.edu:8190/render/?width=700&height=350&_salt=1414518442.099&areaMode=stacked&from=-1weeks&bgcolor=000000&fgcolor=FFFFFF';
+              var targets = [
+                'target=color(aliasByMetric(ipam.leases.__IP__.reserved),"purple")',
+                'target=color(aliasByMetric(ipam.leases.__IP__.static),"orange")',
+                'target=color(aliasByMetric(ipam.leases.__IP__.abandoned),"red")',
+                'target=color(alias(diffSeries(ipam.leases.__IP__.leased,ipam.leases.__IP__.expired),"active"),"yellow")',
+                'target=color(aliasByMetric(ipam.leases.__IP__.expired),"green")',
+                'target=color(aliasByMetric(ipam.leases.__IP__.unleased),"blue")'
+              ];
+              var img = "<img width='100%' src='" + baseURL + "&" + targets.join('&') + "' />";
+              var url = img.replace(/__IP__/g, network.replace('/', '_').replace(/\./g, '-'));
+              console.log(url);
+              $("span.net-title").html(network);
+              $("div.modal-body").html(url);
+              $('#lease-graph').modal();
+            });
           });
           start = new Date;
         }
+
+
+
+        //http://graphite.ser321.usu.edu:8190/render/?width=586&height=318&_salt=1414448085.07&bgcolor=000000&fgcolor=FFFFFF&connectedLimit=&drawNullAsZero=false&target=alias(ipam.leases.144-39-199-0_24.abandoned%2C%20%22Abandoned%22)&target=alias(ipam.leases.144-39-199-0_24.available%2C%20%22Available%22)&target=alias(ipam.leases.144-39-199-0_24.total%2C%20%22Total%22)
         var updateTime = function() {
           $('#time').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
         }
@@ -80,4 +104,18 @@
 
 {% block content %}
   <div id="usage-chart"></div>
+  <div id="lease-graph" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="lease-graph-label" aria-hidden="true" style="display: none;">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h3 class="modal-title" id="host-detail-label">Details for: <span class="net-title"></span></h3>
+              </div>
+              <div class="modal-body">Loading...</div>
+              <div class="modal-footer">
+                  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+              </div>
+          </div>
+      </div>
+  </div>
 {% endblock %}
