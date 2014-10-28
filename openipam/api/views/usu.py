@@ -319,7 +319,7 @@ def lease_stats(request):
     xdata = ['Today', 'This Week', 'This Month']
     ydata = [lease_stats.this_day(), lease_stats.this_week(), lease_stats.this_month()]
 
-    extra_serie1 = {"tooltip": {"y_start": "", "y_end": " hosts"}}
+    extra_serie1 = {"tooltip": {"y_start": "", "y_end": " leases"}}
     chartdata = {
         'x': xdata, 'name1': 'Leases', 'y1': ydata, 'extra1': extra_serie1,
     }
