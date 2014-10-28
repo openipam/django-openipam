@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 @api_view(('GET',))
 @renderer_classes((TemplateHTMLRenderer, JSONRenderer))
-@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
 #@cache_page(60)
 def subnet_data(request):
     network_blocks = request.REQUEST.get('network_blocks')
@@ -220,7 +220,7 @@ def subnet_data(request):
 
 
 @api_view(('GET',))
-@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
 def weather_data(request):
 
     data = OrderedDict({
@@ -274,7 +274,7 @@ def weather_data(request):
 
 @api_view(('GET',))
 @renderer_classes((TemplateHTMLRenderer,))
-@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
 def host_stats(request):
 
     hosts = Host.objects.all()
@@ -308,7 +308,7 @@ def host_stats(request):
 
 @api_view(('GET',))
 @renderer_classes((TemplateHTMLRenderer,))
-@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
 def lease_stats(request):
 
     leases = Lease.objects.all()
