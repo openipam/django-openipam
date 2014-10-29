@@ -5,7 +5,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
 
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, Disabled
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm
 
 
