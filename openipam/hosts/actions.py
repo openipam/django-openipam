@@ -155,7 +155,7 @@ def change_perms_check(user, selected_hosts):
     selected_macs = [host.mac for host in selected_hosts]
 
     # Check for disabled hosts
-    disabled_qs = Disabled.objects.filter(mac__in=selected_macs)
+    disabled_qs = Disabled.objects.filter(pk__in=selected_macs)
     if len(disabled_qs) != 0:
         return False
 
