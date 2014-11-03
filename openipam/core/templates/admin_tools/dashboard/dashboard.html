@@ -67,12 +67,6 @@
     {% endif %}
 </div>
 
-{% if request.path == '/' %}
-    <div class="alert alert-warning" style="margin: 15px 10px 5px 10px;">
-        Were are now in <strong>BETA 2</strong> of the new openIPAM interface.  If you are having problems, you can visit <a href="https://legacy.openipam.usu.edu">https://legacy.openipam.usu.edu</a>.<br />All bugs are logged, but feel free to use the feedback form if you you like to notify us.
-    </div>
-{% endif %}
-
 <div id="{{ dashboard.get_id }}" class="dashboard-container">
     {% for module in dashboard.children %}
         {% admin_tools_render_dashboard_module module %}
