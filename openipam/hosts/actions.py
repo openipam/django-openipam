@@ -5,7 +5,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
 
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, Disabled
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm
 
 
@@ -152,8 +152,15 @@ def change_addresses(request, selected_hosts):
 
 
 def change_perms_check(user, selected_hosts):
+    selected_macs = [host.mac for host in selected_hosts]
+
+    # Check for disabled hosts
+    disabled_qs = Disabled.objects.filter(pk__in=selected_macs)
+    if len(disabled_qs) != 0:
+        return False
+
     # Check onwership of hosts for users with only object level permissions.
-    host_perms_qs = Host.objects.filter(mac__in=[host.mac for host in selected_hosts]).by_change_perms(user)
+    host_perms_qs = Host.objects.filter(mac__in=selected_macs).by_change_perms(user)
     for host in selected_hosts:
         if host not in host_perms_qs:
             return False
