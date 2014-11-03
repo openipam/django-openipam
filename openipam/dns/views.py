@@ -374,9 +374,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                     if hasattr(e, 'error_dict'):
                         for key, errors in e.message_dict.items():
                             for error in errors:
-                                error_list.append(error)
+                                error_list.append(str(error).capitalize())
                     else:
-                        error_list.append(e.message)
+                        error_list.append(str(e.message).capitalize())
                     continue
 
             # Updated records
@@ -399,9 +399,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                     if hasattr(e, 'error_dict'):
                         for key, errors in e.message_dict.items():
                             for error in errors:
-                                error_list.append(error)
+                                error_list.append(str(error).capitalize())
                     else:
-                        error_list.append(e.message)
+                        error_list.append(str(e.message).capitalize())
                     continue
 
             if error_list:
