@@ -2,10 +2,11 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRenderer
 
 from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
+from django.core.files.temp import NamedTemporaryFile
 
 from openipam.hosts.models import Host
 from openipam.usu.models import Ports, Portsstate
@@ -18,6 +19,8 @@ from netaddr import IPNetwork
 import requests
 
 import itertools
+
+import shutil
 
 from datetime import datetime
 
@@ -38,16 +41,22 @@ def subnet_data(request):
     if network_blocks:
         show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
         url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
-        lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
+        lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
     elif network_tags:
         network_tags = network_tags.split(',')
         networks = Network.objects.filter(dhcp_group__name__in=network_tags)
         show_blocks = '&'.join(['show_blocks=%s' % str(n.network) for n in networks])
         url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
-        lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
+        lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
     else:
         lease_data = requests.get('https://gul.usu.edu/subnetparser.py?format=json',
-            auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt')).json()
+            auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
+
+    try:
+        lease_data = lease_data.json()
+    except ValueError:
+        return Response('Error parsing JSON from GUL', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     lease_data = sorted(lease_data, key=lambda k: (k['router'], IPNetwork(k['network'])))
 
     def get_ratio(available, total):
@@ -338,3 +347,48 @@ def lease_stats(request):
     }
 
     return Response(context, template_name='api/web/ipam_stats.html')
+
+
+class PNGRenderer(BaseRenderer):
+    media_type = 'image/png'
+    format = 'png'
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        return data
+
+
+@api_view(('GET',))
+@renderer_classes((PNGRenderer,))
+@permission_classes((AllowAny,))
+def render_lease_chart(request, network):
+    parsed_network = network.replace('/', '_').replace('.', '-')
+    params = {
+        'width': '700',
+        'height': '350',
+        '_salt': '1414518442.099',
+        'areaMode': 'stacked',
+        'from': '-1weeks',
+        'bgcolor': 'FFFFFF',
+        'target': [
+            'color(aliasByMetric(ipam.leases.%s.reserved),"purple")' % parsed_network,
+            'color(aliasByMetric(ipam.leases.%s.static),"orange")' % parsed_network,
+            'color(aliasByMetric(ipam.leases.%s.abandoned),"red")' % parsed_network,
+            'color(alias(diffSeries(ipam.leases.%s.leased,ipam.leases.%s.expired),"active"),"yellow")' % (parsed_network, parsed_network),
+            'color(aliasByMetric(ipam.leases.%s.expired),"green")' % parsed_network,
+            'color(aliasByMetric(ipam.leases.%s.unleased),"blue")' % parsed_network,
+        ]
+    }
+    img = requests.get(
+        'http://graphite.ser321.usu.edu:8190/render/',
+        params=params)
+
+    img.raw.decode_content = True
+    #with NamedTemporaryFile(suffix='.png') as f:
+    #    shutil.copyfileobj(img.raw, f)
+        #assert False, f
+    return Response(img.raw)
+
+    #assert False, img.__dict__
+
