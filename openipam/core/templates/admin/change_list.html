@@ -21,6 +21,12 @@
                     return false;
                 }
             });
+
+            $("#changelist-filter-actions").hide();
+
+            $("#changelist-filters-toggle").on('click', function(){
+                $("#changelist-filter-actions").toggle();
+            });
         });
     </script>
     {% if cl.formset or action_form %}
@@ -34,12 +40,6 @@
 
                 $("select.filter-select").on('change', function(){
                     location.href = $(this).val();
-                });
-
-                $("#changelist-filter-actions").hide();
-
-                $("#changelist-filters-toggle").on('click', function(){
-                    $("#changelist-filter-actions").toggle();
                 });
 
                 $("select[name='action'] option:selected")
