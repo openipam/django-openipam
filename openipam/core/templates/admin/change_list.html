@@ -22,6 +22,11 @@
                 }
             });
 
+            $("select.filter-select").chosen();
+            $("select.filter-select").on('change', function(){
+                location.href = $(this).val();
+            });
+
             $("#changelist-filter-actions").hide();
 
             $("#changelist-filters-toggle").on('click', function(){
@@ -36,12 +41,6 @@
         {% if actions_on_top or actions_on_bottom %}
         <script type="text/javascript">
             $(function(){
-                $("select.filter-select").chosen();
-
-                $("select.filter-select").on('change', function(){
-                    location.href = $(this).val();
-                });
-
                 $("select[name='action'] option:selected")
                     .html("Actions:")
                     .after("<option value=''>---------</option>");
