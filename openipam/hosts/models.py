@@ -414,12 +414,12 @@ class Host(DirtyFieldsMixin, models.Model):
             raise ValidationError('A hostname is required.')
 
          # Check to see if hostname already taken
-        used_hostname = DnsRecord.objects.filter(
-            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-            name=hostname
-        ).first()
-        if used_hostname:
-            raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
+        # used_hostname = DnsRecord.objects.filter(
+        #     dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+        #     name=hostname
+        # ).first()
+        # if used_hostname:
+        #     raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
 
         if not user and self.user:
             user = self.user
