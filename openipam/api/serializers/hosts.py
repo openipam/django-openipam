@@ -34,6 +34,7 @@ class HostListSerializer(serializers.ModelSerializer):
     expire_days = serializers.SerializerMethodField('get_expire_days')
     addresses = serializers.SerializerMethodField('get_addresses')
     is_dynamic = serializers.SerializerMethodField('get_is_dynamic')
+    is_disabled = serializers.SerializerMethodField('get_is_disabled')
 
     # def get_last_ip_seen(self, obj):
     #     return obj.last_ip_address_seen
@@ -48,9 +49,12 @@ class HostListSerializer(serializers.ModelSerializer):
     def get_expire_days(self, obj):
         return obj.expire_days
 
+    def get_is_disabled(self, obj):
+        return obj.is_disabled
+
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'expires', 'expire_days', 'description', 'addresses',)
+        fields = ('mac', 'hostname', 'expires', 'expire_days', 'description', 'addresses', 'is_disabled')
 
 
 class HostDetailSerializer(serializers.ModelSerializer):
