@@ -6,7 +6,8 @@ from peewee import *
 database = MySQLDatabase(
     'observium', **{
         'passwd': settings.OBSERVIUM_AUTH[1],
-        'host': 'observium.usu.edu', 'user': settings.OBSERVIUM_AUTH[0]
+        'host': 'observium.usu.edu',
+        'user': settings.OBSERVIUM_AUTH[0]
     }
 )
 
