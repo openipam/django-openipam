@@ -691,7 +691,7 @@ class Host(DirtyFieldsMixin, models.Model):
         super(Host, self).save(*args, **kwargs)
 
     def clean(self):
-        from openipam.dns.models import DnsRecord
+        from openipam.dns.models import DnsRecord, DnsType
         from openipam.network.models import Address
 
         # Perform check to on hostname to not let users create a host
@@ -700,7 +700,10 @@ class Host(DirtyFieldsMixin, models.Model):
             if existing_hostname:
                 raise ValidationError("The hostname '%s' already exists." % (self.hostname))
 
-            existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
+            existing_dns_hostname = DnsRecord.objects.filter(
+                Q(dns_type=DnsType.objects.A) | Q(dns_type=DnsType.objects.AAAA),
+                name=self.hostname,
+            ).exclude(host=self).first()
             if existing_dns_hostname:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
                     ' Please contact an IPAM Administrator.' % (self.hostname))
