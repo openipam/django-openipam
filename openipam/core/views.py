@@ -187,7 +187,11 @@ class JSONResponseMixin(object):
 
     def get(self, request, *args, **kwargs):
         self.request = request
-        self.json_data = json.loads(request.REQUEST.get('json_data'))
+        data = request.REQUEST.get('json_data')
+        if data:
+            self.json_data = json.loads(data)
+        else:
+            return self.render_to_response('')
 
         response = None
 
