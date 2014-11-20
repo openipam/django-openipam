@@ -6,7 +6,7 @@ from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRen
 
 from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
-from django.core.files.temp import NamedTemporaryFile
+from django.http import HttpResponse
 
 from openipam.hosts.models import Host
 from openipam.usu.models import Ports, Portsstate
@@ -20,7 +20,7 @@ import requests
 
 import itertools
 
-import shutil
+from tempfile import TemporaryFile
 
 from datetime import datetime
 
@@ -348,19 +348,7 @@ def lease_stats(request):
 
     return Response(context, template_name='api/web/ipam_stats.html')
 
-
-class PNGRenderer(BaseRenderer):
-    media_type = 'image/png'
-    format = 'png'
-    charset = None
-    render_style = 'binary'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        return data
-
-
 @api_view(('GET',))
-@renderer_classes((PNGRenderer,))
 @permission_classes((AllowAny,))
 def render_lease_chart(request, network):
     parsed_network = network.replace('/', '_').replace('.', '-')
@@ -370,7 +358,8 @@ def render_lease_chart(request, network):
         '_salt': '1414518442.099',
         'areaMode': 'stacked',
         'from': '-1weeks',
-        'bgcolor': 'FFFFFF',
+        'bgcolor': '000000',
+        'fgcolor': 'FFFFFF',
         'target': [
             'color(aliasByMetric(ipam.leases.%s.reserved),"purple")' % parsed_network,
             'color(aliasByMetric(ipam.leases.%s.static),"orange")' % parsed_network,
@@ -380,15 +369,16 @@ def render_lease_chart(request, network):
             'color(aliasByMetric(ipam.leases.%s.unleased),"blue")' % parsed_network,
         ]
     }
-    img = requests.get(
+    req = requests.get(
         'http://graphite.ser321.usu.edu:8190/render/',
-        params=params)
+        params=params,
+        stream=True)
 
-    img.raw.decode_content = True
-    #with NamedTemporaryFile(suffix='.png') as f:
-    #    shutil.copyfileobj(img.raw, f)
-        #assert False, f
-    return Response(img.raw)
+    if req.status_code == 200:
+        with TemporaryFile() as f:
+            for chunk in req.iter_content():
+                f.write(chunk)
+            f.seek(0)
+            return HttpResponse(f, content_type='image/png')
 
-    #assert False, img.__dict__
 

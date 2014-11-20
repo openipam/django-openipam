@@ -68,29 +68,16 @@
             });
             $("div.network").on('click', function(){
               var network = $(this).children('p').first().html();
-              var baseURL = 'http://graphite.ser321.usu.edu:8190/render/?width=700&height=350&_salt=1414518442.099&areaMode=stacked&from=-1weeks&bgcolor=000000&fgcolor=FFFFFF';
-              var targets = [
-                'target=color(aliasByMetric(ipam.leases.__IP__.reserved),"purple")',
-                'target=color(aliasByMetric(ipam.leases.__IP__.static),"orange")',
-                'target=color(aliasByMetric(ipam.leases.__IP__.abandoned),"red")',
-                'target=color(alias(diffSeries(ipam.leases.__IP__.leased,ipam.leases.__IP__.expired),"active"),"yellow")',
-                'target=color(aliasByMetric(ipam.leases.__IP__.expired),"green")',
-                'target=color(aliasByMetric(ipam.leases.__IP__.unleased),"blue")'
-              ];
-              var img = "<img width='100%' src='" + baseURL + "&" + targets.join('&') + "' />";
-              var url = img.replace(/__IP__/g, network.replace('/', '_').replace(/\./g, '-'));
-              console.log(url);
+              var baseURL = '/api/reports/leasegraph/';
+              var img = "<img width='100%' src='" + baseURL + network + "/' />";
               $("span.net-title").html(network);
-              $("div.modal-body").html(url);
+              $("div.modal-body").html(img);
               $('#lease-graph').modal();
             });
           });
           start = new Date;
         }
 
-
-
-        //http://graphite.ser321.usu.edu:8190/render/?width=586&height=318&_salt=1414448085.07&bgcolor=000000&fgcolor=FFFFFF&connectedLimit=&drawNullAsZero=false&target=alias(ipam.leases.144-39-199-0_24.abandoned%2C%20%22Abandoned%22)&target=alias(ipam.leases.144-39-199-0_24.available%2C%20%22Available%22)&target=alias(ipam.leases.144-39-199-0_24.total%2C%20%22Total%22)
         var updateTime = function() {
           $('#time').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
         }
