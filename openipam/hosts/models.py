@@ -528,13 +528,19 @@ class Host(DirtyFieldsMixin, models.Model):
             from openipam.network.models import Address
             address = Address.objects.filter(address=address).first()
 
+        arecord = DnsRecord.objects.filter(
+            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+            host=self,
+            name=self.hostname
+        ).first()
+
         # Add Associated PTR
         DnsRecord.objects.add_or_update_record(
             user=user,
             name=address.address.reverse_dns[:-1],
             content=hostname,
             dns_type=DnsType.objects.PTR,
-            host=self
+            host=self,
         )
 
         # Add Associated A or AAAA record
@@ -543,7 +549,8 @@ class Host(DirtyFieldsMixin, models.Model):
             name=hostname,
             content=address.address,
             dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
-            host=self
+            host=self,
+            record=arecord if arecord else None
         )
 
     def get_dns_records(self):
@@ -701,7 +708,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 raise ValidationError("The hostname '%s' already exists." % (self.hostname))
 
             existing_dns_hostname = DnsRecord.objects.filter(
-                Q(dns_type=DnsType.objects.A) | Q(dns_type=DnsType.objects.AAAA),
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
                 name=self.hostname,
             ).exclude(host=self).first()
             if existing_dns_hostname:

@@ -51,7 +51,7 @@ class DnsRecord(models.Model):
     text_content = models.CharField(max_length=255, blank=True, null=True)
     ip_content = models.ForeignKey('network.Address', db_column='ip_content',
         verbose_name='IP Content', blank=True, null=True, related_name='arecords')
-    ttl = models.IntegerField(default=86400, blank=True, null=True)
+    ttl = models.IntegerField(default=14400, blank=True, null=True)
     priority = models.IntegerField(verbose_name='Priority', blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')

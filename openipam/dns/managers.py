@@ -181,7 +181,10 @@ class DnsManager(Manager):
         try:
             if record:
                 created = False
-                dns_record = self.get(pk=record)
+                if isinstance(record, self.model):
+                    dns_record = record
+                else:
+                    dns_record = self.get(pk=record)
             else:
                 created = True
                 dns_record = self.model()
