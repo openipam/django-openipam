@@ -217,6 +217,7 @@ BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
 
 BOWER_INSTALLED_APPS = (
     'jquery#2.1.1',
+    'jquer-ui#1.11.2',
     'bootstrap#3.2.0',
     'datatables#1.10.2',
     'jquery.cookie#1.4.1',
