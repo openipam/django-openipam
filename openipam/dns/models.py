@@ -400,7 +400,7 @@ class DnsType(models.Model):
 
     @property
     def is_host_type(self):
-        return True if self.name in ['A', 'AAAA', 'PTR', 'HINFO', 'SSHFP', 'TXT'] else False
+        return True if self.name in ['A', 'AAAA', 'PTR', 'HINFO', 'SSHFP'] else False
 
     class Meta:
         db_table = 'dns_types'
