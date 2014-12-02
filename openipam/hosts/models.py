@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import localtime, utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -586,6 +587,7 @@ class Host(DirtyFieldsMixin, models.Model):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
         self.expires = datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
+        self.expires = self.expires.replace(tzinfo=utc)
 
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk.lower() != str(new_mac_address).lower():
