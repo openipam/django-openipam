@@ -242,6 +242,7 @@ AUTH_USER_MODEL = 'user.User'
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
+    'static/?.*',
     'password/forgot/',
     'api/?.*',
     'reports/weathermap/',
