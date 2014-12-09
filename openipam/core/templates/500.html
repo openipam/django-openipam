@@ -7,6 +7,7 @@
     <div id="error-page">
         <h2>Whoops!  500, Server Error</h2>
         <h3>The page you requested has a bug!</h3>
+        <h4 class="alert alert-danger">{% if error_type %}{{ error_type }}: {% endif %}{{ error_value }}</h4>
         <h4>The IPAM team has been notified of this and will be addressing the problem soon.</h4>
         <h4>To offset your anger and fustration, we have provided you with a LOLCat.</h4>
         {% if email %}

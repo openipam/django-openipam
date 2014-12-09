@@ -127,12 +127,16 @@ def page_error(request, template_name, extra_context=None):
     kitty_dir = os.path.dirname(os.path.realpath(__file__)) + '/static/core/img/error_cats'
     kitty = random.choice(os.listdir(kitty_dir))
     template = loader.get_template(template_name)
+    error_type, error_value, traceback = sys.exc_info()
     context = {
         'request_path': request.path,
         'kitty': kitty,
         'email': CONFIG.get('EMAIL_ADDRESS'),
         'legacy_domain': CONFIG.get('LEGACY_DOAMIN'),
-        'request_path': request.path
+        'request_path': request.path,
+        'error_type': error_type.__name__,
+        'error_value': error_value,
+        'traceback': traceback
     }
     if extra_context:
         context.update(extra_context)
