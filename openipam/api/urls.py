@@ -58,6 +58,7 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^domain/$', dns.DomainList.as_view(), name='api_domain_list'),
     url(r'^domain/name/$', dns.DomainNameList.as_view(), name='api_domain_name_list'),
     url(r'^network/$', network.NetworkList.as_view(), name='api_network_list'),
+    url(r'^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/$', network.AddressDetail.as_view(), name='api_address_view'),
     url(r'^address/$', network.AddressList.as_view(), name='api_address_list'),
     url(r'^dhcpgroup/$', network.DhcpGroupList.as_view(), name='api_dhcpgroup_list'),
 
