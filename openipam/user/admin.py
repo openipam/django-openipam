@@ -264,11 +264,16 @@ class TokenAdmin(TokenAdmin):
     form = autocomplete_light.modelform_factory(Token)
 
 
+class AuthGroupSourceInline(admin.StackedInline):
+    model = GroupSource
+
+
 class AuthGroupAdmin(GroupAdmin):
     list_display = ('name', 'source')
     list_filter = (IPAMObjUserFilter, GroupSourceFilter)
     form = AuthGroupAdminForm
     list_select_related = True
+    inlines = [AuthGroupSourceInline]
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)

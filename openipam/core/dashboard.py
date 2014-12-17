@@ -85,7 +85,6 @@ class IPAMIndexDashboard(Dashboard):
                             <li>DNS Entries - Do you see all DNS Entries?</li>
                             <li>Performance - Is the site slow?</li>
                         </ul>
-                        <p>You may switch back to the old interface at anytime by going to <a href="%(legacy_domain)s">%(legacy_domain)s</a></p>
                         <p>If you have any questions, please email:  <a href="%(email)s">%(email)s</a></p>
                     </div>
             ''' % {

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import localtime, utc
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -414,12 +415,12 @@ class Host(DirtyFieldsMixin, models.Model):
             raise ValidationError('A hostname is required.')
 
          # Check to see if hostname already taken
-        used_hostname = DnsRecord.objects.filter(
-            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-            name=hostname
-        ).first()
-        if used_hostname:
-            raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
+        # used_hostname = DnsRecord.objects.filter(
+        #     dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+        #     name=hostname
+        # ).first()
+        # if used_hostname:
+        #     raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
 
         if not user and self.user:
             user = self.user
@@ -528,13 +529,19 @@ class Host(DirtyFieldsMixin, models.Model):
             from openipam.network.models import Address
             address = Address.objects.filter(address=address).first()
 
+        arecord = DnsRecord.objects.filter(
+            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+            host=self,
+            name=self.hostname
+        ).first()
+
         # Add Associated PTR
         DnsRecord.objects.add_or_update_record(
             user=user,
             name=address.address.reverse_dns[:-1],
             content=hostname,
             dns_type=DnsType.objects.PTR,
-            host=self
+            host=self,
         )
 
         # Add Associated A or AAAA record
@@ -543,7 +550,8 @@ class Host(DirtyFieldsMixin, models.Model):
             name=hostname,
             content=address.address,
             dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
-            host=self
+            host=self,
+            record=arecord if arecord else None
         )
 
     def get_dns_records(self):
@@ -579,6 +587,7 @@ class Host(DirtyFieldsMixin, models.Model):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
         self.expires = datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
+        self.expires = self.expires.replace(tzinfo=utc)
 
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk.lower() != str(new_mac_address).lower():
@@ -691,7 +700,7 @@ class Host(DirtyFieldsMixin, models.Model):
         super(Host, self).save(*args, **kwargs)
 
     def clean(self):
-        from openipam.dns.models import DnsRecord
+        from openipam.dns.models import DnsRecord, DnsType
         from openipam.network.models import Address
 
         # Perform check to on hostname to not let users create a host
@@ -700,7 +709,10 @@ class Host(DirtyFieldsMixin, models.Model):
             if existing_hostname:
                 raise ValidationError("The hostname '%s' already exists." % (self.hostname))
 
-            existing_dns_hostname = DnsRecord.objects.filter(name=self.hostname).first()
+            existing_dns_hostname = DnsRecord.objects.filter(
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                name=self.hostname,
+            ).exclude(host=self).first()
             if existing_dns_hostname:
                 raise ValidationError('DNS Records already exist for this hostname: %s. '
                     ' Please contact an IPAM Administrator.' % (self.hostname))

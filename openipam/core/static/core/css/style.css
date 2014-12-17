@@ -908,6 +908,9 @@ table.table tfoot {
 {
     margin-top: 10px;
 }
+.vCheckboxLabel {
+    margin-left: 5px;
+}
 .vDateField, .vTimeField
 {
     background-color: #fff;

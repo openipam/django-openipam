@@ -131,32 +131,40 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     like_search_term = search_item + '%'
                     cursor = connection.cursor()
 
-                    cursor.execute('''
-                        SELECT hosts.mac from hosts
-                            WHERE hosts.mac::text LIKE %(lsearch)s OR hosts.hostname LIKE %(lsearch)s
+                    if re.match('([0-9a-f]{2}[:.-]?){5}[0-9a-f]{2}', search_item):
+                        omni_sql = '''
+                            SELECT hosts.mac from hosts
+                                WHERE hosts.mac = %(search)s
+                        '''
+                    else:
+                        omni_sql = '''
+                            SELECT hosts.mac from hosts
+                                WHERE hosts.mac::text LIKE %(lsearch)s OR hosts.hostname LIKE %(lsearch)s
 
-                        UNION
+                            UNION
 
-                        SELECT DISTINCT dns_records.mac from dns_records
-                            LEFT OUTER JOIN dns_records as d2 ON (dns_records.name = d2.text_content AND d2.tid = 5)
-                            WHERE dns_records.name LIKE %(lsearch)s OR d2.name LIKE %(lsearch)s
+                            SELECT DISTINCT dns_records.mac from dns_records
+                                LEFT OUTER JOIN dns_records as d2 ON (dns_records.name = d2.text_content AND d2.tid = 5)
+                                WHERE dns_records.name LIKE %(lsearch)s OR d2.name LIKE %(lsearch)s
 
-                        UNION
+                            UNION
 
-                        SELECT addresses.mac from addresses
-                            WHERE HOST(addresses.address) = %(search)s
+                            SELECT addresses.mac from addresses
+                                WHERE HOST(addresses.address) = %(search)s
 
-                        UNION
+                            UNION
 
-                        SELECT DISTINCT addresses.mac from addresses
-                            INNER JOIN dns_records ON addresses.address = dns_records.ip_content
-                            WHERE dns_records.name LIKE %(lsearch)s
+                            SELECT DISTINCT addresses.mac from addresses
+                                INNER JOIN dns_records ON addresses.address = dns_records.ip_content
+                                WHERE dns_records.name LIKE %(lsearch)s
 
-                        UNION
+                            UNION
 
-                        SELECT leases.mac from leases
-                            WHERE HOST(leases.address) = %(search)s
-                    ''', {'lsearch': like_search_term, 'search': search_item})
+                            SELECT leases.mac from leases
+                                WHERE HOST(leases.address) = %(search)s
+                        '''
+
+                    cursor.execute(omni_sql, {'lsearch': like_search_term, 'search': search_item})
                     search_hosts = cursor.fetchall()
                     qs = qs.filter(mac__in=[host[0] for host in search_hosts])
 
@@ -316,7 +324,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         # queryset is already paginated here
         json_data = []
         for host in value_qs:
-            if global_change_permission or host['mac'] in user_change_permissions:
+            is_disabled = 'disabled' if host['disabled'] else ''
+
+            if not is_disabled and (global_change_permission or host['mac'] in user_change_permissions):
                 change_permissions = True
             else:
                 change_permissions = False
@@ -331,8 +341,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 is_flagged = True
             else:
                 is_flagged = False if last_ip_stamp or last_mac_stamp else True
-
-            is_disabled = 'disabled' if host['disabled'] else ''
 
             json_data.append([
                 get_selector(host, change_permissions),
@@ -576,6 +584,8 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
         context = super(HostAddressCreateView, self).get_context_data(**kwargs)
         self.host_addresses = self.object.addresses.values_list('address', flat=True)
         self.addresses = Address.objects.filter(host=self.object).exclude(arecords__name=self.object.hostname)
+        if not self.addresses:
+            self.addresses = Address.objects.filter(host=self.object)
 
         addresses_data = []
         for address in self.addresses:
