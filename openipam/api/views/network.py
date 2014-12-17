@@ -32,7 +32,7 @@ class AddressList(generics.ListAPIView):
     model = Address
     paginate_by = 50
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('address', 'mac',)
+    filter_fields = ('address', 'mac',)
 
 
 class DhcpGroupList(generics.ListAPIView):
