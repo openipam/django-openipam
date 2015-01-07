@@ -36,6 +36,17 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
                 for group_owner in group_owners:
                     host.assign_owner(group_owner)
 
+                data = [user_owners, group_owners]
+
+                LogEntry.objects.log_action(
+                    user_id=request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                    object_id=host.pk,
+                    object_repr=force_unicode(host),
+                    action_flag=CHANGE,
+                    change_message='Owners assigned to host: \n\n %s' % data
+                )
+
             messages.success(request, "Ownership for selected hosts has been updated.")
 
         else:
@@ -69,6 +80,17 @@ def remove_owner_hosts(request, selected_hosts):
                 # Re-assign groups
                 for group_owner in group_owners:
                     host.remove_owner(group_owner)
+
+                data = [user_owners, group_owners]
+
+                LogEntry.objects.log_action(
+                    user_id=request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                    object_id=host.pk,
+                    object_repr=force_unicode(host),
+                    action_flag=CHANGE,
+                    change_message='Owners removed from host: \n\n %s' % data
+                )
 
             messages.success(request, "Ownership for selected hosts has been updated.")
 
@@ -124,6 +146,7 @@ def renew_hosts(request, selected_hosts):
                 data = serializers.serialize('json', [host])
 
                 host.set_expiration(expiration)
+                host.changed_by = user
                 host.save()
 
                 LogEntry.objects.log_action(
@@ -148,7 +171,6 @@ def renew_hosts(request, selected_hosts):
 
 def change_addresses(request, selected_hosts):
     pass
-
 
 
 def change_perms_check(user, selected_hosts):
