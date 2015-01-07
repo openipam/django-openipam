@@ -147,6 +147,8 @@ class HostMixin(object):
                 address.changed_by = user
                 address.changed = timezone.now()
             address.save()
+        self.changed_by = user
+        self.save()
         self.delete()
 
 
