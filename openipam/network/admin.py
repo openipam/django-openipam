@@ -19,7 +19,7 @@ class NetworkAdmin(ChangedAdmin):
     list_display = ('nice_network', 'name', 'description', 'gateway')
     list_filter = ('tags',)
     search_fields = ('network', 'description', 'name')
-    actions = ['tag_network']
+    actions = ['tag_network', 'release_abandoned_leases']
 
     def nice_network(self, obj):
         url = str(obj.network).replace('/', '_2F')
@@ -52,6 +52,12 @@ class NetworkAdmin(ChangedAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return redirect("tag/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+
+    def release_abandoned_leases(self, request, queryset):
+        for network in queryset:
+            Lease.objects.filter(
+                address__address__net_contained_or_equal=network.network,
+                abandoned=True).update(abandoned=False, host='000000000000')
 
     def save_model(self, request, obj, form, change):
         super(NetworkAdmin, self).save_model(request, obj, form, change)
@@ -148,6 +154,7 @@ class LeaseAdmin(admin.ModelAdmin):
     #form = autocomplete_light.modelform_factory(Lease)
     list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
+    list_filter = ('abandoned', 'starts', 'ends', 'server')
 
     def save_model(self, request, obj, form, change):
         obj.host_id = form.cleaned_data['host']
