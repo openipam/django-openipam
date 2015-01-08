@@ -3,6 +3,7 @@ from django import forms
 from django.shortcuts import redirect, render
 from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
@@ -149,12 +150,29 @@ class NetworkToVlanAdmin(ChangedAdmin):
     list_display = ('network', 'vlan', 'changed_by', 'changed',)
 
 
+class IsExpiredFilter(admin.SimpleListFilter):
+    title = 'is expired'
+    parameter_name = 'is_expired'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', 'Yes'),
+            ('0', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(ends__lte=timezone.now())
+        if self.value() == '0':
+            return queryset.filter(ends__gt=timezone.now())
+
+
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
     #form = autocomplete_light.modelform_factory(Lease)
     list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
-    list_filter = ('abandoned', 'starts', 'ends', 'server')
+    list_filter = ('abandoned', 'starts', 'ends', 'server', IsExpiredFilter)
 
     def save_model(self, request, obj, form, change):
         obj.host_id = form.cleaned_data['host']
