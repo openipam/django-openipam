@@ -18,8 +18,8 @@ import autocomplete_light
 class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
     list_display = ('nice_network', 'name', 'description', 'gateway')
-    list_filter = ('tags',)
-    search_fields = ('network', 'description', 'name')
+    list_filter = ('tags', 'shared_network__name')
+    search_fields = ('network', 'description', 'name', 'shared_network__name')
     actions = ['tag_network', 'release_abandoned_leases']
 
     def nice_network(self, obj):
