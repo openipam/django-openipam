@@ -58,9 +58,15 @@ Remember: never give your password to anyone, including USU employees.
 
 --
 IT Service Desk
-Summer Hours:
-Mon-Thu: 8:00am - 8:00pm
-Friday: 8:00am - 6:00pm
+
+Fall & Spring Hours
+Mon-Thurs: 8:00am-8:00pm
+Friday: 8:00am-6:00pm
+Saturday: 10:00am-3:00pm
+
+Summer Hours
+Mon-Fri: 8:00am-6:00pm
+Saturday: Closed
 
 Contact us at:
 Phone: 797-HELP (4357)
@@ -94,9 +100,15 @@ If you have any questions, please contact the IT Service Desk.
 
 --
 IT Service Desk
-Summer Hours:
-Mon-Thu: 8:00am - 8:00pm
-Friday: 8:00am - 6:00pm
+
+Fall & Spring Hours
+Mon-Thurs: 8:00am-8:00pm
+Friday: 8:00am-6:00pm
+Saturday: 10:00am-3:00pm
+
+Summer Hours
+Mon-Fri: 8:00am-6:00pm
+Saturday: Closed
 
 Contact us at:
 Phone: 797-HELP (4357)
