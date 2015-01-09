@@ -23,6 +23,7 @@ CONFIG_DEFAULTS = {
         }
     },
     'EMAIL_ADDRESS': 'openipam@lists.usu.edu',
+    'NOTIFICATION_EMAIL_ADDRESS': 'servicedesk@usu.edu',
     'LEGACY_DOMAIN': 'https://legacy.openipam.usu.edu',
     'DISABLED_HOSTS_WEBSITE': 'https://usu.service-now.com/services/disabled.do',
 }
