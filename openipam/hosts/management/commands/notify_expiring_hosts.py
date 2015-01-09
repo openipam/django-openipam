@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
         self.stdout.write('Sending Notifications...')
 
-        from_address = CONFIG.get('EMAIL_ADDRESS')
+        from_address = CONFIG.get('NOTIFICATION_EMAIL_ADDRESS')
 
         dynamic_subject = '[USU:Important] Your USU computer registrations are about to expire'
         dynamic_msg = '''%(name)s (%(username)s),
