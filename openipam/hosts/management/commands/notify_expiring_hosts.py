@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.core.mail import send_mass_mail, get_connection
+from django.core.mail import send_mail, send_mass_mail, get_connection
 from django.utils import timezone
 
 
@@ -25,11 +25,17 @@ class Command(BaseCommand):
             dest='count',
             default=False,
             help='Display notifications counts to send but this will not send anything'),
+        make_option('-n', '--noasync',
+            action='store_true',
+            dest='noasync',
+            default=False,
+            help='This flag will sent using send_mail instead of send_mass_mail'),
     )
 
     def handle(self, *args, **options):
         test = options['test']
         count = options['count']
+        noasync = options['noasync']
         connection = None
         if test:
             connection = get_connection(backend='django.core.mail.backends.console.EmailBackend')
@@ -173,7 +179,13 @@ http://usu.service-now.com (Issue Tracking System)
                 bad_users.append(user.username)
 
         if not count:
-            send_mass_mail(messages, fail_silently=False, connection=connection)
+            if noasync:
+                for message in messages:
+                    self.stdout.write('Sending email to %s...' % ','.join(message[3]))
+                    send_mail(*message, fail_silently=False, connection=connection)
+            else:
+                send_mass_mail(messages, fail_silently=False, connection=connection)
+
             if not test:
                 host_qs.update(last_notified=timezone.now())
 
