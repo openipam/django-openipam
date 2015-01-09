@@ -83,15 +83,15 @@ class HostMixin(object):
 
         cursor = connection.cursor()
         try:
-            cursor.execute('''
+            cursor.execute("""
                 SELECT DISTINCT h.mac from hosts h
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
                         AND (h.expires - n.notification) < now()
-                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(g-%%)
-                        AND UPPER("hosts"."hostname"::text) NOT LIKE UPPER(%%.guests.usu.edu)
-            ''')
+                        AND UPPER(h.hostname::text) NOT LIKE UPPER('g-%%')
+                        AND UPPER(h.hostname::text) NOT LIKE UPPER('%%.guests.usu.edu')
+            """)
             hosts = [host[0] for host in cursor.fetchall()]
         finally:
             cursor.close()
