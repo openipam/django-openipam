@@ -85,7 +85,7 @@ class IPAMIndexDashboard(Dashboard):
                             <li>DNS Entries - Do you see all DNS Entries?</li>
                             <li>Performance - Is the site slow?</li>
                         </ul>
-                        <p>If you have any questions, please email:  <a href="%(email)s">%(email)s</a></p>
+                        <p>If you have any questions, please email:  <a href="mailto:%(email)s">%(email)s</a></p>
                     </div>
             ''' % {
                 'email': CONFIG.get('EMAIL_ADDRESS'),
