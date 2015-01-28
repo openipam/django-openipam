@@ -38,7 +38,7 @@ $(function(){
                 ajax = true;
                 settings.clearCache = false;
             }
-            else if (cacheLower < 0 || requestStart < cacheLower || requestEnd > cacheUpper || requestLength > 50) {
+            else if (cacheLower < 0 || requestStart < cacheLower || requestEnd > cacheUpper) {
                 // outside cached data - need to make a request
                 ajax = true;
             }
