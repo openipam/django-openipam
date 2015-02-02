@@ -26,19 +26,18 @@ def force_usernames_uppercase(sender, instance, **kwargs):
         instance.username = instance.username.upper()
 
 
-# TODO: This is not needed anymore, it will go away soon.
 # Convert Host permissions on login.
-# def convert_user_permissions(sender, request, user, **kwargs):
-#     from openipam.user.utils import user_utils
+def convert_user_permissions(sender, request, user, **kwargs):
+    from openipam.user.utils import user_utils
 
-#     user_utils.convert_permissions(user=user)
-#     # We do this on the host view instead for performance
-#     #user_utils.convert_host_permissions(username=user.username)
-#     user_utils.convert_min_permissions(user=user)
+    user_utils.convert_permissions(user=user)
+    # We do this on the host view instead for performance
+    #user_utils.convert_host_permissions(username=user.username)
+    user_utils.convert_min_permissions(user=user)
 
-#     # Convert groups for IPAM admins.
-#     #if user.is_ipamadmin:
-#     #    user_utils.convert_groups()
+    # Convert groups for IPAM admins.
+    #if user.is_ipamadmin:
+    #    user_utils.convert_groups()
 
 
 # Automatically assign new users to IPAM_USER_GROUP
