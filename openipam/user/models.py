@@ -3,7 +3,6 @@ from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
-from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
@@ -12,7 +11,7 @@ from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, convert_user_permissions, add_group_souce
+   remove_obj_perms_connected_with_user, add_group_souce
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -255,7 +254,6 @@ class InternalAuth(models.Model):
 
 
 # Connect signals
-user_logged_in.connect(convert_user_permissions)
 pre_save.connect(force_usernames_uppercase, sender=User)
 post_save.connect(assign_ipam_groups, sender=User)
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=User)
