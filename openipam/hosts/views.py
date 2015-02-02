@@ -28,9 +28,8 @@ from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
 from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Lease, Address
+from openipam.network.models import AddressType, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts
-from openipam.user.utils.user_utils import convert_host_permissions
 from openipam.conf.ipam_settings import CONFIG
 
 from netaddr.core import AddrFormatError
@@ -415,8 +414,6 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
     noaccess = False
 
     def get(self, request, *args, **kwargs):
-        if CONFIG.get('CONVERT_OLD_PERMISSIONS'):
-           convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostDetailView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -503,8 +500,6 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
         return context
 
     def get(self, request, *args, **kwargs):
-        if CONFIG['CONVERT_OLD_PERMISSIONS']:
-            convert_host_permissions(host_pk=self.kwargs.get('pk'), on_empty_only=True)
         return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
