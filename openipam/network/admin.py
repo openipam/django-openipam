@@ -22,6 +22,12 @@ class NetworkAdmin(ChangedAdmin):
     search_fields = ('network', 'description', 'name', 'shared_network__name')
     actions = ['tag_network', 'release_abandoned_leases']
 
+    def get_actions(self, request):
+        #Disable delete
+        actions = super(NetworkAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
     def nice_network(self, obj):
         url = str(obj.network).replace('/', '_2F')
         return '<a href="./%s/">%s</a>' % (url, obj.network)
