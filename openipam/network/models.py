@@ -220,7 +220,7 @@ class NetworkRange(models.Model):
 
 class Vlan(models.Model):
     id = models.SmallIntegerField(primary_key=True)
-    name = models.CharField(max_length=12)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
