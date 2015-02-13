@@ -52,13 +52,13 @@ class IPAMMenu(Menu):
             if len(dns_models._visible_models(context['request'])) > 1:
                 dns_items.children = [
                     items.MenuItem('DNS', url=reverse('list_dns')),
-                    items.ModelList('', ['openipam.dns.*']),
+                    items.ModelList('', ['openipam.dns.*'], exclude=('openipam.dns.models.DnsRecord',)),
                 ]
 
             if len(host_models._visible_models(context['request'])) > 1:
                 host_items.children = [
                     items.MenuItem('Hosts', url=reverse('list_hosts')),
-                    items.ModelList('', ['openipam.hosts.*']),
+                    items.ModelList('', models=['openipam.hosts.*'], exclude=('openipam.hosts.models.Host',)),
                 ]
 
             core_menus = [
@@ -115,6 +115,20 @@ class IPAMMenu(Menu):
                         ),
                     ],
                     #icon='icon-user icon-white'
+                )
+            )
+        elif user.is_staff:
+            self.children.append(
+                items.MenuItem('Admin',
+                    children=[
+                        items.AppList(
+                            '',
+                            exclude=(
+                                'openipam.hosts.*',
+                                'openipam.dns.*',
+                            )
+                        ),
+                    ]
                 )
             )
 

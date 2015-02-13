@@ -33,6 +33,7 @@ import qsstats
 
 User = get_user_model()
 
+
 class IPAMIndexDashboard(Dashboard):
     """
     Custom index dashboard for openipam.
@@ -69,12 +70,10 @@ class IPAMIndexDashboard(Dashboard):
 
         # append intro module
         self.children.append(HTMLContentModule(
-            '<strong>Welcome to the new openIPAM interface.</strong>',
+            '<strong>Welcome to the openIPAM.</strong>',
             html='''
                     <div style="margin: 10px 20px;">
-                        <p><strong>Thank you for taking time to try out the new IPAM interface.</strong></p>
                         <p>
-                            Since we are still in beta with this project, you may experience bugs.
                             We have provided a <a href="%(feature_request_link)s">feature and bug submission tool</a> to help aid us with features and bugs.
                             Please use this tool whenever possible as it will give us great feedback.
                         </p>
@@ -83,7 +82,6 @@ class IPAMIndexDashboard(Dashboard):
                             <li>Permissions - Do you have all your permissions?</li>
                             <li>Hosts - Do you see all your hosts?</li>
                             <li>DNS Entries - Do you see all DNS Entries?</li>
-                            <li>Performance - Is the site slow?</li>
                         </ul>
                         <p>If you have any questions, please email:  <a href="mailto:%(email)s">%(email)s</a></p>
                     </div>
@@ -94,56 +92,51 @@ class IPAMIndexDashboard(Dashboard):
             }
         ))
 
-        if request.user.is_staff:
+        self.children.append(HTMLContentModule(
+            'Navigation',
+            html='''
+                <ul>
+                    <li><a href="%(url_hosts)s">List Hosts</a></li>
+                    <li><a href="%(url_add_hosts)s">Add Host</a></li>
+                    <li><a href="%(url_dns)s">DNS Records</a></li>
+                </ul>
+                <ul>
+                    <li style="border-top: 1px solid #e5e5e5;">
+                        <a href="%(url_feature_request)s">Feature or Bug?</a>
+                    </li>
+                    <li><a href="%(url_profile)s">Profile</a></li>
+                </ul>
+            ''' % {
+                'url_hosts': reverse_lazy('list_hosts'),
+                'url_add_hosts': reverse_lazy('add_hosts'),
+                'url_dns': reverse_lazy('list_dns'),
+                'url_feature_request': reverse_lazy('feature_request'),
+                'url_profile': reverse_lazy('profile'),
+            }
+        ))
+
+
+        if request.user.is_staff or request.user.is_superuser:
             # append an app list module for "Administration"
-            self.children.append(modules.ModelList(
+            self.children.append(IPAMAppList(
                 _('Administration'),
-                models=(
-                    'openipam.user.models.User',
-                    'rest_framework.authtoken.models.Token',
-                    'django.contrib.*',
-                    'guardian.*',
-                    'openipam.core.*',
-                    'openipam.log.models.EmailLog'
-                ),
+                models=(),
             ))
 
-            # append crap to delete.
-            self.children.append(modules.ModelList(
-                _('TO BE DELETED'),
-                models=(
-                    'openipam.user.models.Permission',
-                    'openipam.user.models.Group',
-                    'openipam.user.models.UserToGroup',
-                    'openipam.user.models.HostToGroup',
-                    'openipam.user.models.DomainToGroup',
-                    'openipam.user.models.NetworkToGroup',
-                    'openipam.user.models.PoolToGroup',
-                ),
-            ))
-        else:
-            self.children.append(HTMLContentModule(
-                'Navigation',
-                html='''
-                    <ul>
-                        <li><a href="%(url_hosts)s">List Hosts</a></li>
-                        <li><a href="%(url_add_hosts)s">Add Host</a></li>
-                        <li><a href="%(url_dns)s">DNS Records</a></li>
-                    </ul>
-                    <ul>
-                        <li style="border-top: 1px solid #e5e5e5;">
-                            <a href="%(url_feature_request)s">Feature or Bug?</a>
-                        </li>
-                        <li><a href="%(url_profile)s">Profile</a></li>
-                    </ul>
-                ''' % {
-                    'url_hosts': reverse_lazy('list_hosts'),
-                    'url_add_hosts': reverse_lazy('add_hosts'),
-                    'url_dns': reverse_lazy('list_dns'),
-                    'url_feature_request': reverse_lazy('feature_request'),
-                    'url_profile': reverse_lazy('profile'),
-                }
-            ))
+        # if request.user.is_superuser:
+        #     # append crap to delete.
+        #     self.children.append(modules.AppList(
+        #         _('TO BE DELETED'),
+        #         models=(
+        #             'openipam.user.models.Permission',
+        #             'openipam.user.models.Group',
+        #             'openipam.user.models.UserToGroup',
+        #             'openipam.user.models.HostToGroup',
+        #             'openipam.user.models.DomainToGroup',
+        #             'openipam.user.models.NetworkToGroup',
+        #             'openipam.user.models.PoolToGroup',
+        #         ),
+        #     ))
 
         # append recent stats module
         hosts = Host.objects.all()
@@ -214,6 +207,8 @@ class IPAMIndexDashboard(Dashboard):
 
 class IPAMAppList(modules.AppList):
 
+    template = 'admin_tools/dashboard/modules/ipam_app_list.html'
+
     def init_with_context(self, context):
         super(IPAMAppList, self).init_with_context(context)
 
@@ -223,31 +218,53 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     Custom app index dashboard for openipam.
     """
 
+    models = None
+    app_title = None
     # we disable title because its redundant with the model list module
     title = ''
+    breadcrumbs = True
 
-    def __init__(self, *args, **kwargs):
-        AppIndexDashboard.__init__(self, *args, **kwargs)
+    def __init__(self, app_title, models, **kwargs):
+        kwargs.update({'app_title': app_title, 'models': models})
+        super(IPAMAppIndexDashboard, self).__init__(**kwargs)
 
-        #Hack for DNS App
-        if 'dns' in self.app_title.lower():
-            self.app_title = 'Domains & DNS'
-
-        # append a model list module and a recent actions module
-        self.children += [
-            modules.ModelList(
-                self.app_title,
-                sorted(self.models)
-            ),
-            modules.RecentActions(
-                _('Recent Actions'),
-                include_list=self.get_app_content_types(),
-                limit=5
-            )
-        ]
 
     def init_with_context(self, context):
         """
         Use this method if you need to access the request context.
         """
+        request = context['request']
+        models = self.models
+        exclude = None
+
+        #Hack for DNS App
+        if 'dns' in self.app_title.lower():
+            self.app_title = 'Domains & DNS'
+        elif 'admin' in self.app_title.lower():
+            models = ('django.contrib.*',)
+            exclude = ('django.contrib.auth.*',)
+        elif 'auth' in self.app_title.lower():
+            models = ('django.contrib.auth.*',)
+
+
+        #assert False, self.models
+        self.app_title = self.app_title + ' Admin'
+
+        #append a model list module and a recent actions module
+        self.children += [
+            modules.ModelList(
+                title=self.app_title,
+                models=models,
+                exclude=exclude,
+            ),
+        ]
+
+        self.children += [
+            modules.RecentActions(
+                _('Recent Actions'),
+                include_list=self.get_app_content_types(),
+                limit=5
+            ),
+        ]
+
         return super(IPAMAppIndexDashboard, self).init_with_context(context)
