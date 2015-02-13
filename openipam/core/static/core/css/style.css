@@ -514,11 +514,11 @@
 .dashboard-module h3
 {
     font-size: 16px;
-    line-height: 18px;
+    height: 28px !important;
 }
 .dashboard-module h3 a
 {
-    color: #46a546 !important;
+    color: #5B80B2 !important;
     font-weight: bold !important;
     margin-left: -15px;
 }
