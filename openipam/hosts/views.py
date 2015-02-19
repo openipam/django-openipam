@@ -113,8 +113,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith='.'.join(ip_blocks)) |
-                            Q(leases__address__address__startswith='.'.join(ip_blocks))
+                            Q(addresses__address__istartswith='.'.join(ip_blocks)) |
+                            Q(leases__address__address__istartswith='.'.join(ip_blocks))
                         ).distinct()
                     else:
                         qs = qs.filter(
@@ -197,8 +197,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__startswith='.'.join(ip_blocks)) |
-                            Q(leases__address__address__startswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
+                            Q(addresses__address__istartswith='.'.join(ip_blocks)) |
+                            Q(leases__address__address__istartswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
                         qs = qs.filter(

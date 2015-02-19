@@ -176,7 +176,7 @@ $(function(){
             { "name": "select", "orderable": false, "searchable": false  },
             { "name": "hostname", "orderable": true },
             { "name": "mac", "orderable": true },
-            { "name": "ip_address", "orderable": false },
+            { "name": "ip_address", "orderable": true },
             { "name": "expires", "orderable": true },
             { "name": "mac_last_seen", "orderable": false, "searchable": false  },
             { "name": "ip_last_seen", "orderable": false, "searchable": false  },
