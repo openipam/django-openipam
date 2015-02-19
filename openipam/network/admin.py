@@ -19,7 +19,7 @@ class NetworkAdmin(ChangedAdmin):
     form = autocomplete_light.modelform_factory(Network)
     list_display = ('nice_network', 'name', 'description', 'gateway')
     list_filter = ('tags', 'shared_network__name')
-    search_fields = ('network', 'description', 'name', 'shared_network__name')
+    search_fields = ('network', 'shared_network__name')
     actions = ['tag_network', 'release_abandoned_leases']
 
     def get_actions(self, request):
@@ -87,6 +87,12 @@ class NetworkAdmin(ChangedAdmin):
                     )
                 )
             Address.objects.bulk_create(addresses)
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(NetworkAdmin, self).get_search_results(request, queryset, search_term)
+        queryset = queryset | Network.searcher.search(search_term)
+
+        return queryset, use_distinct
 
 
 class AddressTypeAdmin(admin.ModelAdmin):

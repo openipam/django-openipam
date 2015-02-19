@@ -6,6 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 from django.utils import timezone
 
+from djorm_pgfulltext.fields import VectorField
+from djorm_pgfulltext.models import SearchManager
+
 from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
 
 from taggit.models import TaggedItemBase
@@ -186,7 +189,16 @@ class Network(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
+    search_index = VectorField()
+
     objects = NetworkManager()
+    searcher = SearchManager(
+        fields=('name', 'description'),
+        config='pg_catalog.english',  # this is default
+        search_field='search_index',  # this is default
+        auto_update_search_field=True
+    )
+
     tags = TaggableManager(through=TaggedNetworks, blank=True)
 
     # Forcing pk as string
