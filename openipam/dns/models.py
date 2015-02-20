@@ -306,7 +306,7 @@ class DnsRecord(models.Model):
                 if domain:
                     self.domain = domain
                 else:
-                    raise ValidationError({'name': ['Cannot create name %s: not authoritative for domain' % self.name]})
+                    raise ValidationError({'name': ['Cannot create name %s: no matching domain exists' % self.name]})
             else:
                 self.domain = None
 
