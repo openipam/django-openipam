@@ -228,6 +228,7 @@ $(function(){
         url: '/api/web/IPAMSearchAutoComplete',
         choiceSelector: '[data-value]',
         minimumCharacters: 2,
+        values: [],
         getQuery: function() {
             var value = this.input.val();
             return value;
@@ -258,11 +259,16 @@ $(function(){
         },
     }).input.bind('selectChoice', function(event, choice, autocomplete) {
         var value = choice.attr('data-value');
-        this.value = value;
+        autocomplete.values.pop();
+        autocomplete.values.push(value);
+        this.value = autocomplete.values.join(' ');
     });
 
     $('#id_search').on('keyup selectChoice', function(){
         var value = $(this).val() ? $(this).val() : '';
+        var autocomplete = $(this).yourlabsAutocomplete();
+        autocomplete.values = value.split(" ");
+
         delay(function(){
             $.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
             results.clearPipeline().draw();
