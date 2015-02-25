@@ -12,6 +12,9 @@ from django.utils.functional import cached_property
 from netfields import InetAddressField, MACAddressField, NetManager
 from netaddr.core import AddrFormatError
 
+from djorm_pgfulltext.fields import VectorField
+from djorm_pgfulltext.models import SearchManager
+
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
 
@@ -202,7 +205,15 @@ class Host(DirtyFieldsMixin, models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
     last_notified = models.DateTimeField(blank=True, null=True)
 
+    search_index = VectorField()
+
     objects = HostManager()
+    searcher = SearchManager(
+        fields=('hostname', 'description'),
+        config='pg_catalog.english',  # this is default
+        search_field='search_index',  # this is default
+        auto_update_search_field=True
+    )
 
     def __init__(self, *args, **kwargs):
 
