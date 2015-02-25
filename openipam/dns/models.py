@@ -186,7 +186,7 @@ class DnsRecord(models.Model):
 
     def clean_name(self):
         # Make sure name is lowercase
-        self.name = self.name.lower()
+        self.name = self.name.lower().strip()
 
         #Clean name if A or AAAA record
         if self.dns_type.is_a_record:
@@ -215,6 +215,8 @@ class DnsRecord(models.Model):
         # Validate text content based on dns type
         # TODO: more of these need to be added
         try:
+            self.text_content = self.text_content.strip()
+
             if self.text_content:
                 if self.dns_type.name in ['NS', 'CNAME', 'PTR', 'MX']:
                     validate_fqdn(self.text_content)
