@@ -142,6 +142,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
                             UNION
 
+                            SELECT hosts.mac from hosts
+                                WHERE hosts.search_index @@ plainto_tsquery('pg_catalog.english', %(search)s)
+
+                            UNION
+
                             SELECT DISTINCT dns_records.mac from dns_records
                                 LEFT OUTER JOIN dns_records as d2 ON (dns_records.name = d2.text_content AND d2.tid = 5)
                                 WHERE dns_records.name LIKE %(lsearch)s OR d2.name LIKE %(lsearch)s
