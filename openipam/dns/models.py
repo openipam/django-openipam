@@ -215,8 +215,6 @@ class DnsRecord(models.Model):
         # Validate text content based on dns type
         # TODO: more of these need to be added
         try:
-            self.text_content = self.text_content.strip()
-
             if self.text_content:
                 if self.dns_type.name in ['NS', 'CNAME', 'PTR', 'MX']:
                     validate_fqdn(self.text_content)
