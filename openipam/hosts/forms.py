@@ -46,7 +46,7 @@ class HostForm(forms.ModelForm):
     address_type = forms.ModelChoiceField(queryset=AddressType.objects.all())
     network_or_ip = forms.ChoiceField(required=False, choices=NET_IP_CHOICES,
         widget=forms.RadioSelect, label='Please select a network or enter in an IP address')
-    network = autocomplete_light.ModelChoiceField('NetworkAutocomplete', required=False, queryset=Network.objects.all())
+    network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
     ip_address = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
     show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
@@ -79,10 +79,10 @@ class HostForm(forms.ModelForm):
 
         # TODO: Do we need this?
         # Set networks based on address type if form is bound
-        # if self.data.get('address_type'):
-        #     self.fields['network'].queryset = (
-        #         Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
-        #     )
+        if self.data.get('address_type'):
+            self.fields['network'].queryset = (
+                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
+            )
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
@@ -95,9 +95,9 @@ class HostForm(forms.ModelForm):
             self.fields['address_type'].initial = self.instance.address_type
 
             # Set networks based on address type if form is not bound
-            #if not self.data:
+            if not self.data:
                 # Set address_type
-            #    self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type)
+                self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type)
 
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
