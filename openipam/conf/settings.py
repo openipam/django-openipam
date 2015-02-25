@@ -173,12 +173,6 @@ INSTALLED_APPS = (
     'netfields',
     'taggit',
 
-    # Two factor auth
-    #'django_otp',
-    #'django_otp.plugins.otp_static',
-    #'django_otp.plugins.otp_totp',
-    #'two_factor',
-
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
