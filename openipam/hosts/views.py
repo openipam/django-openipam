@@ -80,7 +80,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             if is_owner:
                 qs = qs.by_owner(self.request.user, use_groups=True)
 
-            search_list = search.strip().split(' ') if search else []
+            search_list = search.strip().split(',') if search else []
             for search_item in search_list:
                 search_str = ''.join(search_item.split(':')[1:])
                 if search_item.startswith('desc:') and search_str:
