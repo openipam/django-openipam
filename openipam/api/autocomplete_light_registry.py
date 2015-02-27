@@ -102,7 +102,7 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         """
         assert self.choices, 'autocomplete.choices should be a queryset list'
 
-        q = self.request.GET.get('q', '').split(' ')[-1]
+        q = self.request.GET.get('q', '').split(',')[-1]
         choice_q = q.split(':')[0]
         q = ''.join(q.split(':')[1:])
 
