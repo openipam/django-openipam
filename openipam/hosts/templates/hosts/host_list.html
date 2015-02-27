@@ -5,247 +5,247 @@
 
 {% block content_title %}
   <h3 id="breadcrumb-title" class="pull-left">
-      Hosts
+	  Hosts
   </h3>
 {% endblock %}
 
 {% block breadcrumbs %}
-    {{ block.super }}
-        {% trans "Hosts" %}
+	{{ block.super }}
+		{% trans "Hosts" %}
 {% endblock %}
 
 {% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
-    <link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
 {% endblock %}
 
 {% block extrahead %}
-    {{ block.super }}
-    <script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
-    <script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
+	<script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 
 {% block object-tools %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
-    <a href="{% url 'add_hosts' %}" class="btn btn-primary">
-      <i class="icon-plus icon-white"></i>
-      Add Host
-    </a>
+	<a href="{% url 'add_hosts' %}" class="btn btn-primary">
+	  <i class="icon-plus icon-white"></i>
+	  Add Host
+	</a>
   {% endblock %}
 </div>
 {% endblock %}
 
 {% block contentbody %}
-    <form id="changelist-form" action="" method="post" class="quickbody form-inline">
-        {% csrf_token %}
-        <div id="actions">
-            {% spaceless %}
-                <div class="actions changelist-actions pull-left">
-                    <div class="changelist-action" style="height: auto !important;">
-                        <div class="action-wrapper">
-                            <select id="host-action" name="action" class="form-control">
-                                <option value="">Choose an action...</option>
-                                <option value="">--------------</option>
-                                <option value="delete">Delete selected hosts</option>
-                                <option value="add-owners">Add owners on selected hosts</option>
-                                <option value="replace-owners">Replace owners on selected hosts</option>
-                                <option value="remove-owners">Remove owners on selected hosts</option>
-                                <option value="renew">Renew selected hosts</option>
-                                <option value="address">Add/Update addresses on selected hosts</option>
-                            </select>
-                            <button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
-                                <span class="glyphicon glyphicon-play"></span>
-                                {% trans "Go" %}
-                            </button>
-                        </div>
-                    </div>
+	<form id="changelist-form" action="" method="post" class="quickbody form-inline">
+		{% csrf_token %}
+		<div id="actions">
+			{% spaceless %}
+				<div class="actions changelist-actions pull-left">
+					<div class="changelist-action" style="height: auto !important;">
+						<div class="action-wrapper">
+							<select id="host-action" name="action" class="form-control">
+								<option value="">Choose an action...</option>
+								<option value="">--------------</option>
+								<option value="delete">Delete selected hosts</option>
+								<option value="add-owners">Add owners on selected hosts</option>
+								<option value="replace-owners">Replace owners on selected hosts</option>
+								<option value="remove-owners">Remove owners on selected hosts</option>
+								<option value="renew">Renew selected hosts</option>
+								<option value="address">Add/Update addresses on selected hosts</option>
+							</select>
+							<button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+								<span class="glyphicon glyphicon-play"></span>
+								{% trans "Go" %}
+							</button>
+						</div>
+					</div>
 
-                </div>
-                <div id="filter-owners" class="btn-group pull-left">
-                    {% comment %}
-                    <label class="btn btn-default {% if owner_filter %}active{% endif %}">
-                        <input type="radio" name="owner-filter" id="owner-mine" value="1" {% if owner_filter %}checked="checked"{% endif %} />Show Mine
-                    </label>
-                    <label class="btn btn-default {% if not owner_filter %}active{% endif %}">
-                        <input type="radio" name="owner-filter" id="owner-all" value="" {% if not owner_filter %}checked="checked"{% endif %} />Show All
-                    </label>
-                    {% endcomment %}
-                    <button id="owner-mine" type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
-                    <button id="owner-all" type="button" class="btn btn-default {% if not owner_filter %}btn-primary{% endif %}" value="">Show All</button>
-                </div>
+				</div>
+				<div id="filter-owners" class="btn-group pull-left">
+					{% comment %}
+					<label class="btn btn-default {% if owner_filter %}active{% endif %}">
+						<input type="radio" name="owner-filter" id="owner-mine" value="1" {% if owner_filter %}checked="checked"{% endif %} />Show Mine
+					</label>
+					<label class="btn btn-default {% if not owner_filter %}active{% endif %}">
+						<input type="radio" name="owner-filter" id="owner-all" value="" {% if not owner_filter %}checked="checked"{% endif %} />Show All
+					</label>
+					{% endcomment %}
+					<button id="owner-mine" type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
+					<button id="owner-all" type="button" class="btn btn-default {% if not owner_filter %}btn-primary{% endif %}" value="">Show All</button>
+				</div>
 
-                <div id="changelist-search" class="pull-right">
-                    {% if request.GET|length == 0 %}
-                        <span id="filtered-label" class="label label-primary pull-left">Records Filtered</span>
-                    {% else %}
-                        <span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
-                    {% endif %}
-                    <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
-                    <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
-                    <a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
-                </div>
-                <div id="search-help" class="help-content">
-                    <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
-                    <p>Search for hostnames, IP addresses, or MAC addresses.</p>
-                    <strong>For advanced searches...</strong>
-                    <p>Multiple search terms may be included separated spaces.</p>
-                    <p>Try these special query types:</p>
-                    <pre>user:<em>username</em></pre>
-                    <pre>group:<em>groupname</em></pre>
-                    <pre>net:<em>network (CIDR notation)</em></pre>
-                </div>
-            {% endspaceless %}
-        </div>
+				<div id="changelist-search" class="pull-right">
+					{% if request.GET|length == 0 %}
+						<span id="filtered-label" class="label label-primary pull-left">Records Filtered</span>
+					{% else %}
+						<span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
+					{% endif %}s
+					<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
+					<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
+					<a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+				</div>
+				<div id="search-help" class="help-content">
+					<div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
+					<p>Search for hostnames, IP addresses, or MAC addresses.</p>
+					<strong>For advanced searches...</strong>
+					<p>Multiple search terms may be included separated commas.</p>
+					<p>Try these special query types:</p>
+					<pre>user:<em>username</em></pre>
+					<pre>group:<em>groupname</em></pre>
+					<pre>net:<em>network (CIDR notation)</em></pre>
+				</div>
+			{% endspaceless %}
+		</div>
 
-        <div class="results">
-            <table cellspacing="0" id="result_list" class="table table-striped table-condensed table-curved">
-                <thead>
-                    <tr>
-                        <th scope="col" class="action-checkbox-column">
-                            <div class="text">
-                                <span><input type="checkbox" id="action-toggle" /></span>
-                            </div>
-                            <div class="clear"></div>
-                        </th>
-                        <th scope="col">Hostname</th>
-                        <th scope="col" style="min-width: 150px;">Ethernet Address</th>
-                        <th scope="col" style="min-width: 150px;">IP Address</th>
-                        <th scope="col">Expires</th>
-                        <th scope="col">Mac Address Last seen</th>
-                        <th scope="col">Static IP Last seen</th>
-                        <th scope="col">DNS Records</th>
-                        <th scope="col">Edit</th>
-                    </tr>
-                </thead>
-                {% if request.GET|length == 0 %}
-                <tfoot>
-                    <tr>
-                        <th>&nbsp;</th>
-                        <th>
-                            <input type="text" id="s_host" rel="1" class="search_init form-control input-sm" placeholder="Search Host" style="max-width: 150px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>To search hostnames, try these special helpers:</p>
-                                <pre>^<em>hostname</em> (starts with)</pre>
-                                <pre>=<em>hostname</em> (equal)</pre>
-                            </div>
-                        </th>
-                        <th>
-                            <input type="text" id="s_mac" rel="2" class="search_init form-control input-sm" placeholder="Search MAC" style="max-width: 120px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>
-                                    To search MAC Address, hexadecimal numbers may be
-                                    separated by commas, colons, periods, dashes, or spaces.</p>
-                                <pre>00:A0:C9:14:C8:29</pre>
-                                <pre>00-A0-C9-14-C8-29</pre>
-                                <pre>00.A0.C9.14.C8.29</pre>
-                                <pre>00A0C9-14C829</pre>
-                                <pre>00A0C914C829</pre>
-                                <pre>00 A0 C9 14 C8 29</pre>
-                                <pre>00,A0,C9,14,C8,29</pre>
-                            </div>
-                        </th>
-                        <th>
-                            <input type="text" id="s_ip" rel="3" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" />
-                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
-                            <div class="help-content">
-                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
-                                <p>To search IP Address, partial addresses and subnets are valid:</p>
-                                <pre>10.255.10.1</pre>
-                                <pre>10.255.10.1/24</pre>
-                                <pre>10.255.10</pre>
-                            </div>
-                        </th>
-                        <th>
-                            <select style="max-width: 80px;" id="s_expires" rel="4" class="filter_init search_init form-control input-sm">
-                                <option value="">All</option>
-                                <option value="1">Active</option>
-                                <option value="0">Expired</option>
-                            </select>
-                        </th>
-                        <th>&nbsp;</th>
-                        <th>&nbsp;</th>
-                        <th>&nbsp;</th>
-                        <th>&nbsp;</th>
-                    </tr>
-                </tfoot>
-                {% endif %}
-                <tbody>
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td colspan="8">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+		<div class="results">
+			<table cellspacing="0" id="result_list" class="table table-striped table-condensed table-curved">
+				<thead>
+					<tr>
+						<th scope="col" class="action-checkbox-column">
+							<div class="text">
+								<span><input type="checkbox" id="action-toggle" /></span>
+							</div>
+							<div class="clear"></div>
+						</th>
+						<th scope="col">Hostname</th>
+						<th scope="col" style="min-width: 150px;">Ethernet Address</th>
+						<th scope="col" style="min-width: 150px;">IP Address</th>
+						<th scope="col">Expires</th>
+						<th scope="col">Mac Address Last seen</th>
+						<th scope="col">Static IP Last seen</th>
+						<th scope="col">DNS Records</th>
+						<th scope="col">Edit</th>
+					</tr>
+				</thead>
+				{% if request.GET|length == 0 %}
+				<tfoot>
+					<tr>
+						<th>&nbsp;</th>
+						<th>
+							<input type="text" id="s_host" rel="1" class="search_init form-control input-sm" placeholder="Search Host" style="max-width: 150px;" />
+							<div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+							<div class="help-content">
+								<div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
+								<p>To search hostnames, try these special helpers:</p>
+								<pre>^<em>hostname</em> (starts with)</pre>
+								<pre>=<em>hostname</em> (equal)</pre>
+							</div>
+						</th>
+						<th>
+							<input type="text" id="s_mac" rel="2" class="search_init form-control input-sm" placeholder="Search MAC" style="max-width: 120px;" />
+							<div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+							<div class="help-content">
+								<div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
+								<p>
+									To search MAC Address, hexadecimal numbers may be
+									separated by commas, colons, periods, dashes, or spaces.</p>
+								<pre>00:A0:C9:14:C8:29</pre>
+								<pre>00-A0-C9-14-C8-29</pre>
+								<pre>00.A0.C9.14.C8.29</pre>
+								<pre>00A0C9-14C829</pre>
+								<pre>00A0C914C829</pre>
+								<pre>00 A0 C9 14 C8 29</pre>
+								<pre>00,A0,C9,14,C8,29</pre>
+							</div>
+						</th>
+						<th>
+							<input type="text" id="s_ip" rel="3" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" />
+							<div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+							<div class="help-content">
+								<div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right"></div>
+								<p>To search IP Address, partial addresses and subnets are valid:</p>
+								<pre>10.255.10.1</pre>
+								<pre>10.255.10.1/24</pre>
+								<pre>10.255.10</pre>
+							</div>
+						</th>
+						<th>
+							<select style="max-width: 80px;" id="s_expires" rel="4" class="filter_init search_init form-control input-sm">
+								<option value="">All</option>
+								<option value="1">Active</option>
+								<option value="0">Expired</option>
+							</select>
+						</th>
+						<th>&nbsp;</th>
+						<th>&nbsp;</th>
+						<th>&nbsp;</th>
+						<th>&nbsp;</th>
+					</tr>
+				</tfoot>
+				{% endif %}
+				<tbody>
+					<tr>
+						<td>&nbsp;</td>
+						<td colspan="8">Loading...</td>
+					</tr>
+				</tbody>
+			</table>
 
-            {% if request.user.is_ipamadmin %}
-                <div id="host-owners" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h3 class="modal-title"><span class="oaction"></span> Owners for selected hosts</h3>
-                            </div>
-                            <div class="modal-body" style="overflow: visible;">
-                                <div>
-                                    {{ owners_form|crispy }}
-                                </div>
-                                <div class="clear"><!-- --></div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-primary" type="submit">Save</button>
-                                <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
+			{% if request.user.is_ipamadmin %}
+				<div id="host-owners" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+								<h3 class="modal-title"><span class="oaction"></span> Owners for selected hosts</h3>
+							</div>
+							<div class="modal-body" style="overflow: visible;">
+								<div>
+									{{ owners_form|crispy }}
+								</div>
+								<div class="clear"><!-- --></div>
+							</div>
+							<div class="modal-footer">
+								<button class="btn btn-primary" type="submit">Save</button>
+								<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			{% endif %}
 
-            <div id="host-renew" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h3 class="modal-title">Renew for selected hosts</h3>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                {{ renew_form.expire_days|label_with_classes:"control-label right10" }}
-                                {{ renew_form.expire_days|add_class:"form-control" }}
-                            </div>
-                            <div class="clear"><!-- --></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-primary" type="submit">Save</button>
-                            <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			<div id="host-renew" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title">Renew for selected hosts</h3>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								{{ renew_form.expire_days|label_with_classes:"control-label right10" }}
+								{{ renew_form.expire_days|add_class:"form-control" }}
+							</div>
+							<div class="clear"><!-- --></div>
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-primary" type="submit">Save</button>
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
-            <div id="host-details" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true" style="display: none;">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h3 class="modal-title" id="host-detail-label">Details for: </h3>
-                        </div>
-                        <div class="modal-body">Loading...</div>
-                        <div class="modal-footer">
-                            <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-                            <a id="edit-host" class="btn btn-success">Edit Host</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			<div id="host-details" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title" id="host-detail-label">Details for: </h3>
+						</div>
+						<div class="modal-body">Loading...</div>
+						<div class="modal-footer">
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+							<a id="edit-host" class="btn btn-success">Edit Host</a>
+						</div>
+					</div>
+				</div>
+			</div>
 
-            <br /><br />
-        </div>
-    </form>
+			<br /><br />
+		</div>
+	</form>
 {% endblock %}
