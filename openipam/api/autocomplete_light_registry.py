@@ -268,7 +268,7 @@ class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
         self.choices = Address.objects.filter(
             Q(pool__in=user_pools) | Q(pool__isnull=True),
             Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
-            network__in=user_nets
+            network__in=user_nets,
             host__isnull=True,
             reserved=False
         )
