@@ -76,13 +76,12 @@ class HostForm(forms.ModelForm):
             address_type.pk for address_type in AddressType.objects.filter(Q(ranges__isnull=False) | Q(is_default=True)).distinct()
         ]
 
-
-        # TODO: Do we need this?
-        # Set networks based on address type if form is bound
-        if self.data.get('address_type'):
-            self.fields['network'].queryset = (
-                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type']))
-            )
+        # Networks user has permission to.
+        self.user_nets = get_objects_for_user(
+            self.user,
+            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
+            any_perm=True
+        )
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as this is only for admins.
@@ -93,11 +92,6 @@ class HostForm(forms.ModelForm):
             self.fields['mac_address'].initial = self.instance.mac
             # Populate the address type if in edit mode.
             self.fields['address_type'].initial = self.instance.address_type
-
-            # Set networks based on address type if form is not bound
-            if not self.data:
-                # Set address_type
-                self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type)
 
             # If DCHP group assigned, then do no show toggle
             if self.instance.dhcp_group:
@@ -117,6 +111,9 @@ class HostForm(forms.ModelForm):
 
         # Init address types
         self._init_address_type()
+
+        # Init network
+        self._init_network()
 
         # Init the form layout
         self._init_form_layout()
@@ -146,19 +143,13 @@ class HostForm(forms.ModelForm):
                 any_perm=True,
                 use_groups=True
             )
-            user_nets = get_objects_for_user(
-                self.user,
-                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True,
-                use_groups=True
-            )
-            if user_nets:
-                n_list = [Q(range__net_contains_or_equals=net.network) for net in user_nets]
+            if self.user_nets:
+                n_list = [Q(range__net_contains_or_equals=net.network) for net in self.user_nets]
                 user_networks = NetworkRange.objects.filter(reduce(operator.or_, n_list))
 
                 if user_networks:
                     e_list = [Q(network__net_contained_or_equal=nr.range) for nr in user_networks]
-                    other_networks = True if user_nets.exclude(reduce(operator.or_, e_list)) else False
+                    other_networks = True if self.user_nets.exclude(reduce(operator.or_, e_list)) else False
                 else:
                     other_networks = False
             else:
@@ -169,14 +160,30 @@ class HostForm(forms.ModelForm):
                 existing_address_type = self.instance.address_type.pk
             else:
                 existing_address_type = None
-
             user_address_types = AddressType.objects.filter(
-                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type) | Q(is_default=other_networks)
+                Q(pool__in=user_pools) | Q(ranges__in=user_networks) | Q(pk=existing_address_type) | Q(is_default=True if other_networks else None)
             ).distinct()
             self.fields['address_type'].queryset = user_address_types
 
         if self.previous_form_data and 'address_type' in self.previous_form_data:
             self.fields['address_type'].initial = self.previous_form_data.get('address_type')
+
+    def _init_network(self):
+        # Set networks based on address type if form is bound
+        if self.data.get('address_type'):
+            self.fields['network'].queryset = (
+                Network.objects.by_address_type(AddressType.objects.get(pk=self.data['address_type'])).filter(network__in=self.user_nets)
+            )
+
+        # Set networks based on address type if form is not bound
+        elif self.instance.pk and not self.data:
+            # Set address_type
+            self.fields['network'].queryset = Network.objects.by_address_type(self.instance.address_type).filter(network__in=self.user_nets)
+
+        else:
+            self.fields['network'].queryset = (
+                Network.objects.filter(network__in=self.user_nets)
+            )
 
     def _init_attributes(self):
         attribute_fields = Attribute.objects.all()
