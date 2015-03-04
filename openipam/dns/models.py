@@ -292,7 +292,7 @@ class DnsRecord(models.Model):
 
     def set_domain_from_name(self):
         if self.name:
-            names = self.name.split('.')
+            names = self.name.strip().split('.')
             names_list = []
             while names:
                 names_list.append(Q(name='.'.join(names)))
