@@ -45,9 +45,6 @@ nosetests.xml
 *.sublime-project
 *.sublime-workspace
 
-# Mac garbage
-.DS_Store
-
 # For Ipam
 fabfile.py
 .anaconda_bak
@@ -55,3 +52,6 @@ fabfile.py
 static/*
 dump.rdb
 !components/**
+
+# Mac garbage
+.DS_Store
