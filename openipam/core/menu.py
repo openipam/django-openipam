@@ -12,6 +12,8 @@ from django.contrib import admin
 
 from admin_tools.menu import items, Menu
 
+from openipam.conf.ipam_settings import CONFIG
+
 
 class IPAMMenu(Menu):
     """
@@ -117,19 +119,45 @@ class IPAMMenu(Menu):
                     #icon='icon-user icon-white'
                 )
             )
+
         elif user.is_staff:
-            self.children.append(
-                items.MenuItem('Admin',
-                    children=[
-                        items.AppList(
-                            '',
-                            exclude=(
-                                'openipam.hosts.*',
-                                'openipam.dns.*',
-                            )
-                        ),
-                    ]
+            user_apps = items.AppList(
+                '',
+                exclude=(
+                    'openipam.hosts.*',
+                    'openipam.dns.*',
                 )
+            )
+            user_apps.init_with_context(context)
+
+            if user_apps.children:
+                self.children.append(
+                    items.MenuItem('Admin',
+                        children=[
+                            items.AppList(
+                                '',
+                                exclude=(
+                                    'openipam.hosts.*',
+                                    'openipam.dns.*',
+                                )
+                            )
+                        ]
+                    )
+                )
+
+        if user.is_ipamadmin or user.groups.filter(name=CONFIG.get('REPORT_USER_GROUP')):
+            self.children.append(
+                IPAMMenuItem('Reports', url=reverse('reports_dashboard'))
             )
 
         return super(IPAMMenu, self).init_with_context(context)
+
+
+class IPAMMenuItem(items.MenuItem):
+    template = 'admin_tools/menu/ipamitem.html'
+
+    def __init__(self, title=None, url=None, target=None, **kwargs):
+        if target is not None:
+            self.target = target
+
+        super(IPAMMenuItem, self).__init__(title, url, **kwargs)
