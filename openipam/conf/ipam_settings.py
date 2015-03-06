@@ -13,6 +13,8 @@ CONFIG_DEFAULTS = {
     'ADMIN_GROUP': 'ipam-admins',
     'API_USER_GROUP': 'ipam-api-users',
     'API_ADMIN_GROUP': 'ipam-api-admins',
+    'REPORT_USER_GROUP': 'ipam-reports-users',
+    'REPORT_ADMIN_GROUP': 'ipam-reports-admins',
     'DEFAULT_PERMISSIONS': {
         'network': {
             'pool': [1,3]
