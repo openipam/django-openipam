@@ -152,8 +152,8 @@ INSTALLED_APPS = (
     'openipam.dns',
     'openipam.log',
 
-    # openIPAM for USU
-    'openipam.usu',
+    # openIPAM reports
+    'openipam.report',
 
     # Admin Tools
     'admin_tools',
@@ -239,8 +239,9 @@ LOGIN_EXEMPT_URLS = (
     'static/?.*',
     'password/forgot/',
     'api/?.*',
-    'reports/weathermap/',
-    'reports/leases/usage/',
+    'reports/?.*',
+    # 'reports/weathermap/',
+    # 'reports/leases/usage/',
 )
 #LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'
