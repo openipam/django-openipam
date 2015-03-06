@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+
+{% block page_nav %}{% endblock %}
+{% block footer %}{% endblock %}
+
+
+{% block extrahead %}
+  <style type="text/css">
+    body {
+      background: #111;
+    }
+    #report-brand {
+      font-size: 18px;
+      font-weight: bold;
+      color: #f60;
+      padding: 10px 15px 10px 15px;
+      line-height: 20px;
+    }
+  </style>
+{% endblock %}
+
+{% block nav-global %}
+    <ul class="nav navbar-nav">
+      <li id="report-brand" class="nav">Reports</li>
+      <li id="dashboard_link"><a href="{% url 'reports_dashboard' %}">Dashboard</a></li>
+      <li id="weathermap_link"><a href="{% url 'reports_weather_map' %}">Weathermap</a></li>
+      <li id="lease_usage_link"><a href="{% url 'reports_lease_usage' %}">Lease Usage</a></li>
+    </ul>
+    <ul class="nav navbar-nav pull-right">
+      <li><a id="time"></a></li>
+    </ul>
+{% endblock %}
