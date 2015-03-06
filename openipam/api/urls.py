@@ -5,7 +5,7 @@ from openipam.api.views import hosts
 from openipam.api.views import users
 from openipam.api.views import guests
 from openipam.api.views import dns
-from openipam.api.views import usu
+from openipam.api.views import report
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_framework.routers import DefaultRouter
 
@@ -21,11 +21,11 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^web/', include('autocomplete_light.urls')),
 
     #Reports
-    url(r'^reports/subnetdata/$', usu.subnet_data, name='api_reports_subnet_data'),
-    url(r'^reports/weatherdata/$', usu.weather_data, name='api_reports_weather_data'),
-    url(r'^reports/hoststats/$', usu.host_stats, name='api_reports_host_stats'),
-    url(r'^reports/leasestats/$', usu.lease_stats, name='api_reports_lease_stats'),
-    url(r'^reports/leasegraph/(?P<network>.*)/$', usu.render_lease_chart, name='api_reports_lease_graph'),
+    url(r'^reports/subnetdata/$', report.subnet_data, name='api_reports_subnet_data'),
+    url(r'^reports/weatherdata/$', report.weather_data, name='api_reports_weather_data'),
+    url(r'^reports/hoststats/$', report.host_stats, name='api_reports_host_stats'),
+    url(r'^reports/leasestats/$', report.lease_stats, name='api_reports_lease_stats'),
+    url(r'^reports/leasegraph/(?P<network>.*)/$', report.render_lease_chart, name='api_reports_lease_graph'),
 
     # Users
     url(r'^users/$', users.UserList.as_view(), name='api_users_list'),
