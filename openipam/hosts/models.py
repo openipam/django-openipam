@@ -893,5 +893,15 @@ class StructuredAttributeToHost(models.Model):
         db_table = 'structured_attributes_to_hosts'
 
 
+class OUI(models.Model):
+    oui = MACAddressField()
+    mask = MACAddressField()
+    shortname = models.CharField(max_length=32, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __unicode__(self):
+        return '<OUI(%s): %s>' % (self.pk, self.shortname)
+
+`
 # Host signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
