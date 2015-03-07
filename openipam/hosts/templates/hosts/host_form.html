@@ -15,7 +15,22 @@
 
 {% block extrahead %}
     {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "chosen-bower/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
 
+	<style type="text/css">
+		.form-horizontal .radio {
+			margin-left: 20px;
+		}
+
+		.has-error .chosen-container a {
+			border-color: #a94442 !important:;
+			-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+			box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+		}
+	</style>
+
+	<script type="text/javascript" src="{% static "chosen-bower/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         var dynamicAddressTypes = {{ dynamic_address_types }};
 
@@ -47,6 +62,8 @@
                 this.value = pre_value + '.' + value;
             });
 
+            $('#id_network').chosen();
+
             $('#id_ip_address').yourlabsAutocomplete({
                 url: '/api/web/AddressAvailableAutocomplete/',
                 choiceSelector: '[data-value]',
@@ -65,9 +82,13 @@
 
 
             $("#id_address_type").on('change', function(){
-                $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
-                    'atype': $(this).val()
-                }
+                // $('#id_network-wrapper').yourlabsWidget().autocomplete.data = {
+                //     'atype': $(this).val()
+                // }
+                $.get('/api/web/networkselects/' + $("#id_address_type").val(), function(data) {
+                	$('#id_network').html(data);
+                	$('#id_network').trigger("chosen:updated");
+                });
                 $.networkIPToggle();
             });
 
@@ -154,6 +175,10 @@
                     $("#div_id_ip_address:not(.has-error)").hide();
                 }
                 else {
+                	// $.get('/api/web/networkselects/' + $("#id_address_type").val(), function(data) {
+	                // 	$('#id_network').html(data);
+	                // 	//$('#id_network').trigger("chosen:updated");
+	                // });
                     $.networkIPToggle();
                 }
 

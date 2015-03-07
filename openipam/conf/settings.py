@@ -152,8 +152,8 @@ INSTALLED_APPS = (
     'openipam.dns',
     'openipam.log',
 
-    # openIPAM for USU
-    'openipam.usu',
+    # openIPAM reports
+    'openipam.report',
 
     # Admin Tools
     'admin_tools',
@@ -172,12 +172,6 @@ INSTALLED_APPS = (
     'guardian',
     'netfields',
     'taggit',
-
-    # Two factor auth
-    #'django_otp',
-    #'django_otp.plugins.otp_static',
-    #'django_otp.plugins.otp_totp',
-    #'two_factor',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -245,8 +239,9 @@ LOGIN_EXEMPT_URLS = (
     'static/?.*',
     'password/forgot/',
     'api/?.*',
-    'reports/weathermap/',
-    'reports/leases/usage/',
+    'reports/?.*',
+    # 'reports/weathermap/',
+    # 'reports/leases/usage/',
 )
 #LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'

@@ -102,7 +102,7 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         """
         assert self.choices, 'autocomplete.choices should be a queryset list'
 
-        q = self.request.GET.get('q', '')
+        q = self.request.GET.get('q', '').split(',')[-1]
         choice_q = q.split(':')[0]
         q = ''.join(q.split(':')[1:])
 
@@ -201,7 +201,7 @@ autocomplete_light.register(Domain, DomainAutocomplete)
 
 
 class NetworkAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields = ['network', 'name']
+    search_fields = ['network', 'name', 'tags__name']
     attrs = {'placeholder': 'Search Networks'}
 
     def choices_for_request(self):
@@ -219,6 +219,7 @@ autocomplete_light.register(Network, NetworkAutocomplete)
 autocomplete_light.register(DhcpGroup,
     search_fields=['name'],
     attrs={'placeholder': 'Search DHCP Groups'},
+    limit_choices=100,
 )
 
 
@@ -263,9 +264,11 @@ class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
             ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
             any_perm=True
         )
+
         self.choices = Address.objects.filter(
-            Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+            Q(pool__in=user_pools) | Q(pool__isnull=True),
             Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+            network__in=user_nets,
             host__isnull=True,
             reserved=False
         )

@@ -1,0 +1,80 @@
+{% extends "report/base.html" %}
+{% load static nvd3_tags %}
+
+{% block extrahead %}
+	{{ block.super }}
+	<link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
+	<script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
+	<script>
+		$(function(){
+			$.get('/api/reports/hoststats/', function(data){
+				$("#hoststats").append(data);
+			});
+			$.get('/api/reports/leasestats/', function(data){
+				$("#leasestats").append(data);
+			});
+			$("#dashboard_link").addClass('active');
+		});
+	</script>
+
+	<style type="text/css">
+		svg {
+			background: #454545;
+		}
+		svg text {
+			fill: #fff !important;
+		}
+		.nvd3 .nv-axis line {
+			stroke: #999 !important;
+		}
+		.nvd3 .nv-axis path {
+			stroke: #999 !important;
+		}
+		#charts {
+			background: #454545;
+			float: left;
+			padding: 30px;
+		}
+		.panel {
+			background-color: #222222;
+		}
+	</style>
+{% endblock %}
+
+{% block content %}
+{% comment %}
+	<div id="charts">
+		<h3>Host(s) Updated:</h3>
+		<div id="hoststats"></div>
+		<h3>Leases Updated:</h3>
+
+		<div id="leasestats"></div>
+	</div>
+{% endcomment %}
+
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-4">
+				<div class="panel panel-primary">
+					<div class="panel-heading">Host Registrations</div>
+					<div class="panel-body">
+						<div id="hoststats"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="panel panel-primary">
+					<div class="panel-heading">Leases Used</div>
+					<div class="panel-body">
+						<div id="leasestats"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4"></div>
+		</div>
+
+
+	</div>
+
+{% endblock %}

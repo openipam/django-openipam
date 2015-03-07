@@ -228,6 +228,7 @@ $(function(){
         url: '/api/web/IPAMSearchAutoComplete',
         choiceSelector: '[data-value]',
         minimumCharacters: 2,
+        values: [],
         getQuery: function() {
             var value = this.input.val();
             return value;
@@ -235,8 +236,8 @@ $(function(){
         refresh: function() {
             var value = this.input.val();
             var current_search = value.substr(value.lastIndexOf(':') + 1);
-            this.search_type = value.split(" ");
-            this.search_type = this.search_type[this.search_type.length - 1];
+            this.search_type = value.split(",");
+            this.search_type = this.search_type[this.search_type.length - 1].trim();
             this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
 
             var searches = ['user:', 'group:', 'net:']
@@ -258,14 +259,29 @@ $(function(){
         },
     }).input.bind('selectChoice', function(event, choice, autocomplete) {
         var value = choice.attr('data-value');
-        this.value = value;
+        autocomplete.values.pop();
+        autocomplete.values.push(value);
+        this.value = autocomplete.values.join(",");
     });
 
     $('#id_search').on('keyup selectChoice', function(){
         var value = $(this).val() ? $(this).val() : '';
+        var autocomplete = $(this).yourlabsAutocomplete();
+        autocomplete.values = value.split(",");
+
+        // var displayFilters = function() {
+        //  var search_values = value.split(",");
+        //  console.log(search_values);
+        //  $("#filters").html('');
+        //  $.each(search_values, function(i, v){
+        //      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
+        //  });
+        // }
+
         delay(function(){
             $.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
             results.clearPipeline().draw();
+            // displayFilters();
         }, 300);
     });
 

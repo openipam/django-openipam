@@ -186,7 +186,7 @@ class DnsRecord(models.Model):
 
     def clean_name(self):
         # Make sure name is lowercase
-        self.name = self.name.lower()
+        self.name = self.name.lower().strip()
 
         #Clean name if A or AAAA record
         if self.dns_type.is_a_record:
@@ -292,7 +292,7 @@ class DnsRecord(models.Model):
 
     def set_domain_from_name(self):
         if self.name:
-            names = self.name.split('.')
+            names = self.name.strip().split('.')
             names_list = []
             while names:
                 names_list.append(Q(name='.'.join(names)))
