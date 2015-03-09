@@ -30,7 +30,7 @@ def mac_to_int(mac):
 
 
 def find_end(mac, bits):
-    return hex(mac_to_int(mac) | generate_mask(bits))[2:]
+    return hex((mac_to_int(mac) | (~generate_mask(bits))) & maxbits)[2:]
 
 
 @transaction.atomic
