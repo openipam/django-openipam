@@ -18,6 +18,11 @@ import operator
 
 
 class HostMixin(object):
+    def with_oui(self):
+        return self.extra(select={'vendor': '''
+            SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1'''
+        })
+
     def by_owner(self, user, use_groups=False, ids_only=False):
         User = get_user_model()
 

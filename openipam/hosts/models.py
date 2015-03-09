@@ -400,6 +400,12 @@ class Host(DirtyFieldsMixin, models.Model):
         else:
             return None
 
+    @property
+    def oui(self):
+        return OUI.objects.extra(
+            where=["'%s' >= ouis.start and '%s' <= ouis.stop" % (self.mac, self.mac)]
+        ).first()
+
     @cached_property
     def master_ip_address(self):
         if self.is_static:
@@ -894,14 +900,19 @@ class StructuredAttributeToHost(models.Model):
 
 
 class OUI(models.Model):
-    oui = MACAddressField()
-    mask = MACAddressField()
-    shortname = models.CharField(max_length=32, blank=True, null=True)
+    #oui = MACAddressField()
+    #mask = MACAddressField()
+    start = MACAddressField()
+    stop = MACAddressField()
+    shortname = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
 
     def __unicode__(self):
-        return '<OUI(%s): %s>' % (self.pk, self.shortname)
+        return '%s: %s' % (self.pk, self.shortname)
 
-`
+    class Meta:
+        db_table = 'ouis'
+
+
 # Host signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=Host)
