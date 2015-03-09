@@ -49,6 +49,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         'pk',
         'hostname',
         'mac',
+        'vendor',
         'addresses__address',
         'expires',
     )
@@ -69,8 +70,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
             host_search = column_data[1]['search']['value'].strip()
             mac_search = column_data[2]['search']['value'].strip()
-            ip_search = column_data[3]['search']['value'].strip()
-            expired_search = column_data[4]['search']['value']
+            vendor_search = column_data[3]['search']['value'].strip()
+            ip_search = column_data[4]['search']['value'].strip()
+            expired_search = column_data[5]['search']['value']
             search = self.json_data.get('search_filter', '').strip()
             is_owner = self.json_data.get('owner_filter', None)
 
@@ -187,6 +189,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 mac_str = re.findall('..', mac_str)
                 mac_str = ':'.join(mac_str)
                 qs = qs.filter(mac__startswith=mac_str.lower())
+            if vendor_search:
+                qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
+                print qs.query
             if ip_search:
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
                     if ip_search.endswith('/'):
@@ -237,8 +242,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
-        qs = Host.objects.filter(mac__in=qs_macs).extra(select={'disabled': 'hosts.mac in (select mac from disabled)'})
-        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'expires', 'addresses__address', 'disabled',
+        qs = Host.objects.with_oui().filter(mac__in=qs_macs).extra(select={'disabled': 'hosts.mac in (select mac from disabled)'})
+        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'vendor', 'expires', 'addresses__address', 'disabled',
             'leases__address', 'leases__ends', 'ip_history__stopstamp', 'mac_history__stopstamp')))
 
         user = self.request.user
@@ -357,6 +362,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                                                                                     'is_disabled': is_disabled
                                                                                 }),
                 host['mac'],
+                host['vendor'],
                 host_ips,
                 expires,
                 render_cell(last_mac_stamp, is_flagged, is_disabled),

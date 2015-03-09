@@ -35,7 +35,7 @@ def find_end(mac, bits):
 
 @transaction.atomic
 def import_ouis(manuf=manuf):
-    OUI.all().delete()
+    OUI.objects.all().delete()
 
     file_uri_prefix = 'file://'
 

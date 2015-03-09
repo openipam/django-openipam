@@ -169,13 +169,15 @@ $(function(){
             //$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.columns[1].sSearch);
             $("#s_host").val(data.columns[1].search.search);
             $("#s_mac").val(data.columns[2].search.search);
-            $("#s_ip").val(data.columns[3].search.search);
-            $("#s_expires").val(data.columns[4].search.search);
+            $("#s_vendor").val(data.columns[3].search.search);
+            $("#s_ip").val(data.columns[4].search.search);
+            $("#s_expires").val(data.columns[5].search.search);
         },
         "columns": [
             { "name": "select", "orderable": false, "searchable": false  },
             { "name": "hostname", "orderable": true },
             { "name": "mac", "orderable": true },
+            { "name": "vendor", "orderable": false },
             { "name": "ip_address", "orderable": true },
             { "name": "expires", "orderable": true },
             { "name": "mac_last_seen", "orderable": false, "searchable": false  },

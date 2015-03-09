@@ -85,7 +85,9 @@ input {
     #result_list td:nth-child(4),
     #result_list th:nth-child(4),
     #result_list td:nth-child(5),
-    #result_list th:nth-child(5) {
+    #result_list th:nth-child(5),
+    #result_list td:nth-child(6),
+    #result_list th:nth-child(6) {
         display: none;
     }
 
@@ -96,10 +98,10 @@ input {
         display: none;
     }
 
-    #result_list td:nth-child(6),
-    #result_list th:nth-child(6),
     #result_list td:nth-child(7),
-    #result_list th:nth-child(7) {
+    #result_list th:nth-child(7),
+    #result_list td:nth-child(8),
+    #result_list th:nth-child(8) {
         display: none;
     }
 
@@ -117,8 +119,8 @@ input {
 }
 
 @media screen and (max-width: 900px) {
-    #result_list td:nth-child(8),
-    #result_list th:nth-child(8) {
+    #result_list td:nth-child(9),
+    #result_list th:nth-child(9) {
         display: none;
     }
 }
