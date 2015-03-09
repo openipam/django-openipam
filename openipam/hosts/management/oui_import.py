@@ -57,7 +57,7 @@ def import_ouis(manuf=manuf):
     for line in lines:
         line = line.strip()
         if line and line[0] != '#':
-            mask = None
+            maskbits = None
             oui, rest = line.split('\t', 1)
             if '#' in rest and '[TR' not in rest:
                 shortname, longname = rest.split('#', 1)
@@ -86,4 +86,4 @@ def import_ouis(manuf=manuf):
             shortname = shortname.strip()
             longname = longname.strip()
 
-            OUI.objects.create(start=oui, stop=find_end(oui, mask), shortname=shortname, name=longname)
+            OUI.objects.create(start=oui, stop=find_end(oui, maskbits), shortname=shortname, name=longname)
