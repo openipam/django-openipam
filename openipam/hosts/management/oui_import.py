@@ -65,12 +65,12 @@ def import_ouis(manuf=manuf):
                 shortname, longname = rest, rest
 
             if '/' in oui:
-                oui, mask = oui.split('/')
-                mask = int(mask)
+                oui, maskbits = oui.split('/')
+                maskbits = int(maskbits)
 
             oui = re.sub('[.: \t\n-]', '', oui)
 
-            if mask is None:
+            if maskbits is None:
                 if len(oui) == 6:
                     maskbits = maxbits / 2
                 elif len(oui) == 12:
