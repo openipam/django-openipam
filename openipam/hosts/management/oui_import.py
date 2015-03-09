@@ -29,8 +29,14 @@ def mac_to_int(mac):
     return mac_int
 
 
+def int_to_mac(mac):
+    s = hex(mac)[2:]
+    s = ''.join(['0'] * (12 - len(s)) + [s])
+    return s
+
+
 def find_end(mac, bits):
-    return hex((mac_to_int(mac) | (~generate_mask(bits))) & maxbits)[2:]
+    return int_to_mac((mac_to_int(mac) | (~generate_mask(bits)) & maxmask))
 
 
 @transaction.atomic
@@ -66,11 +72,11 @@ def import_ouis(manuf=manuf):
 
             if mask is None:
                 if len(oui) == 6:
-                    mask = maxbits / 2
+                    maskbits = maxbits / 2
                 elif len(oui) == 12:
-                    mask = maxbits
+                    maskbits = maxbits
                 else:
-                    raise Exception("Failed to find mask for %s (%s, %s)" % (line, oui, mask))
+                    raise Exception("Failed to find mask for %s (%s, %s)" % (line, oui, maskbits))
 
             if len(oui) < 12:
                 # pad with zeros on the right
