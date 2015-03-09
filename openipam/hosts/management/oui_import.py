@@ -16,7 +16,21 @@ def generate_mask(bits):
         raise Exception("bits: %d" % bits)
     shift = maxbits - bits
     mask = (maxmask >> shift) << shift
-    return hex(mask)[2:]
+    return mask
+
+
+def mac_to_int(mac):
+    mac = re.sub(':. -', '', mac)
+    if len(mac) != 12:
+        raise Exception("Bad MAC: %s" % mac)
+
+    mac_int = int(mac, 16)
+
+    return mac_int
+
+
+def find_end(mac, bits):
+    return hex(mac_to_int(mac) | generate_mask(bits))[2:]
 
 
 @transaction.atomic
@@ -66,4 +80,4 @@ def import_ouis(manuf=manuf):
             shortname = shortname.strip()
             longname = longname.strip()
 
-            OUI.objects.create(oui=oui, mask=generate_mask(mask), shortname=shortname, name=longname)
+            OUI.objects.create(start=oui, stop=find_end(oui, mask), shortname=shortname, name=longname)
