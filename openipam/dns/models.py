@@ -371,7 +371,7 @@ class DhcpDnsRecord(models.Model):
     changed = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.pk, self.name.hostname)
+        return '%s' % self.pk
 
     class Meta:
         db_table = 'dhcp_dns_records'
