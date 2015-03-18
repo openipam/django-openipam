@@ -512,7 +512,7 @@ class HostForm(forms.ModelForm):
                 # Check address that are assigned and free to use
                 address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self.instance),
                     Q(host__isnull=True) | Q(host=self.instance),
                     address=ip_address,
                     reserved=False

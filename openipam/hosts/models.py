@@ -160,7 +160,7 @@ class GuestTicket(models.Model):
 
 class GulRecentArpByaddress(models.Model):
     host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
-    address = InetAddressField()
+    address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
@@ -174,7 +174,7 @@ class GulRecentArpByaddress(models.Model):
 
 class GulRecentArpBymac(models.Model):
     host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
-    address = InetAddressField()
+    address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='mac_history')
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
@@ -469,7 +469,7 @@ class Host(DirtyFieldsMixin, models.Model):
             try:
                 network_address = Address.objects.filter(
                     Q(pool__in=user_pools) | Q(pool__isnull=True),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
                     network=network,
                     host__isnull=True,
                     reserved=False,
@@ -498,7 +498,7 @@ class Host(DirtyFieldsMixin, models.Model):
             try:
                 address = Address.objects.get(
                     Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
                     Q(host__isnull=True) | Q(host=self),
                     address=ip_address,
                     reserved=False,
@@ -791,7 +791,7 @@ class Host(DirtyFieldsMixin, models.Model):
             validate_ipv46_address(ip_address)
             address = Address.objects.filter(
                 Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
                 Q(host__isnull=True) | Q(host=self),
                 address=ip_address,
                 reserved=False
