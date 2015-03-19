@@ -3,13 +3,18 @@ from django.db.models.aggregates import Count
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import permission_required
+from django.utils import timezone
+from django.db.models import Q
 
-from openipam.hosts.models import Host
-from openipam.network.models import Network
+from datetime import timedelta
+
+from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
+from openipam.network.models import Network, NetworkRange, AddressType
 
 import qsstats
 
 import requests
+import operator
 
 
 def overview(request):
@@ -52,3 +57,31 @@ def leases_available(request):
 
 def weather_map(request):
     return render(request, 'report/weather_map.html')
+
+
+def disabled_hosts(request):
+    #queritined_nets = [net.range for net in NetworkRange.objects.filter(address_ranges__name='Quarantine')]
+    #q_list = [Q(address_id__net_contained_or_equal=net) for net in queritined_nets]
+    #assert False, q_list
+    hardcoded = (
+        GulRecentArpBymac.objects
+            .select_related('host')
+            .filter(
+                host__disabled_host__isnull=False,
+                stopstamp__gt=timezone.now() - timedelta(minutes=10),
+            )
+            .exclude(
+                host__leases__ends__lt=timezone.now()
+            )
+            .extra(where=["NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')"])
+            #.extra(
+            #    select={'end_time': 'SELECT MAX(leases.ends) FROM leases where leases.mac = gul_recent_arp_bymac.mac AND ends < %s'},
+            #    select_params=(timezone.now(),)
+            #).distinct()
+    )
+
+    context = {
+        'hardcoded': hardcoded
+    }
+
+    return render(request, 'report/disabled.html', context)
