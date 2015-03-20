@@ -243,7 +243,7 @@ def weather_data(request):
         "SER-SPEC": {'id': [2500]},
         "SER-ASTE": {'id': [2503]},
         "SER-HOUS": {'id': [2506]},
-        "SER-BR": {'id': [2509]},
+        "SER-BR": {'id': [2498]},
         "BR-UEN-A": {'id': [19202]},
         "BR-UEN-B": {'id': [19200]},
         "SER-BR-BYP": {'id': [156616]},
