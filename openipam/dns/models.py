@@ -132,18 +132,19 @@ class DnsRecord(models.Model):
         valid_domains = Domain.objects.by_dns_change_perms(user).filter(pk=self.domain.pk)
         valid_addresses = Address.objects.by_dns_change_perms(user)
 
-        # Users must either have domain permissions, host permission or network permission.
-        if not valid_domains and not valid_addresses.count():
+        # Users must either have domain permissions, network permission.
+        if not valid_domains  or self.domain not in valid_domains:
             raise ValidationError('Invalid credentials: user %s does not have permissions'
-                ' to add DNS records to the domain, host and/or network provided. Please contact an IPAM administrator '
+                ' to add DNS records to the domain provided. Please contact an IPAM administrator '
                 'to ensure you have the proper permissions.' % user)
 
-        # If A or AAAA, then users must have Address / Network / Host permission
+        # If A or AAAA, then users must have Address / Network permission
         if self.dns_type.is_a_record and not valid_addresses.filter(address=self.ip_content.address):
             raise ValidationError('Invalid credentials: user %s does not have permissions'
                 ' to add DNS records to the address provided. Please contact an IPAM administrator '
                 'to ensure you have the proper host and/or network permissions.' % user)
 
+        # If PTR, then users must have Address / Network permission
         if self.dns_type.is_ptr_record and not valid_addresses.filter(host=self.host):
             raise ValidationError("Invalid credentials: user %s does not have permissions"
                 " to add or modify DNS Records for Host '%s'" % (user, self.text_content))
