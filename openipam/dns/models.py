@@ -132,8 +132,10 @@ class DnsRecord(models.Model):
         valid_domains = Domain.objects.by_dns_change_perms(user).filter(pk=self.domain.pk)
         valid_addresses = Address.objects.by_dns_change_perms(user)
 
-        # Users must either have domain permissions, network permission.
-        if not valid_domains  or self.domain not in valid_domains:
+        # Users must either have domain permissions when except for PTRs what are being created from host saves.
+        if self.dns_type.is_ptr_record and self.host.is_dirty():
+            pass
+        elif not valid_domains  or self.domain not in valid_domains:
             raise ValidationError('Invalid credentials: user %s does not have permissions'
                 ' to add DNS records to the domain provided. Please contact an IPAM administrator '
                 'to ensure you have the proper permissions.' % user)
