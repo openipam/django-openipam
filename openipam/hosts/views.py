@@ -15,7 +15,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.utils import DatabaseError
+from django.db.utils import DatabaseError, DataError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -39,6 +39,32 @@ from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 import json
 import re
 
+# from django.db.models.sql.aggregates import Aggregate as SQLAggregate
+# from django.db.models import Aggregate
+# from django.db.models import DecimalField
+
+# class SQLArrayAgg(SQLAggregate):
+
+#     sql_function = 'array_agg'
+#     sql_template = '%(function)s(%(distinct)s%(field)s)'
+
+#     def __init__(self, col, distinct=False, **extra):
+#         super(SQLArrayAgg, self).__init__(col, distinct=(
+#                                                distinct and 'DISTINCT ' or ''),
+#                                           **extra)
+# class ArrayAgg(Aggregate):
+
+#     name = 'ArrayAgg'
+
+#     def add_to_query(self, query, alias, col, source, is_summary):
+#         klass = SQLArrayAgg
+#         aggregate = klass(
+#             col, source=source, is_summary=is_summary, **self.extra)
+#         aggregate.field = DecimalField() # vomit
+#         query.aggregates[alias] = aggregate
+
+
+
 User = get_user_model()
 
 
@@ -49,8 +75,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         'pk',
         'hostname',
         'mac',
-        'vendor',
-        'addresses__address',
         'expires',
     )
 
@@ -70,9 +94,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
             host_search = column_data[1]['search']['value'].strip()
             mac_search = column_data[2]['search']['value'].strip()
-            vendor_search = column_data[3]['search']['value'].strip()
+            expired_search = column_data[3]['search']['value']
             ip_search = column_data[4]['search']['value'].strip()
-            expired_search = column_data[5]['search']['value']
+            vendor_search = column_data[5]['search']['value'].strip()
             search = self.json_data.get('search_filter', '').strip()
             is_owner = self.json_data.get('owner_filter', None)
 
@@ -236,23 +260,72 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         except AddrFormatError:
             pass
 
-        self.qs = qs
-
         return qs
+
+    def raw_ordering(self):
+        order_columns = (
+            'hosts.mac',
+            'hosts.hostname',
+            'hosts.mac',
+            'hosts.expires',
+        )
+
+        # Number of columns that are used in sorting
+        order_data = self.json_data.get('order', [])
+
+        order = []
+        for item in order_data:
+            if item['column'] != 3:
+                column = item['column']
+                column_dir = item['dir']
+                sdir = 'DESC' if column_dir == 'desc' else 'ASC'
+                sortcol = order_columns[column]
+                order.append('%s %s' % (sortcol, sdir))
+
+        if order:
+            return ','.join(order)
+        else:
+            return 'hosts.hostname'
 
     def prepare_results(self, qs):
         qs_macs = [q.mac for q in qs]
-        qs = Host.objects.with_oui().filter(mac__in=qs_macs).extra(select={'disabled': 'hosts.mac in (select mac from disabled)'})
-        value_qs = merge_values(self.ordering(qs.values('mac', 'hostname', 'vendor', 'expires', 'addresses__address', 'disabled',
-            'leases__address', 'leases__ends', 'ip_history__stopstamp', 'mac_history__stopstamp')))
+
+        if not qs_macs:
+            value_qs = []
+        else:
+            def dictfetchall(cursor):
+                "Returns all rows from a cursor as a dict"
+                desc = cursor.description
+                return [
+                    dict(zip([col[0] for col in desc], row))
+                    for row in cursor.fetchall()
+                ]
+            c = connection.cursor()
+            c.execute('''
+                SELECT
+                    hosts.mac, hosts.hostname, hosts.expires, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
+                    array_agg(leases.ends) AS ends, disabled.mac AS disabled, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
+                    (SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1) AS vendor,
+                    (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
+                FROM hosts
+                    LEFT OUTER JOIN addresses ON hosts.mac = addresses.mac
+                    LEFT OUTER JOIN gul_recent_arp_byaddress ON addresses.address = gul_recent_arp_byaddress.address
+                    LEFT OUTER JOIN leases ON hosts.mac = leases.mac
+                    LEFT OUTER JOIN disabled ON hosts.mac = disabled.mac
+                    LEFT OUTER JOIN ouis ON hosts.mac >= ouis.start AND hosts.mac <= ouis.stop
+                WHERE hosts.mac IN %%s
+                GROUP BY hosts.mac, hosts.hostname, hosts.expires, disabled.mac
+                ORDER BY %s
+            ''' % self.raw_ordering(), [tuple(qs_macs)])
+            value_qs = dictfetchall(c)
 
         user = self.request.user
-        user_change_permissions = qs.by_change_perms(user, ids_only=True)
+        user_change_permissions = Host.objects.filter(pk__in=qs_macs).by_change_perms(user, ids_only=True)
         global_delete_permission = user.has_perm('hosts.delete_host')
         global_change_permission = user.has_perm('hosts.change_host')
 
         def get_last_mac_stamp(host):
-            mac_stamp = host['mac_history__stopstamp']
+            mac_stamp = host['mac_stamp']
             if mac_stamp:
                 mac_stamp = max(mac_stamp) if isinstance(mac_stamp, list) else mac_stamp
                 return timezone.localtime(mac_stamp).strftime('%Y-%m-%d %I:%M %p')
@@ -260,10 +333,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 return None
 
         def get_last_ip_stamp(host):
-            ip_stamp = host['ip_history__stopstamp']
+            ip_stamp = host['ip_stamp']
+            ip_stamp = [ip_stamp] if not isinstance(ip_stamp, list) else ip_stamp
+            ip_stamp = [stamp for stamp in ip_stamp if stamp is not None]
             if ip_stamp:
-                ip_stamp = max(ip_stamp) if isinstance(ip_stamp, list) else ip_stamp
-                return timezone.localtime(ip_stamp).strftime('%Y-%m-%d %I:%M %p')
+                return timezone.localtime(max(ip_stamp)).strftime('%Y-%m-%d %I:%M %p')
             else:
                 return None
 
@@ -283,23 +357,21 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         def get_ips(host):
             addresses = []
-            if host['addresses__address']:
-                if isinstance(host['addresses__address'], list):
-                    addresses += [address for address in host['addresses__address']]
-                else:
-                    addresses.append(host['addresses__address'])
-            if host['leases__address']:
-                if not isinstance(host['leases__address'], list):
-                    host['leases__address'] = [host['leases__address']]
-                if not isinstance(host['leases__ends'], list):
-                    host['leases__ends'] = [host['leases__ends']]
-
-                for index, lease in enumerate(host['leases__address']):
-                    try:
-                        if host['leases__ends'][index] > timezone.now():
-                            addresses.append(lease)
-                    except IndexError:
-                        pass
+            host['address'] = [host['address']] if not isinstance(host['address'], list) else host['address']
+            host['lease'] = [host['lease']] if not isinstance(host['lease'], list) else host['lease']
+            host['ends'] = [host['ends']] if not isinstance(host['ends'], list) else host['ends']
+            if host['address']:
+                for address in host['address']:
+                    if address:
+                        addresses.append(address)
+            if host['lease']:
+                for index, lease in enumerate(host['lease']):
+                    if lease:
+                        try:
+                            if host['ends'][index] and host['ends'][index] > timezone.now():
+                                addresses.append(lease)
+                        except IndexError:
+                            pass
 
             if addresses:
                 if len(addresses) == 1:
@@ -362,9 +434,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                                                                                     'is_disabled': is_disabled
                                                                                 }),
                 host['mac'],
-                host['vendor'],
-                host_ips,
                 expires,
+                host_ips,
+                host['vendor'],
                 render_cell(last_mac_stamp, is_flagged, is_disabled),
                 render_cell(last_ip_stamp, is_flagged, is_disabled),
                 '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy('list_dns'), host['hostname']),
@@ -373,7 +445,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     'Edit' if change_permissions else 'View'
                 ),
             ])
-
         return json_data
 
 

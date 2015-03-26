@@ -112,9 +112,9 @@
 						</th>
 						<th scope="col">Hostname</th>
 						<th scope="col" style="min-width: 150px;">Ethernet Address</th>
-						<th scope="col">Vendor</th>
-						<th scope="col" style="min-width: 150px;">IP Address</th>
 						<th scope="col">Expires</th>
+						<th scope="col" style="min-width: 150px;">IP Address</th>
+						<th scope="col">Vendor</th>
 						<th scope="col">Mac Address Last seen</th>
 						<th scope="col">Static IP Last seen</th>
 						<th scope="col">DNS Records</th>
@@ -153,7 +153,11 @@
 							</div>
 						</th>
 						<th>
-							<input type="text" id="s_vendor" rel="3" class="search_init form-control input-sm" placeholder="Search Vendor" style="max-width: 110px;" />
+							<select style="max-width: 80px;" id="s_expires" rel="3" class="filter_init search_init form-control input-sm">
+								<option value="">All</option>
+								<option value="1">Active</option>
+								<option value="0">Expired</option>
+							</select>
 						</th>
 						<th>
 							<input type="text" id="s_ip" rel="4" class="search_init form-control input-sm" placeholder="Search IP" style="max-width: 120px;" />
@@ -167,11 +171,7 @@
 							</div>
 						</th>
 						<th>
-							<select style="max-width: 80px;" id="s_expires" rel="5" class="filter_init search_init form-control input-sm">
-								<option value="">All</option>
-								<option value="1">Active</option>
-								<option value="0">Expired</option>
-							</select>
+							<input type="text" id="s_vendor" rel="5" class="search_init form-control input-sm" placeholder="Search Vendor" style="max-width: 110px;" />
 						</th>
 						<th>&nbsp;</th>
 						<th>&nbsp;</th>
