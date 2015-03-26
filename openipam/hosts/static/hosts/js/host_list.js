@@ -226,6 +226,14 @@ $(function(){
 		else{page_bar.removeClass('fixed');}
 	}
 
+	$("#result_list").bind('processing.dt', function (e, settings, show){
+		if (show) {
+			ProcessingDialog.showPleaseWait();
+		} else {
+			ProcessingDialog.hidePleaseWait();
+		}
+	});
+
 	$('#id_search').yourlabsAutocomplete({
 		url: '/api/web/IPAMSearchAutoComplete',
 		choiceSelector: '[data-value]',
