@@ -354,4 +354,3 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
                    }
 
         return ret
-
