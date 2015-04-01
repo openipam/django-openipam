@@ -60,9 +60,6 @@ def weather_map(request):
 
 
 def disabled_hosts(request):
-    #queritined_nets = [net.range for net in NetworkRange.objects.filter(address_ranges__name='Quarantine')]
-    #q_list = [Q(address_id__net_contained_or_equal=net) for net in queritined_nets]
-    #assert False, q_list
     hardcoded = (
         GulRecentArpBymac.objects
             .select_related('host')
@@ -74,10 +71,6 @@ def disabled_hosts(request):
                 host__leases__ends__lt=timezone.now()
             )
             .extra(where=["NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')"])
-            #.extra(
-            #    select={'end_time': 'SELECT MAX(leases.ends) FROM leases where leases.mac = gul_recent_arp_bymac.mac AND ends < %s'},
-            #    select_params=(timezone.now(),)
-            #).distinct()
     )
 
     context = {
