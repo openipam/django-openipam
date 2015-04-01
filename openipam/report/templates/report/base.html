@@ -5,29 +5,39 @@
 
 
 {% block extrahead %}
-  <style type="text/css">
-    body {
-      background: #111;
-    }
-    #report-brand {
-      font-size: 18px;
-      font-weight: bold;
-      color: #f60;
-      padding: 10px 15px 10px 15px;
-      line-height: 20px;
-    }
-  </style>
+	<style type="text/css">
+		body {
+			background: #111;
+		}
+		#report-brand {
+			font-size: 18px;
+			font-weight: bold;
+			color: #f60;
+			padding: 10px 15px 10px 15px;
+			line-height: 20px;
+		}
+	</style>
 {% endblock %}
 
 {% block nav-global %}
-    <ul class="nav navbar-nav">
-      <li id="report-brand" class="nav">Reports</li>
-      <li id="dashboard_link"><a href="{% url 'reports_dashboard' %}">Dashboard</a></li>
-      <li id="weathermap_link"><a href="{% url 'reports_weather_map' %}">Weathermap</a></li>
-      <li id="lease_usage_link"><a href="{% url 'reports_lease_usage' %}">Lease Usage</a></li>
-      <li id="disabled_link"><a href="{% url 'reports_disabled' %}">Disabled Hosts</a></li>
-    </ul>
-    <ul class="nav navbar-nav pull-right">
-      <li><a id="time"></a></li>
-    </ul>
+		<ul class="nav navbar-nav">
+			<li id="report-brand" class="nav">Reports</li>
+			<li id="dashboard_link"><a href="{% url 'reports_dashboard' %}">Dashboard</a></li>
+			<li id="charts_graphs_dropdown" class="dropdown">
+				<a class="dropdown-toggle" href="#" data-toggle="dropdown">Charts &amp; Graphs</a>
+				<ul id="graphs_div" class="dropdown-menu" role="menu">
+					<li id="weathermap_link"><a href="{% url 'reports_weather_map' %}">Weathermap</a></li>
+					<li id="lease_usage_link"><a href="{% url 'reports_lease_usage' %}">Lease Usage</a></li>
+				</ul>
+			</li>
+			<li id="reports_dropdown" class="dropdown" role="menu">
+				<a class="dropdown-toggle" href="#" data-toggle="dropdown">Reports</a>
+				<ul id="reports_div" class="dropdown-menu">
+					<li id="disabled_link"><a href="{% url 'reports_disabled' %}">Hardcoded Disabled Hosts</a></li>
+				</ul>
+			</li>
+		</ul>
+		<ul class="nav navbar-nav pull-right">
+			<li><a id="time"></a></li>
+		</ul>
 {% endblock %}
