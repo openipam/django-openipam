@@ -10,12 +10,21 @@
 			padding: 20px;
 		}
 	</style>
+
+	<script type="text/javascript">
+		$(function(){
+			$("#disabled_link").addClass('active');
+	        $("#reports_dropdown").addClass('active');
+		});
+
+	</script>
 {% endblock %}
 
 {% block content %}
 	<h4>
-		Disabled Hosts that appear to be hardcoding addresses.
+		Hardcoded Disabled Hosts
 	</h4>
+	<p>Hosts that appear to be hardcoding an address while their MAC has been disabled in openIPAM.</p>
 	<table id="result_list" class="table table-striped table-condensed table-bordered">
 		<tr>
 			<thead>
