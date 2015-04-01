@@ -135,3 +135,19 @@ input {
 }
 
 
+.dataTables_processing {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 60%;
+    height: 40px;
+    margin-left: -30%;
+    /*margin-right: 50%;*/
+    margin-top: -25px;
+    padding: 10px !important;
+    text-align: center;
+    font-size: 1.2em;
+    background-color: #ccc;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
