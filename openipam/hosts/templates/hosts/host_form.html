@@ -28,6 +28,18 @@
 			-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
 			box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
 		}
+		.panel-heading .accordion-toggle:after {
+		    /* symbol for "opening" panels */
+		    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+		    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+		    float: left;        /* adjust as needed */
+		    color: #fff;         /* adjust as needed */
+		    margin-right: 10px;
+		}
+		.panel-heading .accordion-toggle.collapsed:after {
+		    /* symbol for "collapsed" panels */
+		    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+		}
 	</style>
 
 	<script type="text/javascript" src="{% static "chosen-bower/chosen.jquery.min.js" %}"></script>
