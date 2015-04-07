@@ -275,12 +275,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         order = []
         for item in order_data:
-            if item['column'] != 3:
-                column = item['column']
-                column_dir = item['dir']
-                sdir = 'DESC' if column_dir == 'desc' else 'ASC'
-                sortcol = order_columns[column]
-                order.append('%s %s' % (sortcol, sdir))
+            column = item['column']
+            column_dir = item['dir']
+            sdir = 'DESC' if column_dir == 'desc' else 'ASC'
+            sortcol = order_columns[column]
+            order.append('%s %s' % (sortcol, sdir))
 
         if order:
             return ','.join(order)
