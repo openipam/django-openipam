@@ -20,7 +20,7 @@ class IPAMTestCase(TestCase):
     dns_domains = None
     dns_records = None
     hosts = None
-    fixtures = ['initial_data']
+    fixtures = ['initial_data', 'dns_types', 'user_permission']
 
     def _add_network(self, network, user):
             obj = Network.objects.create(changed_by=user, **network)
