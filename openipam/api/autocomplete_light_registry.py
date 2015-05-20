@@ -26,24 +26,45 @@ User = get_user_model()
 class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
     choices = (
         Domain.objects.all(),
-        Network.objects.all(),
         Pool.objects.all(),
         DnsType.objects.all(),
         Host.objects.all(),
+        Network.objects.all(),
     )
 
     search_fields = (
         ('^name',),
-        ('^network',),
         ('name',),
         ('name',),
         ('^hostname',),
+        ('^network',),
     )
 
     attrs = {
         'minimum_characters': 1,
         'placeholder': 'Search Objects',
     }
+
+    # Override this function until it is fixed for 1.8
+    def choices_for_values(self):
+        values_choices = []
+
+        for queryset in self.choices:
+            ctype = ContentType.objects.get_for_model(queryset.model).pk
+
+            try:
+
+                ids = [x.split('-')[1] for x in self.values
+                    if x is not None and int(x.split('-')[0]) == ctype]
+            except ValueError:
+                continue
+
+            # Bug?
+            if ids:
+                for choice in queryset.filter(pk__in=ids):
+                    values_choices.append(choice)
+
+        return values_choices
 
     #WTF?
     def choices_for_request(self):
@@ -285,7 +306,7 @@ autocomplete_light.register(Host,
 )
 
 autocomplete_light.register(Permission,
-    search_fields=['name', 'codename', 'content_type__name', 'content_type__app_label'],
+    search_fields=['name', 'codename', 'content_type__app_label'],
     attrs={'placeholder': 'Search Permissions'},
 )
 

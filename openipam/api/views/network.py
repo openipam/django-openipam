@@ -4,7 +4,7 @@ from rest_framework import filters
 from rest_framework import permissions
 
 from openipam.network.models import Network, Address, DhcpGroup, Lease
-from openipam.api.serializers.network import NetworkSerializer, AddressSerializer
+from openipam.api.serializers.network import NetworkSerializer, AddressSerializer, DhcpGroupListSerializer
 
 from django_filters import FilterSet, CharFilter
 
@@ -29,7 +29,8 @@ class NetworkList(generics.ListAPIView):
 
 
 class AddressList(generics.ListAPIView):
-    model = Address
+    queryset = Address.objects.select_related().all()
+    serializer_class = AddressSerializer
     paginate_by = 50
     filter_backends = (filters.SearchFilter,)
     filter_fields = ('address', 'mac',)
@@ -39,12 +40,12 @@ class AddressDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    #permission_classes = (IsAuthenticated,)
+    queryset = Address.objects.select_related('network').all()
     serializer_class = AddressSerializer
-    model = Address
 
 
 class DhcpGroupList(generics.ListAPIView):
-    model = DhcpGroup
+    queryset = DhcpGroup.objects.select_related().prefetch_related('dhcp_options').all()
+    serializer_class = DhcpGroupListSerializer
     filter_backends = (filters.SearchFilter,)
     filter_fields = ('name',)

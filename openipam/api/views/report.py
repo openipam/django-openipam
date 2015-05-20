@@ -2,7 +2,8 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRenderer
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRenderer, BrowsableAPIRenderer
+from rest_framework.exceptions import APIException, ValidationError
 
 from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
@@ -28,15 +29,14 @@ from collections import OrderedDict
 
 
 @api_view(('GET',))
-@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 @permission_classes((AllowAny,))
+@renderer_classes((BrowsableAPIRenderer, TemplateHTMLRenderer, JSONRenderer,))
 #@cache_page(60)
 def subnet_data(request):
     network_blocks = request.REQUEST.get('network_blocks')
     network_tags = request.REQUEST.get('network_tags')
     by_router = request.REQUEST.get('by_router')
     exclude_free = request.REQUEST.get('exclude_free')
-    html_output = request.REQUEST.get('html_output')
 
     if network_blocks:
         show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
@@ -55,7 +55,7 @@ def subnet_data(request):
     try:
         lease_data = lease_data.json()
     except ValueError:
-        return Response('Error parsing JSON from GUL', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return HttpResponse('Error parsing JSON from GUL', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     lease_data = sorted(lease_data, key=lambda k: (k['router'], IPNetwork(k['network'])))
 
@@ -110,14 +110,14 @@ def subnet_data(request):
 
         lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] else 1.1)
 
-        if html_output:
+        if request.accepted_renderer.format == 'html':
             context = {
                 'lease_data': lease_data,
                 'excluded_keys': ['style']
             }
             return Response(context, template_name='api/web/subnet_data.html')
         else:
-            return Response(lease_data, status=status.HTTP_200_OK)
+            return Response(lease_data, status=status.HTTP_200_OK, template_name='api/web/subnet_data.html')
 
     grouped_lease_data = {
         'name': 'routers',
@@ -225,7 +225,7 @@ def subnet_data(request):
 
         grouped_lease_data['children'].append(router)
 
-    return Response(grouped_lease_data, status=status.HTTP_200_OK)
+    return Response(grouped_lease_data, status=status.HTTP_200_OK, template_name='api/web/subnet_data.html')
 
 
 @api_view(('GET',))
@@ -347,6 +347,7 @@ def lease_stats(request):
     }
 
     return Response(context, template_name='api/web/ipam_stats.html')
+
 
 @api_view(('GET',))
 @permission_classes((AllowAny,))

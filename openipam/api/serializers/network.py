@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from openipam.network.models import Network, Address
+from openipam.network.models import Network, Address, DhcpGroup
 
 
 class NetworkSerializer(serializers.ModelSerializer):
@@ -11,11 +11,21 @@ class NetworkSerializer(serializers.ModelSerializer):
 
 
 class AddressSerializer(serializers.ModelSerializer):
-    gateway = serializers.SerializerMethodField('get_gateway')
+    gateway = serializers.SerializerMethodField()
 
     def get_gateway(self, obj):
-        return obj.network.gateway
+        return str(obj.network.gateway)
 
     class Meta:
         model = Address
         fields = ('network', 'gateway', 'host', 'reserved', 'changed_by', 'changed',)
+
+
+class DhcpGroupListSerializer(serializers.ModelSerializer):
+    changed_by = serializers.SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username
+
+    class Meta:
+        model = DhcpGroup

@@ -3,13 +3,14 @@ from django.core.validators import validate_ipv46_address
 from django import forms
 
 from rest_framework import serializers
+from rest_framework.utils import html
 
 from netfields.forms import MACAddressFormField
 
 from netaddr import EUI, AddrFormatError, mac_bare
 
 
-class MultipleChoiceField(serializers.WritableField):
+class MultipleChoiceField(serializers.Field):
     """
     A field that behaves like multiple choice field of Django forms.
     """
@@ -32,11 +33,29 @@ class MultipleChoiceField(serializers.WritableField):
         super(MultipleChoiceField, self).__init__(*args, **kwargs)
 
 
-class MACAddressField(serializers.CharField):
-    type_name = 'MACAddressField'
-    type_label = 'mac_address'
-    form_field_class = MACAddressFormField
+class ListOrItemField(serializers.Field):
+    """
+    A field whose values are either a value or lists of values described by the given item field.
+    The item field can be another field type (e.g., CharField) or a serializer.
+    """
 
+    def __init__(self, child, *args, **kwargs):
+        super(ListOrItemField, self).__init__(*args, **kwargs)
+        self.item_field = child
+        self.list_field = serializers.ListField(child=child, *args, **kwargs)
+
+    def to_representation(self, obj):
+        if isinstance(obj, list):
+            return self.list_field.to_representation(obj)
+        return self.item_field.to_representation(obj)
+
+    def to_internal_value(self, data):
+        if isinstance(data, list):
+            return self.list_field.to_internal_value(data)
+        return self.item_field.to_internal_value(data)
+
+
+class MACAddressField(serializers.CharField):
     default_error_messages = {
         'invalid': 'Enter a valid mac address.',
     }
@@ -54,11 +73,10 @@ class MACAddressField(serializers.CharField):
 
 
 class IPAddressField(serializers.CharField):
-    type_name = 'IPAddressField'
-    type_label = 'ip_address'
-    form_field_class = forms.GenericIPAddressField
-
     default_error_messages = {
         'invalid': 'Enter a valid ip address.',
     }
-    default_validators = [validate_ipv46_address]
+
+    def __init__(self, **kwargs):
+        super(IPAddressField, self).__init__(**kwargs)
+        self.validators.append(validate_ipv46_address)

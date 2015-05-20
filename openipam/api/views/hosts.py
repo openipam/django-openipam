@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 from rest_framework.views import APIView
+from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
@@ -43,7 +44,7 @@ class HostList(generics.ListAPIView):
     """
 
     permission_classes = (IsAuthenticated,)
-    queryset = Host.objects.prefetch_related('addresses', 'leases').all()
+    queryset = Host.objects.prefetch_related('addresses', 'leases', 'pools').select_related('disabled_host').all()
     serializer_class = host_serializers.HostListSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = HostFilter
@@ -107,9 +108,9 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
+    queryset = Host.objects.select_related().all()
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
-    model = Host
 
 
 class HostCreate(generics.CreateAPIView):
@@ -186,32 +187,18 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
     """
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostCreateUpdateSerializer
-    model = Host
-
-    def pre_save(self, obj):
-        pass
+    queryset = Host.objects.all()
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        self.object = self.get_object_or_none()
-
-        serializer = self.get_serializer(self.object, data=request.DATA,
-                                         files=request.FILES, partial=partial)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
         try:
-            if self.object is None:
-                self.object = serializer.save(force_insert=True)
-                self.post_save(self.object, created=True)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            self.object = serializer.save(force_update=True)
-            self.post_save(self.object, created=False)
+            self.perform_update(serializer)
         except ValidationError, e:
             error_list = []
             if hasattr(e, 'error_dict'):
@@ -221,13 +208,40 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
             else:
                 error_list.append(e.message)
             return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+    #     if not serializer.is_valid(raise_exception=True):
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     try:
+    #         if instance is None:
+    #             instance = serializer.save()
+    #             self.post_save(instance, created=True)
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    #         instance = serializer.save()
+    #         self.post_save(instance, created=False)
+    #     except ValidationError, e:
+    #         error_list = []
+    #         if hasattr(e, 'error_dict'):
+    #             for key, errors in e.message_dict.items():
+    #                 for error in errors:
+    #                     error_list.append(error)
+    #         else:
+    #             error_list.append(e.message)
+    #         return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class HostRenew(generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostRenewSerializer
-    model = Host
+    queryset = Host.objects.all()
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -241,11 +255,10 @@ class HostDelete(generics.DestroyAPIView):
     """
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostMacSerializer
-    model = Host
+    queryset = Host.objects.all()
 
     def post(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
 
     def post_delete(self, obj):
         """
@@ -256,15 +269,30 @@ class HostDelete(generics.DestroyAPIView):
 
 class HostOwnerList(generics.RetrieveAPIView):
     serializer_class = host_serializers.HostOwnerSerializer
-    model = Host
+    queryset = Host.objects.all()
 
 
 class HostOwnerAdd(APIView):
+    """
+        Adds owners for a host.
+
+        **Arguments**:
+
+        * `users` -- A list of usernames to add.
+        * `groups` -- A list og group names to add.
+
+        **Example**:
+
+            {
+                "users": ["user1", "user2"],
+                "groups": ["group1", "group2"]
+            }
+    """
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.data)
 
         if serializer.is_valid():
             user_list = serializer.data.get('users')
@@ -292,11 +320,27 @@ class HostOwnerAdd(APIView):
 
 
 class HostOwnerDelete(APIView):
+    """
+        Deletes owners for a host.
+
+        **Arguments**:
+
+        * `users` -- A list of usernames to delete.
+        * `groups` -- A list og group names to delete.
+
+        **Example**:
+
+            {
+                "users": ["user1", "user2"],
+                "groups": ["group1", "group2"]
+            }
+    """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostOwnerSerializer(data=request.DATA)
+        serializer = host_serializers.HostOwnerSerializer(data=request.data)
         if serializer.is_valid():
             user_list = serializer.data.get('users')
             group_list = serializer.data.get('groups')
@@ -322,11 +366,16 @@ class HostOwnerDelete(APIView):
 
 
 class AttributeList(generics.ListAPIView):
-    model = Attribute
+    serializer_class = host_serializers.AttributeListSerializer
+    queryset = Attribute.objects.select_related().all()
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class StructuredAttributeValueList(generics.ListAPIView):
-    model = StructuredAttributeValue
+    serializer_class = host_serializers.StructuredAttributeValueListSerializer
+    queryset = StructuredAttributeValue.objects.select_related().all()
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('attribute__name', 'value', 'attribute')
 
@@ -374,7 +423,7 @@ class HostAddAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.data)
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
             # Get the DB attributes we are going to change
@@ -424,7 +473,7 @@ class HostDeleteAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.DATA)
+        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.data)
 
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')

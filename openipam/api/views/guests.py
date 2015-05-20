@@ -20,7 +20,7 @@ User = get_user_model()
 
 class GuestTicketList(generics.ListAPIView):
     permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
-    queryset = GuestTicket.objects.all()
+    queryset = GuestTicket.objects.select_related().all()
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
     paginate_by = 50
@@ -49,8 +49,8 @@ class GuestTicketCreate(generics.CreateAPIView):
 
 class GuestTicketDelete(generics.RetrieveDestroyAPIView):
     permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
+    queryset = GuestTicket.objects.all()
     serializer_class = GuestDeleteSerializer
-    model = GuestTicket
     lookup_field = 'ticket'
 
     def post(self, request, *args, **kwargs):

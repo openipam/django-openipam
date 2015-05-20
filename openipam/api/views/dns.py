@@ -5,12 +5,12 @@ from rest_framework.permissions import AllowAny
 
 from openipam.dns.models import Domain, DnsRecord
 from openipam.api.filters.dns import DomainFilter
-from openipam.api.serializers.dns import DomainNameSerializer
+from openipam.api.serializers.dns import DomainNameSerializer, DomainSerializer
 
 
 class DomainNameList(generics.ListAPIView):
+    queryset = Domain.objects.select_related().all()
     permission_classes = (AllowAny,)
-    model = Domain
     serializer_class = DomainNameSerializer
     fields = ('name',)
     filter_fields = ('name', 'username')
@@ -20,7 +20,8 @@ class DomainNameList(generics.ListAPIView):
 
 
 class DomainList(generics.ListAPIView):
-    model = Domain
+    queryset = Domain.objects.select_related().all()
+    serializer_class = DomainSerializer
     filter_fields = ('name', 'username')
     filter_class = DomainFilter
     paginate_by = 50
