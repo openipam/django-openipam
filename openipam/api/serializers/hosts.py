@@ -8,7 +8,7 @@ from django.core.serializers import serialize
 from rest_framework import serializers
 
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
-from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup, Lease
+from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 from openipam.api.serializers.base import MACAddressField, IPAddressField, ListOrItemField
 
 from guardian.shortcuts import get_users_with_perms, get_groups_with_perms, get_objects_for_user, assign_perm
@@ -32,7 +32,7 @@ class HostListSerializer(serializers.ModelSerializer):
 
     def get_addresses(self, obj):
         addresses = {
-            'leased': [str(lease.address) for lease in Lease.objects.filter(host=obj, ends__gt=timezone.now())],
+            'leased': [str(lease.address) for lease in obj.leases.select_related('address').filter(ends__gt=timezone.now())],
             'registered': [str(address) for address in obj.addresses.all()]
         }
         return addresses
