@@ -57,9 +57,8 @@
 
         var start = new Date;
         var updatePage = function() {
-          $.get('/api/reports/subnetdata/?html_output=1', function(data){
-            $("#usage-chart").html(data);
-          }).done(function(data){
+          $.get('/api/reports/subnetdata/?format=html').done(function(data){
+          	$("#usage-chart").html(data);
             $('div.network').each(function() {
               $(this).qtip({
                 content: $(this).next('div'),

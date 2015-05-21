@@ -5,6 +5,7 @@ from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import permission_required
 from django.utils import timezone
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from datetime import timedelta
 
@@ -33,6 +34,10 @@ def overview(request):
     }
     charttype = "discreteBarChart"
     chartcontainer = 'bar_container'
+
+    hostname = request.META.get('HTTP_HOST')
+    top_lease_usage = requests.get(url='http://%s%s?format=json' % (hostname, reverse('api_reports_subnet_data'))).json()[:5]
+
     context = {
         'charttype': charttype,
         'chartdata': chartdata,
