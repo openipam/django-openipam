@@ -368,7 +368,7 @@ class DnsRecordMunged(models.Model):
 
 class DhcpDnsRecord(models.Model):
     did = models.ForeignKey('Domain', db_column='did')
-    name = models.ForeignKey('hosts.Host', unique=True, db_column='name', to_field='hostname')
+    name = models.OneToOneField('hosts.Host', db_column='name', to_field='hostname')
     ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
