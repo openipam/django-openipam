@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_delete, post_save
@@ -65,7 +65,7 @@ class AttributeToHost(models.Model):
 
 
 class Disabled(models.Model):
-    host = models.ForeignKey('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
+    host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column='disabled')
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
@@ -159,7 +159,7 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
+    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
     stopstamp = models.DateTimeField()
 
@@ -173,7 +173,7 @@ class GulRecentArpByaddress(models.Model):
 
 
 class GulRecentArpBymac(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
+    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='mac_history')
     stopstamp = models.DateTimeField()
 
@@ -192,8 +192,7 @@ class Host(DirtyFieldsMixin, models.Model):
     description = models.TextField(blank=True, null=True)
     address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id',
                                         on_delete=models.SET_NULL)
-    pools = models.ManyToManyField('network.Pool', through='network.HostToPool',
-                                   related_name='pool_hosts', blank=True, null=True)
+    pools = models.ManyToManyField('network.Pool', through='network.HostToPool', related_name='pool_hosts')
     #freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
     #                                             related_name='freeform_hosts',  blank=True, null=True)
     #structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
@@ -241,7 +240,8 @@ class Host(DirtyFieldsMixin, models.Model):
                     return fieldvalue
             return _original(name.split('_')[1])
         else:
-            raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+            return self.__getattribute__(name)
+            #raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
     @cached_property
     def _addresses_cache(self):
@@ -264,9 +264,9 @@ class Host(DirtyFieldsMixin, models.Model):
 
     @cached_property
     def owners(self):
-        return self.get_owners(ids_only=False)
+        return self.get_owners()
 
-    def get_owners(self, ids_only=True, owner_detail=False, users_only=False):
+    def get_owners(self, ids_only=False, name_only=False, owner_detail=False, users_only=False):
         users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         groups_dict = get_groups_with_perms(self, attach_perms=True)
 
@@ -293,6 +293,10 @@ class Host(DirtyFieldsMixin, models.Model):
         elif ids_only:
             users = [user.pk for user in users]
             groups = [group.pk for group in groups]
+
+        elif name_only:
+            users = [user.username for user in users]
+            groups = [group.name for group in groups]
 
         return users, groups
 
@@ -342,7 +346,10 @@ class Host(DirtyFieldsMixin, models.Model):
 
     @property
     def is_disabled(self):
-        return True if Disabled.objects.filter(host=self.pk) else False
+        try:
+            return True if self.disabled_host else False
+        except ObjectDoesNotExist:
+            return False
 
     @property
     def is_expired(self):
@@ -696,7 +703,7 @@ class Host(DirtyFieldsMixin, models.Model):
                     self.add_dns_records(user, self.hostname, address)
 
     def remove_owners(self):
-        users, groups = self.get_owners(ids_only=False)
+        users, groups = self.get_owners()
         for user in users:
             remove_perm('is_owner_host', user, self)
         for group in groups:
