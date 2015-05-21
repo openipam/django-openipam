@@ -19,9 +19,9 @@ class AddressAdminForm(forms.ModelForm):
     host = autocomplete_light.ModelChoiceField('HostAutocomplete', required=False)
     network = autocomplete_light.ModelChoiceField('NetworkAutocomplete')
 
-
     class Meta:
         model = Address
+        exclude = ('changed_by',)
 
 
 class LeaseAdminForm(forms.ModelForm):
@@ -34,7 +34,6 @@ class LeaseAdminForm(forms.ModelForm):
 
 
 class AddressTypeAdminForm(forms.ModelForm):
-
     def clean(self):
         ranges = self.cleaned_data.get('ranges', [])
         pool = self.cleaned_data.get('pool', '')
@@ -46,6 +45,7 @@ class AddressTypeAdminForm(forms.ModelForm):
 
     class Meta:
         model = AddressType
+        fields = ('name', 'description', 'ranges', 'pool', 'is_default',)
 
 
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
@@ -80,9 +80,9 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
 
         return value
 
-
     class Meta:
         model = DhcpOptionToDhcpGroup
+        exclude = ('value',)
 
 
 class NetworkTagForm(forms.Form):
