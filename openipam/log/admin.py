@@ -17,9 +17,9 @@ class LogEntryAdminForm(forms.ModelForm):
     user = autocomplete_light.ModelChoiceField('UserAutocomplete')
     content_type = autocomplete_light.ModelChoiceField('ContentTypeAutocomplete')
 
-
     class Meta:
         model = LogEntry
+        exclude = ('user', 'content_type',)
 
 
 class LogEntryAdmin(admin.ModelAdmin):
