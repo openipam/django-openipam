@@ -509,7 +509,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context['addresses'] = self.object.addresses.all()
         context['pools'] = self.object.pools.all()
         context['leased_addresses'] = self.object.leases.select_related('address', 'host').all()
-        context['user_owners'], context['group_owners'] = self.object.get_owners(ids_only=False)
+        context['user_owners'], context['group_owners'] = self.object.get_owners()
         context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
         context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
 
@@ -530,15 +530,16 @@ class HostUpdateCreateMixin(object):
     form_class = HostForm
     success_url = reverse_lazy('list_hosts')
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
+
         is_bulk = self.kwargs.get('bulk', False)
         if not is_bulk and self.request.session.get('host_form_add'):
             del self.request.session['host_form_add']
 
         # passing the user object to the form here.
-        form = form_class(request=self.request, **self.get_form_kwargs())
-
-        return form
+        return form_class(request=self.request, **self.get_form_kwargs())
 
     def get_context_data(self, **kwargs):
         context = super(HostUpdateCreateMixin, self).get_context_data(**kwargs)
@@ -570,9 +571,9 @@ class HostUpdateCreateMixin(object):
 
 
 class HostUpdateView(HostUpdateCreateMixin, UpdateView):
-    @method_decorator(permission_change_host)
-    def dispatch(self, request, *args, **kwargs):
-        return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
+    # @method_decorator(permission_change_host)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(HostUpdateView, self).get_context_data(**kwargs)
@@ -580,8 +581,8 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
         context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
         return context
 
-    def get(self, request, *args, **kwargs):
-        return super(HostUpdateView, self).get(request, *args, **kwargs)
+    # def get(self, request, *args, **kwargs):
+    #     return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
         original_object = serializers.serialize('json', [self.object])
