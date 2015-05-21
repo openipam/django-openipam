@@ -10,15 +10,15 @@ from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGr
     NetworkToVlan
 from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, \
     AddressAdminForm, LeaseAdminForm
-from openipam.core.admin import ChangedAdmin
+from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
 import autocomplete_light
 
 
 class NetworkAdmin(ChangedAdmin):
-    form = autocomplete_light.modelform_factory(Network)
+    form = autocomplete_light.modelform_factory(Network, exclude=('changed,'))
     list_display = ('nice_network', 'name', 'description', 'gateway')
-    list_filter = ('tags', 'shared_network__name')
+    list_filter = (('tags__name', custom_titled_filter('Tags')), 'shared_network__name')
     search_fields = ('network', 'shared_network__name')
     actions = ['tag_network', 'release_abandoned_leases']
 
@@ -116,7 +116,7 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 
 class DhcpGroupAdmin(ChangedAdmin):
-    form = autocomplete_light.modelform_factory(DhcpGroup)
+    form = autocomplete_light.modelform_factory(DhcpGroup, exclude=('changed',))
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):

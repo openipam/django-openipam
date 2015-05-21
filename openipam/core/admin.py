@@ -26,6 +26,14 @@ class ChangedAdmin(admin.ModelAdmin):
         super(ChangedAdmin, self).save_model(request, obj, form, change)
 
 
+def custom_titled_filter(title):
+    class Wrapper(admin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = admin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+    return Wrapper
+
 
 class FeatureRequestAdmin(admin.ModelAdmin):
     list_display = ('submitted', 'comment', 'full_user', 'type', 'is_complete',)
