@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Authenti
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
+from rest_framework.authtoken.models import Token
+
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import autocomplete_light
@@ -29,6 +31,7 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
     class Meta:
         model = User
+        fields = ('username',)
 
 
 class AuthUserChangeAdminForm(UserChangeForm):
@@ -46,6 +49,7 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
     class Meta:
         model = User
+        fields = ('username',)
 
 
 class AuthGroupAdminForm(forms.ModelForm):
@@ -60,6 +64,7 @@ class AuthGroupAdminForm(forms.ModelForm):
 
     class Meta:
         model = Group
+        fields = ('name',)
 
 
 PERMISSION_FILTER = [
@@ -90,11 +95,10 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
     )
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
-    # def __init__(self, *args, **kwargs):
-    #     super(UserObjectPermissionAdminForm, self).__init__(*args, **kwargs)
-
-    #     if self.instance:
-    #        self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
+    def __init__(self, *args, **kwargs):
+        super(UserObjectPermissionAdminForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+           self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
 
     class Meta:
         model = UserObjectPermission
@@ -110,12 +114,19 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
     )
     object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
-    # def __init__(self, *args, **kwargs):
-    #     super(UserObjectPermissionAdminForm, self).__init__(*args, **kwargs)
-
-    #     if self.instance:
-    #        self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
+    def __init__(self, *args, **kwargs):
+        super(GroupObjectPermissionAdminForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+           self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
 
     class Meta:
         model = GroupObjectPermission
         exclude = ('content_type', 'object_pk')
+
+
+class TokenForm(forms.ModelForm):
+    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
+
+    class Meta:
+        model = Token
+        fields = ('user',)
