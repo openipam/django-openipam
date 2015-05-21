@@ -20,8 +20,8 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 
 
 class Lease(models.Model):
-    address = models.ForeignKey('Address', primary_key=True, db_column='address', related_name='leases')
-    host = models.ForeignKey('hosts.Host', db_column='mac', db_constraint=False, related_name='leases', unique=True, null=True)
+    address = models.OneToOneField('Address', primary_key=True, db_column='address', related_name='leases')
+    host = models.ForeignKey('hosts.Host', db_column='mac', db_constraint=False, related_name='leases', null=True)
     abandoned = models.BooleanField(default=False)
     server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()
@@ -245,7 +245,7 @@ class Vlan(models.Model):
 
 
 class NetworkToVlan(models.Model):
-    network = models.ForeignKey('Network', primary_key=True, db_column='network')
+    network = models.OneToOneField('Network', primary_key=True, db_column='network')
     vlan = models.ForeignKey('Vlan', db_column='vlan')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
@@ -307,7 +307,7 @@ class AddressTypeManager(models.Manager):
 class AddressType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    ranges = models.ManyToManyField('NetworkRange', blank=True, null=True, related_name='address_ranges')
+    ranges = models.ManyToManyField('NetworkRange', related_name='address_ranges')
     pool = models.ForeignKey('Pool', blank=True, null=True)
     is_default = models.BooleanField(default=False)
 
