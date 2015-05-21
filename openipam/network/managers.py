@@ -78,9 +78,9 @@ class NetworkQuerySet(QuerySet, NetworkMixin):
 class NetworkManager(NetManager):
 
     def __getattr__(self, name):
-        return getattr(self.get_query_set(), name)
+        return getattr(self.get_queryset(), name)
 
-    def get_query_set(self):
+    def get_queryset(self):
         q = NetQuery(self.model, NetWhere)
         return NetworkQuerySet(self.model, q)
 
@@ -159,9 +159,9 @@ class AddressQuerySet(QuerySet, AddressMixin):
 class AddressManager(NetManager):
 
     def __getattr__(self, name):
-        return getattr(self.get_query_set(), name)
+        return getattr(self.get_queryset(), name)
 
-    def get_query_set(self):
+    def get_queryset(self):
         q = NetQuery(self.model, NetWhere)
         return AddressQuerySet(self.model, q)
 
