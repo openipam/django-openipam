@@ -240,7 +240,7 @@ class PoolToGroup(models.Model):
 
 
 class InternalAuth(models.Model):
-    id = models.ForeignKey(settings.AUTH_USER_MODEL, primary_key=True,
+    id = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True,
                            db_column='id', related_name='internal_user')
     password = models.CharField(max_length=128, db_column='hash')
     name = models.CharField(max_length=255, blank=True)
