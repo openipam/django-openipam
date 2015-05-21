@@ -16,12 +16,50 @@ from guardian.shortcuts import get_objects_for_user, assign_perm
 
 import autocomplete_light
 
+import six
+
 User = get_user_model()
 
 # autocomplete_light.register(User,
 #     search_fields=['username', 'first_name', 'last_name', 'email'],
 #     attrs={'placeholder': 'Search Users',},
 # )
+
+class BugAutocompleteFix(object):
+
+    def order_choices(self, choices):
+        """
+        Order choices using :py:attr:`order_by` option if it is set.
+        """
+        if isinstance(self.order_by, six.string_types):
+            self.order_by = (self.order_by,)
+
+        if self.values:
+            pk_name = "id"
+            try:
+                if len(choices) > 0:
+                    pk_name = choices[0]._meta.pk.name
+            except:
+                pass
+
+            # Order in the user selection order when self.values is set.
+            clauses = ' '.join(["WHEN %s='%s' THEN %s" % (pk_name, pk, i)
+                for i, pk in enumerate(self.values)])
+            ordering = 'CASE %s END' % clauses
+
+            _order_by = ('ordering',)
+            if self.order_by:
+                _order_by += self.order_by
+
+            return choices.extra(
+                select={'ordering': ordering},
+                order_by=_order_by)
+
+        if self.order_by is None:
+            return choices
+
+        return choices.order_by(*self.order_by)
+
 
 class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
     choices = (
@@ -221,7 +259,7 @@ class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
 autocomplete_light.register(Domain, DomainAutocomplete)
 
 
-class NetworkAutocomplete(autocomplete_light.AutocompleteModelBase):
+class NetworkAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
     search_fields = ['network', 'name', 'tags__name']
     attrs = {'placeholder': 'Search Networks'}
 
@@ -233,7 +271,6 @@ class NetworkAutocomplete(autocomplete_light.AutocompleteModelBase):
                 self.choices = self.choices.by_address_type(address_type)
 
         return super(NetworkAutocomplete, self).choices_for_request()
-
 autocomplete_light.register(Network, NetworkAutocomplete)
 
 
@@ -268,7 +305,7 @@ autocomplete_light.register(Permission,
     choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
 )
 
-class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
+class AddressAvailableAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
     search_fields = ['^address']
     attrs = {'placeholder': 'Search Networks'}
 
@@ -295,15 +332,12 @@ class AddressAvailableAutocomplete(autocomplete_light.AutocompleteModelBase):
         )
 autocomplete_light.register(Address, AddressAvailableAutocomplete)
 
-autocomplete_light.register(Address,
-    search_fields=['address'],
-    attrs={'placeholder': 'Search Addresses'},
-)
 
-autocomplete_light.register(Host,
-    search_fields=['mac', 'hostname'],
-    attrs={'placeholder': 'Search Hosts'},
-)
+class AddressAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+    search_fields = ['address']
+    attrs = {'placeholder': 'Search Addresses'}
+autocomplete_light.register(Address, AddressAutocomplete)
+
 
 autocomplete_light.register(Permission,
     search_fields=['name', 'codename', 'content_type__app_label'],
@@ -315,7 +349,14 @@ autocomplete_light.register(ContentType,
     attrs={'placeholder': 'Search Content Types'},
 )
 
-class HostFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
+
+class HostAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+    search_fields = ['mac', 'hostname']
+    attrs = {'placeholder': 'Search Hosts'}
+autocomplete_light.register(Host, HostAutocomplete)
+
+
+class HostFilterAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
     search_fields = ['^hostname']
     attrs = {'placeholder': 'Filter Hosts'}
 autocomplete_light.register(Host, HostFilterAutocomplete)
