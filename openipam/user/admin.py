@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
@@ -10,7 +11,7 @@ from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
 from django.conf.urls import patterns, url
 from django.db.models import Q
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib import messages
 
 from openipam.dns.models import Domain
@@ -185,7 +186,7 @@ class AuthUserChangeList(ChangeList):
 class AuthUserAdmin(UserAdmin):
     add_form = AuthUserCreateAdminForm
     form = AuthUserChangeAdminForm
-    list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'last_login')
+    list_display = ('username', 'full_name', 'email', 'permissions', 'is_staff', 'is_superuser', 'is_ipamadmin', 'last_login')
     list_filter = ('is_staff', 'is_superuser', 'is_active', IPAMAdminFilter, IPAMGroupFilter, 'last_login')
     ordering = ('-last_login',)
 
@@ -196,6 +197,10 @@ class AuthUserAdmin(UserAdmin):
                                        'groups', 'user_permissions',), 'classes': ('collapse',)}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined'), 'classes': ('collapse',)}),
     )
+
+    def permissions(self, obj):
+        return '<a href="%s">Permissions</a>' % reverse('admin:user_perms_view', args=[obj.pk])
+    permissions.allow_tags = True
 
     def full_name(self, obj):
         first_name = '' if obj.first_name is None else obj.first_name
@@ -245,12 +250,13 @@ class AuthUserAdmin(UserAdmin):
         return super(AuthUserAdmin, self).change_view(request, object_id,
             form_url, extra_context=extra_context)
 
-
     def get_urls(self):
         urls = super(AuthUserAdmin, self).get_urls()
         new_urls = patterns('',
             url(r'^perm_delete/(\d+)/$', self.admin_site.admin_view(self.delete_perm_view),
                 name='user_perm_delete'),
+            url(r'^permissions/(\d+)/$', self.admin_site.admin_view(self.user_perms_view),
+                name='user_perms_view'),
         )
         return new_urls + urls
 
@@ -259,9 +265,21 @@ class AuthUserAdmin(UserAdmin):
         UserObjectPermission.objects.get(pk=permid).delete()
         return redirect(next)
 
+    def user_perms_view(self, request, userid):
+        user = User.objects.get(pk=userid)
+        groups = user.groups.all()
+
+        context = {
+            'user': user,
+            'groups': groups,
+            'user_permissions': UserObjectPermission.objects.prefetch_related('permission', 'content_type', 'content_object').filter(user__pk=userid),
+            'group_permission': GroupObjectPermission.objects.filter(group__in=groups)
+        }
+        return render(request, 'admin/user/user/permissions.html', context)
+
 
 class TokenAdmin(TokenAdmin):
-    form = autocomplete_light.modelform_factory(Token)
+    form = autocomplete_light.modelform_factory(Token, fields=('user',))
 
 
 class AuthGroupSourceInline(admin.StackedInline):
@@ -269,7 +287,7 @@ class AuthGroupSourceInline(admin.StackedInline):
 
 
 class AuthGroupAdmin(GroupAdmin):
-    list_display = ('name', 'source')
+    list_display = ('name', 'authsources')
     list_filter = (IPAMObjUserFilter, GroupSourceFilter)
     form = AuthGroupAdminForm
     list_select_related = True
@@ -277,7 +295,7 @@ class AuthGroupAdmin(GroupAdmin):
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)
-        return qs.select_related('source__source').all()
+        return qs.select_related('source__source').extra(where=['auth_group.id in (select group_id from guardian_groupobjectpermission)'])
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
@@ -319,6 +337,11 @@ class AuthGroupAdmin(GroupAdmin):
         next = request.GET.get('next')
         GroupObjectPermission.objects.get(pk=permid).delete()
         return redirect(next)
+
+    def authsources(self, obj):
+        return '%s' % (obj.source)
+    authsources.short_description = 'Source'
+    authsources.admin_order_field = 'source__source'
 
 
 class AuthPermissionAdmin(admin.ModelAdmin):
@@ -383,7 +406,7 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'permissions', 'lhosts', 'ldomains', 'lnetworks', 'lpools', 'users')
     list_filter = (GroupTypeFilter,)
     search_fields = ('name',)
-    form = autocomplete_light.modelform_factory(Group)
+    form = autocomplete_light.modelform_factory(Group, fields=('name',))
     list_per_page = 200
 
     def get_queryset(self, request):
@@ -526,21 +549,22 @@ class ObjectFilter(admin.SimpleListFilter):
 
 class UserObjectPermissionAdmin(admin.ModelAdmin):
     form = UserObjectPermissionAdminForm
-    list_display = ('user', 'object_name', 'permission_name',)
+    list_display = ('user', 'content_type', 'content_object', 'permission_name',)
     list_filter = (ObjectPermissionFilter, IPAMObjUserFilter)
     search_fields = ('user__username', '^object_pk')
     list_select_related = True
+    actions = ['delete_selected']
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
 
-    def change_view(self, request, object_id, extra_context=None):
-        extra_context = extra_context or {}
-        extra_context['readonly'] = True
-        return super(UserObjectPermissionAdmin, self).change_view(request, object_id, extra_context=extra_context)
+    # def change_view(self, request, object_id, extra_context=None):
+    #     extra_context = extra_context or {}
+    #     extra_context['readonly'] = True
+    #     return super(UserObjectPermissionAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def get_queryset(self, request):
-        qs = super(UserObjectPermissionAdmin, self).queryset(request)
+        qs = super(UserObjectPermissionAdmin, self).get_queryset(request)
         qs = qs.prefetch_related('user', 'permission', 'content_object').all()
         return qs
 
@@ -553,7 +577,6 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
         return obj.permission.codename
     permission_name.short_description = 'Permission'
 
-
     def object_name(self, obj):
         #c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
         return '%s - %s' % (obj.content_type.model, obj.content_object)
@@ -565,12 +588,13 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     list_filter = (ObjectPermissionFilter, IPAMObjGroupFilter)
     form = GroupObjectPermissionAdminForm
     search_fields = ('group__name', '^object_pk',)
+    actions = ['delete_selected']
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
 
     def get_queryset(self, request):
-        qs = super(GroupObjectPermissionAdmin, self).queryset(request)
+        qs = super(GroupObjectPermissionAdmin, self).get_queryset(request)
         qs = qs.prefetch_related('permission', 'content_object').distinct()
         return qs
 
@@ -626,28 +650,28 @@ class UserGroupTypeFilter(admin.SimpleListFilter):
 class UserToGroupAdmin(admin.ModelAdmin):
     list_display = ('user', 'group', 'permissions', 'host_permissions')
     list_filter = (UserGroupTypeFilter,)
-    form = autocomplete_light.modelform_factory(UserToGroup)
+    form = autocomplete_light.modelform_factory(UserToGroup, fields=('user', 'group', 'permissions', 'host_permissions', 'changed_by',))
 
 
 class HostToGroupAdmin(admin.ModelAdmin):
     list_display = ('host', 'group')
-    form = autocomplete_light.modelform_factory(HostToGroup)
+    form = autocomplete_light.modelform_factory(HostToGroup, fields=('host', 'group', 'changed_by',))
 
 
 class DomainToGroupAdmin(admin.ModelAdmin):
     list_display = ('domain', 'group')
     list_filter = (UserGroupTypeFilter,)
-    form = autocomplete_light.modelform_factory(DomainToGroup)
+    form = autocomplete_light.modelform_factory(DomainToGroup,  fields=('domain', 'group', 'changed_by',))
 
 
 class NetworkToGroupAdmin(admin.ModelAdmin):
     list_display = ('network', 'group')
-    form = autocomplete_light.modelform_factory(NetworkToGroup)
+    form = autocomplete_light.modelform_factory(NetworkToGroup,  fields=('network', 'group', 'changed_by',))
 
 
 class PoolToGroupAdmin(admin.ModelAdmin):
     list_display = ('pool', 'group')
-    form = autocomplete_light.modelform_factory(PoolToGroup)
+    form = autocomplete_light.modelform_factory(PoolToGroup,  fields=('pool', 'group',))
 
 
 admin.site.register(User, AuthUserAdmin)
