@@ -1,5 +1,5 @@
 from django.db.models.query import QuerySet
-from django.db.models import Q
+from django.db.models import Q, Manager
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db import connection
@@ -11,13 +11,10 @@ from openipam.conf.ipam_settings import CONFIG
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
 
-from netfields import NetManager
-from netfields.managers import NetWhere, NetQuery
-
 import operator
 
 
-class HostMixin(object):
+class HostQuerySet(QuerySet):
     def with_oui(self):
         return self.extra(select={'vendor': '''
             SELECT ouis.shortname from ouis
@@ -157,18 +154,7 @@ class HostMixin(object):
         self.delete()
 
 
-class HostQuerySet(QuerySet, HostMixin):
-    pass
-
-
-class HostManager(NetManager):
-
-    def __getattr__(self, name):
-        return getattr(self.get_queryset(), name)
-
-    def get_queryset(self):
-        q = NetQuery(self.model, NetWhere)
-        return HostQuerySet(self.model, q)
+class HostManager(Manager):
 
     def get_owners(self, mac):
         host = self.get(mac=mac)

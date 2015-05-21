@@ -506,7 +506,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context['read_only'] = self.kwargs.get('read_only', False)
         context['attributes'] = attributes
         context['dns_records'] = self.object.get_dns_records()
-        context['addresses'] = self.object.addresses.all()
+        context['addresses'] = self.object.addresses.select_related().all()
         context['pools'] = self.object.pools.all()
         context['leased_addresses'] = self.object.leases.select_related('address', 'host').all()
         context['user_owners'], context['group_owners'] = self.object.get_owners()

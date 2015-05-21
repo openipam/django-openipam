@@ -3,15 +3,12 @@ from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
-from netfields import NetManager
-from netfields.managers import NetWhere, NetQuery
-
 from guardian.shortcuts import get_objects_for_user
 
 import operator
 
 
-class NetworkMixin(object):
+class NetworkQuerySet(QuerySet):
     def by_owner(self, user, use_groups=False, ids_only=False):
         User = get_user_model()
 
@@ -71,18 +68,12 @@ class NetworkMixin(object):
             return self.none()
 
 
-class NetworkQuerySet(QuerySet, NetworkMixin):
-    pass
-
-
-class NetworkManager(NetManager):
-
-    def __getattr__(self, name):
-        return getattr(self.get_queryset(), name)
+class DhcpGroupManager(Manager):
 
     def get_queryset(self):
-        q = NetQuery(self.model, NetWhere)
-        return NetworkQuerySet(self.model, q)
+        qs = super(DhcpGroupManager, self).get_queryset()
+        qs = qs.extra(select={'lname': 'lower(name)'}).order_by('lname')
+        return qs
 
 
 class PoolManager(Manager):
@@ -91,13 +82,19 @@ class PoolManager(Manager):
         return self.get(is_default=True)
 
 
-class LeaseManager(NetManager):
+class LeaseManager(Manager):
 
     def find_mac_from_lease(self, ip):
         return self.get(address__ip=ip).mac
 
 
-class AddressMixin(object):
+class AddressTypeManager(Manager):
+
+    def get_by_name(self, name):
+        return self.get(name__iexact=name)
+
+
+class AddressQuerySet(QuerySet):
 
     def release(self, pool=False):
         from openipam.dns.models import DnsRecord
@@ -152,19 +149,7 @@ class AddressMixin(object):
             return qs
 
 
-class AddressQuerySet(QuerySet, AddressMixin):
-    pass
-
-
-class AddressManager(NetManager):
-
-    def __getattr__(self, name):
-        return getattr(self.get_queryset(), name)
-
-    def get_queryset(self):
-        q = NetQuery(self.model, NetWhere)
-        return AddressQuerySet(self.model, q)
-
+# class AddressManager(NetManager):
 
     # TODO: Will we use the function below???
 
@@ -309,7 +294,7 @@ class AddressManager(NetManager):
     #     return new_address
 
 
-class DefaultPoolManager(NetManager):
+class DefaultPoolManager(Manager):
 
     def get_pool_default(self, address):
         # Find most specific DefaultPool for this address and return associated Pool

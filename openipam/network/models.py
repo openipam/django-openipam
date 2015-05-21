@@ -14,7 +14,8 @@ from netfields import InetAddressField, MACAddressField, CidrAddressField, NetMa
 from taggit.models import TaggedItemBase
 from taggit.managers import TaggableManager
 
-from openipam.network.managers import LeaseManager, PoolManager, AddressManager, NetworkManager, DefaultPoolManager
+from openipam.network.managers import LeaseManager, PoolManager, DhcpGroupManager, DefaultPoolManager, \
+    AddressTypeManager, AddressQuerySet, NetworkQuerySet
 from openipam.network.signals import validate_address_type, release_leases, set_default_pool
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
@@ -92,15 +93,6 @@ class DefaultPool(models.Model):
 
     class Meta:
         db_table = 'default_pools'
-
-
-class DhcpGroupManager(models.Manager):
-
-    def get_query_set(self):
-        qs = super(DhcpGroupManager, self).get_query_set()
-        qs = qs.extra(select={'lname': 'lower(name)'}).order_by('lname')
-
-        return qs
 
 
 class DhcpGroup(models.Model):
@@ -191,7 +183,7 @@ class Network(models.Model):
 
     search_index = VectorField()
 
-    objects = NetworkManager()
+    objects = NetworkQuerySet.as_manager()
     searcher = SearchManager(
         fields=('name', 'description'),
         config='pg_catalog.english',  # this is default
@@ -221,8 +213,6 @@ class Network(models.Model):
 class NetworkRange(models.Model):
     range = CidrAddressField(unique=True)
 
-    objects = NetManager()
-
     def __unicode__(self):
         return '%s' % self.range
 
@@ -250,8 +240,6 @@ class NetworkToVlan(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    objects = NetManager()
-
     def __unicode__(self):
         return '%s %s' % (self.network, self.vlan)
 
@@ -270,7 +258,7 @@ class Address(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    objects = AddressManager()
+    objects = AddressQuerySet.as_manager()
 
     def __unicode__(self):
         return unicode(self.address)
@@ -296,12 +284,6 @@ class Address(models.Model):
     class Meta:
         db_table = 'addresses'
         verbose_name_plural = 'addresses'
-
-
-class AddressTypeManager(models.Manager):
-
-    def get_by_name(self, name):
-        return AddressType.objects.get(name__iexact=name)
 
 
 class AddressType(models.Model):

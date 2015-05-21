@@ -15,7 +15,7 @@ from netaddr.core import AddrFormatError
 import operator
 
 
-class DomainMixin(object):
+class DomainQuerySet(QuerySet):
     def by_owner(self, user, use_groups=False, ids_only=False, names_only=False):
         # Temporarily set superuser to false so we can get only permission relations
         User = get_user_model()
@@ -97,20 +97,7 @@ class DomainMixin(object):
             return qs
 
 
-class DomainQuerySet(QuerySet, DomainMixin):
-    pass
-
-
-class DomainManager(Manager):
-
-    def __getattr__(self, name):
-        return getattr(self.get_query_set(), name)
-
-    def get_query_set(self):
-        return DomainQuerySet(self.model)
-
-
-class DNSMixin(object):
+class DNSQuerySet(QuerySet):
     def by_change_perms(self, user_or_group, pk=None):
         User = get_user_model()
 
@@ -161,17 +148,7 @@ class DNSMixin(object):
                 return qs
 
 
-class DNSQuerySet(QuerySet, DNSMixin):
-    pass
-
-
 class DnsManager(Manager):
-
-    def __getattr__(self, name):
-        return getattr(self.get_query_set(), name)
-
-    def get_query_set(self):
-        return DNSQuerySet(self.model)
 
     def add_or_update_record(self, user, name, content, dns_type, host=None, ttl=None, record=None):
         from openipam.dns.models import Domain

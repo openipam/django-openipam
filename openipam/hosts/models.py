@@ -20,7 +20,7 @@ from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_p
 
 from openipam.core.mixins import DirtyFieldsMixin
 from openipam.hosts.validators import validate_hostname
-from openipam.hosts.managers import HostManager
+from openipam.hosts.managers import HostManager, HostQuerySet
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
 from datetime import datetime, timedelta
@@ -99,7 +99,7 @@ class FreeformAttributeToHost(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s %s' % (self.host.hostname, self.attribute.name, self.value)
+        return '%s %s %s' % (self.pk, self.attribute.name, self.value)
 
     class Meta:
         db_table = 'freeform_attributes_to_hosts'
@@ -159,14 +159,14 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
+    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s - %s' % (self.pk, self.address)
+        return '%s - %s' % (self.pk, self.address_id)
 
     class Meta:
         db_table = 'gul_recent_arp_byaddress'
@@ -206,7 +206,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
     search_index = VectorField()
 
-    objects = HostManager()
+    objects = HostManager.from_queryset(HostQuerySet)()
     searcher = SearchManager(
         fields=('hostname', 'description'),
         config='pg_catalog.english',  # this is default

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address, validate_ipv6_address
 from django.db.models.signals import pre_delete, pre_save
 
-from openipam.dns.managers import DnsManager, DomainManager, DnsTypeManager
+from openipam.dns.managers import DnsManager, DnsTypeManager, DomainQuerySet, DNSQuerySet
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
     validate_srv_content, validate_sshfp_content
 from openipam.user.signals import remove_obj_perms_connected_with_user
@@ -28,7 +28,7 @@ class Domain(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
-    objects = DomainManager()
+    objects = DomainQuerySet.as_manager()
 
     def __unicode__(self):
         return self.name
@@ -56,7 +56,7 @@ class DnsRecord(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey('user.User', db_column='changed_by')
 
-    objects = DnsManager()
+    objects = DnsManager.from_queryset(DNSQuerySet)()
 
     def __unicode__(self):
         return self.name
