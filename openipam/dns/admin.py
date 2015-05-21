@@ -47,14 +47,14 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
 
 class DomainAdmin(OpjectPermissionAdmin, ChangedAdmin):
     list_display = ('name', 'sgroup_permissions', 'suser_permissions', 'changed_by', 'changed')
-    form = autocomplete_light.modelform_factory(Domain)
+    form = autocomplete_light.modelform_factory(Domain, exclude=('changed',))
     search_fields = ('name',)
 
 
 class DnsRecordAdmin(ChangedAdmin):
     list_display = ('name', 'dns_type', 'dns_view', 'ttl', 'priority', 'text_content', 'ip_content', 'edit_link')
     list_filter = ('dns_type', 'dns_view', 'priority', 'domain',)
-    form = autocomplete_light.modelform_factory(DnsRecord)
+    form = autocomplete_light.modelform_factory(DnsRecord, exclude=('changed',))
     list_editable = ('name', 'dns_type', 'text_content')
     list_display_links = ('edit_link',)
     #list_select_related = True
