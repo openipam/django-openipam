@@ -28,7 +28,7 @@ class HostAdmin(ChangedAdmin):
 
 class DisabledAdmin(ChangedAdmin):
     list_display = ('host', 'reason', 'changed', 'changed_by_full',)
-    form = autocomplete_light.modelform_factory(Disabled)
+    form = autocomplete_light.modelform_factory(Disabled, fields=('host', 'reason', 'changed_by',))
     list_select_related = True
 
     def changed_by_full(self, obj):
@@ -40,7 +40,7 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'user', 'starts', 'ends')
     list_filter = ('starts', 'ends')
     search_fields = ('user__username', 'ticket')
-    form = autocomplete_light.modelform_factory(GuestTicket)
+    form = autocomplete_light.modelform_factory(GuestTicket, fields=('user', 'ticket', 'starts', 'ends', 'description',))
 
 
 class AttributeAdmin(ChangedAdmin):
