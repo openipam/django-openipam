@@ -20,35 +20,36 @@ import operator
 
 def overview(request):
 
-    hosts = Host.objects.all()
-    hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
-    #users = User.objects.all()
-    #users_stats = qsstats.QuerySetStats(users, 'date_joined')
+    # hosts = Host.objects.all()
+    # hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
+    # #users = User.objects.all()
+    # #users_stats = qsstats.QuerySetStats(users, 'date_joined')
 
-    xdata = ['Today', 'This Week', 'This Month']
-    ydata = [hosts_stats.this_day(), hosts_stats.this_week(), hosts_stats.this_month()]
+    # xdata = ['Today', 'This Week', 'This Month']
+    # ydata = [hosts_stats.this_day(), hosts_stats.this_week(), hosts_stats.this_month()]
 
-    extra_serie1 = {"tooltip": {"y_start": "", "y_end": " hosts"}}
-    chartdata = {
-        'x': xdata, 'name1': 'Hosts', 'y1': ydata, 'extra1': extra_serie1,
-    }
-    charttype = "discreteBarChart"
-    chartcontainer = 'bar_container'
+    # extra_serie1 = {"tooltip": {"y_start": "", "y_end": " hosts"}}
+    # chartdata = {
+    #     'x': xdata, 'name1': 'Hosts', 'y1': ydata, 'extra1': extra_serie1,
+    # }
+    # charttype = "discreteBarChart"
+    # chartcontainer = 'bar_container'
 
-    hostname = request.META.get('HTTP_HOST')
-    top_lease_usage = requests.get(url='http://%s%s?format=json' % (hostname, reverse('api_reports_subnet_data'))).json()[:5]
+    # hostname = request.META.get('HTTP_HOST')
+    # top_lease_usage = requests.get(url='http://%s%s?format=json' % (hostname, reverse('api_reports_subnet_data'))).json()[:5]
 
-    context = {
-        'charttype': charttype,
-        'chartdata': chartdata,
-        'chartcontainer': chartcontainer,
-        'extra': {
-            'x_is_date': False,
-            'x_axis_format': '',
-            'tag_script_js': True,
-            'jquery_on_ready': False,
-        }
-    }
+    # context = {
+    #     'charttype': charttype,
+    #     'chartdata': chartdata,
+    #     'chartcontainer': chartcontainer,
+    #     'extra': {
+    #         'x_is_date': False,
+    #         'x_axis_format': '',
+    #         'tag_script_js': True,
+    #         'jquery_on_ready': False,
+    #     }
+    # }
+    context = {}
     return render(request, 'report/dashboard.html', context)
 
 
