@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block content_title %}
+    <h3 id="breadcrumb-title" class="pull-left">
+        Permissions for {{ user.username }}
+    </h3>
+{% endblock %}
+
+
+{% block breadcrumbs %}
+    ../../../|{% trans "Home" %}
+    ../../|{% trans "Users" %}
+    ../../|{% trans "User" %}
+    *Permissions for {{ user.username }}
+{% endblock %}
+
+{% block content %}
+    <div class="panel-group" id="user-permissions">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                   <a class="accordion-toggle" data-toggle="collapse" data-parent="#user-permissions" href="#user-permissions_fs">User Permissions</a>
+                </h3>
+            </div>
+                <table cellspacing="0" id="result_list" class="table table-striped table-condensed">
+                    <tr>
+                        <th scope="col">Object</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Permission</th>
+                        <th scope="col">Delete?</th>
+                    </tr>
+                    {% for permission in user_permissions %}
+                    <tr>
+                        <td>{{ permission.content_type.model }}</td>
+                        <td>{{ permission.content_object }}</td>
+                        <td>{{ permission.permission.codename }}</td>
+                        <td>Delete</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="panel-group" id="group-permissions">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                   <a class="accordion-toggle" data-toggle="collapse" data-parent="#group-permissions" href="#group-permissions_fs">Group Permissions</a>
+                </h3>
+            </div>
+                <table cellspacing="0" id="result_list" class="table table-striped table-condensed">
+                    <tr>
+                        <th scope="col">Object</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Permission</th>
+                        <th scope="col">Delete?</th>
+                    </tr>
+                    {% for permission in group_permissions %}
+                    <tr>
+                        <td>{{ permission.content_type.model }}</td>
+                        <td>{{ permission.content_object }}</td>
+                        <td>{{ permission.permission.codename }}</td>
+                        <td>Delete</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
