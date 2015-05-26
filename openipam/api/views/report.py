@@ -269,7 +269,7 @@ def weather_data(request):
                 if port.port == portid:
                     value['A'] = value.get('A', 0) + port.portstate.ifoutoctets_rate * 8
                     value['Z'] = value.get('Z', 0) + port.portstate.ifinoctets_rate * 8
-                    value['speed'] = value.get('speed', 0) + port.ifspeed
+                    value['speed'] = value.get('speed', 0) + port.ifspeed if port.ifspeed else 0
                     value['timestamp'] = port.portstate.poll_time
                     value['poll_frequency'] = 300
 

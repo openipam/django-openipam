@@ -11,6 +11,7 @@ from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import pagination
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, StructuredAttributeValue
 from openipam.network.models import Lease
@@ -21,6 +22,18 @@ from openipam.api.permissions import IPAMChangeHostPermission
 from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
+
+
+class HostResultsPagination(pagination.LimitOffsetPagination):
+    page_size = 50
+    #page_size_query_param = 'limit'
+    max_limit = 5000
+
+    def get_limit(self, request):
+        if self.limit_query_param and int(request.query_params[self.limit_query_param]) == 0:
+            return self.max_limit
+
+        return super(HostResultsPagination, self).get_limit(request)
 
 
 class HostList(generics.ListAPIView):
@@ -46,20 +59,21 @@ class HostList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Host.objects.prefetch_related('addresses', 'leases', 'pools').select_related('disabled_host').all()
     serializer_class = host_serializers.HostListSerializer
+    pagination_class = HostResultsPagination
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
-    paginate_by = 50
-    max_paginate_by = 5000
+    #paginate_by = 50
+    #max_paginate_by = 5000
 
-    def get_paginate_by(self, queryset=None):
-        #assert False, self.max_paginate_by
-        param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
-        if param and param == '0':
-            return self.max_paginate_by
-        else:
-            return super(HostList, self).get_paginate_by()
+    # def get_paginate_by(self, queryset=None):
+    #     #assert False, self.max_paginate_by
+    #     param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
+    #     if param and param == '0':
+    #         return self.max_paginate_by
+    #     else:
+    #         return super(HostList, self).get_paginate_by()
 
 
 class HostMac(APIView):
