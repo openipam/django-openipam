@@ -26,14 +26,16 @@ User = get_user_model()
 
 class HostResultsPagination(pagination.LimitOffsetPagination):
     page_size = 50
-    #page_size_query_param = 'limit'
+    limit_query_param = 'limit'
     max_limit = 5000
 
     def get_limit(self, request):
-        if self.limit_query_param and int(request.query_params[self.limit_query_param]) == 0:
+        ret = super(HostResultsPagination, self).get_limit(request)
+        if ret == 0:
             return self.max_limit
 
-        return super(HostResultsPagination, self).get_limit(request)
+        return ret
+
 
 
 class HostList(generics.ListAPIView):
