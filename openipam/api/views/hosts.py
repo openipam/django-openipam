@@ -25,7 +25,7 @@ User = get_user_model()
 
 
 class HostResultsPagination(pagination.LimitOffsetPagination):
-    page_size = 50
+    default_limit = 50
     limit_query_param = 'limit'
     max_limit = 5000
 
