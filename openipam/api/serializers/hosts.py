@@ -32,8 +32,8 @@ class HostListSerializer(serializers.ModelSerializer):
 
     def get_addresses(self, obj):
         addresses = {
-            'leased': [str(lease.address) for lease in obj.leases.filter(ends__gt=timezone.now())],
-            'registered': [str(address) for address in obj.addresses.all()]
+            'leased': [str(lease.address) for lease in filter(lambda x: x.ends > timezone.now(), obj.leases.all())],
+            'registered': [str(address.address) for address in obj.addresses.all()]
         }
         return addresses
 
