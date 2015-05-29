@@ -295,7 +295,10 @@ class AuthGroupAdmin(GroupAdmin):
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)
-        return qs.select_related('source__source').extra(where=['auth_group.id in (select group_id from guardian_groupobjectpermission)'])
+        return qs.select_related('source__source').extra(where=[
+            'auth_group.id in (select group_id from guardian_groupobjectpermission) OR '
+            'auth_group.id IN (SELECT group_id FROM user_groupsource where group_id = auth_group.id)'
+        ])
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
