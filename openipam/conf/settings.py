@@ -155,6 +155,9 @@ INSTALLED_APPS = (
     # openIPAM reports
     'openipam.report',
 
+    # Firewall foo
+    'openipam.firewall',
+
     # Admin Tools
     'admin_tools',
     'admin_tools.theming',
