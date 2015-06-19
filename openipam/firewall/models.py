@@ -338,7 +338,7 @@ class UsersBase(models.Model):
     a_number = models.CharField(max_length=9, blank=True, null=True)
 
     def __unicode__(self):
-        return self.a_number
+        return '%s (%s)' % (self.a_number, self.name)
 
     class Meta:
         abstract = True
