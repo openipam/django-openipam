@@ -8,7 +8,6 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
 from openipam.hosts.models import Host
 from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
-from openipam.user.models import Group as OldGroup
 
 from taggit.models import Tag
 
@@ -285,11 +284,6 @@ autocomplete_light.register(Group,
     search_fields=['name'],
     attrs={'placeholder': 'Search Groups'},
 )
-
-class OldGroupAutocomplete(autocomplete_light.AutocompleteModelBase):
-    search_fields = ['name']
-    attrs = {'placeholder': 'Search Groups'}
-autocomplete_light.register(OldGroup, OldGroupAutocomplete)
 
 
 class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
