@@ -12,6 +12,7 @@ from openipam.network.models import Network, Address, AddressType, Pool, DhcpGro
 from taggit.models import Tag
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
+from guardian.models import GroupObjectPermission, UserObjectPermission
 
 import autocomplete_light
 
@@ -143,9 +144,86 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
     )
 
     search_fields = (
-        ('network',),
+        ('network', 'description'),
         ('username', '^first_name', '^last_name'),
         ('name',),
+    )
+
+    attrs = {
+        'minimum_characters': 2,
+        'placeholder': 'Advanced Search',
+    }
+
+    # def choices_for_request(self):
+    #     """
+    #     Propose local results and fill the autocomplete with remote
+    #     suggestions.
+    #     """
+    #     assert self.choices, 'autocomplete.choices should be a queryset list'
+
+    #     q = self.request.GET.get('q', '').split(',')[-1]
+    #     choice_q = q.split(':')[0]
+    #     q = ''.join(q.split(':')[1:])
+
+    #     if choice_q == 'net':
+    #         self.choices = (Network.objects.all(),)
+    #         self.search_fields = (('network',),)
+    #     elif choice_q == 'user':
+    #         self.choices = (User.objects.all(),)
+    #         self.search_fields = (('username', '^first_name', '^last_name'),)
+    #     elif choice_q == 'group':
+    #         self.choices = (Group.objects.all(),)
+    #         self.search_fields = (('name',),)
+
+    #     request_choices = []
+    #     querysets_left = len(self.choices)
+
+    #     i = 0
+    #     for queryset in self.choices:
+    #         conditions = self._choices_for_request_conditions(q,
+    #                 self.search_fields[i])
+
+    #         limit = ((self.limit_choices - len(request_choices)) /
+    #             querysets_left)
+    #         for choice in queryset.filter(conditions)[:limit]:
+    #             request_choices.append(choice)
+
+    #         querysets_left -= 1
+    #         i += 1
+
+    #     return request_choices
+
+    def choice_label(self, choice):
+        if choice.__class__.__name__ == 'User':
+            return '%s | %s | %s' % (choice.__class__.__name__, choice, choice.get_full_name())
+        else:
+            return '%s | %s' % (choice.__class__.__name__, choice)
+
+    def choice_value(self, choice):
+        if choice.__class__.__name__ == 'User':
+            return 'user:%s' % choice.username
+        elif choice.__class__.__name__ == 'Group':
+            return 'group:%s' % choice.name
+        elif choice.__class__.__name__ == 'Network':
+            return 'net:%s' % choice.network
+autocomplete_light.register(IPAMSearchAutoComplete)
+
+
+class IPAMUserSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+    split_words = True
+
+    choices = (
+        User.objects.all(),
+        Group.objects.filter(user__isnull=False),
+        GroupObjectPermission.objects.all(),
+        UserObjectPermission.objects.all(),
+    )
+
+    search_fields = (
+        ('username', '^first_name', '^last_name', 'email'),
+        ('name',),
+        ('object_pk', 'permission__name', 'permission__codename'),
+        ('object_pk', 'permission__name', 'permission__codename'),
     )
 
     attrs = {
@@ -164,15 +242,34 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
         choice_q = q.split(':')[0]
         q = ''.join(q.split(':')[1:])
 
-        if choice_q == 'net':
-            self.choices = (Network.objects.all(),)
-            self.search_fields = (('network',),)
-        elif choice_q == 'user':
-            self.choices = (User.objects.all(),)
-            self.search_fields = (('username', '^first_name', '^last_name'),)
-        elif choice_q == 'group':
-            self.choices = (Group.objects.all(),)
-            self.search_fields = (('name',),)
+        self.choices = []
+        self.search_fields = []
+
+        if q:
+            if choice_q == 'user':
+                self.choices = (User.objects.all(),)
+                self.search_fields = (('username', '^first_name', '^last_name', 'email'),)
+            elif choice_q == 'group':
+                self.choices = (Group.objects.all(),)
+                self.search_fields = (('name',),)
+            elif choice_q == 'perm':
+                self.choices = (
+                    GroupObjectPermission.objects.filter(
+                        Q(object_pk__in=[host.pk for host in Host.objects.filter(hostname__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[network.pk for network in Network.objects.filter(network__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[domain.pk for domain in Domain.objects.filter(name__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[pool.pk for pool in Pool.objects.filter(name__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[dnstype.pk for dnstype in DnsType.objects.filter(name__istartswith=q)[:10]])
+                    ),
+                    UserObjectPermission.objects.filter(
+                        Q(object_pk__in=[host.pk for host in Host.objects.filter(hostname__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[network.pk for network in Network.objects.filter(network__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[domain.pk for domain in Domain.objects.filter(name__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[pool.pk for pool in Pool.objects.filter(name__istartswith=q)[:10]]) |
+                        Q(object_pk__in=[dnstype.pk for dnstype in DnsType.objects.filter(name__istartswith=q)[:10]])
+                    ),
+                )
+                self.search_fields = ([],[],)
 
         request_choices = []
         querysets_left = len(self.choices)
@@ -203,9 +300,11 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
             return 'user:%s' % choice.username
         elif choice.__class__.__name__ == 'Group':
             return 'group:%s' % choice.name
-        elif choice.__class__.__name__ == 'Network':
-            return 'net:%s' % choice.network
-autocomplete_light.register(IPAMSearchAutoComplete)
+        elif choice.__class__.__name__ == 'GroupObjectPermission':
+            return 'gperm:%s' % choice.pk
+        elif choice.__class__.__name__ == 'UserObjectPermission':
+            return 'uperm:%s' % choice.pk
+autocomplete_light.register(IPAMUserSearchAutoComplete)
 
 
 class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
