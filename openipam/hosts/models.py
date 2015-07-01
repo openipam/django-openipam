@@ -857,7 +857,6 @@ class MacOui(models.Model):
 
 class Notification(models.Model):
     notification = models.DateField()
-    hosts = models.ManyToManyField('Host', through='NotificationToHost', related_name='host_notifications')
     min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
 
     def __unicode__(self):
@@ -865,17 +864,6 @@ class Notification(models.Model):
 
     class Meta:
         db_table = 'notifications'
-
-
-class NotificationToHost(models.Model):
-    notification = models.ForeignKey('Notification', db_column='nid')
-    host = models.ForeignKey('Host', db_column='mac')
-
-    def __unicode__(self):
-        return '%s %s' % (self.notification.notification, self.host.hostname)
-
-    class Meta:
-        db_table = 'notifications_to_hosts'
 
 
 class StructuredAttributeValue(models.Model):
