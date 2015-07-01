@@ -384,6 +384,7 @@ autocomplete_light.register(Group,
     attrs={'placeholder': 'Search Groups'},
 )
 
+
 class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
     search_fields = ['name']
     attrs = {'placeholder': 'Filter Groups'}
