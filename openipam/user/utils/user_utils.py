@@ -10,7 +10,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from django_auth_ldap.backend import LDAPBackend
 
 from openipam.conf.ipam_settings import CONFIG
-from openipam.user.models import Group, HostToGroup, DomainToGroup, UserToGroup, GroupSource, AuthSource
+from openipam.user.models import GroupSource, AuthSource
 from openipam.hosts.models import Host
 
 import gc

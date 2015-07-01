@@ -17,8 +17,7 @@ from django.contrib import messages
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
 from openipam.network.models import Network
-from openipam.user.models import User, Group, Permission, UserToGroup, HostToGroup, NetworkToGroup, \
-    PoolToGroup, DomainToGroup, GroupSource, AuthSource
+from openipam.user.models import User, GroupSource, AuthSource
 from openipam.user.forms import AuthUserCreateAdminForm, AuthUserChangeAdminForm, AuthGroupAdminForm, \
     UserObjectPermissionAdminForm, GroupObjectPermissionAdminForm
 
@@ -353,108 +352,108 @@ class AuthPermissionAdmin(admin.ModelAdmin):
     search_fields = ('name', 'content_type__name', 'content_type__app_label',)
 
 
-class UserPermissionInline(admin.TabularInline):
-    model = UserToGroup
-    fk_name = 'uid'
-    readonly_fields = ('changed_by', 'changed')
-    #form = UserPermissionInlineForm
+# class UserPermissionInline(admin.TabularInline):
+#     model = UserToGroup
+#     fk_name = 'uid'
+#     readonly_fields = ('changed_by', 'changed')
+#     #form = UserPermissionInlineForm
 
-    def has_change_permission(self, request, obj=None):
-        return False
-
-
-class GroupPermissionInline(admin.TabularInline):
-    model = UserToGroup
-    fk_name = 'gid'
+#     def has_change_permission(self, request, obj=None):
+#         return False
 
 
-class UserAdmin(admin.ModelAdmin):
-    search_fields = ('username',)
+# class GroupPermissionInline(admin.TabularInline):
+#     model = UserToGroup
+#     fk_name = 'gid'
 
 
-class GroupTypeFilter(admin.SimpleListFilter):
-    title = 'group type'
-
-    parameter_name = 'type'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('group', 'Groups'),
-            ('user', 'Users'),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'user':
-            return queryset.filter(name__istartswith='user_')
-        if self.value() == 'group':
-            return queryset.exclude(name__istartswith='user_')
-
-    def choices(self, cl):
-        # yield {
-        #     'selected': self.value() is None,
-        #     'query_string': cl.get_query_string({}, [self.parameter_name]),
-        #     'display': _('All'),
-        # }
-        for lookup, title in self.lookup_choices:
-            yield {
-                'selected': self.value() == force_text(lookup),
-                'query_string': cl.get_query_string({
-                    self.parameter_name: lookup,
-                }, []),
-                'display': title,
-            }
+# class UserAdmin(admin.ModelAdmin):
+#     search_fields = ('username',)
 
 
-class GroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'permissions', 'lhosts', 'ldomains', 'lnetworks', 'lpools', 'users')
-    list_filter = (GroupTypeFilter,)
-    search_fields = ('name',)
-    form = autocomplete_light.modelform_factory(Group, fields=('name',))
-    list_per_page = 200
+# class GroupTypeFilter(admin.SimpleListFilter):
+#     title = 'group type'
 
-    def get_queryset(self, request):
-        qs = super(GroupAdmin, self).get_queryset(request)
+#     parameter_name = 'type'
 
-        if not request.GET.get('type', None):
-            return qs.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups').exclude(name__istartswith='user_')
+#     def lookups(self, request, model_admin):
+#         return (
+#             ('group', 'Groups'),
+#             ('user', 'Users'),
+#         )
 
-        return qs
+#     def queryset(self, request, queryset):
+#         if self.value() == 'user':
+#             return queryset.filter(name__istartswith='user_')
+#         if self.value() == 'group':
+#             return queryset.exclude(name__istartswith='user_')
 
-    def ldomains(self, obj):
-        return '<a href="../domaintogroup/?group=%s">%s</a>' % (obj.pk, obj.domains.count())
-    ldomains.short_description = 'Domains'
-    ldomains.allow_tags = True
-
-    def lhosts(self, obj):
-        return '<a href="../hosttogroup/?group=%s">%s</a>' % (obj.pk, obj.hosts.count())
-    lhosts.short_description = 'Hosts'
-    lhosts.allow_tags = True
-
-    def lnetworks(self, obj):
-        return '<a href="../networktogroup/?group=%s">%s</a>' % (obj.pk, obj.networks.count())
-    lnetworks.short_description = 'Networks'
-    lnetworks.allow_tags = True
-
-    def lpools(self, obj):
-        return '<a href="../pooltogroup/?group=%s">%s</a>' % (obj.pk, obj.pools.count())
-    lpools.short_description = 'Pools'
-    lpools.allow_tags = True
-
-    def permissions(self, obj):
-        perms = set([ug.permissions.name for ug in obj.user_groups.all()])
-        return ','.join(perms)
-
-    def host_permissions(self, obj):
-        perms = set([ug.host_permissions.name for ug in obj.user_groups.all()])
-        return ','.join(perms)
-
-    def users(self, obj):
-        return '<a href="../user/?group=%s">%s</a>' % (obj.pk, obj.user_groups.count())
-    users.allow_tags = True
+#     def choices(self, cl):
+#         # yield {
+#         #     'selected': self.value() is None,
+#         #     'query_string': cl.get_query_string({}, [self.parameter_name]),
+#         #     'display': _('All'),
+#         # }
+#         for lookup, title in self.lookup_choices:
+#             yield {
+#                 'selected': self.value() == force_text(lookup),
+#                 'query_string': cl.get_query_string({
+#                     self.parameter_name: lookup,
+#                 }, []),
+#                 'display': title,
+#             }
 
 
-class PermissionAdmin(admin.ModelAdmin):
-    pass
+# class GroupAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'description', 'permissions', 'lhosts', 'ldomains', 'lnetworks', 'lpools', 'users')
+#     list_filter = (GroupTypeFilter,)
+#     search_fields = ('name',)
+#     form = autocomplete_light.modelform_factory(Group, fields=('name',))
+#     list_per_page = 200
+
+#     def get_queryset(self, request):
+#         qs = super(GroupAdmin, self).get_queryset(request)
+
+#         if not request.GET.get('type', None):
+#             return qs.prefetch_related('domains', 'hosts', 'networks', 'pools', 'user_groups').exclude(name__istartswith='user_')
+
+#         return qs
+
+#     def ldomains(self, obj):
+#         return '<a href="../domaintogroup/?group=%s">%s</a>' % (obj.pk, obj.domains.count())
+#     ldomains.short_description = 'Domains'
+#     ldomains.allow_tags = True
+
+#     def lhosts(self, obj):
+#         return '<a href="../hosttogroup/?group=%s">%s</a>' % (obj.pk, obj.hosts.count())
+#     lhosts.short_description = 'Hosts'
+#     lhosts.allow_tags = True
+
+#     def lnetworks(self, obj):
+#         return '<a href="../networktogroup/?group=%s">%s</a>' % (obj.pk, obj.networks.count())
+#     lnetworks.short_description = 'Networks'
+#     lnetworks.allow_tags = True
+
+#     def lpools(self, obj):
+#         return '<a href="../pooltogroup/?group=%s">%s</a>' % (obj.pk, obj.pools.count())
+#     lpools.short_description = 'Pools'
+#     lpools.allow_tags = True
+
+#     def permissions(self, obj):
+#         perms = set([ug.permissions.name for ug in obj.user_groups.all()])
+#         return ','.join(perms)
+
+#     def host_permissions(self, obj):
+#         perms = set([ug.host_permissions.name for ug in obj.user_groups.all()])
+#         return ','.join(perms)
+
+#     def users(self, obj):
+#         return '<a href="../user/?group=%s">%s</a>' % (obj.pk, obj.user_groups.count())
+#     users.allow_tags = True
+
+
+# class PermissionAdmin(admin.ModelAdmin):
+#     pass
 
 
 # class UserObjectPermissionFilter(SimpleListFilter):
@@ -520,34 +519,34 @@ class ObjectPermissionSearchChangeList(ChangeList):
 
         return qs
 
-class ObjectFilter(admin.SimpleListFilter):
-    title = 'object'
-    parameter_name = 'object'
+# class ObjectFilter(admin.SimpleListFilter):
+#     title = 'object'
+#     parameter_name = 'object'
 
-    def lookups(self, request, model_admin):
-        groups = Group.objects.exclude(name__istartswith='user_')
-        group_vals = [(group.pk, group.name) for group in groups]
+#     def lookups(self, request, model_admin):
+#         groups = Group.objects.exclude(name__istartswith='user_')
+#         group_vals = [(group.pk, group.name) for group in groups]
 
-        return tuple(group_vals)
+#         return tuple(group_vals)
 
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(group__pk=self.value())
+#     def queryset(self, request, queryset):
+#         if self.value():
+#             return queryset.filter(group__pk=self.value())
 
-    def choices(self, cl):
-        yield {
-            'selected': self.value() is None,
-            'query_string': cl.get_query_string({}, [self.parameter_name]),
-            'display': _('All'),
-        }
-        for lookup, title in self.lookup_choices:
-            yield {
-                'selected': self.value() == force_text(lookup),
-                'query_string': cl.get_query_string({
-                    self.parameter_name: lookup,
-                }, []),
-                'display': title,
-            }
+#     def choices(self, cl):
+#         yield {
+#             'selected': self.value() is None,
+#             'query_string': cl.get_query_string({}, [self.parameter_name]),
+#             'display': _('All'),
+#         }
+#         for lookup, title in self.lookup_choices:
+#             yield {
+#                 'selected': self.value() == force_text(lookup),
+#                 'query_string': cl.get_query_string({
+#                     self.parameter_name: lookup,
+#                 }, []),
+#                 'display': title,
+#             }
 
 
 class UserObjectPermissionAdmin(admin.ModelAdmin):
@@ -650,31 +649,31 @@ class UserGroupTypeFilter(admin.SimpleListFilter):
             }
 
 
-class UserToGroupAdmin(admin.ModelAdmin):
-    list_display = ('user', 'group', 'permissions', 'host_permissions')
-    list_filter = (UserGroupTypeFilter,)
-    form = autocomplete_light.modelform_factory(UserToGroup, fields=('user', 'group', 'permissions', 'host_permissions', 'changed_by',))
+# class UserToGroupAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'group', 'permissions', 'host_permissions')
+#     list_filter = (UserGroupTypeFilter,)
+#     form = autocomplete_light.modelform_factory(UserToGroup, fields=('user', 'group', 'permissions', 'host_permissions', 'changed_by',))
 
 
-class HostToGroupAdmin(admin.ModelAdmin):
-    list_display = ('host', 'group')
-    form = autocomplete_light.modelform_factory(HostToGroup, fields=('host', 'group', 'changed_by',))
+# class HostToGroupAdmin(admin.ModelAdmin):
+#     list_display = ('host', 'group')
+#     form = autocomplete_light.modelform_factory(HostToGroup, fields=('host', 'group', 'changed_by',))
 
 
-class DomainToGroupAdmin(admin.ModelAdmin):
-    list_display = ('domain', 'group')
-    list_filter = (UserGroupTypeFilter,)
-    form = autocomplete_light.modelform_factory(DomainToGroup,  fields=('domain', 'group', 'changed_by',))
+# class DomainToGroupAdmin(admin.ModelAdmin):
+#     list_display = ('domain', 'group')
+#     list_filter = (UserGroupTypeFilter,)
+#     form = autocomplete_light.modelform_factory(DomainToGroup,  fields=('domain', 'group', 'changed_by',))
 
 
-class NetworkToGroupAdmin(admin.ModelAdmin):
-    list_display = ('network', 'group')
-    form = autocomplete_light.modelform_factory(NetworkToGroup,  fields=('network', 'group', 'changed_by',))
+# class NetworkToGroupAdmin(admin.ModelAdmin):
+#     list_display = ('network', 'group')
+#     form = autocomplete_light.modelform_factory(NetworkToGroup,  fields=('network', 'group', 'changed_by',))
 
 
-class PoolToGroupAdmin(admin.ModelAdmin):
-    list_display = ('pool', 'group')
-    form = autocomplete_light.modelform_factory(PoolToGroup,  fields=('pool', 'group',))
+# class PoolToGroupAdmin(admin.ModelAdmin):
+#     list_display = ('pool', 'group')
+#     form = autocomplete_light.modelform_factory(PoolToGroup,  fields=('pool', 'group',))
 
 
 admin.site.register(User, AuthUserAdmin)
@@ -684,14 +683,14 @@ admin.site.register(AuthPermission, AuthPermissionAdmin)
 admin.site.unregister(Token)
 admin.site.register(Token, TokenAdmin)
 
-admin.site.register(Group, GroupAdmin)
-admin.site.register(Permission, PermissionAdmin)
+# admin.site.register(Group, GroupAdmin)
+# admin.site.register(Permission, PermissionAdmin)
 
-admin.site.register(UserToGroup, UserToGroupAdmin)
-admin.site.register(HostToGroup, HostToGroupAdmin)
-admin.site.register(DomainToGroup, DomainToGroupAdmin)
-admin.site.register(NetworkToGroup, NetworkToGroupAdmin)
-admin.site.register(PoolToGroup, PoolToGroupAdmin)
+# admin.site.register(UserToGroup, UserToGroupAdmin)
+# admin.site.register(HostToGroup, HostToGroupAdmin)
+# admin.site.register(DomainToGroup, DomainToGroupAdmin)
+# admin.site.register(NetworkToGroup, NetworkToGroupAdmin)
+# admin.site.register(PoolToGroup, PoolToGroupAdmin)
 
 admin.site.register(UserObjectPermission, UserObjectPermissionAdmin)
 admin.site.register(GroupObjectPermission, GroupObjectPermissionAdmin)

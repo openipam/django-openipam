@@ -116,8 +116,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         "Returns the short name for the user."
         return self.first_name
 
-    def get_ipam_groups(self):
-        return Group.objects.filter(group_users__user=self)
+    # def get_ipam_groups(self):
+    #     return Group.objects.filter(group_users__user=self)
 
     def email_user(self, subject, message, from_email=None):
         """
@@ -161,96 +161,96 @@ class Permission(models.Model):
         db_table = 'permissions'
 
 
-class UserToGroup(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', related_name='user_groups')
-    group = models.ForeignKey('Group', db_column='gid', related_name='user_groups')
-    permissions = models.ForeignKey('Permission', db_column='permissions', related_name='user_groups_permissions')
-    host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_groups_host_permissions')
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+# class UserToGroup(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', related_name='user_groups')
+#     group = models.ForeignKey('Group', db_column='gid', related_name='user_groups')
+#     permissions = models.ForeignKey('Permission', db_column='permissions', related_name='user_groups_permissions')
+#     host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_groups_host_permissions')
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    objects = UserToGroupManager()
+#     objects = UserToGroupManager()
 
-    def __unicode__(self):
-        return '%s - %s' % (self.group.name, self.user.username)
+#     def __unicode__(self):
+#         return '%s - %s' % (self.group.name, self.user.username)
 
-    class Meta:
-        db_table = 'users_to_groups'
-        managed = False
-
-
-class Group(models.Model):
-    name = models.TextField(unique=True, blank=True)
-    description = models.TextField(blank=True)
-    domains = models.ManyToManyField('dns.Domain', through='DomainToGroup', related_name='domain_groups')
-    hosts = models.ManyToManyField('hosts.Host', through='HostToGroup', related_name='host_groups')
-    networks = models.ManyToManyField('network.Network', through='NetworkToGroup', related_name='network_groups')
-    pools = models.ManyToManyField('network.Pool', through='PoolToGroup', related_name='pool_groups')
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'groups'
-        managed = False
+#     class Meta:
+#         db_table = 'users_to_groups'
+#         managed = False
 
 
-class DomainToGroup(models.Model):
-    domain = models.ForeignKey('dns.Domain', db_column='did')
-    group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+# class Group(models.Model):
+#     name = models.TextField(unique=True, blank=True)
+#     description = models.TextField(blank=True)
+#     domains = models.ManyToManyField('dns.Domain', through='DomainToGroup', related_name='domain_groups')
+#     hosts = models.ManyToManyField('hosts.Host', through='HostToGroup', related_name='host_groups')
+#     networks = models.ManyToManyField('network.Network', through='NetworkToGroup', related_name='network_groups')
+#     pools = models.ManyToManyField('network.Pool', through='PoolToGroup', related_name='pool_groups')
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    class Meta:
-        db_table = 'domains_to_groups'
-        managed = False
+#     def __unicode__(self):
+#         return self.name
 
-
-class HostToGroup(models.Model):
-    host = models.ForeignKey('hosts.Host', db_column='mac')
-    group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-    class Meta:
-        db_table = 'hosts_to_groups'
-        managed = False
+#     class Meta:
+#         db_table = 'groups'
+#         managed = False
 
 
-class NetworkToGroup(models.Model):
-    network = models.ForeignKey('network.Network', db_column='nid')
-    group = models.ForeignKey('Group', db_column='gid')
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+# class DomainToGroup(models.Model):
+#     domain = models.ForeignKey('dns.Domain', db_column='did')
+#     group = models.ForeignKey('Group', db_column='gid')
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    class Meta:
-        db_table = 'networks_to_groups'
-        managed = False
-
-
-class PoolToGroup(models.Model):
-    pool = models.ForeignKey('network.Pool', db_column='pool')
-    group = models.ForeignKey('Group', db_column='gid')
-
-    class Meta:
-        db_table = 'pools_to_groups'
-        managed = False
+#     class Meta:
+#         db_table = 'domains_to_groups'
+#         managed = False
 
 
-class InternalAuth(models.Model):
-    id = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True,
-                           db_column='id', related_name='internal_user')
-    password = models.CharField(max_length=128, db_column='hash')
-    name = models.CharField(max_length=255, blank=True)
-    email = models.CharField(max_length=255, blank=True)
-    changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+# class HostToGroup(models.Model):
+#     host = models.ForeignKey('hosts.Host', db_column='mac')
+#     group = models.ForeignKey('Group', db_column='gid')
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    class Meta:
-        db_table = 'internal_auth'
-        managed = False
+#     class Meta:
+#         db_table = 'hosts_to_groups'
+#         managed = False
+
+
+# class NetworkToGroup(models.Model):
+#     network = models.ForeignKey('network.Network', db_column='nid')
+#     group = models.ForeignKey('Group', db_column='gid')
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+#     class Meta:
+#         db_table = 'networks_to_groups'
+#         managed = False
+
+
+# class PoolToGroup(models.Model):
+#     pool = models.ForeignKey('network.Pool', db_column='pool')
+#     group = models.ForeignKey('Group', db_column='gid')
+
+#     class Meta:
+#         db_table = 'pools_to_groups'
+#         managed = False
+
+
+# class InternalAuth(models.Model):
+#     id = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True,
+#                            db_column='id', related_name='internal_user')
+#     password = models.CharField(max_length=128, db_column='hash')
+#     name = models.CharField(max_length=255, blank=True)
+#     email = models.CharField(max_length=255, blank=True)
+#     changed = models.DateTimeField(auto_now=True)
+#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+#     class Meta:
+#         db_table = 'internal_auth'
+#         managed = False
 
 
 # Connect signals
