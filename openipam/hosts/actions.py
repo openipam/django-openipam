@@ -127,7 +127,7 @@ def delete_hosts(request, selected_hosts):
         # Delete hosts
         selected_hosts.delete_and_free(user=request.user)
 
-        messages.success(request, "Seleted hosts have been deleted.")
+        messages.success(request, "Selected hosts have been deleted.")
 
 
 def renew_hosts(request, selected_hosts):
