@@ -29,6 +29,9 @@ urlpatterns = patterns('openipam.api.views',
 
     # Users
     url(r'^users/$', users.UserList.as_view(), name='api_users_list'),
+    # Groups
+    url(r'^groups/$', users.GroupList.as_view(), name='api_groups_list'),
+    url(r'^groups/options/$', users.GroupOptionsList.as_view(), name='api_groupsoptions_list'),
 
     # Attributes
     url(r'^attributes/$', hosts.AttributeList.as_view(), name='api_attributes'),
