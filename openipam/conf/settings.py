@@ -123,6 +123,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'openipam.middleware.LoginRequiredMiddleware',
     'openipam.middleware.MimicUserMiddleware',
+    'openipam.middleware.SetRemoteAddrMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -155,7 +156,7 @@ INSTALLED_APPS = (
     # openIPAM reports
     'openipam.report',
 
-    # Firewall foo
+    # Firewall
     'openipam.firewall',
 
     # Admin Tools
@@ -213,12 +214,12 @@ BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
 BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.1.1',
-    'jquer-ui#1.11.2',
-    'bootstrap#3.2.0',
-    'datatables#1.10.2',
+    'jquery#2.1.4',
+    'jquer-ui#1.11.4',
+    'bootstrap#3.3.5',
+    'datatables#1.10.7',
     'jquery.cookie#1.4.1',
-    'chosen-bower',
+    'chosen',
     'intro.js#0.9.0',
     'qTip#1.0.0',
 )
