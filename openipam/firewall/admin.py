@@ -51,7 +51,6 @@ class RuleAdmin(SelectRelatedAdmin):
 
 for model_name, model in app.models.items():
     if not model_name.endswith('base') and not model_name.endswith('log') and not model_name in ['rule']:
-        print model_name
         admin.site.register(model, DynamicColumnAdmin)
 
 admin.site.register(Rule, RuleAdmin)
