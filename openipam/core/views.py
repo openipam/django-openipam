@@ -18,6 +18,8 @@ from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DatabaseError, DataError
+from django.db.models import Count
+from django.db.models.functions import Coalesce
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -290,10 +292,14 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
             column_dir = item['dir']
             sdir = '-' if column_dir == 'desc' else ''
             sortcol = order_columns[column]
-            order.append('%s%s' % (sdir, sortcol))
+            ann_kargs = {
+                sortcol + '_foo': Count(sortcol)
+            }
+            qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
+            #order.append('%s%s' % (sdir, sortcol))
 
-        if order:
-            return qs.order_by(*order)
+        #if order:
+        #    return qs.order_by(*order)
         return qs
 
     def paging(self, qs):
