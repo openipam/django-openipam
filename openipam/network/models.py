@@ -50,9 +50,9 @@ class Lease(models.Model):
     def gul_last_seen_mac(self):
         from openipam.hosts.models import GulRecentArpByaddress
 
-        if self.mac:
+        if self.host:
             try:
-                return GulRecentArpByaddress.objects.get(address=self.address.address).mac
+                return GulRecentArpByaddress.objects.get(address=self.address.address).host
             except GulRecentArpByaddress.DoesNotExist:
                 return None
         else:
