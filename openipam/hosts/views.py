@@ -215,7 +215,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
-                print qs.query
             if ip_search:
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
                     if ip_search.endswith('/'):
