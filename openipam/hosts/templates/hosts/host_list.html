@@ -18,11 +18,13 @@
 	{{ block.super }}
 	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
 	<link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'datatables-responsive/css/dataTables.responsive.css' %}" type="text/css" />
 {% endblock %}
 
 {% block extrahead %}
 	{{ block.super }}
 	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
 	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
 	<script type="text/javascript" src="{% static 'core/js/bootstrap-waitingfor.js' %}"></script>
 	<script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>

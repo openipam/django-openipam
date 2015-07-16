@@ -132,6 +132,7 @@ $(function(){
 	var asInitVals = new Array();
 
 	var results = $("#result_list").DataTable({
+		//"responsive": true,
 		"processing": true,
 		"serverSide": true,
 		"ajax": $.fn.dataTable.pipeline({
