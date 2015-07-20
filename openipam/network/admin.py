@@ -5,6 +5,8 @@ from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
+from netaddr import IPNetwork
+
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
@@ -69,9 +71,12 @@ class NetworkAdmin(ChangedAdmin):
     def save_model(self, request, obj, form, change):
         super(NetworkAdmin, self).save_model(request, obj, form, change)
 
-        if not change:
-            addresses = []
-            for address in obj.network:
+        #if not change:
+        addresses = []
+        existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj.pk)]
+
+        for address in IPNetwork(obj.network):
+            if address not in existing_addresses:
                 reserved = False
                 if address in (obj.gateway, obj.network[0], obj.network[-1]):
                     reserved = True
