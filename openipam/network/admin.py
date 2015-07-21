@@ -69,6 +69,17 @@ class NetworkAdmin(ChangedAdmin):
                 abandoned=True).update(abandoned=False, host='000000000000')
 
     def save_model(self, request, obj, form, change):
+
+        self.new_obj = None
+        if change:
+            form_net = str(form.cleaned_data['network'])
+            obj_net = form.initial['network']
+
+            if form_net != obj_net:
+                Network.objects.filter(network=obj_net).update(network=form_net)
+                obj = Network.objects.get(network=form_net)
+                self.new_obj = obj
+
         super(NetworkAdmin, self).save_model(request, obj, form, change)
 
         #if not change:
@@ -91,7 +102,15 @@ class NetworkAdmin(ChangedAdmin):
                         changed_by=request.user,
                     )
                 )
-            Address.objects.bulk_create(addresses)
+        Address.objects.bulk_create(addresses)
+
+
+    def response_post_save_change(self, request, obj):
+        if self.new_obj:
+            return super(NetworkAdmin, self).response_post_save_change(request, self.new_obj)
+        else:
+            return super(NetworkAdmin, self).response_post_save_change(request, obj)
+
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super(NetworkAdmin, self).get_search_results(request, queryset, search_term)
