@@ -93,3 +93,13 @@ class NetworkTagForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.form_tag = False
+
+
+class NetworkReziseForm(forms.Form):
+    network = forms.CharField(label='New Network Size', max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        super(NetworkReziseForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False

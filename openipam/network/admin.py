@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from netaddr import IPNetwork
 
@@ -11,7 +12,7 @@ from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGr
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
     NetworkToVlan
 from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, \
-    AddressAdminForm, LeaseAdminForm
+    AddressAdminForm, LeaseAdminForm, NetworkReziseForm
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
 import autocomplete_light
@@ -22,7 +23,7 @@ class NetworkAdmin(ChangedAdmin):
     list_display = ('nice_network', 'name', 'description', 'gateway')
     list_filter = (('tags__name', custom_titled_filter('Tags')), 'shared_network__name')
     search_fields = ('network', 'shared_network__name')
-    actions = ['tag_network', 'release_abandoned_leases']
+    actions = ['tag_network', 'resize_network', 'release_abandoned_leases',]
 
     def get_actions(self, request):
         #Disable delete
@@ -40,6 +41,7 @@ class NetworkAdmin(ChangedAdmin):
         urls = super(NetworkAdmin, self).get_urls()
         net_urls = [
             url(r'^tag/$', self.tag_network_view),
+            url(r'^resize/$', self.resize_network_view),
         ]
         return net_urls + urls
 
@@ -57,10 +59,59 @@ class NetworkAdmin(ChangedAdmin):
 
         return render(request, 'admin/actions/tag_network.html', {'form': form})
 
+
+    def resize_network_view(self, request):
+        ids = request.REQUEST.get('ids').strip().split(',')
+        if len(ids) > 1:
+            network_error = True
+            network = None
+        else:
+            network_error = False
+            network = ids[0]
+
+        form = NetworkReziseForm(request.POST or None, initial={'network': network})
+
+        if form.is_valid():
+            # Update primary key
+            new_network = Network.objects.filter(pk=network).update(pk=form.cleaned_data['network'])
+
+            addresses = []
+            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=new_network.pk)]
+
+            for address in IPNetwork(new_network.network):
+                if address not in existing_addresses:
+                    reserved = False
+                    if address in (new_network.gateway, new_network.network[0], new_network.network[-1]):
+                        reserved = True
+                    pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
+                    addresses.append(
+                        #TODO: Need to set pool eventually.
+                        Address(
+                            address=address,
+                            network=new_network,
+                            reserved=reserved,
+                            pool=pool,
+                            changed_by=request.user,
+                        )
+                    )
+            Address.objects.bulk_create(addresses)
+
+            return redirect('../')
+
+        return render(request, 'admin/actions/resize_network.html', {'form': form, 'network_error': network_error})
+
+
     def tag_network(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return redirect("tag/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+
+
+    def resize_network(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return redirect("resize/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+
 
     def release_abandoned_leases(self, request, queryset):
         for network in queryset:
@@ -68,40 +119,26 @@ class NetworkAdmin(ChangedAdmin):
                 address__address__net_contained_or_equal=network.network,
                 abandoned=True).update(abandoned=False, host='000000000000')
 
+
     def save_model(self, request, obj, form, change):
-
-        self.new_obj = None
-        if change:
-            form_net = str(form.cleaned_data['network'])
-            obj_net = form.initial['network']
-
-            if form_net != obj_net:
-                Network.objects.filter(network=obj_net).update(network=form_net)
-                obj = Network.objects.get(network=form_net)
-                self.new_obj = obj
-
         super(NetworkAdmin, self).save_model(request, obj, form, change)
 
-        #if not change:
         addresses = []
-        existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj.pk)]
-
         for address in IPNetwork(obj.network):
-            if address not in existing_addresses:
-                reserved = False
-                if address in (obj.gateway, obj.network[0], obj.network[-1]):
-                    reserved = True
-                pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
-                addresses.append(
-                    #TODO: Need to set pool eventually.
-                    Address(
-                        address=address,
-                        network=obj,
-                        reserved=reserved,
-                        pool=pool,
-                        changed_by=request.user,
-                    )
+            reserved = False
+            if address in (obj.gateway, obj.network[0], obj.network[-1]):
+                reserved = True
+            pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
+            addresses.append(
+                #TODO: Need to set pool eventually.
+                Address(
+                    address=address,
+                    network=obj,
+                    reserved=reserved,
+                    pool=pool,
+                    changed_by=request.user,
                 )
+            )
         Address.objects.bulk_create(addresses)
 
 
