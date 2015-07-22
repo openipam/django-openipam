@@ -123,23 +123,24 @@ class NetworkAdmin(ChangedAdmin):
     def save_model(self, request, obj, form, change):
         super(NetworkAdmin, self).save_model(request, obj, form, change)
 
-        addresses = []
-        for address in IPNetwork(obj.network):
-            reserved = False
-            if address in (obj.gateway, obj.network[0], obj.network[-1]):
-                reserved = True
-            pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
-            addresses.append(
-                #TODO: Need to set pool eventually.
-                Address(
-                    address=address,
-                    network=obj,
-                    reserved=reserved,
-                    pool=pool,
-                    changed_by=request.user,
+        if not change:
+            addresses = []
+            for address in IPNetwork(obj.network):
+                reserved = False
+                if address in (obj.gateway, obj.network[0], obj.network[-1]):
+                    reserved = True
+                pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
+                addresses.append(
+                    #TODO: Need to set pool eventually.
+                    Address(
+                        address=address,
+                        network=obj,
+                        reserved=reserved,
+                        pool=pool,
+                        changed_by=request.user,
+                    )
                 )
-            )
-        Address.objects.bulk_create(addresses)
+            Address.objects.bulk_create(addresses)
 
 
     def response_post_save_change(self, request, obj):
