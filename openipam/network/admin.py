@@ -207,6 +207,7 @@ class PoolAdmin(admin.ModelAdmin):
 
 class SharedNetworkAdmin(ChangedAdmin):
     list_display = ('name', 'description', 'changed_by', 'changed',)
+    search_fields = ('name', 'description')
 
 
 class VlanAdmin(ChangedAdmin):
