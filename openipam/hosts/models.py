@@ -89,6 +89,9 @@ class ExpirationType(models.Model):
     class Meta:
         db_table = 'expiration_types'
         ordering = ('expiration',)
+        permissions = (
+            ('is_owner_expiration_type', 'Is owner'),
+        )
 
 
 class FreeformAttributeToHost(models.Model):
@@ -636,6 +639,12 @@ class Host(DirtyFieldsMixin, models.Model):
             # Remove all addresses
             self.addresses.release()
 
+            # Delete DHCP DNS records for dynamics if they exist.
+            try:
+                self.dhcpdnsrecord.delete()
+            except ObjectDoesNotExist:
+                pass
+
         # If we have a pool, this dynamic and we assign
         if pool:
             from openipam.network.models import Pool
@@ -666,6 +675,12 @@ class Host(DirtyFieldsMixin, models.Model):
         else:
             # Remove all pools
             self.pools.clear()
+
+            # Delete DHCP DNS records for dynamics if they exist.
+            try:
+                self.dhcpdnsrecord.delete()
+            except ObjectDoesNotExist:
+                pass
 
             # Remove addresses if we are assinging a network
             # This implies that we want a new address even
