@@ -143,13 +143,6 @@ class NetworkAdmin(ChangedAdmin):
             Address.objects.bulk_create(addresses)
 
 
-    def response_post_save_change(self, request, obj):
-        if self.new_obj:
-            return super(NetworkAdmin, self).response_post_save_change(request, self.new_obj)
-        else:
-            return super(NetworkAdmin, self).response_post_save_change(request, obj)
-
-
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super(NetworkAdmin, self).get_search_results(request, queryset, search_term)
         queryset = queryset | Network.searcher.search(search_term)
