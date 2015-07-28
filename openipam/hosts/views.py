@@ -788,7 +788,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             else:
                 error_list.append(e.message)
 
-            error_list.append(','join(host))
+            error_list.append(','.join(host))
 
             error_list.append('Please try again.')
             messages.error(self.request, mark_safe('<br />'.join(error_list)))
