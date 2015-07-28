@@ -759,13 +759,12 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         lines = csv_file.read().splitlines()
         #with csv.open() as f:
         hosts = []
-        records = csv.reader(lines, dialect=csv.excel_tab)
+        records = csv.reader(lines)
         for row in records:
             hosts.append(row)
         csv_file.close()
 
         error_list = []
-
         try:
             with transaction.atomic():
                 for host in hosts:
