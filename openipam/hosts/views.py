@@ -756,10 +756,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
     def form_valid(self, form):
         csv_file = form.cleaned_data['csv_file']
+        lines = csv_file.read().splitlines()
         #with csv.open() as f:
         hosts = []
-        reader = csv.reader(csv_file)
-        for row in reader:
+        records = csv.reader(lines, dialect=csv.excel_tab)
+        for row in records:
             hosts.append(row)
         csv_file.close()
 
