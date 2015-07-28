@@ -12,7 +12,7 @@ from django.utils.timezone import localtime, utc
 
 from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
 from openipam.dns.models import Domain
-from openipam.hosts.validators import validate_hostname
+from openipam.hosts.validators import validate_hostname, validate_csv_file
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
     FreeformAttributeToHost, StructuredAttributeToHost
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
@@ -84,7 +84,7 @@ class HostForm(forms.ModelForm):
         )
 
         if not self.user.is_ipamadmin:
-            # Remove 10950 days from expires as this is only for admins.
+            # Remove 10950 days from expires as This is only for admins.
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
         if self.instance.pk:
@@ -556,6 +556,19 @@ class HostRenewForm(forms.Form):
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
 
+class HostBulkCreateForm(forms.Form):
+    csv_file = forms.FileField(validators=[validate_csv_file])
+
+    def __init__(self, *args, **kwargs):
+        super(HostBulkCreateForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div('csv_file'),
+        )
+
+
 class HostListForm(forms.Form):
     groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
     users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
@@ -568,3 +581,11 @@ class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
 class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
     content_object = autocomplete_light.ModelChoiceField('HostAutocomplete')
+
+
+class ExpirationTypeAdminForm(forms.ModelForm):
+    expiration = forms.CharField()
+
+    class Meta:
+        model = ExpirationType
+        fields = ('expiration',)
