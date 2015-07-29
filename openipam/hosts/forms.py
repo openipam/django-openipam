@@ -19,7 +19,7 @@ from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPer
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
-from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup, PrependedText
+from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup, PrependedText, PrependedAppendedText
 
 from netfields.forms import MACAddressFormField
 
@@ -558,15 +558,6 @@ class HostRenewForm(forms.Form):
 
 class HostBulkCreateForm(forms.Form):
     csv_file = forms.FileField(validators=[validate_csv_file])
-
-    def __init__(self, *args, **kwargs):
-        super(HostBulkCreateForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div('csv_file'),
-        )
 
 
 class HostListForm(forms.Form):
