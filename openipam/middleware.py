@@ -13,6 +13,16 @@ if hasattr(settings, 'LOGIN_EXEMPT_URLS'):
     EXEMPT_URLS += [compile(expr) for expr in settings.LOGIN_EXEMPT_URLS]
 
 
+class SetRemoteAddrMiddleware(object):
+    def process_request(self, request):
+        if request.META.get('REMOTE_ADDR') == '127.0.0.1':
+            try:
+                request.META['OLD_REMOTE_ADDR'] = request.META['REMOTE_ADDR']
+                request.META['REMOTE_ADDR'] = request.META['HTTP_X_REAL_IP']
+            except:
+                pass
+
+
 class LoginRequiredMiddleware(object):
     """
     Middleware that requires a user to be authenticated to view any page other

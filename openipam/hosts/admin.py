@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Attribute, StructuredAttributeValue
+from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, \
+    StructuredAttributeValue, Notification
 from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
@@ -40,7 +41,8 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'user', 'starts', 'ends')
     list_filter = ('starts', 'ends')
     search_fields = ('user__username', 'ticket')
-    form = autocomplete_light.modelform_factory(GuestTicket, fields=('user', 'ticket', 'starts', 'ends', 'description',))
+    form = autocomplete_light.modelform_factory(GuestTicket,
+        fields=('user', 'ticket', 'starts', 'ends', 'description',))
 
 
 class AttributeAdmin(ChangedAdmin):
@@ -55,6 +57,6 @@ class StructuredAttributeValueAdmin(ChangedAdmin):
 admin.site.register(Host, HostAdmin)
 admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(StructuredAttributeValue, StructuredAttributeValueAdmin)
-#admin.site.register(Notification)
+admin.site.register(Notification)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)

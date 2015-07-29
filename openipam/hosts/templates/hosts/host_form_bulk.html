@@ -1,0 +1,95 @@
+{% extends "hosts/base.html" %}
+{% load i18n static crispy_forms_tags %}
+
+{% block page_title %}{% if object %}Edit Host: {{ object.hostname }}{% else %}Add Host{% endif %}{% endblock %}
+
+{% block content_title %}
+  <h3 id="breadcrumb-title" class="pull-left">
+    Host Bulk Create
+  </h3>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+        ../../|{% trans "Hosts" %}
+        {% trans "Host Bulk Create" %}
+{% endblock %}
+
+{% block extrahead %}
+	<style type="text/css">
+		.btn-file {
+		    position: relative;
+		    overflow: hidden;
+		}
+		.btn-file input[type=file] {
+		    position: absolute;
+		    top: 0;
+		    right: 0;
+		    min-width: 100%;
+		    min-height: 100%;
+		    font-size: 100px;
+		    text-align: right;
+		    filter: alpha(opacity=0);
+		    opacity: 0;
+		    outline: none;
+		    background: white;
+		    cursor: inherit;
+		    display: block;
+		}
+	</style>
+
+	<script type="text/javascript">
+
+
+		$(function(){
+		    $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+		        //console.log(numFiles);
+		        //console.log(label);
+		        $(this).parent().after(" <span>" + label + "</span>");
+		    });
+
+		   	$(document).on('change', '.btn-file :file', function() {
+			    var input = $(this),
+			        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+			        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+			    input.trigger('fileselect', [numFiles, label]);
+			});
+		});
+
+	</script>
+{% endblock %}
+
+{% block contentbody %}
+    <div class="well well-sm">
+        <form id="host-bulk-form" action="" method="post" class="form-horizontal" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+				{{ form.non_field_errors }}
+
+				<div class="pull-left">
+				    {{ form.csv_file.errors }}
+				    {{ form.csv_file.label_tag }}
+				    <span class="btn btn-default btn-file">
+				    Click to upload CSV file {{ form.csv_file }}
+				    </span>
+				</div>
+
+                <div class="pull-right">
+                    <input type="submit" value="Save Changes" class="btn btn-primary" data-toggle="modal" data-target="#processing-modal" />
+                    <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
+                </div>
+
+                <div class="clear"><!-- --></div>
+            </div>
+        </form>
+    </div>
+    <div id="processing-modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4>Processing....</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.views.generic.base import RedirectView
 
 from openipam.hosts.views import HostListView, HostUpdateView, HostCreateView, \
-    HostDetailView, HostListJson, HostAddressCreateView, HostAddressDeleteView
+    HostDetailView, HostListJson, HostAddressCreateView, HostAddressDeleteView, HostBulkCreateView
 
 
 urlpatterns = patterns('openipam.hosts.views',
@@ -18,7 +18,7 @@ urlpatterns = patterns('openipam.hosts.views',
     url(r'^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/detail/$', HostDetailView.as_view(), name='view_host'),
     url(r'^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/$', HostUpdateView.as_view(), name='update_host'),
     url(r'^data/$', HostListJson.as_view(), name='json_hosts'),
-    url(r'^add/bulk/$', HostCreateView.as_view(), {'bulk': True}, name='add_hosts_bulk'),
+    url(r'^add/bulk/$', HostBulkCreateView.as_view(), name='add_hosts_bulk'),
     url(r'^add/$', HostCreateView.as_view(), name='add_hosts'),
     url(r'^owners/$', 'change_owners', name='change_owners'),
     #url(r'^add/$', 'add', name='add_hosts'),

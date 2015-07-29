@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block breadcrumbs %}
+    ../../../|{% trans "Home" %}
+    ../../|{% trans "Network" %}
+    *Resize Network
+{% endblock %}
+
+{% block content %}
+    <div id="content-main" class="container">
+        <form id="tags-form" method="post" class="form-horizontal">
+        	{% if network_error %}
+	        	<div class="alert alert-danger form-group">
+	        		<strong>You can only resize one network at a time.  Please select only ONE network to resize.</strong>
+	        	</div>
+	        {% else %}
+	        	<div class="alert alert-warning form-group">
+	        		Currently <strong>ONLY</strong> increaseing network size is supported.
+	        	</div>
+	            {% crispy form %}
+	            <div class="pull-right">
+	                <input type="submit" value="Save Changes" class="btn btn-primary" />
+	                <a href="../" class="btn">Cancel</a>
+	            </div>
+			{% endif %}
+        </form>
+    </div>
+{% endblock %}

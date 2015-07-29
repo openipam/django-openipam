@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic.edit import UpdateView, CreateView, FormView
 from django.views.generic import TemplateView, View
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
@@ -22,11 +22,12 @@ from django.db import connection
 from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.util import ErrorList, ErrorDict
+from django.db import transaction
 
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
-from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
+from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts
@@ -38,6 +39,7 @@ from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
 import json
 import re
+import csv
 
 # from django.db.models.sql.aggregates import Aggregate as SQLAggregate
 # from django.db.models import Aggregate
@@ -215,7 +217,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
-                print qs.query
             if ip_search:
                 if '/' in ip_search and len(ip_search.split('/')) > 1:
                     if ip_search.endswith('/'):
@@ -746,6 +747,58 @@ class HostAddressDeleteView(SuperuserRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         return self.get(request, *args, **kwargs)
+
+
+class HostBulkCreateView(PermissionRequiredMixin, FormView):
+    permission_required = 'hosts.add_host'
+    template_name = 'hosts/host_form_bulk.html'
+    form_class = HostBulkCreateForm
+
+    def form_valid(self, form):
+        csv_file = form.cleaned_data['csv_file']
+        lines = csv_file.read().splitlines()
+        #with csv.open() as f:
+        hosts = []
+        records = csv.reader(lines)
+        for row in records:
+            hosts.append(row)
+        csv_file.close()
+
+        error_list = []
+        try:
+            with transaction.atomic():
+                for host in hosts:
+                    Host.objects.add_or_update_host(
+                        self.request.user,
+                        hostname=host[0],
+                        mac=host[1],
+                        expire_days=host[2],
+                        description=host[3],
+                        ip_address=host[4] or None,
+                        network=host[5] or None,
+                        user_owners=host[6] or None,
+                        group_owners=host[7] or None
+                    )
+
+        except ValidationError as e:
+            if hasattr(e, 'error_dict'):
+                for key, errors in e.message_dict.items():
+                    for error in errors:
+                        error_list.append(error)
+            else:
+                error_list.append(e.message)
+
+            error_list.append(','.join(host))
+
+            error_list.append('Please try again.')
+            messages.error(self.request, mark_safe('<br />'.join(error_list)))
+            return redirect('add_hosts_bulk')
+            #return render(self.request, self.template_name)
+
+
+        messages.info(self.request, 'Hosts from CSV have been added.')
+        return redirect('host_list')
+
 
 
 def change_owners(request):
