@@ -797,7 +797,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
 
         messages.info(self.request, 'Hosts from CSV have been added.')
-        return redirect('view_host')
+        return redirect('list_hosts')
 
 
 
