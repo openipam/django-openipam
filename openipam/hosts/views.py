@@ -768,10 +768,14 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         try:
             with transaction.atomic():
                 for host in hosts:
+                    if host[1] == 'vmware':
+                        mac = Host.objects.find_next_mac(vendor='vmware')
+                    else:
+                        mac = host[1]
                     Host.objects.add_or_update_host(
                         self.request.user,
                         hostname=host[0],
-                        mac=host[1],
+                        mac=mac,
                         expire_days=host[2],
                         description=host[3],
                         ip_address=host[4] or None,
