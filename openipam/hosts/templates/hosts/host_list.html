@@ -83,8 +83,8 @@
 					</label>
 					{% endcomment %}
 					<button id="owner-all" type="button" class="btn btn-default {% if not owner_filter %}btn-primary{% endif %}" value="">Show All</button>
-					<button id="owner-mine" type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="1">Mine</button>
-					<button id="owner-group" type="button" class="btn btn-default {% if owner_filter %}btn-primary{% endif %}" value="2">Group</button>
+					<button id="owner-mine" type="button" class="btn btn-default {% if owner_filter == '1' %}btn-primary{% endif %}" value="1">Mine</button>
+					<button id="owner-group" type="button" class="btn btn-default {% if owner_filter == '2' %}btn-primary{% endif %}" value="2">Group</button>
 				</div>
 
 				<div id="changelist-search" class="pull-right">
