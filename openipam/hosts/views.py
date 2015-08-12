@@ -106,7 +106,10 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             #user_filter = self.json_data.get('user_filter', None)
 
             if is_owner:
-                qs = qs.by_owner(self.request.user, use_groups=True)
+                if is_owner == '1':
+                    qs = qs.by_owner(self.request.user)
+                elif is_owner == '2':
+                    qs = qs.by_owner(self.request.user, use_groups=True)
 
             search_list = search.strip().split(',') if search else []
             for search_item in search_list:
