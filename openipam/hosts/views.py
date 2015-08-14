@@ -37,6 +37,8 @@ from netaddr.core import AddrFormatError
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
+from itertools import izip_longest
+
 import json
 import re
 import csv
@@ -215,8 +217,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 rgx = re.compile('[:,-. ]')
                 mac_str = rgx.sub('', mac_search)
                 # Split to list to put back togethor with :
-                mac_str = re.findall('..', mac_str)
-                mac_str = ':'.join(mac_str)
+                mac_str = iter(mac_str)
+                mac_str = ':'.join(a+b for a,b in izip_longest(mac_str, mac_str, fillvalue=''))
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
