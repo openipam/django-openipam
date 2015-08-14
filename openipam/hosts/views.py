@@ -645,7 +645,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
         elif self.request.POST.get('_add'):
             # Get fields that would carry over
             self.request.session['host_form_add'] = form.data
-            return redirect(reverse_lazy('add_hosts_bulk'))
+            return redirect(reverse_lazy('add_hosts'))
 
         return valid_form
 
