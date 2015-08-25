@@ -541,6 +541,10 @@ class HostUpdateCreateMixin(object):
         if form_class is None:
             form_class = self.get_form_class()
 
+        new = self.kwargs.get('new', False)
+        if not new and self.request.session.get('host_form_add'):
+            del self.request.session['host_form_add']
+
         # passing the user object to the form here.
         return form_class(request=self.request, **self.get_form_kwargs())
 
@@ -644,7 +648,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
         elif self.request.POST.get('_add'):
             # Get fields that would carry over
             self.request.session['host_form_add'] = form.data
-            return redirect(reverse_lazy('add_hosts'))
+            return redirect(reverse_lazy('add_hosts_new'))
 
         return valid_form
 
