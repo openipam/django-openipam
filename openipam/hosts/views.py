@@ -540,10 +540,6 @@ class HostUpdateCreateMixin(object):
         if form_class is None:
             form_class = self.get_form_class()
 
-        is_bulk = self.kwargs.get('bulk', False)
-        if not is_bulk and self.request.session.get('host_form_add'):
-            del self.request.session['host_form_add']
-
         # passing the user object to the form here.
         return form_class(request=self.request, **self.get_form_kwargs())
 
