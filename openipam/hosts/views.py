@@ -239,7 +239,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(addresses__address__istartswith='.'.join(ip_blocks)+tail_dot) |
-                            Q(leases__address__address__istartswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
+                            Q(leases__address__address__istartswith='.'.join(ip_blocks)+tail_dot, leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
                         qs = qs.filter(
