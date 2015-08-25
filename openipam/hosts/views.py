@@ -234,10 +234,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 else:
 
                     ip = ip_search.split(':')[-1]
+                    tail_dot = '.' if ip[-1] == '.' else ''
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__istartswith='.'.join(ip_blocks)) |
+                            Q(addresses__address__istartswith='.'.join(ip_blocks)+tail_dot) |
                             Q(leases__address__address__istartswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
