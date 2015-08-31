@@ -45,6 +45,9 @@ class HostListSerializer(serializers.ModelSerializer):
         }
         return addresses
 
+    def get_master_ip_address(self, obj):
+        return obj.master_ip_address
+
     def get_attributes(self, obj):
         def dictfetchall(cursor):
             desc = cursor.description
@@ -64,7 +67,8 @@ class HostListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'expires', 'expire_days', 'addresses', 'description', 'is_disabled', 'is_dynamic', 'attributes')
+        fields = ('mac', 'hostname', 'expires', 'expire_days', 'addresses', 'master_ip_address',
+                  'description', 'is_disabled', 'is_dynamic', 'attributes')
 
 
 class HostDetailSerializer(serializers.ModelSerializer):
@@ -99,6 +103,9 @@ class HostDetailSerializer(serializers.ModelSerializer):
         }
         return addresses
 
+    def get_master_ip_address(self, obj):
+        return obj.master_ip_address
+
     def get_address_type(self, obj):
         return str(obj.address_type)
 
@@ -122,7 +129,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Host
         fields = ('mac', 'hostname', 'address_type', 'expires', 'expire_days', 'is_dynamic', 'description', 'owners',
-                  'addresses', 'attributes',)
+                  'addresses', 'master_ip_address', 'attributes',)
 
 
 class HostCreateUpdateSerializer(serializers.ModelSerializer):
