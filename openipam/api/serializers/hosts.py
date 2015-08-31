@@ -29,6 +29,14 @@ class HostMacSerializer(serializers.ModelSerializer):
 
 class HostListSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
+    attributes = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super(HostListSerializer, self).__init__(*args, **kwargs)
+
+        show_attributes = self.context['request'].GET.get('attributes', None)
+        if not show_attributes:
+            self.fields.pop('attributes')
 
     def get_addresses(self, obj):
         addresses = {
@@ -37,9 +45,26 @@ class HostListSerializer(serializers.ModelSerializer):
         }
         return addresses
 
+    def get_attributes(self, obj):
+        def dictfetchall(cursor):
+            desc = cursor.description
+            return [
+                dict(zip([col[0] for col in desc], row))
+                for row in cursor.fetchall()
+            ]
+
+        c = connection.cursor()
+        c.execute('''
+            SELECT name, value from attributes_to_hosts
+                WHERE mac = %s
+        ''', [obj.mac])
+
+        rows = dictfetchall(c)
+        return rows
+
     class Meta:
         model = Host
-        fields = ('mac', 'hostname', 'expires', 'expire_days', 'addresses', 'description', 'is_disabled', 'is_dynamic')
+        fields = ('mac', 'hostname', 'expires', 'expire_days', 'addresses', 'description', 'is_disabled', 'is_dynamic', 'attributes')
 
 
 class HostDetailSerializer(serializers.ModelSerializer):

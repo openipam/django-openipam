@@ -62,7 +62,9 @@ def leases_available(request):
 
 
 def weather_map(request):
-    return render(request, 'report/weather_map.html')
+    popup = request.GET.get('_popup', None)
+    is_popup = True if popup else False
+    return render(request, 'report/weather_map.html', {'is_popup': is_popup})
 
 
 def disabled_hosts(request):

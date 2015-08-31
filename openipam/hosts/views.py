@@ -37,6 +37,8 @@ from netaddr.core import AddrFormatError
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
+from itertools import izip_longest
+
 import json
 import re
 import csv
@@ -106,7 +108,10 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             #user_filter = self.json_data.get('user_filter', None)
 
             if is_owner:
-                qs = qs.by_owner(self.request.user, use_groups=True)
+                if is_owner == '1':
+                    qs = qs.by_owner(self.request.user)
+                elif is_owner == '2':
+                    qs = qs.by_owner(self.request.user, use_groups=True)
 
             search_list = search.strip().split(',') if search else []
             for search_item in search_list:
@@ -212,8 +217,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 rgx = re.compile('[:,-. ]')
                 mac_str = rgx.sub('', mac_search)
                 # Split to list to put back togethor with :
-                mac_str = re.findall('..', mac_str)
-                mac_str = ':'.join(mac_str)
+                mac_str = iter(mac_str)
+                mac_str = ':'.join(a+b for a,b in izip_longest(mac_str, mac_str, fillvalue=''))
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
@@ -229,11 +234,12 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 else:
 
                     ip = ip_search.split(':')[-1]
+                    tail_dot = '.' if ip[-1] == '.' else ''
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__istartswith='.'.join(ip_blocks)) |
-                            Q(leases__address__address__istartswith='.'.join(ip_blocks), leases__ends__gt=timezone.now())
+                            Q(addresses__address__istartswith='.'.join(ip_blocks)+tail_dot) |
+                            Q(leases__address__address__istartswith='.'.join(ip_blocks)+tail_dot, leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
                         qs = qs.filter(
@@ -535,8 +541,8 @@ class HostUpdateCreateMixin(object):
         if form_class is None:
             form_class = self.get_form_class()
 
-        is_bulk = self.kwargs.get('bulk', False)
-        if not is_bulk and self.request.session.get('host_form_add'):
+        new = self.kwargs.get('new', False)
+        if not new and self.request.session.get('host_form_add'):
             del self.request.session['host_form_add']
 
         # passing the user object to the form here.
@@ -642,7 +648,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
         elif self.request.POST.get('_add'):
             # Get fields that would carry over
             self.request.session['host_form_add'] = form.data
-            return redirect(reverse_lazy('add_hosts_bulk'))
+            return redirect(reverse_lazy('add_hosts_new'))
 
         return valid_form
 
@@ -768,10 +774,14 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         try:
             with transaction.atomic():
                 for host in hosts:
+                    if host[1] == 'vmware':
+                        mac = Host.objects.find_next_mac(vendor='vmware')
+                    else:
+                        mac = host[1]
                     Host.objects.add_or_update_host(
                         self.request.user,
                         hostname=host[0],
-                        mac=host[1],
+                        mac=mac,
                         expire_days=host[2],
                         description=host[3],
                         ip_address=host[4] or None,
@@ -797,7 +807,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
 
         messages.info(self.request, 'Hosts from CSV have been added.')
-        return redirect('host_list')
+        return redirect('list_hosts')
 
 
 

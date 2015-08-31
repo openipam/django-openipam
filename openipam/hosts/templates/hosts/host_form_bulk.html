@@ -66,6 +66,13 @@
             <div>
 				{{ form.non_field_errors }}
 
+				<div class="alert alert-warning">
+					<p>The CSV needs to be structured with the following fields in order. Bold fields are required.</p>
+					<p><strong>Hostname, MAC Address, Expire Days</strong>, Description, IP Address, Network, User Owners, Group Owners</p>
+					<p>Each Host must have either a Network or IP Addresses.  Dynamic registrations are not supported yet.</p>
+					<p>You can register without a User or Group owner, but this is <strong>HIGHLY</strong> discouraged.</p>
+				</div>
+
 				<div class="pull-left">
 				    {{ form.csv_file.errors }}
 				    {{ form.csv_file.label_tag }}
