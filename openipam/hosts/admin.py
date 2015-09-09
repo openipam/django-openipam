@@ -1,10 +1,13 @@
 from django.contrib import admin
 
-from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, \
+from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, ExpirationType, \
     StructuredAttributeValue, Notification
+from openipam.hosts.forms import ExpirationTypeAdminForm
 from openipam.core.admin import ChangedAdmin
 
 import autocomplete_light
+
+from guardian.admin import GuardedModelAdmin
 
 
 class HostAdmin(ChangedAdmin):
@@ -49,6 +52,15 @@ class AttributeAdmin(ChangedAdmin):
     pass
 
 
+class ExpirationTypeAdmin(GuardedModelAdmin):
+    form = ExpirationTypeAdminForm
+
+    # Hack for guardian 1.8 bug
+    def __init__(self, *args, **kwargs):
+        self.queryset = super(ExpirationTypeAdmin, self).get_queryset
+        super(ExpirationTypeAdmin, self).__init__(*args, **kwargs)
+
+
 class StructuredAttributeValueAdmin(ChangedAdmin):
     list_display = ('attribute', 'value', 'is_default', 'changed_by', 'changed',)
     list_filter = ('attribute__name',)
@@ -58,5 +70,6 @@ admin.site.register(Host, HostAdmin)
 admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(StructuredAttributeValue, StructuredAttributeValueAdmin)
 admin.site.register(Notification)
+admin.site.register(ExpirationType, ExpirationTypeAdmin)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)

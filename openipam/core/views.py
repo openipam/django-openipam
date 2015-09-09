@@ -19,7 +19,6 @@ from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DatabaseError, DataError
 from django.db.models import Count
-from django.db.models.functions import Coalesce
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm

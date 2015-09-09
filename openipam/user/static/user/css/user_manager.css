@@ -1,0 +1,149 @@
+/*.modal {
+    width: 800px;
+    margin-left: -400px;
+}*/
+.modal-body {
+    max-height: 600px;
+    position: relative;
+    margin-top: 20px;
+}
+input {
+    min-width: 50px;
+}
+#id_groups_text {
+    margin-bottom: 0px;
+}
+#id_groups-deck .remove {
+    margin-top: 3px;
+}
+
+#filter-groups {
+    float: left;
+    margin-right: 4px;
+}
+#host-details-container {
+    margin: 0px 25px;
+    /*max-width: 800px;*/
+}
+
+#host-details-container table {
+    margin-bottom: 10px !important;
+}
+
+#host-details-container table tr th h5 {
+    margin: 0px;
+    font-size: 18px;
+}
+
+#host-details-container table tr th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#host-details-container table tr.active td {
+    background-color: #f5f5f5 !important;
+    color: #000;
+}
+
+#user-groups input.form-control {
+    display: block !important;
+    width: 230px !important;
+}
+
+#user-groups .oaction {
+    text-transform: capitalize;
+}
+
+.host-detail {
+    padding-top: 5px;
+    /*background-color: #eee;*/
+}
+.host-detail h3 {
+    margin: 5px 0px 0px 0px;
+}
+.well-white {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+@media screen and (max-width: 600px) {
+    #changelist-search {
+        float: left !important;
+        margin-top: 10px;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    #result_list td:nth-child(4),
+    #result_list th:nth-child(4),
+    #result_list td:nth-child(5),
+    #result_list th:nth-child(5),
+    #result_list td:nth-child(6),
+    #result_list th:nth-child(6) {
+        display: none;
+    }
+
+}
+
+@media screen and (max-width: 810px) {
+    .paginate_button:not(.first):not(.previous):not(.next):not(.last) {
+        display: none;
+    }
+
+    #result_list td:nth-child(7),
+    #result_list th:nth-child(7),
+    #result_list td:nth-child(8),
+    #result_list th:nth-child(8) {
+        display: none;
+    }
+
+    #search-help-button {
+        display: none;
+    }
+
+    #filter-owners {
+        display: none;
+    }
+
+    #host-action {
+        display: inline-block;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    #result_list td:nth-child(9),
+    #result_list th:nth-child(9) {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 980px) {
+    #id_search {
+        width: 200px !important;
+    }
+    #host-action {
+        width: 200px !important;
+    }
+}
+
+
+.dataTables_processing {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 60%;
+    height: 40px;
+    margin-left: -30%;
+    /*margin-right: 50%;*/
+    margin-top: -25px;
+    padding: 10px !important;
+    text-align: center;
+    font-size: 1.2em;
+    background-color: #eee;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}

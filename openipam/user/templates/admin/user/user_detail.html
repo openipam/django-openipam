@@ -1,0 +1,135 @@
+<div id="user-detail-name" class="hide">{{ user.get_full_name|capfirst }}</div>
+<div id="user-detail-href" class="hide">{% url 'admin:user_user_change' user.pk %}</div>
+<div id="user-details-container">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Personal Info</h3>
+		</div>
+		<div class="panel-body">
+			<table class="table">
+				<tbody>
+					<tr>
+						<th class="col-md-2 text-right">Username:</th>
+						<td>{{ user.username }}</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">First Name:</th>
+						<td>{{ user.first_name }}</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Last Name:</th>
+						<td>{{ user.last_name }}</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Email Address:</th>
+						<td>{{ user.email }}</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Active:</th>
+						<td>
+							{% if user.is_active %}
+								{{ img_yes|safe }}
+							{% else %}
+								{{ img_no|safe }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Staff status:</th>
+						<td>
+							{% if user.is_staff %}
+								{{ img_yes|safe }}
+							{% else %}
+								{{ img_no|safe }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Superuser status:</th>
+						<td>
+							{% if user.is_superuser %}
+								{{ img_yes|safe }}
+							{% else %}
+								{{ img_no|safe }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr>
+						<th class="col-md-2 text-right">Groups:</th>
+						<td>
+	                        {% for group in groups %}
+	                            <h4 style="display: inline-block;">
+	                                <span class="label label-primary" style="margin: 3px;">{{ group }}</span>
+	                            </h4>
+	                        {% endfor %}
+						</td>
+					</tr>
+				</tbody>
+
+			</table>
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Global Permissions</h3>
+		</div>
+		<div class="panel-body">
+			<table class="table table-striped table-condensed table-bordered">
+				<tbody>
+					<tr>
+						<th>Name</th>
+						<th>Permission</th>
+					</tr>
+					{% for permission in user.user_permissions.all %}
+					<tr>
+						<td>{{ permission.content_type.name|capfirst }}</td>
+						<td>{{ permission.name }}</td>
+					</tr>
+					{% endfor %}
+					{% for group in user.groups.all %}
+						{% for permission in group.permissions.all %}
+							<tr>
+								<td>{{ permission.content_type.name|capfirst }}</td>
+								<td>{{ permission.name }} (via group: {{ group }})</td>
+							</tr>
+						{% endfor %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Object Permissions</h3>
+		</div>
+		<div class="panel-body">
+			<table id="user-perms" class="table table-striped table-condensed table-bordered">
+				<thead>
+					<tr>
+						<th>Object</th>
+						<th>Name</th>
+						<th>Permission</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for permission in user_object_permissions %}
+						<tr>
+							<td>{{ permission.permission.content_type|capfirst }}</td>
+							<td>{{ permission.content_object }}</td>
+							<td>{{ permission.content_object }}</td>
+						</tr>
+					{% endfor %}
+					{% for permission in group_object_permissions %}
+						<tr>
+							<td>{{ permission.permission.content_type|capfirst }}</td>
+							<td>{{ permission.content_object }}</td>
+							<td>{{ permission.permission.name }} (via group: {{ permission.group.name }})</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
