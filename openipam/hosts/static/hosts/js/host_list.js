@@ -207,7 +207,7 @@ $(function(){
 		"infoCallback": function(settings, start, end, max, total, pre) {
 			if (total < max){
 				$("#filtered-label").show();
-				$(".search_init, #id_search").each(function(){
+				$(".search_init").each(function(){
 					if ($(this).val() != '') {
 						$(this).addClass('red-highlight');
 					}
@@ -227,65 +227,100 @@ $(function(){
 		else{page_bar.removeClass('fixed');}
 	}
 
-	$('#id_search').yourlabsAutocomplete({
-		url: '/api/web/IPAMSearchAutoComplete',
-		choiceSelector: '[data-value]',
-		minimumCharacters: 2,
-		values: [],
-		getQuery: function() {
-			var value = this.input.val();
-			return value;
-		},
-		refresh: function() {
-			var value = this.input.val();
-			var current_search = value.substr(value.lastIndexOf(':') + 1);
-			this.search_type = value.split(",");
-			this.search_type = this.search_type[this.search_type.length - 1].trim();
-			this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
+	// $('#id_search').yourlabsAutocomplete({
+	// 	url: '/api/web/IPAMUserSearchAutoComplete',
+	// 	choiceSelector: '[data-value]',
+	// 	minimumCharacters: 2,
+	// 	values: [],
+	// 	getQuery: function() {
+	// 		var value = this.input.val();
+	// 		return value;
+	// 	},
+	// 	refresh: function() {
+	// 		var value = this.input.val();
+	// 		var current_search = value.substr(value.lastIndexOf(':') + 1);
+	// 		this.search_type = value.split(",");
+	// 		this.search_type = this.search_type[this.search_type.length - 1].trim();
+	// 		this.search_type = this.search_type.substr(0, this.search_type.lastIndexOf(':') + 1);
 
-			var searches = ['user:', 'group:', 'net:']
-			var do_search = false;
+	// 		var searches = ['user:', 'group:', 'net:']
+	// 		var do_search = false;
 
-			if (searches.indexOf(this.search_type) != -1 && current_search != "") {
-				var do_search = true;
-				this.value = this.getQuery();
-			}
-			else {
-				this.hide();
-				do_search = false;
-			}
+	// 		if (searches.indexOf(this.search_type) != -1 && current_search != "") {
+	// 			var do_search = true;
+	// 			this.value = this.getQuery();
+	// 		}
+	// 		else {
+	// 			this.hide();
+	// 			do_search = false;
+	// 		}
 
-			if (do_search) {
-				// If the input doesn't contain enought characters then abort, else fetch.
-				current_search < this.minimumCharacters ? this.hide() : this.fetch();
-			}
-		},
-	}).input.bind('selectChoice', function(event, choice, autocomplete) {
-		var value = choice.attr('data-value');
-		autocomplete.values.pop();
-		autocomplete.values.push(value);
-		this.value = autocomplete.values.join(",");
-	});
+	// 		if (do_search) {
+	// 			// If the input doesn't contain enought characters then abort, else fetch.
+	// 			current_search < this.minimumCharacters ? this.hide() : this.fetch();
+	// 		}
+	// 	},
+	// }).input.bind('selectChoice', function(event, choice, autocomplete) {
+	// 	var value = choice.attr('data-value');
+	// 	autocomplete.values.pop();
+	// 	autocomplete.values.push(value);
+	// 	this.value = autocomplete.values.join(",");
+	// });
+
+	// $('#id_search').on('keyup selectChoice', function(){
+	// 	var value = $(this).val() ? $(this).val() : '';
+	// 	var autocomplete = $(this).yourlabsAutocomplete();
+	// 	autocomplete.values = value.split(",");
+
+	// 	// var displayFilters = function() {
+	// 	//  var search_values = value.split(",");
+	// 	//  console.log(search_values);
+	// 	//  $("#filters").html('');
+	// 	//  $.each(search_values, function(i, v){
+	// 	//      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
+	// 	//  });
+	// 	// }
+
+	// 	delay(function(){
+	// 		$.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
+	// 		results.clearPipeline().draw();
+	// 		// displayFilters();
+	// 	}, 300);
+	// });
+
+	// $('#changelist-form').on('keyup keypress', function(e) {
+	//   var code = e.keyCode || e.which;
+	//   if (code  == 13) {
+	// 	e.preventDefault();
+	// 	return false;
+	//   }
+	// });
+
+
 
 	$('#id_search').on('keyup selectChoice', function(){
-		var value = $(this).val() ? $(this).val() : '';
 		var autocomplete = $(this).yourlabsAutocomplete();
-		autocomplete.values = value.split(",");
 
-		// var displayFilters = function() {
-		//  var search_values = value.split(",");
-		//  console.log(search_values);
-		//  $("#filters").html('');
-		//  $.each(search_values, function(i, v){
-		//      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
-		//  });
-		// }
+		if (autocomplete.data.exclude) {
+			var value = autocomplete.data.exclude.join();
+			console.log(autocomplete.data.exclude);
+			//autocomplete.values = value.split(",");
 
-		delay(function(){
-			$.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
-			results.clearPipeline().draw();
-			// displayFilters();
-		}, 300);
+			// var displayFilters = function() {
+			//  var search_values = value.split(",");
+			//  console.log(search_values);
+			//  $("#filters").html('');
+			//  $.each(search_values, function(i, v){
+			//      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
+			//  });
+			// }
+
+			delay(function(){
+				$.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
+				results.clearPipeline().draw();
+				// displayFilters();
+			}, 300);
+		}
 	});
 
 	$('#changelist-form').on('keyup keypress', function(e) {
@@ -360,12 +395,24 @@ $(function(){
 			$.removeCookie('search_filter', {path: '/hosts/'});
 			$.removeCookie('owner_filter', {path: '/hosts/'});
 
+			$(".hilight").remove();
 			$("#owner-all").click();
 			$(".search_init").val('');
 			$("#id_search").val('');
 			$(".search_init, #id_search").removeClass('red-highlight');
 
 			results.clearPipeline().columns().search('').draw();
+		}
+	});
+
+	$('body').on('click', '.autocomplete-light-widget .deck .remove', function() {
+		var value = $(this).parent().attr('data-value');
+		var searchFilter = $.cookie('search_filter').split(',');
+		var toRemove = searchFilter.indexOf(value)
+		if (toRemove != -1) {
+			searchFilter.splice(toRemove, 1);
+			$.cookie('search_filter', searchFilter.join(), {expires: 1, path: '/hosts/'});
+			results.clearPipeline().draw();
 		}
 	});
 
