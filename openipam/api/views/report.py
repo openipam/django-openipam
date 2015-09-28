@@ -10,7 +10,7 @@ from django.db.models.aggregates import Count
 from django.http import HttpResponse
 
 from openipam.hosts.models import Host
-from openipam.report.models import Ports, Portsstate
+from openipam.report.models import Ports, Portsstate, database as observium_db
 from openipam.network.models import Network, Lease
 
 import qsstats
@@ -232,6 +232,9 @@ def subnet_data(request):
 @permission_classes((AllowAny,))
 def weather_data(request):
 
+    # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
+    observium_db.connect()
+
     data = OrderedDict({
         "MAIN-RPARK": {'id': [19299]},
         "MAIN-ED": {'id': [19298]},
@@ -277,6 +280,9 @@ def weather_data(request):
         del value['id']
 
     data["timestamp"] =  int(datetime.now().strftime('%s'))
+
+    if not observium_db.is_closed():
+        observium_db.close()
 
     return Response(data, status=status.HTTP_200_OK)
 
