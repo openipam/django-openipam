@@ -1,0 +1,244 @@
+{% extends "admin/base_site.html" %}
+{% load i18n crispy_forms_tags static %}
+
+{% block content_title %}
+	<h3 id="breadcrumb-title" class="pull-left">
+		User Manager
+	</h3>
+{% endblock %}
+
+
+{% block breadcrumbs %}
+	../../../|{% trans "Home" %}
+	../../|{% trans "Users" %}
+	*User Info
+{% endblock %}
+
+{% block extrastyle %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'user/css/user_manager.css' %}" type="text/css" />
+	<!--<link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />-->
+	<style type="text/css">
+		.modal.modal-wide .modal-dialog {
+		  width: 90% !important;
+		}
+		.modal-wide .modal-body {
+		  overflow-y: auto;
+		}
+	</style>
+{% endblock %}
+
+{% block extrahead %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
+	<script type="text/javascript" src="{% static 'core/js/bootstrap-waitingfor.js' %}"></script>
+	<script type="text/javascript" src="{% static 'chosen/chosen.jquery.min.js' %}"></script>
+	<!--<script type="text/javascript" src="{% static 'ajax-chosen/lib/ajax-chosen.min.js' %}"></script>-->
+	<script type="text/javascript" src="{% static 'user/js/user_manager.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<form id="changelist-form" action="" method="post" class="quickbody form-inline">
+	{% csrf_token %}
+	<div id="actions">
+		{% spaceless %}
+			{% if request.user.is_superuser %}
+			<div class="actions changelist-actions pull-left">
+				<div class="changelist-action" style="height: auto !important;">
+					<div class="action-wrapper">
+						<select id="user-action" name="action" class="form-control">
+							<option value="">Choose an action...</option>
+							<option value="">--------------</option>
+							<option value="assign_groups">Assign Groups to users</option>
+							<option value="remove_groups">Remove Groups from users</option>
+							<option value="assign_perms">Assign Object Permissions to users</option>
+							<option value="populate_user">Populate User from LDAP</option>
+						</select>
+						<button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+							<span class="glyphicon glyphicon-play"></span>
+							{% trans "Go" %}
+						</button>
+					</div>
+				</div>
+			</div>
+			{% endif %}
+
+			<div id="changelist-search" class="pull-right">
+				{% if request.GET|length == 0 %}
+					<span id="filtered-label" class="label label-primary pull-left">Records Filtered</span>
+				{% else %}
+					<span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
+				{% endif %}
+				<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
+				<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
+					<label>
+						<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" data-autocomplete-url="/api/web/IPAMUserSearchAutoComplete/" placeholder="Advanced Filter" class="form-control autocomplete" />
+					</label>
+				    <div style="margin-top: 5px; margin-right: 10px; z-index: 5;">
+						<span id="advanced-search-deck" class="deck">
+							{% for value in search_filter %}
+								<span data-value="{{ value }}" class="hilight">
+									{{ value }}
+								</span>
+							{% endfor %}
+						</span>
+				    </div>
+				    <span style="display:none" class="choice-template">
+				        <span class="choice prepend-remove append-option-html">
+				        </span>
+				    </span>
+					<span style="display:none" class="remove">
+				        ˣ
+				    </span>
+				</div>
+				<a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'user_manager' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+
+			</div>
+			<div id="search-help" class="help-content">
+				<div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
+				<strong>For advanced filters...</strong>
+				<p>Try these special query types:</p>
+				<pre>user:<em>username</em></pre>
+				<pre>group:<em>groupname</em></pre>
+				<pre>perm:<em>group or user permissions</em></pre>
+			</div>
+		{% endspaceless %}
+	</div>
+
+	<div class="results">
+		<table cellspacing="0" id="result_list" class="table table-striped table-condensed table-curved">
+			<thead>
+				<tr>
+					<th scope="col" class="action-checkbox-column">
+						<div class="text">
+							<span><input type="checkbox" id="action-toggle" /></span>
+						</div>
+						<div class="clear"></div>
+					</th>
+					<th scope="col">Username</th>
+					<th scope="col">Full Name</th>
+					<th scope="col">Email Address</th>
+					<th scope="col">Staff Status</th>
+					<th scope="col">Super User Status</th>
+					<th scope="col">IPAM Admin Status</th>
+					<th scope="col">Source</th>
+					<th scope="col">Last Login</th>
+				</tr>
+			</thead>
+			{% if request.GET|length == 0 %}
+			<tfoot>
+				<tr>
+					<th>&nbsp;</th>
+					<th>
+						<input type="text" id="s_username" rel="1" class="search_init form-control input-sm" placeholder="Search Username" style="max-width: 150px;" />
+					</th>
+					<th>
+						<input type="text" id="s_fullname" rel="2" class="search_init form-control input-sm" placeholder="Search Fullname" style="max-width: 150px;" />
+					</th>
+					<th>
+						<input type="text" id="s_email" rel="3" class="search_init form-control input-sm" placeholder="Search Email" style="max-width: 150px;" />
+					</th>
+					<th>
+						<select style="max-width: 80px;" id="s_staff" rel="4" class="filter_init search_init form-control input-sm">
+							<option value="">All</option>
+							<option value="1">Yes</option>
+							<option value="0">No</option>
+						</select>
+					</th>
+					<th>
+						<select style="max-width: 80px;" id="s_super" rel="5" class="filter_init search_init form-control input-sm">
+							<option value="">All</option>
+							<option value="1">Yes</option>
+							<option value="0">No</option>
+						</select>
+					</th>
+					<th>
+						<select style="max-width: 80px;" id="s_ipamadmin" rel="6" class="filter_init search_init form-control input-sm">
+							<option value="">All</option>
+							<option value="1">Yes</option>
+							<option value="0">No</option>
+						</select>
+					</th>
+					<th>
+						<select style="max-width: 80px;" id="s_source" rel="7" class="filter_init search_init form-control input-sm">
+							<option value="">All</option>
+							<option value="1">Internal</option>
+							<option value="0">LDAP</option>
+						</select>
+					</th>
+					<th>&nbsp;</th>
+				</tr>
+			</tfoot>
+			{% endif %}
+			<tbody>
+				<tr>
+					<td>&nbsp;</td>
+					<td colspan="8">Loading...</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div id="user-groups" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 class="modal-title"></h3>
+					</div>
+					<div class="modal-body" style="overflow: visible;">
+						<div>
+							{{ group_form|crispy }}
+						</div>
+						<div class="clear"><!-- --></div>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-primary" type="submit">Save</button>
+						<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="user-permissions" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 class="modal-title">Assign Object Perms for Users</h3>
+					</div>
+					<div class="modal-body" style="overflow: visible;">
+						<div>
+							{{ user_permission_form|crispy }}
+						</div>
+						<div class="clear"><!-- --></div>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-primary" type="submit">Save</button>
+						<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="user-details" class="modal fade modal-wide" tabindex="-1" role="dialog" aria-labelledby="user-detail-label" aria-hidden="true" style="display: none;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 class="modal-title" id="user-detail-label">Details for: </h3>
+					</div>
+					<div class="modal-body">Loading...</div>
+					<div class="modal-footer">
+						<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+						{% if request.user.is_ipamadmin %}
+							<a{% url 'admin:user_user_change' user.pk %} id="edit-user" class="btn btn-success">Edit User</a>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+{% endblock %}

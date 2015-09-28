@@ -132,7 +132,6 @@ $(function(){
 	var asInitVals = new Array();
 
 	var results = $("#result_list").DataTable({
-		//"responsive": true,
 		"processing": true,
 		"serverSide": true,
 		"ajax": $.fn.dataTable.pipeline({
@@ -143,11 +142,9 @@ $(function(){
 					$.each(d.columns, function(key, obj){
 						obj.search.value = (obj.name in $.urlVars) ? $.urlVars[obj.name] : '';
 					});
-					d.owner_filter = ('mine' in $.urlVars) ? $.urlVars['mine'] : '';
 					d.search_filter = ('q' in $.urlVars) ? $.urlVars['q'] : '';
 				}
 				else {
-					d.owner_filter = $.cookie('owner_filter');
 					d.search_filter = $.cookie('search_filter');
 				}
 				// We do this to work with the data better.
@@ -156,7 +153,7 @@ $(function(){
 			//type: "POST"
 		}),
 		"paging": true,
-		"lengthMenu": [10, 25, 50, 100, 250],
+		"lengthMenu": [25, 50, 100, 250],
 		"paginationType": "full_numbers",
 		"autoWidth": false,
 		"stateSave": true,
@@ -168,23 +165,24 @@ $(function(){
 		},
 		"stateLoaded": function (settings, data) {
 			//$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.columns[1].sSearch);
-			$("#s_host").val(data.columns[1].search.search);
-			$("#s_mac").val(data.columns[2].search.search);
-			$("#s_ip").val(data.columns[3].search.search);
-			$("#s_expires").val(data.columns[4].search.search);
-			$("#s_vendor").val(data.columns[5].search.search);
+			$("#s_username").val(data.columns[1].search.search);
+			$("#s_fullname").val(data.columns[2].search.search);
+			$("#s_email").val(data.columns[3].search.search);
+			$("#s_staff").val(data.columns[4].search.search);
+			$("#s_super").val(data.columns[5].search.search);
+			$("#s_ipamadmin").val(data.columns[6].search.search);
+			//$("#s_vendor").val(data.columns[5].search.search);
 		},
 		"columns": [
-			{ "name": "select", "orderable": false, "searchable": false  },
-			{ "name": "hostname", "orderable": true },
-			{ "name": "mac", "orderable": true },
-			{ "name": "expires", "orderable": true },
-			{ "name": "ip_address", "orderable": false },
-			{ "name": "vendor", "orderable": false },
-			{ "name": "mac_last_seen", "orderable": false, "searchable": false  },
-			{ "name": "ip_last_seen", "orderable": false, "searchable": false  },
-			{ "name": "dns_records", "orderable": false, "searchable": false  },
-			{ "name": "edit", "orderable": false, "searchable": false  },
+			{ "name": "select", "orderable": false, "searchable": false },
+			{ "name": "username", "orderable": true, "searchable": true },
+			{ "name": "fullname", "orderable": true, "searchable": true },
+			{ "name": "email", "orderable": true, "searchable": true },
+			{ "name": "staff", "orderable": false, "searchable": true },
+			{ "name": "superuser", "orderable": false, "searchable": true },
+			{ "name": "ipam_admin", "orderable": false, "searchable": true },
+			{ "name": "source", "orderable": true, "searchable": true },
+			{ "name": "last_login", "orderable": true, "searchable": false },
 		],
 		"drawCallback": function(settings) {
 			$("#result_list span.flagged").parents('tr').addClass('flagged');
@@ -206,12 +204,12 @@ $(function(){
 		},
 		"infoCallback": function(settings, start, end, max, total, pre) {
 			if (total < max){
-				$("#filtered-label").show();
-				$(".search_init").each(function(){
-					if ($(this).val() != '') {
-						$(this).addClass('red-highlight');
-					}
-				});
+				//$("#filtered-label").show();
+				// $(".search_init, #id_search").each(function(){
+				// 	if ($(this).val() != '') {
+				// 		$(this).addClass('red-highlight');
+				// 	}
+				// });
 				return "Showing " + start + " to " + end + " of " + total + " entries (filtered from " + max + " total entries)"
 			}
 			else {
@@ -228,7 +226,7 @@ $(function(){
 	}
 
 	// $('#id_search').yourlabsAutocomplete({
-	// 	url: '/api/web/IPAMUserSearchAutoComplete',
+	// 	url: '/api/web/IPAMSearchAutoComplete',
 	// 	choiceSelector: '[data-value]',
 	// 	minimumCharacters: 2,
 	// 	values: [],
@@ -260,51 +258,22 @@ $(function(){
 	// 			current_search < this.minimumCharacters ? this.hide() : this.fetch();
 	// 		}
 	// 	},
-	// }).input.bind('selectChoice', function(event, choice, autocomplete) {
-	// 	var value = choice.attr('data-value');
-	// 	autocomplete.values.pop();
-	// 	autocomplete.values.push(value);
-	// 	this.value = autocomplete.values.join(",");
 	// });
 
-	// $('#id_search').on('keyup selectChoice', function(){
-	// 	var value = $(this).val() ? $(this).val() : '';
-	// 	var autocomplete = $(this).yourlabsAutocomplete();
-	// 	autocomplete.values = value.split(",");
-
-	// 	// var displayFilters = function() {
-	// 	//  var search_values = value.split(",");
-	// 	//  console.log(search_values);
-	// 	//  $("#filters").html('');
-	// 	//  $.each(search_values, function(i, v){
-	// 	//      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
-	// 	//  });
-	// 	// }
-
-	// 	delay(function(){
-	// 		$.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
-	// 		results.clearPipeline().draw();
-	// 		// displayFilters();
-	// 	}, 300);
-	// });
-
-	// $('#changelist-form').on('keyup keypress', function(e) {
-	//   var code = e.keyCode || e.which;
-	//   if (code  == 13) {
-	// 	e.preventDefault();
-	// 	return false;
-	//   }
-	// });
-
-
+	// // .input.bind('selectChoice', function(event, choice, autocomplete) {
+	// // 	var value = choice.attr('data-value');
+	// // 	autocomplete.values.pop();
+	// // 	autocomplete.values.push(value);
+	// // 	this.value = autocomplete.values.join(",");
+	// // });
 
 	$('#id_search').on('keyup selectChoice', function(){
 		var autocomplete = $(this).yourlabsAutocomplete();
 
 		if (autocomplete.data.exclude) {
 			var value = autocomplete.data.exclude.join();
-			console.log(autocomplete.data.exclude);
 			//autocomplete.values = value.split(",");
+			console.log(autocomplete.data.exclude);
 
 			// var displayFilters = function() {
 			//  var search_values = value.split(",");
@@ -316,7 +285,7 @@ $(function(){
 			// }
 
 			delay(function(){
-				$.cookie('search_filter', value, {expires: 1, path: '/hosts/'});
+				$.cookie('search_filter', value, {expires: 1, path: '/user/'});
 				results.clearPipeline().draw();
 				// displayFilters();
 			}, 300);
@@ -331,57 +300,10 @@ $(function(){
 	  }
 	});
 
-	$("#changelist-filters-toggle").on('click', function() {
-		$("#changelist-filter-actions").toggle();
-		$(this).toggleClass('btn-inverse');
-	});
-
-	//Triger filtering on owners
-	$("#filter-owners button").on('click', function() {
-		if (!$(this).hasClass('btn-primary')) {
-			$.cookie('owner_filter', $(this).val(), {expires: 1, path: '/hosts/'});
-			if ($.isEmptyObject($.urlVars)) {
-				$("#filter-owners button").removeClass('btn-primary');
-				$(this).addClass('btn-primary');
-				results.clearPipeline().draw();
-				$(this).blur();
-			}
-			else {
-				location.href = '/hosts/';
-			}
-		}
-	});
-
-	$("#result_list").on('click', '.host-details', function() {
-		var a = $(this);
-		var tr = $(this).parents('tr')[0];
-		var row = results.row(tr);
-		var hostname = $(this).prop("rel");
-		var href = $(this).prop("href");
-		var edit_href = $(this).prop("id");
-		var detail_html = $(tr).next("tr").has("td.host-detail");
-
-		if (detail_html.length > 0) {
-			detail_html.toggle();
-			$(this).find('span').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-right');
-		}
-		else {
-			$.ajax({
-				url: href,
-				beforeSend: function() {
-					$("#result_list_processing").css('visibility', 'visible').show();
-				},
-				complete: function() {
-					$("#result_list_processing").css('visibility', 'hidden').hide();
-				},
-				success: function(data) {
-					a.find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
-					row.child(data, 'host-detail').show();
-				}
-			});
-		}
-		return false;
-	})
+	// $("#changelist-filters-toggle").on('click', function() {
+	// 	$("#changelist-filter-actions").toggle();
+	// 	$(this).toggleClass('btn-inverse');
+	// });
 
 	// JS Styling :/
 	$("div.header").append($("#actions"));
@@ -392,14 +314,12 @@ $(function(){
 	// Clear all filters logic
 	$("#clear-filters").on('click', function(e) {
 		if ($.isEmptyObject($.urlVars)) {
-			$.removeCookie('search_filter', {path: '/hosts/'});
-			$.removeCookie('owner_filter', {path: '/hosts/'});
+			$.removeCookie('search_filter', {path: '/user/'});
 
 			$(".hilight").remove();
-			$("#owner-all").click();
 			$(".search_init").val('');
 			$("#id_search").val('');
-			$(".search_init, #id_search").removeClass('red-highlight');
+			// $(".search_init, #id_search").removeClass('red-highlight');
 
 			results.clearPipeline().columns().search('').draw();
 		}
@@ -411,7 +331,7 @@ $(function(){
 		var toRemove = searchFilter.indexOf(value)
 		if (toRemove != -1) {
 			searchFilter.splice(toRemove, 1);
-			$.cookie('search_filter', searchFilter.join(), {expires: 1, path: '/hosts/'});
+			$.cookie('search_filter', searchFilter.join(), {expires: 1, path: '/user/'});
 			results.clearPipeline().draw();
 		}
 	});
@@ -459,33 +379,88 @@ $(function(){
 		}
 	});
 
+	$("#result_list").on('click', '.user-details', function() {
+		var a = $(this);
+		var tr = $(this).parents('tr')[0];
+		var row = results.row(tr);
+		var hostname = $(this).prop("rel");
+		var href = $(this).prop("href");
+		var edit_href = $(this).prop("id");
+		var detail_html = $(tr).next("tr").has("td.host-detail");
+
+		if (detail_html.length > 0) {
+			detail_html.toggle();
+			$(this).find('span').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-right');
+		}
+		else {
+			$.ajax({
+				url: href,
+				beforeSend: function() {
+					$("#result_list_processing").css('visibility', 'visible').show();
+				},
+				complete: function() {
+					$("#result_list_processing").css('visibility', 'hidden').hide();
+				},
+				success: function(data) {
+					//a.find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
+					//row.child(data, 'host-detail').show();
+					$('#user-details').modal();
+					$('#user-details .modal-body').html(data);
+					$('#user-detail-label').html('Details for: ' + $('#user-detail-name').html());
+					$('#edit-user').attr('href', $('#user-detail-href').html());
+					$('#user-details').on('shown.bs.modal', function(e) {
+						$('#user-perms').DataTable();
+					});
+				}
+			});
+		}
+		return false;
+	});
+
 	// Action submit logic
 	$("#action-submit").on('click', function() {
-		var action = $("#host-action").val();
-		var hosts = $(".action-select:checked");
+		var action = $("#user-action").val();
+		var users = $(".action-select:checked");
 
-		if (hosts.length > 0) {
+		if (users.length > 0) {
 			if (action == 'add-owners' || action == 'replace-owners' || action == 'remove-owners') {
 				$('#host-owners').modal();
 				$(".oaction").text(action.split('-')[0]);
 			}
-			else if (action == 'delete') {
-				var res = confirm("Are you sure you want to delete the selected hosts?")
-				if (res == true) {
-					return true;
-				}
+			else if (action == 'assign_groups') {
+				$('#user-groups .modal-title').html('Assign Groups for User(s)')
+				$('#user-groups').modal();
 			}
-			else if (action == 'renew') {
-				$('#host-renew').modal();
+			else if (action == 'remove_groups') {
+				$('#user-groups .modal-title').html('Remove Groups for User(s)')
+				$('#user-groups').modal();
 			}
-			else if (action == 'address') {
-				//
+			else if (action == 'assign_perms') {
+				$('#user-permissions').modal();
+			}
+			else if (action == 'populate_user') {
+				return true;
 			}
 		}
 		else {
-			alert('Please select one or more hosts to perform this action.')
+			alert('Please select one or more users to perform this action.')
 		}
 
 		return false;
 	});
+
+	// $("#s_group").chosen();
+	// $("#s_group").ajaxChosen({
+	//     type: 'GET',
+	//     url: '/api/groups/options/',
+	//     dataType: 'json'
+	// }, function (data) {
+	//     var results = [];
+
+	//     $.each(data, function (i, val) {
+	//         results.push({ value: val.value, text: val.text });
+	//     });
+
+	//     return results;
+	// });
 });

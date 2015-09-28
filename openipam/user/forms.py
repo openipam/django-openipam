@@ -124,6 +124,23 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
         exclude = ('content_type', 'object_pk')
 
 
+class GroupForm(forms.Form):
+    groups = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete')
+
+
+class UserObjectPermissionForm(UserObjectPermissionAdminForm):
+    permission = PermissionModelChoiceField(
+        queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
+        label='Permission',
+        empty_label='Select A Permssion'
+    )
+    object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
+
+    class Meta:
+        model = UserObjectPermission
+        exclude = ('content_type', 'object_pk', 'user')
+
+
 class TokenForm(forms.ModelForm):
     user = autocomplete_light.ModelChoiceField('UserAutocomplete')
 

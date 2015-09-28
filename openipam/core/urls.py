@@ -15,7 +15,7 @@ urlpatterns = patterns('openipam.core.views',
     #url(r'^accounts/logout/$', logout, name='auth_logout'),
     #url(r'^accounts/profile/$', 'profile', name='profile'),
 
-    # Hosts
+    # API
     url(r'^api/', include('openipam.api.urls')),
 
     # Hosts
@@ -23,6 +23,9 @@ urlpatterns = patterns('openipam.core.views',
 
     # DNS
     url(r'^dns/', include('openipam.dns.urls')),
+
+    # User
+    url(r'^user/', include('openipam.user.urls')),
 
     # USU Reports and Tools
     url(r'^reports/', include('openipam.report.urls')),
