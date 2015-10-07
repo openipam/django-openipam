@@ -463,7 +463,9 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
         owner_filter = self.request.COOKIES.get('owner_filter', None)
         context['owner_filter'] = self.request.GET.get('mine', owner_filter)
-        context['search_filter'] = urlunquote(self.request.COOKIES.get('search_filter', ''))
+        search_filter = self.request.COOKIES.get('search_filter')
+        search_filter = urlunquote(search_filter).split(',') if search_filter else []
+        context['search_filter'] = search_filter
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
 
