@@ -133,21 +133,3 @@ input {
         width: 200px !important;
     }
 }
-
-
-.dataTables_processing {
-    position: absolute !important;
-    top: 64px !important;
-    left: 20px !important;
-    width: 200px;
-    height: 40px;
-    /*margin-left: -30%;*/
-    /*margin-right: 50%;*/
-    /*margin-top: -25px;*/
-    padding: 10px !important;
-    text-align: center;
-    font-size: 1.2em;
-    background-color: #fcf8e3;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}

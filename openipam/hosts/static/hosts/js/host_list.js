@@ -303,7 +303,6 @@ $(function(){
 
 		if (autocomplete.data.exclude) {
 			var value = autocomplete.data.exclude.join();
-			console.log(autocomplete.data.exclude);
 			//autocomplete.values = value.split(",");
 
 			// var displayFilters = function() {
