@@ -224,3 +224,16 @@ div.DTFC_LeftBodyWrapper tbody tr:first-child td {
 div.DTFC_LeftFootWrapper table {
     border-top: none;
 }
+
+.dataTables_processing {
+    position: relative !important;
+    top: 0px !important;
+    left: 20px !important;
+    width: 200px;
+    padding: 5px 10px !important;
+    text-align: center;
+    font-size: 1.2em;
+    background-color: #fcf8e3;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
