@@ -2,6 +2,10 @@
 {
     margin-right: 5px;
 }
+#advanced-search {
+    max-width: 300px;
+    margin-right: 5px;
+}
 #advanced-search label
 {
     margin-bottom: 0px;
@@ -561,7 +565,7 @@
     font-size: 11.844px;
     font-weight: bold;
     line-height: 12px;
-    margin-bottom: 5px;
+    margin-top: 5px;
     margin-right: 3px;
     moz-border-radius: 3px;
     padding: 6px 6px 6px 4px !important;

@@ -98,7 +98,7 @@
 							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" data-autocomplete-url="/api/web/IPAMSearchAutoComplete/" placeholder="Search by Users, Groups and Networks" class="form-control autocomplete" />
 							{# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #}
 						</label>
-						<div style="margin-top: 5px; margin-right: 10px; z-index: 5;">
+						<div style="margin-right: 10px; z-index: 5;">
 							<span id="advanced-search-deck" class="deck">
 								{% for value in search_filter %}
 									<span data-value="{{ value }}" class="hilight">
@@ -218,28 +218,26 @@
 				</tbody>
 			</table>
 
-			{% if request.user.is_ipamadmin %}
-				<div id="host-owners" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
-					<div class="modal-dialog">
-						<div class="modal-content">
-							<div class="modal-header">
-								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-								<h3 class="modal-title"><span class="oaction"></span> Owners for selected hosts</h3>
+			<div id="host-owners" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title"><span class="oaction"></span> Owners for selected hosts</h3>
+						</div>
+						<div class="modal-body" style="overflow: visible;">
+							<div>
+								{{ owners_form|crispy }}
 							</div>
-							<div class="modal-body" style="overflow: visible;">
-								<div>
-									{{ owners_form|crispy }}
-								</div>
-								<div class="clear"><!-- --></div>
-							</div>
-							<div class="modal-footer">
-								<button class="btn btn-primary" type="submit">Save</button>
-								<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-							</div>
+							<div class="clear"><!-- --></div>
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-primary" type="submit">Save</button>
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
 						</div>
 					</div>
 				</div>
-			{% endif %}
+			</div>
 
 			<div id="host-renew" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
 				<div class="modal-dialog">
