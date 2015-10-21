@@ -56,7 +56,7 @@ class Ports(BaseModel):
     pagppartnerifindex = IntegerField(db_column='pagpPartnerIfIndex', null=True)
     pagppartnerlearnmethod = CharField(db_column='pagpPartnerLearnMethod', max_length=16, null=True)
     pagpportstate = CharField(db_column='pagpPortState', max_length=16, null=True)
-    portname = CharField(db_column='portName', max_length=128, null=True)
+    #portname = CharField(db_column='portName', max_length=128, null=True)
     port_64bit = IntegerField(null=True)
     port_descr_circuit = CharField(max_length=255, null=True)
     port_descr_descr = CharField(max_length=255, null=True)
