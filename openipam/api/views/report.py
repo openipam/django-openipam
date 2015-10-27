@@ -108,7 +108,7 @@ def subnet_data(request):
             else:
                 child['size_width'] = (32 - 4 - network.prefixlen) ** 1.5 * 20 + 50
 
-        lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] else 1.1)
+        lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] is not None else 1.1)
 
         if request.accepted_renderer.format == 'html':
             context = {
