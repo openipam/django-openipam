@@ -91,7 +91,7 @@ def subnet_data(request):
 
             if 'usage' in item:
                 child['ratio'] = get_ratio(item['usage']['available'], item['usage']['dynamic'])
-                child['utilized'] = int((1 - child['ratio']) * 100) if child['ratio'] else 0
+                child['utilized'] = int((1 - child['ratio']) * 100) if child['ratio'] is not None else 0
             else:
                 child['ratio'] = 1
                 child['utilized'] = 0
