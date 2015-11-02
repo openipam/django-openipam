@@ -257,7 +257,8 @@
                     {% if request.user.is_ipamadmin %}
                         {% url 'add_hosts' as add_url %}
                         {% url 'add_hosts_bulk' as add_url_bulk %}
-                        {% if request.get_full_path = add_url or request.get_full_path = add_url_bulk %}
+                        {% url 'add_hosts_new' as add_url_new %}
+                        {% if request.get_full_path = add_url or request.get_full_path = add_url_bulk or request.get_full_path = add_url_new %}
                             <input type="submit" name="_add" value="Save and add another" class="btn btn-success" data-toggle="modal" data-target="#processing-modal" />
                         {% endif %}
                         <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info"  />
