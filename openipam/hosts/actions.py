@@ -5,8 +5,8 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
 
-from openipam.hosts.models import Host, Disabled
-from openipam.hosts.forms import HostOwnerForm, HostRenewForm
+from openipam.hosts.models import Host, Disabled, Attribute, StructuredAttributeToHost, FreeformAttributeToHost
+from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm
 
 
 def assign_owner_hosts(request, selected_hosts, add_only=False):
@@ -187,3 +187,72 @@ def change_perms_check(user, selected_hosts):
         if host not in host_perms_qs:
             return False
     return True
+
+
+def add_attribute_to_hosts(request, selected_hosts):
+    user = request.user
+    attribute_form = HostAttributesCreateForm(data=request.POST)
+
+    # Must have global change perm or object owner perm
+    if not user.has_perm('hosts.change_host') and not change_perms_check(user, selected_hosts):
+        messages.error(request, "You do not have permissions to perform this action one or more of the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        if attribute_form.is_valid():
+            for host in selected_hosts:
+
+                attribute = attribute_form.cleaned_data['add_attribute']
+
+                if attribute.structured:
+                    StructuredAttributeToHost.objects.create(
+                        host=host,
+                        structured_attribute_value=attribute_form.cleaned_data['choice_value'],
+                        changed_by=user
+                    )
+                else:
+                    FreeformAttributeToHost.objects.create(
+                        host=host,
+                        attribute=attribute,
+                        value=attribute_form.cleaned_data['text_value'],
+                        changed_by=user
+                    )
+
+            messages.success(request, "Attributes for selected hosts have been added.")
+
+        else:
+            assert False, attribute_form.__dict__
+            error_list = []
+            for key, errors in attribute_form.errors.items():
+                for error in errors:
+                    error_list.append(error)
+            messages.error(request, mark_safe("There was an error adding attributes to the selected hosts. "
+                    "<br/>%s" % '<br />'.join(error_list)))
+
+
+def delete_attribute_from_host(request, selected_hosts):
+    user = request.user
+    attribute_form = HostAttributesDeleteForm(data=request.POST)
+
+    # Must have global change perm or object owner perm
+    if not user.has_perm('hosts.change_host') and not change_perms_check(user, selected_hosts):
+        messages.error(request, "You do not have permissions to perform this action one or more of the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+
+        if attribute_form.is_valid():
+            for host in selected_hosts:
+
+                attribute = attribute_form.cleaned_data['del_attribute']
+
+                if attribute.structured:
+                    StructuredAttributeToHost.objects.filter(
+                        host=host,
+                        structured_attribute_value__attribute=attribute
+                    ).delete()
+                else:
+                    FreeformAttributeToHost.objects.filter(
+                        host=host,
+                        attribute=attribute,
+                    ).delete()
+            messages.success(request, "Attributes for selected hosts have been deleted.")
+

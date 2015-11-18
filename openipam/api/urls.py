@@ -18,6 +18,7 @@ urlpatterns = patterns('openipam.api.views',
     #url(r'^', include(router.urls)),
 
     url(r'^web/networkselects/(?P<address_type_id>\d+)$', 'web.network_selects', name='api_network_select'),
+    url(r'^web/structuredattributevalues/(?P<attribute_id>\d+)$', 'web.structured_attribute_selects', name='api_structured_attribute_select'),
     url(r'^web/', include('autocomplete_light.urls')),
 
     #Reports

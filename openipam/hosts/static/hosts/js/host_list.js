@@ -371,7 +371,7 @@ $(function(){
 					$("#result_list_processing").css('visibility', 'visible').show();
 				},
 				complete: function() {
-					$("#result_list_processing").css('visibility', 'hidden').hide();
+					$("#result_list_processing").css('visibility', 'hidden	').hide();
 				},
 				success: function(data) {
 					a.find('span').removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
@@ -458,6 +458,22 @@ $(function(){
 		}
 	});
 
+	$("#div_id_text_value, #div_id_choice_value").hide();
+
+	$("#id_add_attribute").on('change', function() {
+		$.get("/api/web/structuredattributevalues/" + $(this).val(), function(data){
+			if (data.trim()) {
+				$("#id_choice_value").html(data);
+				$("#div_id_text_value").hide();
+				$("#div_id_choice_value").show();
+			}
+			else {
+				$("#div_id_choice_value").hide();
+				$("#div_id_text_value").show();
+			}
+		});
+	});
+
 	// Action submit logic
 	$("#action-submit").on('click', function() {
 		var action = $("#host-action").val();
@@ -479,6 +495,12 @@ $(function(){
 			}
 			else if (action == 'address') {
 				//
+			}
+			else if (action == 'add-attributes') {
+				$('#host-add-attributes').modal();
+			}
+			else if (action == 'delete-attributes') {
+				$('#host-delete-attributes').modal();
 			}
 		}
 		else {

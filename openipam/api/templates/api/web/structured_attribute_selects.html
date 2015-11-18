@@ -1,0 +1,6 @@
+{% if structured_attribute_values %}
+<option value selected="selected">---------</option>
+	{% for value in structured_attribute_values %}
+	<option value="{{ value.pk }}">{{ value.value }}</option>
+	{% endfor %}
+{% endif %}

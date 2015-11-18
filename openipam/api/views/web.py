@@ -6,8 +6,10 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 from rest_framework.permissions import IsAuthenticated
 
 from openipam.network.models import Network, AddressType, NetworkRange
+from openipam.hosts.models import StructuredAttributeValue
 
 from guardian.shortcuts import get_objects_for_user
+
 
 @api_view(('GET',))
 @permission_classes((IsAuthenticated,))
@@ -29,3 +31,15 @@ def network_selects(request, address_type_id, use_permissions=True):
         data['networks'] = networks
 
     return Response(data, template_name='api/web/network_selects.html')
+
+
+@api_view(('GET',))
+@permission_classes((IsAuthenticated,))
+@renderer_classes((TemplateHTMLRenderer,))
+def structured_attribute_selects(request, attribute_id, use_permissions=True):
+    data = {}
+
+    structured_attribute_values = StructuredAttributeValue.objects.filter(attribute__pk=attribute_id)
+    data['structured_attribute_values'] = structured_attribute_values
+
+    return Response(data, template_name='api/web/structured_attribute_selects.html')

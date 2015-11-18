@@ -27,10 +27,12 @@ from django.db import transaction
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
-from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm
+from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
+    HostAttributesDeleteForm
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Address
-from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts
+from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
+    delete_attribute_from_host
 from openipam.conf.ipam_settings import CONFIG
 
 from netaddr.core import AddrFormatError
@@ -170,7 +172,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         '''
                     else:
                         omni_sql = '''
-                            SELECT hosts.mac from hosts
+                            SELECT hosts.mac from <hosts>   </hosts>
                                 WHERE hosts.mac::text LIKE %(lsearch)s OR hosts.hostname LIKE %(lsearch)s
 
                             UNION
@@ -468,6 +470,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context['search_filter'] = search_filter
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
+        context['attribute_add_from'] = HostAttributesCreateForm()
+        context['attribute_delete_from'] = HostAttributesDeleteForm()
 
         return context
 
@@ -494,6 +498,11 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 delete_hosts(request, selected_hosts)
             elif action == 'renew':
                 renew_hosts(request, selected_hosts)
+            elif action == 'add-attributes':
+                add_attribute_to_hosts(request, selected_hosts)
+            elif action == 'delete-attributes':
+                delete_attribute_from_host(request, selected_hosts)
+
 
         return redirect('list_hosts')
 

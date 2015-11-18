@@ -580,3 +580,13 @@ class ExpirationTypeAdminForm(forms.ModelForm):
     class Meta:
         model = ExpirationType
         fields = ('expiration',)
+
+
+class HostAttributesCreateForm(forms.Form):
+    add_attribute = forms.ModelChoiceField(queryset=Attribute.objects.all())
+    text_value = forms.CharField(label='Value', required=False)
+    choice_value = forms.ModelChoiceField(label='Value', required=False, queryset=StructuredAttributeValue.objects.all())
+
+
+class HostAttributesDeleteForm(forms.Form):
+    del_attribute = forms.ModelChoiceField(queryset=Attribute.objects.all())
