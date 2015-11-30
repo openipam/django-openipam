@@ -73,7 +73,8 @@ class NetworkAdmin(ChangedAdmin):
 
         if form.is_valid():
             # Update primary key
-            new_network = Network.objects.filter(pk=network).update(pk=form.cleaned_data['network'])
+            new_network_rows = Network.objects.filter(network=network).update(network=form.cleaned_data['network'])
+            new_network = Network.objects.filter(network=form.cleaned_data['network']).first()
 
             addresses = []
             existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=new_network.pk)]
