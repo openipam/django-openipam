@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 from netaddr import IPNetwork
 
@@ -96,6 +97,11 @@ class NetworkAdmin(ChangedAdmin):
                         )
                     )
             Address.objects.bulk_create(addresses)
+
+            messages.success(
+                request,
+                'Network: %s was successfully increased.' % new_network.network
+            )
 
             return redirect('../')
 
