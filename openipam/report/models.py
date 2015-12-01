@@ -4,7 +4,7 @@ from peewee import *
 
 
 database = MySQLDatabase(
-    'observium', **{
+    'librenms', **{
         'passwd': settings.OBSERVIUM_AUTH[1],
         'host': '129.123.1.20',
         'user': settings.OBSERVIUM_AUTH[0]
