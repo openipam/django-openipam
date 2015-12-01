@@ -10,7 +10,7 @@ from django.db.models.aggregates import Count
 from django.http import HttpResponse
 
 from openipam.hosts.models import Host
-from openipam.report.models import Ports, Portsstate, database as observium_db
+from openipam.report.models import Ports, database as observium_db
 from openipam.network.models import Network, Lease
 
 import qsstats
@@ -247,8 +247,8 @@ def weather_data(request):
         "SER-ASTE": {'id': [450]},
         "SER-HOUS": {'id': [453]},
         "SER-BR": {'id': [445]},
-        "BR-UEN-A": {'id': [1150]},
-        "BR-UEN-B": {'id': [1152]},
+        "BR-UEN-A": {'id': [1152]},
+        "BR-UEN-B": {'id': [1150]},
         "SER-BR-BYP": {'id': [552]},
         "SER-BR-SEC": {'id': [457]},
         "CORE-SER": {'id': [1236, 1192]},
@@ -260,9 +260,13 @@ def weather_data(request):
     for k, v in data.items():
         all_ports.extend(v['id'])
 
+    # ports = (
+    #     Ports.select(Ports, Portsstate)
+    #         .join(Portsstate, on=(Portsstate.port == Ports.port).alias('portstate'))
+    #         .where(Ports.port << all_ports)
+    # )
     ports = (
-        Ports.select(Ports, Portsstate)
-            .join(Portsstate, on=(Portsstate.port == Ports.port).alias('portstate'))
+        Ports.select(Ports)
             .where(Ports.port << all_ports)
     )
 
@@ -270,10 +274,10 @@ def weather_data(request):
         for key, value in data.items():
             for portid in value['id']:
                 if port.port == portid:
-                    value['A'] = value.get('A', 0) + port.portstate.ifoutoctets_rate * 8
-                    value['Z'] = value.get('Z', 0) + port.portstate.ifinoctets_rate * 8
+                    value['A'] = value.get('A', 0) + port.ifoutoctets_rate * 8
+                    value['Z'] = value.get('Z', 0) + port.ifinoctets_rate * 8
                     value['speed'] = value.get('speed', 0) + port.ifspeed if port.ifspeed else 0
-                    value['timestamp'] = port.portstate.poll_time
+                    value['timestamp'] = port.poll_time
                     value['poll_frequency'] = 300
 
     for key, value in data.items():
