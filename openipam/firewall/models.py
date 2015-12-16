@@ -50,7 +50,7 @@ class ChainPatternLog(LogBase, ChainPatternBase):
 class ChainBase(models.Model):
     name = models.CharField(max_length=24)
     tbl = models.ForeignKey('Tables', db_column='tbl', blank=True, null=True)
-    builtin = models.BooleanField()
+    builtin = models.BooleanField(default=False)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
     def __unicode__(self):
@@ -127,7 +127,7 @@ class HostBase(models.Model):
     owner = models.ForeignKey('Users', db_column='owner')
     description = models.CharField(max_length=2048, blank=True, null=True)
     host_end = models.TextField(blank=True, null=True)  # This field type is a guess.
-    is_group = models.NullBooleanField()
+    is_group = models.BooleanField(default=False)
     last_check = models.DateTimeField()
 
     def __unicode__(self):
@@ -243,7 +243,7 @@ class ProtosLog(LogBase, ProtosBase):
 class RealInterfaceBase(models.Model):
     name = models.CharField(max_length=32)
     pseudo = models.ForeignKey(Interface, db_column='pseudo')
-    is_bridged = models.BooleanField()
+    is_bridged = models.BooleanField(default=False)
     firewall = models.ForeignKey(Firewall)
 
     class Meta:
@@ -288,7 +288,7 @@ class RuleBase(models.Model):
     target = models.ForeignKey(Chain, db_column='target', related_name='%(class)s_target')
     additional = models.CharField(max_length=2048, blank=True, null=True)
     ord = models.IntegerField()
-    enabled = models.BooleanField()
+    enabled = models.BooleanField(default=False)
     description = models.CharField(max_length=2048, blank=True, null=True)
     expires = models.DateTimeField(blank=True, null=True)
     created_for = models.ForeignKey('Users', db_column='created_for')
