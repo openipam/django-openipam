@@ -4,9 +4,9 @@ from peewee import *
 
 
 database = MySQLDatabase(
-    'observium', **{
+    'librenms', **{
         'passwd': settings.OBSERVIUM_AUTH[1],
-        'host': 'observium.usu.edu',
+        'host': '129.123.1.20',
         'user': settings.OBSERVIUM_AUTH[0]
     }
 )
@@ -57,46 +57,46 @@ class Ports(BaseModel):
     pagppartnerlearnmethod = CharField(db_column='pagpPartnerLearnMethod', max_length=16, null=True)
     pagpportstate = CharField(db_column='pagpPortState', max_length=16, null=True)
     #portname = CharField(db_column='portName', max_length=128, null=True)
-    port_64bit = IntegerField(null=True)
+    #port_64bit = IntegerField(null=True)
     port_descr_circuit = CharField(max_length=255, null=True)
     port_descr_descr = CharField(max_length=255, null=True)
     port_descr_notes = CharField(max_length=255, null=True)
     port_descr_speed = CharField(max_length=32, null=True)
     port_descr_type = CharField(max_length=255, null=True)
     port = PrimaryKeyField(db_column='port_id')
-    port_label = CharField(max_length=255)
+    #port_label = CharField(max_length=255)
+    #iferrors_rate = IntegerField(db_column='ifErrors_rate')
+    #ifinerrors = BigIntegerField(db_column='ifInErrors')
+    #ifinerrors_delta = IntegerField(db_column='ifInErrors_delta')
+    #ifinerrors_rate = IntegerField(db_column='ifInErrors_rate')
+    ifinoctets = BigIntegerField(db_column='ifInOctets')
+    ifinoctets_delta = BigIntegerField(db_column='ifInOctets_delta')
+    # ifinoctets_perc = IntegerField(db_column='ifInOctets_perc')
+    ifinoctets_rate = BigIntegerField(db_column='ifInOctets_rate')
+    # ifinucastpkts = BigIntegerField(db_column='ifInUcastPkts')
+    # ifinucastpkts_delta = IntegerField(db_column='ifInUcastPkts_delta')
+    # ifinucastpkts_rate = IntegerField(db_column='ifInUcastPkts_rate')
+    # ifoctets_rate = BigIntegerField(db_column='ifOctets_rate')
+    # ifouterrors = BigIntegerField(db_column='ifOutErrors')
+    # ifouterrors_delta = IntegerField(db_column='ifOutErrors_delta')
+    # ifouterrors_rate = IntegerField(db_column='ifOutErrors_rate')
+    ifoutoctets = BigIntegerField(db_column='ifOutOctets')
+    ifoutoctets_delta = BigIntegerField(db_column='ifOutOctets_delta')
+    #ifoutoctets_perc = IntegerField(db_column='ifOutOctets_perc')
+    ifoutoctets_rate = BigIntegerField(db_column='ifOutOctets_rate')
+    # ifoutucastpkts = BigIntegerField(db_column='ifOutUcastPkts')
+    # ifoutucastpkts_delta = IntegerField(db_column='ifOutUcastPkts_delta')
+    # ifoutucastpkts_rate = IntegerField(db_column='ifOutUcastPkts_rate')
+    # ifucastpkts_rate = IntegerField(db_column='ifUcastPkts_rate')
+    poll_period = IntegerField()
+    poll_time = IntegerField()
 
     class Meta:
         db_table = 'ports'
 
 
-class Portsstate(BaseModel):
-    iferrors_rate = IntegerField(db_column='ifErrors_rate')
-    ifinerrors = BigIntegerField(db_column='ifInErrors')
-    ifinerrors_delta = IntegerField(db_column='ifInErrors_delta')
-    ifinerrors_rate = IntegerField(db_column='ifInErrors_rate')
-    ifinoctets = BigIntegerField(db_column='ifInOctets')
-    ifinoctets_delta = BigIntegerField(db_column='ifInOctets_delta')
-    ifinoctets_perc = IntegerField(db_column='ifInOctets_perc')
-    ifinoctets_rate = BigIntegerField(db_column='ifInOctets_rate')
-    ifinucastpkts = BigIntegerField(db_column='ifInUcastPkts')
-    ifinucastpkts_delta = IntegerField(db_column='ifInUcastPkts_delta')
-    ifinucastpkts_rate = IntegerField(db_column='ifInUcastPkts_rate')
-    ifoctets_rate = BigIntegerField(db_column='ifOctets_rate')
-    ifouterrors = BigIntegerField(db_column='ifOutErrors')
-    ifouterrors_delta = IntegerField(db_column='ifOutErrors_delta')
-    ifouterrors_rate = IntegerField(db_column='ifOutErrors_rate')
-    ifoutoctets = BigIntegerField(db_column='ifOutOctets')
-    ifoutoctets_delta = BigIntegerField(db_column='ifOutOctets_delta')
-    ifoutoctets_perc = IntegerField(db_column='ifOutOctets_perc')
-    ifoutoctets_rate = BigIntegerField(db_column='ifOutOctets_rate')
-    ifoutucastpkts = BigIntegerField(db_column='ifOutUcastPkts')
-    ifoutucastpkts_delta = IntegerField(db_column='ifOutUcastPkts_delta')
-    ifoutucastpkts_rate = IntegerField(db_column='ifOutUcastPkts_rate')
-    ifucastpkts_rate = IntegerField(db_column='ifUcastPkts_rate')
-    poll_period = IntegerField()
-    poll_time = IntegerField()
-    port = PrimaryKeyField(db_column='port_id')
+# class Portsstate(BaseModel):
+#     port = PrimaryKeyField(db_column='port_id')
 
-    class Meta:
-        db_table = 'ports-state'
+#     class Meta:
+#         db_table = 'ports-state'
