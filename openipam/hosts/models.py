@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_delete, post_save
+from django.db import connection
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 
@@ -618,7 +619,11 @@ class Host(DirtyFieldsMixin, models.Model):
 
     def set_mac_address(self, new_mac_address):
         if self.pk and self.pk.lower() != str(new_mac_address).lower():
-            Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
+            cursor = connection.cursor()
+            cursor.execute('''
+                UPDATE host SET mac = %s WHERE mac = %s
+            ''', [new_mac_address, self.mac])
+            #Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
             self.pk = str(new_mac_address).lower()
         elif not self.pk:
             self.pk = str(new_mac_address).lower()
@@ -845,6 +850,7 @@ class Host(DirtyFieldsMixin, models.Model):
         permissions = (
             ('is_owner_host', 'Is owner'),
         )
+        default_permissions = ('add', 'change', 'delete', 'view',)
         ordering = ('hostname',)
 
 
