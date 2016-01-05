@@ -622,7 +622,7 @@ class Host(DirtyFieldsMixin, models.Model):
             cursor = connection.cursor()
             cursor.execute('''
                 UPDATE host SET mac = %s WHERE mac = %s
-            ''', [new_mac_address, self.mac])
+            ''', [str(new_mac_address), str(self.mac)])
             #Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
             self.pk = str(new_mac_address).lower()
         elif not self.pk:
