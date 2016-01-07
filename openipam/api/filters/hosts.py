@@ -14,6 +14,15 @@ from netaddr import AddrFormatError
 User = get_user_model()
 
 
+class DisabledFlagFilter(NumberFilter):
+    def filter(self, qs, value):
+        if value == 1:
+            qs = qs.filter(disabled_host__isnull=False)
+        elif value == 0:
+            qs = qs.filter(disabled_host__isnull=True)
+        return qs
+
+
 class IsExpiredFilter(NumberFilter):
     def filter(self, qs, value):
         if value == 1:
@@ -83,6 +92,7 @@ class HostFilter(FilterSet):
     user = UserFilter()
     ip_address = IPFilter()
     attribute = AttributeFilter()
+    disabled = DisabledFlagFilter()
 
     class Meta:
         model = Host

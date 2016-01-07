@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import GuestTicket, Host
 from openipam.network.models import AddressType, Pool
+from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers.guests import GuestDeleteSerializer, GuestTicketListCreateSerializer, GuestRegisterSerializer
 from openipam.api.filters.guests import GuestTicketFilter
 from openipam.api.permissions import IPAMGuestEnablePermission
@@ -23,8 +24,7 @@ class GuestTicketList(generics.ListAPIView):
     queryset = GuestTicket.objects.select_related().all()
     filter_class = GuestTicketFilter
     serializer_class = GuestTicketListCreateSerializer
-    paginate_by = 50
-    max_paginate_by = 5000
+    pagination_class = APIMaxPagination
 
     def list(self, request, *args, **kwargs):
         if not request.user.is_ipamadmin:
@@ -32,7 +32,7 @@ class GuestTicketList(generics.ListAPIView):
         return super(GuestTicketList, self).list(request, *args, **kwargs)
 
     def get_paginate_by(self, queryset=None):
-        #assert False, self.max_paginate_by
+        # assert False, self.max_paginate_by
         param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
         if param and param == '0':
             return self.max_paginate_by

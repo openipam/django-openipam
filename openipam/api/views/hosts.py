@@ -11,31 +11,18 @@ from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import pagination
 
-from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, StructuredAttributeValue
+from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, \
+    StructuredAttributeValue, Disabled
 from openipam.network.models import Lease
+from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
-from openipam.api.permissions import IPAMChangeHostPermission
+from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission
 
 from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
-
-
-class HostResultsPagination(pagination.LimitOffsetPagination):
-    default_limit = 50
-    limit_query_param = 'limit'
-    max_limit = 5000
-
-    def get_limit(self, request):
-        ret = super(HostResultsPagination, self).get_limit(request)
-        if ret == 0:
-            return self.max_limit
-
-        return ret
-
 
 
 class HostList(generics.ListAPIView):
@@ -59,15 +46,16 @@ class HostList(generics.ListAPIView):
     """
 
     permission_classes = (IsAuthenticated,)
-    queryset = Host.objects.prefetch_related('addresses', 'leases', 'pools').select_related('disabled_host').all()
+    queryset = (
+        Host.objects.prefetch_related('addresses', 'leases', 'pools')
+        .select_related('disabled_host', 'disabled_host__changed_by').all()
+    )
     serializer_class = host_serializers.HostListSerializer
-    pagination_class = HostResultsPagination
+    pagination_class = APIMaxPagination
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
-    #paginate_by = 50
-    #max_paginate_by = 5000
 
     # def get_paginate_by(self, queryset=None):
     #     #assert False, self.max_paginate_by
@@ -330,7 +318,6 @@ class HostOwnerAdd(APIView):
                 for group in groups:
                     assign_perm('hosts.is_owner_host', group, host)
 
-
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -513,3 +500,11 @@ class HostDeleteAttribute(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class DisabledHostList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    serializer_class = host_serializers.DisabledHostSerializer
+    queryset = Disabled.objects.select_related('changed_by').all()
+    pagination_class = APIPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('changed_by__username',)

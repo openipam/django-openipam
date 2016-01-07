@@ -31,7 +31,7 @@ from collections import OrderedDict
 @api_view(('GET',))
 @permission_classes((AllowAny,))
 @renderer_classes((BrowsableAPIRenderer, TemplateHTMLRenderer, JSONRenderer,))
-#@cache_page(60)
+# @cache_page(60)
 def subnet_data(request):
     network_blocks = request.REQUEST.get('network_blocks')
     network_tags = request.REQUEST.get('network_tags')
@@ -181,7 +181,7 @@ def subnet_data(request):
             network = IPNetwork(item['network'])
             child = item
 
-            #else:
+            # else:
             #    child['style'] = '#00ff00'
 
             if 'usage' in item:
@@ -189,7 +189,7 @@ def subnet_data(request):
             else:
                 child['ratio'] = 1
 
-            #if key is not None:
+            # if key is not None:
             if 'ratio' in item:
                 child['style'] = color(child['ratio'])
             else:

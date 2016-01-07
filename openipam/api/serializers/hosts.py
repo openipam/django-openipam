@@ -7,7 +7,7 @@ from django.core.serializers import serialize
 
 from rest_framework import serializers
 
-from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue
+from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, Disabled
 from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 from openipam.api.serializers.base import MACAddressField, IPAddressField, ListOrItemField
 
@@ -30,6 +30,7 @@ class HostMacSerializer(serializers.ModelSerializer):
 class HostListSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
+    disabled_flag = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(HostListSerializer, self).__init__(*args, **kwargs)
@@ -65,10 +66,24 @@ class HostListSerializer(serializers.ModelSerializer):
         rows = dictfetchall(c)
         return rows
 
+    def get_disabled_flag(self, obj):
+        disabled_host = getattr(obj, 'disabled_host', False)
+        if disabled_host:
+            return {
+                'status': True,
+                'reason': disabled_host.reason,
+                'changed_by': disabled_host.changed_by.get_full_name(),
+                'changed': disabled_host.changed,
+            }
+        else:
+            return {
+                'status': False,
+            }
+
     class Meta:
         model = Host
         fields = ('mac', 'hostname', 'expires', 'expire_days', 'addresses', 'master_ip_address',
-                  'description', 'is_disabled', 'is_dynamic', 'attributes')
+                  'description', 'is_disabled', 'is_dynamic', 'attributes', 'disabled_flag')
 
 
 class HostDetailSerializer(serializers.ModelSerializer):
@@ -76,6 +91,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     address_type = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
+    disabled_flag = serializers.SerializerMethodField()
 
     def get_owners(self, obj):
         users, groups = obj.get_owners(owner_detail=True)
@@ -126,10 +142,24 @@ class HostDetailSerializer(serializers.ModelSerializer):
         rows = dictfetchall(c)
         return rows
 
+    def get_disabled_flag(self, obj):
+        disabled_host = getattr(obj, 'disabled_host', False)
+        if disabled_host:
+            return {
+                'status': True,
+                'reason': disabled_host.reason,
+                'changed_by': disabled_host.changed_by.get_full_name(),
+                'changed': disabled_host.changed,
+            }
+        else:
+            return {
+                'status': False,
+            }
+
     class Meta:
         model = Host
         fields = ('mac', 'hostname', 'address_type', 'expires', 'expire_days', 'is_dynamic', 'description', 'owners',
-                  'addresses', 'master_ip_address', 'attributes',)
+                  'addresses', 'master_ip_address', 'attributes', 'disabled_flag',)
 
 
 class HostCreateUpdateSerializer(serializers.ModelSerializer):
@@ -396,3 +426,14 @@ class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructuredAttributeValue
+
+
+class DisabledHostSerializer(serializers.ModelSerializer):
+    changed_by = serializers.SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
+
+    class Meta:
+        model = Disabled
+        fields = ('host', 'reason', 'changed_by')

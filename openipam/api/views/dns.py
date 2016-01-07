@@ -4,6 +4,7 @@ from rest_framework import filters
 from rest_framework.permissions import AllowAny
 
 from openipam.dns.models import Domain, DnsRecord
+from openipam.api.views.base import APIPagination
 from openipam.api.filters.dns import DomainFilter
 from openipam.api.serializers.dns import DomainNameSerializer, DomainSerializer
 
@@ -15,8 +16,7 @@ class DomainNameList(generics.ListAPIView):
     fields = ('name',)
     filter_fields = ('name', 'username')
     filter_class = DomainFilter
-    paginate_by = 50
-    paginate_by_param = 'limit'
+    pagination_class = APIPagination
 
 
 class DomainList(generics.ListAPIView):
@@ -24,7 +24,4 @@ class DomainList(generics.ListAPIView):
     serializer_class = DomainSerializer
     filter_fields = ('name', 'username')
     filter_class = DomainFilter
-    paginate_by = 50
-    paginate_by_param = 'limit'
-
-
+    pagination_class = APIPagination
