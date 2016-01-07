@@ -618,15 +618,15 @@ class Host(DirtyFieldsMixin, models.Model):
         self.expires = self.expires.replace(tzinfo=utc)
 
     def set_mac_address(self, new_mac_address):
-        if self.pk and self.pk.lower() != str(new_mac_address).lower():
+        if self.mac and self.mac.lower() != str(new_mac_address).lower():
             cursor = connection.cursor()
             cursor.execute('''
                 UPDATE hosts SET mac = %s WHERE mac = %s
             ''', [str(new_mac_address), str(self.mac)])
             #Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
-            self.pk = str(new_mac_address).lower()
+            self.mac = str(new_mac_address).lower()
         elif not self.pk:
-            self.pk = str(new_mac_address).lower()
+            self.mac = str(new_mac_address).lower()
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
