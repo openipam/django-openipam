@@ -18,7 +18,7 @@ from openipam.network.models import Lease
 from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
-from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission
+from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission, IPAMAPIPermission
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -490,7 +490,7 @@ class HostDeleteAttribute(APIView):
                         host=host,
                         structured_attribute_value__attribute=attr
                     ).delete()
-                # Add freeform attributes
+                # Add freeform AttributeListSerializer
                 else:
                     FreeformAttributeToHost.objects.filter(
                         host=host,
@@ -502,9 +502,25 @@ class HostDeleteAttribute(APIView):
 
 
 class DisabledHostList(generics.ListCreateAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    serializer_class = host_serializers.DisabledHostSerializer
-    queryset = Disabled.objects.select_related('changed_by').all()
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    serializer_class = host_serializers.DisabledHostListUpdateSerializer
+    queryset = Disabled.objects.select_related('changed_by__username').all()
     pagination_class = APIPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('changed_by__username',)
+
+
+class DisabledHostCreate(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    queryset = Disabled.objects.select_related('changed_by__username').all()
+    serializer_class = host_serializers.DisabledHostListUpdateSerializer
+
+
+class DisabledHostDelete(generics.DestroyAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    queryset = Disabled.objects.all()
+    serializer_class = host_serializers.DisabledHostDeleteSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+

@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.db import connection
 from django.utils import timezone
 from django.core.serializers import serialize
+from django.core.exceptions import ValidationError
 
 from rest_framework import serializers
 
@@ -16,6 +17,8 @@ from guardian.shortcuts import get_users_with_perms, get_groups_with_perms, get_
 from netaddr.core import AddrFormatError
 
 from ast import literal_eval
+
+from collections import OrderedDict
 
 User = get_user_model()
 
@@ -428,12 +431,44 @@ class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
         model = StructuredAttributeValue
 
 
-class DisabledHostSerializer(serializers.ModelSerializer):
-    changed_by = serializers.SerializerMethodField()
+class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
+    host = MACAddressField()
+    changed_by = serializers.CharField()
+    mac = serializers.SerializerMethodField()
+
+    def to_representation(self, obj):
+        ret = super(DisabledHostListUpdateSerializer, self).to_representation(obj)
+        ret['changed_by'] = '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
+        return ret
+
+    def validate_host(self, value):
+        try:
+            host = Host.objects.filter(mac=value).first()
+            if not host:
+                raise serializers.ValidationError('No Host found from MAC address entered.')
+        except ValidationError as e:
+                raise serializers.ValidationError(str(e.message))
+        return host
+
+    def validate_changed_by(self, value):
+        changed_by = User.objects.filter(username=value).first()
+        if not changed_by:
+            raise serializers.ValidationError('No User found from username entered.')
+        return changed_by
+
+    def get_mac(self, obj):
+        return obj.pk
 
     def get_changed_by(self, obj):
         return '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
 
     class Meta:
         model = Disabled
-        fields = ('host', 'reason', 'changed_by')
+        fields = ('host', 'mac', 'reason', 'changed_by')
+
+
+class DisabledHostDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Disabled
+        fields = ('host',)
+

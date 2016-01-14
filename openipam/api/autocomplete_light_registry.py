@@ -400,11 +400,10 @@ autocomplete_light.register(Permission,
 
 class AddressAvailableAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
     search_fields = ['^address']
-    attrs = {'placeholder': 'Search Networks'}
+    attrs = {'placeholder': 'Search Addresses'}
 
     def __init__(self, *args, **kwargs):
         super(AddressAvailableAutocomplete, self).__init__(*args, **kwargs)
-
         user_pools = get_objects_for_user(
             self.request.user,
             ['network.add_records_to_pool', 'network.change_pool'],
@@ -415,7 +414,6 @@ class AddressAvailableAutocomplete(BugAutocompleteFix, autocomplete_light.Autoco
             ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
             any_perm=True
         )
-
         self.choices = Address.objects.filter(
             Q(pool__in=user_pools) | Q(pool__isnull=True),
             Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),

@@ -52,6 +52,8 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^hosts/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/delete/$', hosts.HostDelete.as_view(), name='api_host_delete'),
     url(r'^hosts/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/$', hosts.HostDetail.as_view(), name='api_host_view'),
     url(r'^hosts/add/$', hosts.HostCreate.as_view(), name='api_host_add'),
+    url(r'^hosts/disabled/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/delete/$', hosts.DisabledHostDelete.as_view(), name='api_disabled_hosts_delete'),
+    url(r'^hosts/disabled/add/$', hosts.DisabledHostCreate.as_view(), name='api_disabled_hosts_add'),
     url(r'^hosts/disabled/$', hosts.DisabledHostList.as_view(), name='api_disabled_hosts_list'),
     url(r'^hosts/$', hosts.HostList.as_view(), name='api_host_list'),
 
