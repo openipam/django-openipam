@@ -7,7 +7,6 @@ from openipam.api.views import guests
 from openipam.api.views import dns
 from openipam.api.views import report
 from rest_framework_jwt.views import obtain_jwt_token
-from rest_framework.routers import DefaultRouter
 
 # router = DefaultRouter()
 # router.register('hosts2', HostViewSet)
