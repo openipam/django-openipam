@@ -111,6 +111,7 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
+    'admin_tools.template_loaders.Loader',
 )
 
 LOCAL_MIDDLEWARE_CLASSES = locals().pop('LOCAL_MIDDLEWARE_CLASSES', ())
@@ -253,8 +254,8 @@ LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 25,
-    'PAGINATE_BY_PARAM': 'limit',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 25,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
