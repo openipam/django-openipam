@@ -135,6 +135,10 @@
 {
     list-style: none;
 }
+#navigation-menu li a
+{
+    text-transform: capitalize;
+}
 #new-interface-list
 {
     margin: normal !important;
