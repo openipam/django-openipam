@@ -16,10 +16,6 @@ from guardian.shortcuts import get_users_with_perms, get_groups_with_perms, get_
 
 from netaddr.core import AddrFormatError
 
-from ast import literal_eval
-
-from collections import OrderedDict
-
 User = get_user_model()
 
 
