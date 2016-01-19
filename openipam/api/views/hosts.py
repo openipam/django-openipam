@@ -502,7 +502,7 @@ class HostDeleteAttribute(APIView):
 
 
 class DisabledHostList(generics.ListCreateAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
     queryset = Disabled.objects.select_related('changed_by__username').all()
     pagination_class = APIPagination
@@ -511,13 +511,13 @@ class DisabledHostList(generics.ListCreateAPIView):
 
 
 class DisabledHostCreate(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     queryset = Disabled.objects.select_related('changed_by__username').all()
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
 
 
 class DisabledHostDelete(generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     queryset = Disabled.objects.all()
     serializer_class = host_serializers.DisabledHostDeleteSerializer
 
