@@ -286,7 +286,7 @@ class DnsRecord(models.Model):
                     error_list.append('Trying to create CNAME record while other records exist: %s' % records[0].name)
             # not CNAME
             else:
-                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5)
+                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5).exclude(pk=self.pk)
                 if records:
                     error_list.append('Trying to create record while CNAME record exists:  %s' % records[0].name)
 
@@ -345,6 +345,7 @@ class DnsRecord(models.Model):
     class Meta:
         db_table = 'dns_records'
         ordering = ('dns_type', 'name')
+        default_permissions = ('add', 'change', 'delete', 'view',)
         verbose_name = 'DNS Record'
 
 
