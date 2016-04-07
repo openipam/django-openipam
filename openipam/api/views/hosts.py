@@ -11,6 +11,9 @@ from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+
+from rest_framework_csv.renderers import CSVRenderer
 
 from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, \
     StructuredAttributeValue, Disabled
@@ -23,6 +26,13 @@ from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermi
 from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
+
+
+class HostCSVRenderer(CSVRenderer):
+    header = ['hostname', 'mac', 'master_ip_address', 'expires']
+    def render(self, data, media_type=None, renderer_context={}, writer_opts=None):
+        data = data['results']
+        return super(HostCSVRenderer, self).render(data, media_type, renderer_context, writer_opts)
 
 
 class HostList(generics.ListAPIView):
@@ -46,6 +56,7 @@ class HostList(generics.ListAPIView):
     """
 
     permission_classes = (IsAuthenticated,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, HostCSVRenderer,)
     queryset = (
         Host.objects.prefetch_related('addresses', 'leases', 'pools')
         .select_related('disabled_host', 'disabled_host__changed_by').all()

@@ -71,14 +71,18 @@ def subnet_data(request):
         # Convert a number in the range [0,1] to an HTML color code
         if ratio is None:
             return '#77f'
-        if ratio < 0: ratio = 0
-        if ratio > 1: ratio = 1
+        if ratio < 0:
+            ratio = 0
+        if ratio > 1:
+            ratio = 1
 
         r = ratio * 2.0 - 1
         g = ratio * 2.0
 
-        if r < 0.0: r = 0.0
-        if g > 1.0: g = 1.0
+        if r < 0.0:
+            r = 0.0
+        if g > 1.0:
+            g = 1.0
 
         rgb = ((1-r) * 255, g * 255, 0)
         color = "#%02x%02x%02x" % rgb
@@ -265,10 +269,7 @@ def weather_data(request):
     #         .join(Portsstate, on=(Portsstate.port == Ports.port).alias('portstate'))
     #         .where(Ports.port << all_ports)
     # )
-    ports = (
-        Ports.select(Ports)
-            .where(Ports.port << all_ports)
-    )
+    ports = Ports.select(Ports).where(Ports.port << all_ports)
 
     for port in ports:
         for key, value in data.items():
@@ -283,7 +284,7 @@ def weather_data(request):
     for key, value in data.items():
         del value['id']
 
-    data["timestamp"] =  int(datetime.now().strftime('%s'))
+    data["timestamp"] = int(datetime.now().strftime('%s'))
 
     if not observium_db.is_closed():
         observium_db.close()
@@ -298,8 +299,8 @@ def host_stats(request):
 
     hosts = Host.objects.all()
     hosts_stats = qsstats.QuerySetStats(hosts, 'changed', aggregate=Count('mac'))
-    #users = User.objects.all()
-    #users_stats = qsstats.QuerySetStats(users, 'date_joined')
+    # users = User.objects.all()
+    # users_stats = qsstats.QuerySetStats(users, 'date_joined')
 
     xdata = ['Today', 'This Week', 'This Month']
     ydata = [hosts_stats.this_day(), hosts_stats.this_week(), hosts_stats.this_month()]
@@ -332,8 +333,8 @@ def lease_stats(request):
 
     leases = Lease.objects.all()
     lease_stats = qsstats.QuerySetStats(leases, 'starts', aggregate=Count('address'))
-    #users = User.objects.all()
-    #users_stats = qsstats.QuerySetStats(users, 'date_joined')
+    # users = User.objects.all()
+    # users_stats = qsstats.QuerySetStats(users, 'date_joined')
 
     xdata = ['Today', 'This Week', 'This Month']
     ydata = [lease_stats.this_day(), lease_stats.this_week(), lease_stats.this_month()]
@@ -391,5 +392,4 @@ def render_lease_chart(request, network):
                 f.write(chunk)
             f.seek(0)
             return HttpResponse(f, content_type='image/png')
-
 
