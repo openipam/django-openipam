@@ -56,7 +56,7 @@ class HostList(generics.ListAPIView):
     """
 
     permission_classes = (IsAuthenticated,)
-    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, HostCSVRenderer,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer,)
     queryset = (
         Host.objects.prefetch_related('addresses', 'leases', 'pools')
         .select_related('disabled_host', 'disabled_host__changed_by').all()
