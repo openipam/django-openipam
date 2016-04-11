@@ -61,7 +61,7 @@ class GuestRegister(APIView):
     permission_classes = (AllowAny, IPAMGuestEnablePermission)
 
     def post(self, request, format=None, **kwargs):
-        serializer = GuestRegisterSerializer(data=request.DATA)
+        serializer = GuestRegisterSerializer(data=request.data)
 
         if serializer.is_valid():
             hostname_prefix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[0]
