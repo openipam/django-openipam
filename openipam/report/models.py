@@ -4,9 +4,9 @@ from peewee import *
 
 
 database = MySQLDatabase(
-    'librenmsdb', **{
+    'librenms', **{
         'passwd': settings.OBSERVIUM_AUTH[1],
-        'host': '129.123.1.20',
+        'host': '129.123.1.51',
         'user': settings.OBSERVIUM_AUTH[0]
     }
 )
