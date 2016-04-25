@@ -9,6 +9,7 @@ from django.db.models.signals import pre_delete, post_save
 from django.db import connection
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
+from django.contrib.contenttypes.models import ContentType
 
 from netfields import InetAddressField, MACAddressField, NetManager
 from netaddr.core import AddrFormatError
@@ -18,6 +19,7 @@ from djorm_pgfulltext.models import SearchManager
 
 from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
     get_groups_with_perms, remove_perm, assign_perm
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from openipam.core.mixins import DirtyFieldsMixin
 from openipam.hosts.validators import validate_hostname
@@ -163,7 +165,7 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
+    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
     stopstamp = models.DateTimeField()
 
@@ -270,19 +272,39 @@ class Host(DirtyFieldsMixin, models.Model):
     def owners(self):
         return self.get_owners()
 
-    def get_owners(self, ids_only=False, name_only=False, owner_detail=False, users_only=False):
-        users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
-        groups_dict = get_groups_with_perms(self, attach_perms=True)
+    def get_owners(self, ids_only=False, name_only=False, owner_detail=False, users_only=False, user_perms_prefetch=None, group_perms_prefetch=None):
+        # users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
+        # groups_dict = get_groups_with_perms(self, attach_perms=True)
+        content_type = ContentType.objects.get_for_model(self)
 
         users = []
-        for user, permissions in users_dict.iteritems():
-            if 'is_owner_host' in permissions:
-                users.append(user)
+        if user_perms_prefetch:
+            user_perms = filter(lambda x: x.object_pk == str(self.mac) and x.permission.codename == 'is_owner_host', user_perms_prefetch)
+        else:
+            user_perms = UserObjectPermission.objects.filter(
+                content_type=content_type, object_pk=str(self.mac), permission__codename='is_owner_host'
+            )
+        for perm in user_perms:
+            users.append(perm.user)
 
         groups = []
-        for group, permissions in groups_dict.iteritems():
-            if 'is_owner_host' in permissions:
-                groups.append(group)
+        if group_perms_prefetch:
+            group_perms = filter(lambda x: x.object_pk == str(self.mac) and x.permission.codename == 'is_owner_host', group_perms_prefetch)
+        else:
+            group_perms = GroupObjectPermission.objects.filter(
+                content_type=content_type, object_pk=str(self.mac), permission__codename='is_owner_host'
+            )
+        for perm in group_perms:
+            groups.append(perm.group)
+
+        # for user, permissions in users_dict.iteritems():
+        #    if 'is_owner_host' in permissions:
+        #        users.append(user)
+
+        # groups = []
+        # for group, permissions in groups_dict.iteritems():
+        #    if 'is_owner_host' in permissions:
+        #        groups.append(group)
 
         if users_only:
             User = get_user_model()
@@ -618,7 +640,7 @@ class Host(DirtyFieldsMixin, models.Model):
         self.expires = self.expires.replace(tzinfo=utc)
 
     def set_mac_address(self, new_mac_address):
-        if self.mac and self.mac.lower() != str(new_mac_address).lower():
+        if self.mac and str(self.mac).lower() != str(new_mac_address).lower():
             cursor = connection.cursor()
             cursor.execute('''
                 UPDATE hosts SET mac = %s WHERE mac = %s
