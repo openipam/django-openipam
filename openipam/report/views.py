@@ -6,11 +6,14 @@ from django.contrib.auth.decorators import permission_required
 from django.utils import timezone
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.contrib.contenttypes.models import ContentType
 
 from datetime import timedelta
 
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
 from openipam.network.models import Network, NetworkRange, AddressType
+
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import qsstats
 
@@ -75,9 +78,7 @@ def disabled_hosts(request):
                 host__disabled_host__isnull=False,
                 stopstamp__gt=timezone.now() - timedelta(minutes=10),
             )
-            .exclude(
-                host__leases__ends__lt=timezone.now()
-            )
+            .exclude(host__leases__ends__lt=timezone.now())
             .extra(where=["NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')"])
     )
 
@@ -86,3 +87,8 @@ def disabled_hosts(request):
     }
 
     return render(request, 'report/disabled.html', context)
+
+
+def server_hosts(request):
+    context = {}
+    return render(request, 'report/server_hosts.html', context)

@@ -8,5 +8,6 @@ urlpatterns = patterns('openipam.report.views',
     url(r'^leases/available/$', 'leases_available', name='reports_leases_available'),
     url(r'^weathermap/$', 'weather_map', name='reports_weather_map'),
     url(r'^disabled/$', 'disabled_hosts', name='reports_disabled'),
+    url(r'^server_hosts/$', 'server_hosts', name='reports_server_hosts'),
     url(r'^$', 'overview', name='reports_dashboard'),
 )
