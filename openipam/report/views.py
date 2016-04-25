@@ -24,18 +24,15 @@ import requests
 import operator
 
 
-class DashboardView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
+class DashboardView(TemplateView):
     template_name = 'report/dashboard.html'
 
 
-class LeaseUsageView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
+class LeaseUsageView(TemplateView):
     template_name = 'report/lease_usage.html'
 
 
-class WeatherMapView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
+class WeatherMapView(TemplateView):
     template_name = 'report/weather_map.html'
 
     def get_context_data(self, **kwargs):
