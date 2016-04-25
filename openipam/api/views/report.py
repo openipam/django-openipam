@@ -397,15 +397,12 @@ def render_lease_chart(request, network):
             return HttpResponse(f, content_type='image/png')
 
 
-# class ServerHostCSVRenderer(CSVRenderer):
-#     header = ['hostname', 'mac', 'master_ip_address', 'expires']
-#     def render(self, data, media_type=None, renderer_context={}, writer_opts=None):
-#         data = data['results']
-#         return super(ServerHostCSVRenderer, self).render(data, media_type, renderer_context, writer_opts)
+class ServerHostCSVRenderer(CSVRenderer):
+    header = ['hostname', 'mac', 'description', 'master_ip_address', 'user_owners', 'group_owners']
 
 
 @api_view(('GET',))
-@renderer_classes((BrowsableAPIRenderer, JSONRenderer, CSVRenderer))
+@renderer_classes((BrowsableAPIRenderer, JSONRenderer, ServerHostCSVRenderer))
 def server_hosts(request):
     hosts = (
         Host.objects
@@ -429,16 +426,15 @@ def server_hosts(request):
     for host in hosts:
         owners = host.get_owners(name_only=True, user_perms_prefetch=user_perms_prefetch, group_perms_prefetch=group_perms_prefetch)
         data.append({
+            'hostname': host.hostname,
+            'mac': str(host.mac),
+            'description': host.description,
+            'master_ip_address': host.master_ip_address,
             'user_owners': ', '.join(owners[0]),
             'group_owners': ', '.join(owners[1]),
-            'description': host.description,
-            'mac': str(host.mac),
-            'master_ip_address': host.master_ip_address,
-            'hostname': host.hostname
         })
 
     if request.accepted_renderer.format == 'json':
         return Response({"data": data}, status=status.HTTP_200_OK)
     else:
         return Response(data, status=status.HTTP_200_OK)
-
