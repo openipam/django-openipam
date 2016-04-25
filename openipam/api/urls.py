@@ -21,6 +21,7 @@ urlpatterns = patterns('openipam.api.views',
     url(r'^web/', include('autocomplete_light.urls')),
 
     #Reports
+    url(r'^reports/serverhosts/$', report.server_hosts, name='api_reports_server_hosts'),
     url(r'^reports/subnetdata/$', report.subnet_data, name='api_reports_subnet_data'),
     url(r'^reports/weatherdata/$', report.weather_data, name='api_reports_weather_data'),
     url(r'^reports/hoststats/$', report.host_stats, name='api_reports_host_stats'),

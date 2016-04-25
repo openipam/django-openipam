@@ -5,13 +5,18 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRenderer, BrowsableAPIRenderer
 from rest_framework.exceptions import APIException, ValidationError
 
+from rest_framework_csv.renderers import CSVRenderer
+
 from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
+from django.contrib.contenttypes.models import ContentType
 
 from openipam.hosts.models import Host
 from openipam.report.models import Ports, database as observium_db
 from openipam.network.models import Network, Lease
+
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import qsstats
 
@@ -33,10 +38,10 @@ from collections import OrderedDict
 @renderer_classes((BrowsableAPIRenderer, TemplateHTMLRenderer, JSONRenderer,))
 # @cache_page(60)
 def subnet_data(request):
-    network_blocks = request.REQUEST.get('network_blocks')
-    network_tags = request.REQUEST.get('network_tags')
-    by_router = request.REQUEST.get('by_router')
-    exclude_free = request.REQUEST.get('exclude_free')
+    network_blocks = request.GET.get('network_blocks')
+    network_tags = request.GET.get('network_tags')
+    by_router = request.GET.get('by_router')
+    exclude_free = request.GET.get('exclude_free')
 
     if network_blocks:
         show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
@@ -50,7 +55,7 @@ def subnet_data(request):
         lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
     else:
         lease_data = requests.get('https://gul.usu.edu/subnetparser.py?format=json',
-            auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
+                                  auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
 
     try:
         lease_data = lease_data.json()
@@ -84,7 +89,7 @@ def subnet_data(request):
         if g > 1.0:
             g = 1.0
 
-        rgb = ((1-r) * 255, g * 255, 0)
+        rgb = ((1 - r) * 255, g * 255, 0)
         color = "#%02x%02x%02x" % rgb
         return color
 
@@ -99,7 +104,6 @@ def subnet_data(request):
             else:
                 child['ratio'] = 1
                 child['utilized'] = 0
-
 
             if 'ratio' in item:
                 child['style'] = color(child['ratio'])
@@ -142,7 +146,7 @@ def subnet_data(request):
         {'router': 'airport.gw.usu.edu', 'color': '#9f9', },
         {'router': 'dmz-a.gw.usu.edu', 'color': '#70a7b0', },
         {'router': 'dmz-b.gw.usu.edu', 'color': '#70a7b0', },
-        #{'router': '.gw.usu.edu', 'color': '#9f9', },
+        # {'router': '.gw.usu.edu', 'color': '#9f9', },
         {'router': 'aste.gw.usu.edu', 'color': '#f99', },
         {'router': 'brigham.gw.usu.edu', 'color': '#9f9', },
         {'router': 'ceu.gw.usu.edu', 'color': '#99f', },
@@ -167,7 +171,6 @@ def subnet_data(request):
         #         router['style'] = _color[0]['color']
         # else:
         #     router['style'] = '#00ff00'
-
 
         # second_child = {
         #     'name': 'smaller',
@@ -392,4 +395,50 @@ def render_lease_chart(request, network):
                 f.write(chunk)
             f.seek(0)
             return HttpResponse(f, content_type='image/png')
+
+
+# class ServerHostCSVRenderer(CSVRenderer):
+#     header = ['hostname', 'mac', 'master_ip_address', 'expires']
+#     def render(self, data, media_type=None, renderer_context={}, writer_opts=None):
+#         data = data['results']
+#         return super(ServerHostCSVRenderer, self).render(data, media_type, renderer_context, writer_opts)
+
+
+@api_view(('GET',))
+@renderer_classes((BrowsableAPIRenderer, JSONRenderer, CSVRenderer))
+def server_hosts(request):
+    hosts = (
+        Host.objects
+            .prefetch_related('addresses', 'pools')
+            .filter(structured_attributes__structured_attribute_value__attribute__name='border-profile',
+                    structured_attributes__structured_attribute_value__value='server')
+    )
+
+    user_perms_prefetch = UserObjectPermission.objects.select_related('permission__codename', 'user__username').filter(
+        content_type=ContentType.objects.get_for_model(Host),
+        object_pk__in=[str(host.mac) for host in hosts],
+        permission__codename='is_owner_host'
+    )
+    group_perms_prefetch = GroupObjectPermission.objects.select_related('permission__codename', 'group__name').filter(
+        content_type=ContentType.objects.get_for_model(Host),
+        object_pk__in=[str(host.mac) for host in hosts],
+        permission__codename='is_owner_host'
+    )
+
+    data = []
+    for host in hosts:
+        owners = host.get_owners(name_only=True, user_perms_prefetch=user_perms_prefetch, group_perms_prefetch=group_perms_prefetch)
+        data.append({
+            'user_owners': ', '.join(owners[0]),
+            'group_owners': ', '.join(owners[1]),
+            'description': host.description,
+            'mac': str(host.mac),
+            'master_ip_address': host.master_ip_address,
+            'hostname': host.hostname
+        })
+
+    if request.accepted_renderer.format == 'json':
+        return Response({"data": data}, status=status.HTTP_200_OK)
+    else:
+        return Response(data, status=status.HTTP_200_OK)
 

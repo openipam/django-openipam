@@ -60,7 +60,7 @@ class HostListSerializer(serializers.ModelSerializer):
         c.execute('''
             SELECT name, value from attributes_to_hosts
                 WHERE mac = %s
-        ''', [obj.mac])
+        ''', [str(obj.mac)])
 
         rows = dictfetchall(c)
         return rows
@@ -136,7 +136,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
         c.execute('''
             SELECT name, value from attributes_to_hosts
                 WHERE mac = %s
-        ''', [obj.mac])
+        ''', [str(obj.mac)])
 
         rows = dictfetchall(c)
         return rows
