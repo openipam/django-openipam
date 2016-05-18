@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.db import connection
@@ -175,11 +176,11 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
                 users = host_group.group.user_groups.select_related().all()
                 for user in users:
                     username = user.user.username
-                    #is_anumber = True if username.split('a')[-1].isdigit() else False
+                    # is_anumber = True if username.split('a')[-1].isdigit() else False
 
                     # Convert owner permissions becuase thats all there is
                     if user.host_permissions.name == 'OWNER':
-                        #ry:
+                        # ry:
                         auth_user, created = User.objects.get_or_create(username__iexact=username)
                         # Force superuser to false to force an insert
                         auth_user.is_superuser = False
@@ -205,7 +206,7 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
                         continue
             else:
                 auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
-                #if not auth_group.has_perm('is_owner_host', host_group.host):
+                # if not auth_group.has_perm('is_owner_host', host_group.host):
                 print 'Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host)
                 # GroupObjectPermission.objects.get_or_create(
                 #     group=auth_group,
@@ -216,23 +217,35 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
                 assign_perm('hosts.is_owner_host', auth_group, host_group.host)
 
 
-def populate_user_from_ldap(username=None, user=None):
+def sync_active_users():
+    source = AuthSource.objects.get(name='LDAP')
+
+    groups = AuthGroup.objects.filter(
+        Q(permissions__isnull=False) | Q(groupobjectpermission__isnull=False),
+        source__source=source
+    ).distinct()
+
+    populate_user_from_ldap(groups=groups, force=True)
+
+
+def populate_user_from_ldap(username=None, user=None, groups=[], force=False):
     ldap_backend = LDAPBackend()
 
     if username:
         return ldap_backend.populate_user(username=username)
     elif user:
         return ldap_backend.populate_user(username=user.username)
+    elif groups:
+        users = User.objects.filter(groups__in=groups)
     else:
         users = User.objects.all()
 
-        for user in queryset_iterator(users):
-            if not user.first_name or not user.last_name or not user.email:
-                print timezone.now(), 'Updating user: %s' % user.username
-                ldap_backend.populate_user(username=user.username)
-            else:
-                print timezone.now(), 'NOT Updating user: %s' % user.username
-
+    for user in queryset_iterator(users):
+        if not user.first_name or not user.last_name or not user.email or force is True:
+            print timezone.now(), 'Updating user: %s' % user.username
+            ldap_backend.populate_user(username=user.username)
+        else:
+            print timezone.now(), 'NOT Updating user: %s' % user.username
 
 
 # Not needed anymore because we switched django user model
@@ -252,7 +265,6 @@ def populate_user_from_ldap(username=None, user=None):
 #     groups = Groups.objects.all()
 
 #     for group in groups:
-
 
 def queryset_iterator(queryset, chunksize=1000):
     '''''
