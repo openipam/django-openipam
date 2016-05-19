@@ -8,8 +8,7 @@ from django.db import connection
 from guardian.shortcuts import assign_perm, remove_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from django_auth_ldap.backend import LDAPBackend
-
+from openipam.core.backends import IPAMLDAPBackend
 from openipam.conf.ipam_settings import CONFIG
 from openipam.user.models import GroupSource, AuthSource
 from openipam.hosts.models import Host
@@ -229,7 +228,7 @@ def sync_active_users():
 
 
 def populate_user_from_ldap(username=None, user=None, groups=[], force=False):
-    ldap_backend = LDAPBackend()
+    ldap_backend = IPAMLDAPBackend()
 
     if username:
         return ldap_backend.populate_user(username=username)
