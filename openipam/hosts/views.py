@@ -801,10 +801,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         mac = host[1]
 
                     user_owners = host[7].split(',') or [] if len(host) >= 8 else []
+                    user_owners = [user.upper() for user in user_owners]
                     group_owners = host[8].split(',') or [] if len(host) == 9 else []
 
-                    users_check = User.objects.filter(username__in=user_owners).values_list('username')
-                    groups_check = Group.objects.filter(name__in=group_owners).values_list('name')
+                    users_check = [user.username for user in User.objects.filter(username__in=user_owners)]
+                    groups_check = [group.name for group in Group.objects.filter(name__in=group_owners)]
 
                     users_diff = set(user_owners) - set(users_check)
                     groups_diff = set(group_owners) - set(groups_check)
