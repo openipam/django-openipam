@@ -801,19 +801,20 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         mac = host[1]
 
                     user_owners = host[7].split(',') or [] if len(host) >= 8 else []
-                    user_owners = [user.upper() for user in user_owners]
                     group_owners = host[8].split(',') or [] if len(host) == 9 else []
 
-                    users_check = [user.username for user in User.objects.filter(username__in=user_owners)]
-                    groups_check = [group.name for group in Group.objects.filter(name__in=group_owners)]
+                    if user_owners:
+                        user_owners = [user.upper() for user in user_owners]
+                        users_check = [user.username for user in User.objects.filter(username__in=user_owners)]
+                        users_diff = set(user_owners) - set(users_check)
+                        if users_diff:
+                            raise ValidationError('Unknown User(s): %s' % ','.join(users_diff))
 
-                    users_diff = set(user_owners) - set(users_check)
-                    groups_diff = set(group_owners) - set(groups_check)
-
-                    if users_diff:
-                        raise ValidationError('Unknown User(s): %s' % ','.join(users_diff))
-                    if groups_diff:
-                        raise ValidationError('Unknown Groups(s): %s' % ','.join(groups_diff))
+                    if group_owners:
+                        groups_check = [group.name for group in Group.objects.filter(name__in=group_owners)]
+                        groups_diff = set(group_owners) - set(groups_check)
+                        if groups_diff:
+                            raise ValidationError('Unknown Groups(s): %s' % ','.join(groups_diff))
 
                     Host.objects.add_or_update_host(
                         self.request.user,
