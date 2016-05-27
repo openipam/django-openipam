@@ -21,7 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.util import ErrorList, ErrorDict
+from django.forms.utils import ErrorList, ErrorDict
 from django.db import transaction
 
 from openipam.core.utils.merge_values import merge_values
@@ -41,6 +41,7 @@ from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
 from itertools import izip_longest
 
+import operator
 import json
 import re
 import csv
@@ -70,7 +71,6 @@ import csv
 #         query.aggregates[alias] = aggregate
 
 
-
 User = get_user_model()
 
 
@@ -89,7 +89,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
     max_display_length = 3000
 
     def get_initial_queryset(self):
-        qs = Host.objects.all()
+        qs = Host.objects.all().by_change_perms(self.request.user)
         return qs
 
     def filter_queryset(self, qs):
@@ -296,7 +296,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             return 'hosts.hostname'
 
     def prepare_results(self, qs):
-        qs_macs = [q.mac for q in qs]
+        qs_macs = [str(q.mac) for q in qs]
 
         if not qs_macs:
             value_qs = []
@@ -311,8 +311,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             c = connection.cursor()
             c.execute('''
                 SELECT
-                    hosts.mac, hosts.hostname, hosts.expires, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
-                    array_agg(leases.ends) AS ends, disabled.mac AS disabled, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
+                    hosts.mac, hosts.hostname, hosts.expires, disabled.mac AS disabled, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
+                    array_agg(leases.ends) AS ends, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
                     (SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1) AS vendor,
                     (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
                 FROM hosts
@@ -502,7 +502,6 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 add_attribute_to_hosts(request, selected_hosts)
             elif action == 'delete-attributes':
                 delete_attribute_from_host(request, selected_hosts)
-
 
         return redirect('list_hosts')
 
@@ -785,20 +784,47 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         try:
             with transaction.atomic():
                 for host in hosts:
+                    if len(host) < 3:
+                        raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
+
+                    description = host[3] or None if len(host) >= 4 else None
+                    ip_address = host[4] or None if len(host) >= 5 else None
+                    network = host[5] or None if len(host) >= 6 else None
+                    pool = host[6] or None if len(host) >= 7 else None
+
+                    if not ip_address and network and not pool:
+                        pool = 'routable-dynamic'
+
                     if host[1] == 'vmware':
                         mac = Host.objects.find_next_mac(vendor='vmware')
                     else:
                         mac = host[1]
+
+                    user_owners = host[7].split(',') or [] if len(host) >= 8 else []
+                    group_owners = host[8].split(',') or [] if len(host) == 9 else []
+
+                    users_check = User.objects.filter(username__in=user_owners).values_list('username')
+                    groups_check = Group.objects.filter(name__in=group_owners).values_list('name')
+
+                    users_diff = set(user_owners) - set(users_check)
+                    groups_diff = set(group_owners) - set(groups_check)
+
+                    if users_diff:
+                        raise ValidationError('Unknown User(s): %s' % ','.join(users_diff))
+                    if groups_diff:
+                        raise ValidationError('Unknown Groups(s): %s' % ','.join(groups_diff))
+
                     Host.objects.add_or_update_host(
                         self.request.user,
                         hostname=host[0],
                         mac=mac,
                         expire_days=host[2],
-                        description=host[3],
-                        ip_address=host[4] or None,
-                        network=host[5] or None,
-                        user_owners=host[6] or None,
-                        group_owners=host[7] or None
+                        description=description,
+                        ip_address=ip_address,
+                        network=network,
+                        pool=pool,
+                        user_owners=user_owners,
+                        group_owners=group_owners
                     )
 
         except ValidationError as e:
