@@ -89,7 +89,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
     max_display_length = 3000
 
     def get_initial_queryset(self):
-        qs = Host.objects.all().by_change_perms(self.request.user)
+        qs = Host.objects.all()
         return qs
 
     def filter_queryset(self, qs):
