@@ -162,7 +162,7 @@ class HostManager(Manager):
         owners = [k for k, v in owners.items() if 'is_owner_host' in v]
         return owners
 
-    #TODO!  Finish this and use it for everthing except the web form
+    # TODO!  Finish this and use it for everthing except the web form
     def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=False,
                            pool=False, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
         User = get_user_model()
@@ -244,11 +244,11 @@ class HostManager(Manager):
                 if isinstance(user_owners, QuerySet):
                     users_to_add = user_owners
                 elif isinstance(user_owners, list):
-                    #u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
-                    #users_to_add = User.objects.filter(reduce(operator.or_, u_list))
+                    # u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
+                    # users_to_add = User.objects.filter(reduce(operator.or_, u_list))
                     users_to_add = User.objects.filter(username__in=[user_owner for user_owner in user_owners])
                 else:
-                    #users_to_add = User.objects.filter(username__iexact=user_owners)
+                    # users_to_add = User.objects.filter(username__iexact=user_owners)
                     users_to_add = User.objects.filter(username=user_owners)
                 users_to_add = list(users_to_add)
                 user_groups += users_to_add
@@ -257,11 +257,11 @@ class HostManager(Manager):
                 if isinstance(group_owners, QuerySet):
                     groups_to_add = group_owners
                 elif isinstance(group_owners, list):
-                    #g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
-                    #groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
+                    # g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
+                    # groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
                     groups_to_add = Group.objects.filter(name__in=[group_owner for group_owner in group_owners])
                 else:
-                    #groups_to_add = Group.objects.filter(name__iexact=group_owners)
+                    # groups_to_add = Group.objects.filter(name__iexact=group_owners)
                     groups_to_add = Group.objects.filter(name=group_owners)
                 groups_to_add = list(groups_to_add)
                 user_groups += groups_to_add

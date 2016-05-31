@@ -81,7 +81,7 @@ def bootstrap_paginator_number(cl, i, li_class=None):
     Generates an individual page index link in a paginated list.
     """
     if i == DOT:
-        return u'<li><a href="#">...</a></li>'
+        return mark_safe(u'<li><a>...</a></li>')
     elif i == cl.page_num:
         return mark_safe(u'<li class="active"><a href="#">%d</a></li> ' % (i + 1))
     else:

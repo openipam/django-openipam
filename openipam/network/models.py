@@ -207,6 +207,7 @@ class Network(models.Model):
             ('is_owner_network', 'Is owner'),
             ('add_records_to_network', 'Can add records to'),
         )
+        default_permissions = ('add', 'change', 'delete', 'view',)
         ordering = ('network',)
 
 
@@ -248,7 +249,7 @@ class NetworkToVlan(models.Model):
 
 
 class Address(models.Model):
-    address = InetAddressField(primary_key=True)
+    address = InetAddressField(primary_key=True, store_prefix_length=False)
     # Force manual removal of addresses so they are unassigned and properly re-classified
     host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses', on_delete=models.SET_NULL)
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True, on_delete=models.SET_NULL)

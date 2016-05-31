@@ -25,7 +25,7 @@ from netfields.forms import MACAddressFormField
 
 from guardian.shortcuts import get_objects_for_user, assign_perm
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 import operator
 
 User = get_user_model()
@@ -50,14 +50,14 @@ class HostForm(forms.ModelForm):
     ip_address = forms.CharField(label='IP Address', required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
     show_hide_dhcp_group = forms.BooleanField(label='Assign a DHCP Group', required=False)
-    dhcp_group = autocomplete_light.ModelChoiceField(
+    dhcp_group = al.ModelChoiceField(
         'DhcpGroupAutocomplete',
         help_text='Leave this alone unless directed by an IPAM administrator',
         label='DHCP Group',
         required=False
     )
-    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
-    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
+    user_owners = al.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = al.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
     def __init__(self, request, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
@@ -532,8 +532,8 @@ class HostForm(forms.ModelForm):
 
 
 class HostOwnerForm(forms.Form):
-    user_owners = autocomplete_light.ModelMultipleChoiceField('UserAutocomplete', required=False)
-    group_owners = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete', required=False)
+    user_owners = al.ModelMultipleChoiceField('UserAutocomplete', required=False)
+    group_owners = al.ModelMultipleChoiceField('GroupAutocomplete', required=False)
 
     def clean(self):
         cleaned_data = super(HostOwnerForm, self).clean()
@@ -561,8 +561,8 @@ class HostBulkCreateForm(forms.Form):
 
 
 class HostListForm(forms.Form):
-    groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
-    users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
+    groups = al.ModelChoiceField('GroupFilterAutocomplete')
+    users = al.ModelChoiceField('UserFilterAutocomplete')
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
@@ -571,7 +571,7 @@ class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
 
 class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='host'))
-    content_object = autocomplete_light.ModelChoiceField('HostAutocomplete')
+    content_object = al.ModelChoiceField('HostAutocomplete')
 
 
 class ExpirationTypeAdminForm(forms.ModelForm):

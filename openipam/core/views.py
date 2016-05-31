@@ -11,19 +11,25 @@ from django.template import RequestContext, loader
 from django.conf import settings
 from django.utils.encoding import force_unicode
 from django.contrib.auth import get_user_model
-from django.contrib.auth.views import login as auth_login
+from django.contrib.auth.views import login as auth_login_view, logout as auth_logout_view
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DatabaseError, DataError
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
+from django.views.decorators.http import require_http_methods
+from django.utils.six.moves import urllib_parse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
 from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
+
+from django_cas_ng.views import login as cas_login, logout as cas_logout
+from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
 
 import os
 import random
@@ -47,8 +53,37 @@ def index(request):
         return AdminSite().index(request, extra_context=context)
 
 
-def login(request, **kwargs):
-    return auth_login(request, authentication_form=IPAMAuthenticationForm, **kwargs)
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def login(request, internal=False, **kwargs):
+    if CONFIG.get('CAS_LOGIN') and internal is False:
+        return cas_login(request, **kwargs)
+    else:
+        return auth_login_view(request, authentication_form=IPAMAuthenticationForm, **kwargs)
+
+
+@require_http_methods(["GET"])
+def logout(request, next_page=None, **kwargs):
+
+    if CONFIG.get('CAS_LOGIN'):
+        cas_logout(request, next_page, **kwargs)
+
+        next_page = next_page or get_redirect_url(request)
+        if settings.CAS_LOGOUT_COMPLETELY:
+            protocol = get_protocol(request)
+            host = request.get_host()
+            redirect_url = urllib_parse.urlunparse(
+                (protocol, host, next_page, '', '', ''),
+            )
+            client = get_cas_client()
+            client.server_url = settings.CAS_SERVER_URL[:-3]
+            return HttpResponseRedirect(client.get_logout_url(redirect_url))
+        else:
+            # This is in most cases pointless if not CAS_RENEW is set. The user will
+            # simply be logged in again on next request requiring authorization.
+            return HttpResponseRedirect(next_page)
+    else:
+        return auth_logout_view(request, **kwargs)
 
 
 def mimic(request):
@@ -192,7 +227,7 @@ class JSONResponseMixin(object):
 
     def get(self, request, *args, **kwargs):
         self.request = request
-        data = request.REQUEST.get('json_data')
+        data = request.GET.get('json_data')
         if data:
             self.json_data = json.loads(data)
         else:
@@ -294,11 +329,11 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
             ann_kargs = {
                 sortcol + '_foo': Count(sortcol)
             }
-            qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
-            #order.append('%s%s' % (sdir, sortcol))
+            #qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
+            order.append('%s%s' % (sdir, sortcol))
 
-        #if order:
-        #    return qs.order_by(*order)
+        if order:
+            return qs.order_by(*order)
         return qs
 
     def paging(self, qs):

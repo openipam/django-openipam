@@ -106,8 +106,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             search = self.json_data.get('search_filter', '').strip()
             is_owner = self.json_data.get('owner_filter', None)
 
-            #group_filter = self.json_data.get('group_filter', None)
-            #user_filter = self.json_data.get('user_filter', None)
+            # group_filter = self.json_data.get('group_filter', None)
+            # user_filter = self.json_data.get('user_filter', None)
 
             if is_owner:
                 if is_owner == '1':
@@ -220,7 +220,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 mac_str = rgx.sub('', mac_search)
                 # Split to list to put back togethor with :
                 mac_str = iter(mac_str)
-                mac_str = ':'.join(a+b for a,b in izip_longest(mac_str, mac_str, fillvalue=''))
+                mac_str = ':'.join(a + b for a, b in izip_longest(mac_str, mac_str, fillvalue=''))
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
@@ -240,13 +240,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     ip_blocks = filter(None, ip.split('.'))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(addresses__address__istartswith='.'.join(ip_blocks)+tail_dot) |
-                            Q(leases__address__address__istartswith='.'.join(ip_blocks)+tail_dot, leases__ends__gt=timezone.now())
+                            Q(addresses__address__istartswith='.'.join(ip_blocks) + tail_dot) |
+                            Q(leases__address__address__istartswith='.'.join(ip_blocks) + tail_dot, leases__ends__gt=timezone.now())
                         ).distinct()
                     else:
                         qs = qs.filter(
                             Q(addresses__address=ip) |
-                            Q(leases__address__address=ip, leases__ends__gt=timezone.now()  )
+                            Q(leases__address__address=ip, leases__ends__gt=timezone.now())
                         ).distinct()
 
             # if group_filter:
@@ -842,12 +842,10 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             error_list.append('Please try again.')
             messages.error(self.request, mark_safe('<br />'.join(error_list)))
             return redirect('add_hosts_bulk')
-            #return render(self.request, self.template_name)
-
+            # return render(self.request, self.template_name)
 
         messages.info(self.request, 'Hosts from CSV have been added.')
         return redirect('list_hosts')
-
 
 
 def change_owners(request):

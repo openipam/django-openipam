@@ -5,7 +5,7 @@ from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, Expira
 from openipam.hosts.forms import ExpirationTypeAdminForm
 from openipam.core.admin import ChangedAdmin
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 from guardian.admin import GuardedModelAdmin
 
@@ -32,7 +32,7 @@ class HostAdmin(ChangedAdmin):
 
 class DisabledAdmin(ChangedAdmin):
     list_display = ('host', 'reason', 'changed', 'changed_by_full',)
-    form = autocomplete_light.modelform_factory(Disabled, fields=('host', 'reason', 'changed_by',))
+    form = al.modelform_factory(Disabled, fields=('host', 'reason', 'changed_by',))
     list_select_related = True
 
     def changed_by_full(self, obj):
@@ -44,7 +44,7 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ('ticket', 'user', 'starts', 'ends')
     list_filter = ('starts', 'ends')
     search_fields = ('user__username', 'ticket')
-    form = autocomplete_light.modelform_factory(GuestTicket,
+    form = al.modelform_factory(GuestTicket,
         fields=('user', 'ticket', 'starts', 'ends', 'description',))
 
 

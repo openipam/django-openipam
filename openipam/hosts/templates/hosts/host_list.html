@@ -97,7 +97,7 @@
 
 					<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 						<label>
-							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" data-autocomplete-url="/api/web/IPAMSearchAutoComplete/" placeholder="Search by Users, Groups and Networks" class="form-control autocomplete" />
+							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" multiple="multiple" data-autocomplete-url="/api/web/IPAMSearchAutoComplete/" placeholder="Search by Users, Groups and Networks" class="form-control autocomplete" />
 							{# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #}
 						</label>
 						<div style="margin-right: 10px; z-index: 5;">

@@ -5,7 +5,7 @@ from django import forms
 
 from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup, Address
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
 
 from crispy_forms.helper import FormHelper
@@ -16,8 +16,8 @@ import binascii
 
 
 class AddressAdminForm(forms.ModelForm):
-    host = autocomplete_light.ModelChoiceField('HostAutocomplete', required=False)
-    network = autocomplete_light.ModelChoiceField('NetworkAutocomplete')
+    host = al.ModelChoiceField('HostAutocomplete', required=False)
+    network = al.ModelChoiceField('NetworkAutocomplete')
 
     class Meta:
         model = Address
@@ -49,7 +49,7 @@ class AddressTypeAdminForm(forms.ModelForm):
 
 
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
-    group = autocomplete_light.ModelChoiceField('DhcpGroupAutocomplete')
+    group = al.ModelChoiceField('DhcpGroupAutocomplete')
     readable_value = forms.CharField(label='Value')
 
     def __init__(self, *args, **kwargs):

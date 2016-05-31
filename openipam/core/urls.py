@@ -1,19 +1,21 @@
-from django.conf.urls import patterns, url, include
-from django.core.urlresolvers import reverse
-from django.contrib.auth.views import logout, password_reset, password_reset_done, \
+from django.conf.urls import url, include
+from django.contrib.auth.views import password_reset, password_reset_done, \
     password_reset_confirm, password_reset_complete, password_change, password_change_done
 from django.views.generic import TemplateView
-from openipam.core.views import FeatureRequestView
+
+from openipam.core import views
+
+from django_cas_ng.views import login as cas_login, logout as cas_logout, callback
 
 
-urlpatterns = patterns('openipam.core.views',
-    url(r'^$', 'index', name='index'),
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
 
     # Accounts URLs
-    #url(r'^accounts/login/$', login, name='auth_login'),
-    #url(r'^accounts/password/reset/$', password_reset),
-    #url(r'^accounts/logout/$', logout, name='auth_logout'),
-    #url(r'^accounts/profile/$', 'profile', name='profile'),
+    # url(r'^accounts/login/$', login, name='auth_login'),
+    # url(r'^accounts/password/reset/$', password_reset),
+    # url(r'^accounts/logout/$', logout, name='auth_logout'),
+    # url(r'^accounts/profile/$', 'profile', name='profile'),
 
     # API
     url(r'^api/', include('openipam.api.urls')),
@@ -30,15 +32,22 @@ urlpatterns = patterns('openipam.core.views',
     # USU Reports and Tools
     url(r'^reports/', include('openipam.report.urls')),
 
+    # CAS Login
+    url(r'^cas/login$', cas_login, name='cas_ng_login'),
+    url(r'^cas/logout$', cas_logout, name='cas_ng_logout'),
+    # url(r'^cas/callback$', callback, name='cas_ng_proxy_callback'),
+
+
     # Account URLS
-    url(r'^mimic/$', 'mimic', name='mimic'),
-    url(r'^login/$', 'login', name='login'),
-    url(r'^logout/$', logout, {'next_page': 'login'}, name='logout'),
-    url(r'^profile/$', 'profile', name='profile'),
+    url(r'^login/i/$', views.login, {'internal': True}, name='login'),
+    url(r'^login/$', views.login, name='login'),
+    url(r'^logout/$', views.logout, {'next_page': 'login'}, name='logout'),
+    url(r'^mimic/$', views.mimic, name='mimic'),
+    url(r'^profile/$', views.profile, name='profile'),
     url(r'^password/forgot/$',
         TemplateView.as_view(template_name='core/password_forgot.html'),
         name='password_forgot'),
-    url(r'^password/change/$', 'password_change', name='password_change'),
+    url(r'^password/change/$', views.password_change, name='password_change'),
     url(r'^password/change/done/$', password_change_done, name='password_change_done'),
     #url(r'^password/reset/$', password_reset, name='password_reset'),
     # url(r'^password/reset/done/$', password_reset_done, name='password_reset_done'),
@@ -49,5 +58,5 @@ urlpatterns = patterns('openipam.core.views',
        TemplateView.as_view(template_name='core/featurerequest_form.html'),
        {'is_complete': True},
        name='feature_request_complete'),
-    url(r'^request/$', FeatureRequestView.as_view(), name='feature_request'),
-)
+    url(r'^request/$', views.FeatureRequestView.as_view(), name='feature_request'),
+]

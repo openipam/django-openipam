@@ -26,7 +26,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 from datetime import date
 
@@ -251,12 +251,12 @@ class AuthUserAdmin(UserAdmin):
 
     def get_urls(self):
         urls = super(AuthUserAdmin, self).get_urls()
-        new_urls = patterns('',
+        new_urls = [
             url(r'^perm_delete/(\d+)/$', self.admin_site.admin_view(self.delete_perm_view),
                 name='user_perm_delete'),
             url(r'^permissions/(\d+)/$', self.admin_site.admin_view(self.user_perms_view),
                 name='user_perms_view'),
-        )
+        ]
         return new_urls + urls
 
     def delete_perm_view(self, request, permid):
@@ -278,7 +278,7 @@ class AuthUserAdmin(UserAdmin):
 
 
 class TokenAdmin(TokenAdmin):
-    form = autocomplete_light.modelform_factory(Token, fields=('user',))
+    form = al.modelform_factory(Token, fields=('user',))
 
 
 class AuthGroupSourceInline(admin.StackedInline):
@@ -329,10 +329,10 @@ class AuthGroupAdmin(GroupAdmin):
 
     def get_urls(self):
         urls = super(AuthGroupAdmin, self).get_urls()
-        new_urls = patterns('',
+        new_urls = [
             url(r'^perm_delete/(\d+)/$', self.admin_site.admin_view(self.delete_perm_view),
                 name='auth_group_perm_delete'),
-        )
+        ]
         return new_urls + urls
 
     def delete_perm_view(self, request, permid):
@@ -349,7 +349,7 @@ class AuthGroupAdmin(GroupAdmin):
 class AuthPermissionAdmin(admin.ModelAdmin):
     list_filter = ('content_type__app_label', 'codename', 'content_type__model')
     list_select_related = True
-    search_fields = ('name', 'content_type__name', 'content_type__app_label',)
+    search_fields = ('name', 'codename')
 
 
 # class UserPermissionInline(admin.TabularInline):
@@ -408,7 +408,7 @@ class AuthPermissionAdmin(admin.ModelAdmin):
 #     list_display = ('name', 'description', 'permissions', 'lhosts', 'ldomains', 'lnetworks', 'lpools', 'users')
 #     list_filter = (GroupTypeFilter,)
 #     search_fields = ('name',)
-#     form = autocomplete_light.modelform_factory(Group, fields=('name',))
+#     form = al.modelform_factory(Group, fields=('name',))
 #     list_per_page = 200
 
 #     def get_queryset(self, request):
@@ -652,28 +652,28 @@ class UserGroupTypeFilter(admin.SimpleListFilter):
 # class UserToGroupAdmin(admin.ModelAdmin):
 #     list_display = ('user', 'group', 'permissions', 'host_permissions')
 #     list_filter = (UserGroupTypeFilter,)
-#     form = autocomplete_light.modelform_factory(UserToGroup, fields=('user', 'group', 'permissions', 'host_permissions', 'changed_by',))
+#     form = al.modelform_factory(UserToGroup, fields=('user', 'group', 'permissions', 'host_permissions', 'changed_by',))
 
 
 # class HostToGroupAdmin(admin.ModelAdmin):
 #     list_display = ('host', 'group')
-#     form = autocomplete_light.modelform_factory(HostToGroup, fields=('host', 'group', 'changed_by',))
+#     form = al.modelform_factory(HostToGroup, fields=('host', 'group', 'changed_by',))
 
 
 # class DomainToGroupAdmin(admin.ModelAdmin):
 #     list_display = ('domain', 'group')
 #     list_filter = (UserGroupTypeFilter,)
-#     form = autocomplete_light.modelform_factory(DomainToGroup,  fields=('domain', 'group', 'changed_by',))
+#     form = al.modelform_factory(DomainToGroup,  fields=('domain', 'group', 'changed_by',))
 
 
 # class NetworkToGroupAdmin(admin.ModelAdmin):
 #     list_display = ('network', 'group')
-#     form = autocomplete_light.modelform_factory(NetworkToGroup,  fields=('network', 'group', 'changed_by',))
+#     form = al.modelform_factory(NetworkToGroup,  fields=('network', 'group', 'changed_by',))
 
 
 # class PoolToGroupAdmin(admin.ModelAdmin):
 #     list_display = ('pool', 'group')
-#     form = autocomplete_light.modelform_factory(PoolToGroup,  fields=('pool', 'group',))
+#     form = al.modelform_factory(PoolToGroup,  fields=('pool', 'group',))
 
 
 admin.site.register(User, AuthUserAdmin)

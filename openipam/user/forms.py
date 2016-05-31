@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 import operator
 
@@ -35,8 +35,8 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
 
 class AuthUserChangeAdminForm(UserChangeForm):
-    groups = autocomplete_light.ModelMultipleChoiceField('GroupFilterAutocomplete', required=False)
-    user_permissions = autocomplete_light.ModelMultipleChoiceField('PermissionAutocomplete', required=False)
+    groups = al.ModelMultipleChoiceField('GroupFilterAutocomplete', required=False)
+    user_permissions = al.ModelMultipleChoiceField('PermissionAutocomplete', required=False)
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -53,7 +53,7 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
 
 class AuthGroupAdminForm(forms.ModelForm):
-    permissions = autocomplete_light.ModelMultipleChoiceField('PermissionAutocomplete', required=False)
+    permissions = al.ModelMultipleChoiceField('PermissionAutocomplete', required=False)
     # def clean_name(self):
     #     name = self.cleaned_data['name'].lower()
 
@@ -87,13 +87,13 @@ class PermissionModelChoiceField(forms.ModelChoiceField):
 
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
-    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
+    user = al.ModelChoiceField('UserAutocomplete')
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
         label='Permission',
         empty_label='Select A Permssion'
     )
-    object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
+    object_id = forms.CharField(widget=al.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     def __init__(self, *args, **kwargs):
         super(UserObjectPermissionAdminForm, self).__init__(*args, **kwargs)
@@ -106,13 +106,13 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 
 
 class GroupObjectPermissionAdminForm(forms.ModelForm):
-    group = autocomplete_light.ModelChoiceField('GroupAutocomplete')
+    group = al.ModelChoiceField('GroupAutocomplete')
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
         label='Permission',
         empty_label='Select A Permssion'
     )
-    object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
+    object_id = forms.CharField(widget=al.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     def __init__(self, *args, **kwargs):
         super(GroupObjectPermissionAdminForm, self).__init__(*args, **kwargs)
@@ -125,16 +125,16 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
 
 
 class GroupForm(forms.Form):
-    groups = autocomplete_light.ModelMultipleChoiceField('GroupAutocomplete')
+    groups = al.ModelMultipleChoiceField('GroupAutocomplete')
 
 
-class UserObjectPermissionForm(UserObjectPermissionAdminForm):
+class UserObjectPermissionForm(forms.ModelForm):
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related('content_type').filter(reduce(operator.or_, PERMISSION_FILTER)),
         label='Permission',
         empty_label='Select A Permssion'
     )
-    object_id = forms.CharField(widget=autocomplete_light.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
+    object_id = forms.CharField(widget=al.ChoiceWidget('IPAMObjectsAutoComplete'), label='Object')
 
     class Meta:
         model = UserObjectPermission
@@ -142,7 +142,7 @@ class UserObjectPermissionForm(UserObjectPermissionAdminForm):
 
 
 class TokenForm(forms.ModelForm):
-    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
+    user = al.ModelChoiceField('UserAutocomplete')
 
     class Meta:
         model = Token

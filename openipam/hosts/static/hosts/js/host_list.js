@@ -300,6 +300,7 @@ $(function(){
 
 	$('#id_search').on('keyup selectChoice', function(){
 		var autocomplete = $(this).yourlabsAutocomplete();
+		autocomplete.input.prop('disabled', false);
 
 		if (autocomplete.data.exclude) {
 			var value = autocomplete.data.exclude.join();

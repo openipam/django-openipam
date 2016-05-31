@@ -16,11 +16,11 @@ from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOpt
     AddressAdminForm, LeaseAdminForm, NetworkReziseForm
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 
 class NetworkAdmin(ChangedAdmin):
-    form = autocomplete_light.modelform_factory(Network, exclude=('changed,'))
+    form = al.modelform_factory(Network, exclude=('changed,'))
     list_display = ('nice_network', 'name', 'description', 'gateway')
     list_filter = (('tags__name', custom_titled_filter('Tags')), 'shared_network__name')
     search_fields = ('network', 'shared_network__name')
@@ -178,7 +178,7 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
 
 class DhcpGroupAdmin(ChangedAdmin):
-    form = autocomplete_light.modelform_factory(DhcpGroup, exclude=('changed',))
+    form = al.modelform_factory(DhcpGroup, exclude=('changed',))
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
@@ -244,7 +244,7 @@ class IsExpiredFilter(admin.SimpleListFilter):
 
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
-    #form = autocomplete_light.modelform_factory(Lease)
+    #form = al.modelform_factory(Lease)
     list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
     list_filter = ('abandoned', 'starts', 'ends', 'server', IsExpiredFilter)

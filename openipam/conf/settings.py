@@ -1,13 +1,13 @@
-from __future__ import unicode_literals
 from django.core.urlresolvers import reverse_lazy
 from django.contrib.messages import constants as message_constants
+
 import hashlib
 import socket
 import datetime
+import os
 
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -15,8 +15,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DEBUG_MONITOR = True if DEBUG else False
-import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 try:
     from local_settings import *
@@ -34,6 +32,7 @@ DATABASES = locals().pop('DATABASES', {
     }
 })
 
+OBSERVIUM_AUTH = ('openipam', 'N6pZUgcaPwGNrECPaXGkmM7jDzo7i0F3')
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -97,7 +96,7 @@ STATICFILES_FINDERS = (
 )
 
 FIXTURE_DIRS = (
-   '%s/fixtures/' % BASE_DIR,
+    '%s/fixtures/' % BASE_DIR,
 )
 
 # Make this unique, and don't share it with anybody.
@@ -106,12 +105,36 @@ SECRET_KEY = locals().pop(
     hashlib.md5((socket.gethostname() + ')*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@').encode('ascii')).hexdigest()
 )
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # Put TEMPLATE_DIRS here...
+        ],
+        # 'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.template.context_processors.request',
+                'openipam.core.context_processors.gravatar',
+                'openipam.core.context_processors.root_path',
+                'openipam.core.context_processors.feature_form',
+                'openipam.api.context_processors.api_version',
+            ],
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+                'admin_tools.template_loaders.Loader',
+            ]
+        },
+    },
+]
 
 LOCAL_MIDDLEWARE_CLASSES = locals().pop('LOCAL_MIDDLEWARE_CLASSES', ())
 MIDDLEWARE_CLASSES = (
@@ -119,7 +142,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'openipam.middleware.LoginRequiredMiddleware',
     'openipam.middleware.MimicUserMiddleware',
@@ -133,12 +155,6 @@ ROOT_URLCONF = 'openipam.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'openipam.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
@@ -157,7 +173,7 @@ INSTALLED_APPS = (
     'openipam.report',
 
     # Firewall
-    'openipam.firewall',
+    # 'openipam.firewall',
 
     # Admin Tools
     'admin_tools',
@@ -176,15 +192,15 @@ INSTALLED_APPS = (
     'guardian',
     'netfields',
     'taggit',
+    'django_cas_ng',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    #'django.contrib.sites',
+    # 'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-
 
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -193,22 +209,8 @@ INSTALLED_APPS = (
 
 OPENIPAM = {
     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.usu.edu'],
+    'CAS_LOGIN': True,
 }
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',
-    'openipam.core.context_processors.gravatar',
-    'openipam.core.context_processors.root_path',
-    'openipam.core.context_processors.feature_form',
-    'openipam.api.context_processors.api_version',
-)
 
 BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
 BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
@@ -231,12 +233,17 @@ MESSAGE_TAGS = {
 
 LOCAL_AUTHENTICATION_BACKENDS = locals().pop('LOCAL_AUTHENTICATION_BACKENDS', ())
 AUTHENTICATION_BACKENDS = (
-    #'django.contrib.auth.backends.ModelBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
     'openipam.core.backends.CaseInsensitiveModelBackend',
+    'openipam.core.backends.IPAMCASBackend',
+    # 'django_cas_ng.backends.CASBackend',
     'guardian.backends.ObjectPermissionBackend',
 ) + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = 'user.User'
+
+CAS_SERVER_URL = 'https://logindev.usu.edu/cas/p3/'
+CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
@@ -244,10 +251,10 @@ LOGIN_EXEMPT_URLS = (
     'password/forgot/',
     'api/?.*',
     'reports/?.*',
+    'cas/?.*',
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
 )
-#LOGIN_URL = reverse_lazy('two_factor:login')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')

@@ -23,7 +23,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.util import ErrorList, ErrorDict
+from django.forms.utils import ErrorList, ErrorDict
 
 from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
@@ -39,7 +39,7 @@ from openipam.user import actions as user_actions
 from netaddr.core import AddrFormatError
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
-
+    
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import json
@@ -160,9 +160,9 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
 
         def boolean_img(_bool):
             if _bool:
-                return '<img src="/static/admin/img/icon-yes.gif" alt="True">'
+                return '<img src="/static/admin/img/icon-yes.svg" alt="True">'
             else:
-                return '<img src="/static/admin/img/icon-no.gif" alt="False">'
+                return '<img src="/static/admin/img/icon-no.svg" alt="False">'
 
 
         # prepare list with output column data

@@ -72,6 +72,22 @@ class User(AbstractBaseUser, PermissionsMixin):
             from openipam.hosts.models import Host
             return Host.objects.by_owner(self, use_groups=True, ids_only=True)
 
+    @cached_property
+    def network_view_perms(self):
+        if self.is_ipamadmin or self.has_perm('network.view_network'):
+            return True
+        else:
+            from openipam.network.models import Network
+            return Network.objects.by_owner(self, use_groups=True, ids_only=True)
+
+    @cached_property
+    def domain_view_perms(self):
+        if self.is_ipamadmin or self.has_perm('dns.view_domain'):
+            return True
+        else:
+            from openipam.dns.models import Domain
+            return Domain.objects.by_owner(self, use_groups=True, names_only=True)
+
     # @cached_property
     # def network_change_perms(self):
     #     if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):

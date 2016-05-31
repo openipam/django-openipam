@@ -633,6 +633,11 @@
 .form-horizontal .autocomplete-light-widget input
 {
     width: 100% !important;
+    margin-top: 5px;
+}
+.form-horizontal .autocomplete-light-widget input:focus
+{
+    margin-top: 5px;
 }
 .header .btn
 {

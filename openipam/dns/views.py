@@ -12,7 +12,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.db.utils import DatabaseError
 from django.contrib import messages
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.db import transaction
 
 from openipam.dns.models import DnsRecord, DnsType
@@ -430,7 +430,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
 
         return super(DNSCreateUpdateView, self).get_context_data(**kwargs)
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         return form_class(user=self.request.user, **self.get_form_kwargs())
 
     def dispatch(self, request, *args, **kwargs):

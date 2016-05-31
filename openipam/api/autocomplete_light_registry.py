@@ -14,7 +14,7 @@ from taggit.models import Tag
 from guardian.shortcuts import get_objects_for_user, assign_perm
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 import six
 
@@ -35,7 +35,7 @@ class BugAutocompleteFix(object):
             self.order_by = (self.order_by,)
 
         if self.values:
-            pk_name = "id"
+            pk_name = self.model._meta.pk.name
             try:
                 if len(choices) > 0:
                     pk_name = choices[0]._meta.pk.name
@@ -61,7 +61,7 @@ class BugAutocompleteFix(object):
         return choices.order_by(*self.order_by)
 
 
-class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
+class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
     choices = (
         Domain.objects.all(),
         Pool.objects.all(),
@@ -131,10 +131,10 @@ class IPAMObjectsAutoComplete(autocomplete_light.AutocompleteGenericBase):
 
     def choice_label(self, choice):
         return '%s | %s' % (choice.__class__.__name__, choice)
-autocomplete_light.register(IPAMObjectsAutoComplete)
+al.register(IPAMObjectsAutoComplete)
 
 
-class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
     split_words = True
 
     choices = (
@@ -206,10 +206,10 @@ class IPAMSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
             return 'group:%s' % choice.name
         elif choice.__class__.__name__ == 'Network':
             return 'net:%s' % choice.network
-autocomplete_light.register(IPAMSearchAutoComplete)
+al.register(IPAMSearchAutoComplete)
 
 
-class IPAMUserSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
+class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
     split_words = True
 
     choices = (
@@ -304,10 +304,10 @@ class IPAMUserSearchAutoComplete(autocomplete_light.AutocompleteGenericBase):
             return 'gperm:%s' % choice.pk
         elif choice.__class__.__name__ == 'UserObjectPermission':
             return 'uperm:%s' % choice.pk
-autocomplete_light.register(IPAMUserSearchAutoComplete)
+al.register(IPAMUserSearchAutoComplete)
 
 
-class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
+class UserAutocomplete(al.AutocompleteModelBase):
     search_fields = ['^username', '^first_name', '^last_name', 'email']
     attrs = {'placeholder': 'Search Users'}
     split_words = True
@@ -317,29 +317,29 @@ class UserAutocomplete(autocomplete_light.AutocompleteModelBase):
             return '%s | %s' % (choice.username, choice.get_full_name())
         else:
             return unicode(choice)
-autocomplete_light.register(User, UserAutocomplete)
+al.register(User, UserAutocomplete)
 
 
 class UsernameAutocomplete(UserAutocomplete):
     def choice_value(self, choice):
         return choice.username
-autocomplete_light.register(User, UsernameAutocomplete)
+al.register(User, UsernameAutocomplete)
 
 
 class UserFilterAutocomplete(UserAutocomplete):
     attrs = {'placeholder': 'Filter Users'}
-autocomplete_light.register(User, UserFilterAutocomplete)
+al.register(User, UserFilterAutocomplete)
 
 
-class GroupnameAutocomplete(autocomplete_light.AutocompleteModelBase):
+class GroupnameAutocomplete(al.AutocompleteModelBase):
     search_fields = ['name']
 
     def choice_value(self, choice):
         return choice.name
-autocomplete_light.register(Group, GroupnameAutocomplete)
+al.register(Group, GroupnameAutocomplete)
 
 
-class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
+class DomainAutocomplete(al.AutocompleteModelBase):
     search_fields = ['^name']
     attrs = {'placeholder': 'Search Domains'}
     limit_choices = 10
@@ -354,10 +354,10 @@ class DomainAutocomplete(autocomplete_light.AutocompleteModelBase):
                 klass=Domain,
                 any_perm=True,
             )
-autocomplete_light.register(Domain, DomainAutocomplete)
+al.register(Domain, DomainAutocomplete)
 
 
-class NetworkAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+class NetworkAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
     search_fields = ['network', 'name', 'tags__name']
     attrs = {'placeholder': 'Search Networks'}
 
@@ -369,36 +369,36 @@ class NetworkAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteMod
                 self.choices = self.choices.by_address_type(address_type)
 
         return super(NetworkAutocomplete, self).choices_for_request()
-autocomplete_light.register(Network, NetworkAutocomplete)
+al.register(Network, NetworkAutocomplete)
 
 
-autocomplete_light.register(DhcpGroup,
+al.register(DhcpGroup,
     search_fields=['name'],
     attrs={'placeholder': 'Search DHCP Groups'},
     limit_choices=100,
 )
 
 
-autocomplete_light.register(Group,
+al.register(Group,
     search_fields=['name'],
     attrs={'placeholder': 'Search Groups'},
 )
 
 
-class GroupFilterAutocomplete(autocomplete_light.AutocompleteModelBase):
+class GroupFilterAutocomplete(al.AutocompleteModelBase):
     search_fields = ['name']
     attrs = {'placeholder': 'Filter Groups'}
-autocomplete_light.register(Group, GroupFilterAutocomplete)
+al.register(Group, GroupFilterAutocomplete)
 
 
-autocomplete_light.register(Permission,
+al.register(Permission,
     split_words=True,
     search_fields=['name', 'content_type__app_label', 'codename'],
     attrs={'placeholder': 'Search Permissions'},
     choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
 )
 
-class AddressAvailableAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+class AddressAvailableAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
     search_fields = ['^address']
     attrs = {'placeholder': 'Search Addresses'}
 
@@ -421,43 +421,43 @@ class AddressAvailableAutocomplete(BugAutocompleteFix, autocomplete_light.Autoco
             host__isnull=True,
             reserved=False
         )
-autocomplete_light.register(Address, AddressAvailableAutocomplete)
+al.register(Address, AddressAvailableAutocomplete)
 
 
-class AddressAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+class AddressAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
     search_fields = ['address']
     attrs = {'placeholder': 'Search Addresses'}
-autocomplete_light.register(Address, AddressAutocomplete)
+al.register(Address, AddressAutocomplete)
 
 
-autocomplete_light.register(Permission,
+al.register(Permission,
     search_fields=['name', 'codename', 'content_type__app_label'],
     attrs={'placeholder': 'Search Permissions'},
 )
 
-autocomplete_light.register(ContentType,
+al.register(ContentType,
     search_fields=['model'],
     attrs={'placeholder': 'Search Content Types'},
 )
 
 
-class HostAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+class HostAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
     search_fields = ['mac', 'hostname']
     attrs = {'placeholder': 'Search Hosts'}
-autocomplete_light.register(Host, HostAutocomplete)
+al.register(Host, HostAutocomplete)
 
 
-class HostFilterAutocomplete(BugAutocompleteFix, autocomplete_light.AutocompleteModelBase):
+class HostFilterAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
     search_fields = ['^hostname']
     attrs = {'placeholder': 'Filter Hosts'}
-autocomplete_light.register(Host, HostFilterAutocomplete)
+al.register(Host, HostFilterAutocomplete)
 
 
-# autocomplete_light.register(Domain,
+# al.register(Domain,
 #     search_fields=['name'],
 #     attrs={'placeholder': 'Search Domains'},
 # )
 
-autocomplete_light.register(Tag,
+al.register(Tag,
     attrs = {'placeholder': 'Search Tags'}
 )

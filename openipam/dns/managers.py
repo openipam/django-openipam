@@ -16,6 +16,28 @@ import operator
 
 
 class DomainQuerySet(QuerySet):
+    def can_view(self, user, use_groups=False, ids_only=False, names_only=False):
+        # Temporarily set superuser to false so we can get only permission relations
+        User = get_user_model()
+        perm_user = User.objects.get(pk=user.pk)
+
+        domains = get_objects_for_user(
+            perm_user,
+            'dns.view_domain',
+            use_groups=use_groups,
+            with_superuser=False
+        )
+
+        if names_only:
+            domain_names = [domain.name for domain in domains]
+            return tuple(domain_names)
+
+        if ids_only:
+            domain_names = [domain.pk for domain in domains]
+            return tuple(domains)
+        else:
+            return domains
+
     def by_owner(self, user, use_groups=False, ids_only=False, names_only=False):
         # Temporarily set superuser to false so we can get only permission relations
         User = get_user_model()

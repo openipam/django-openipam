@@ -15,7 +15,7 @@ from guardian.shortcuts import get_objects_for_user
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 import copy
 
@@ -31,9 +31,9 @@ class DNSSearchForm(forms.Form):
 
 
 class DNSListForm(forms.Form):
-    host = autocomplete_light.ModelChoiceField('HostFilterAutocomplete')
-    groups = autocomplete_light.ModelChoiceField('GroupFilterAutocomplete')
-    users = autocomplete_light.ModelChoiceField('UserFilterAutocomplete')
+    host = al.ModelChoiceField('HostFilterAutocomplete')
+    groups = al.ModelChoiceField('GroupFilterAutocomplete')
+    users = al.ModelChoiceField('UserFilterAutocomplete')
 
 
 class BaseDNSUpdateFormset(BaseModelFormSet):

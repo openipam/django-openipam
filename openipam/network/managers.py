@@ -9,6 +9,24 @@ import operator
 
 
 class NetworkQuerySet(QuerySet):
+    def can_view(self, user, use_groups=False, ids_only=False):
+        User = get_user_model()
+
+        # Temporarily set superuser to false so we can get only permission relations
+        perm_user = User.objects.get(pk=user.pk)
+
+        networks = get_objects_for_user(
+            perm_user,
+            'network.view_network',
+            use_groups=use_groups,
+            with_superuser=False
+        )
+
+        if ids_only:
+            return tuple([str(network.network) for network in networks])
+        else:
+            return networks
+
     def by_owner(self, user, use_groups=False, ids_only=False):
         User = get_user_model()
 
@@ -110,7 +128,7 @@ class AddressQuerySet(QuerySet):
                 obj_pool = Pool.objects.get(pk=pool)
 
             # Delete dns records and are linked via name
-            DnsRecord.objects.filter(name=obj.address.reverse_dns[:-1]).delete()
+            DnsRecord.objects.filter(name=obj.address.ip.reverse_pointer).delete()
             # Delete dns A records
             DnsRecord.objects.filter(ip_content=obj).delete()
 

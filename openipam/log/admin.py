@@ -8,14 +8,14 @@ from django import forms
 
 from openipam.log.models import HostLog, EmailLog
 
-import autocomplete_light
+from autocomplete_light import shortcuts as al
 
 User = get_user_model()
 
 
 class LogEntryAdminForm(forms.ModelForm):
-    user = autocomplete_light.ModelChoiceField('UserAutocomplete')
-    content_type = autocomplete_light.ModelChoiceField('ContentTypeAutocomplete')
+    user = al.ModelChoiceField('UserAutocomplete')
+    content_type = al.ModelChoiceField('ContentTypeAutocomplete')
 
     class Meta:
         model = LogEntry
