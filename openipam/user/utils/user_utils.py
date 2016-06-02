@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.db import connection
+from django.conf import settings
 
 from guardian.shortcuts import assign_perm, remove_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
@@ -14,6 +15,7 @@ from openipam.user.models import GroupSource, AuthSource
 from openipam.hosts.models import Host
 
 import gc
+import ldap
 
 User = get_user_model()
 
@@ -26,6 +28,31 @@ def get_objects_for_owner(user, app_label):
                                                        permission=owner_perm).values_list('object_pk')
     user_objects = [obj[0] for obj in user_objects]
     return model_class.objects.filter(pk__in=user_objects)
+
+
+def fix_ldap_groups():
+    url = settings.AUTH_LDAP_SERVER_URI
+    dn = settings.AUTH_LDAP_BIND_DN
+    pw = settings.AUTH_LDAP_BIND_PASSWORD
+    conn = ldap.initialize(url)
+    conn.set_option(ldap.OPT_REFERRALS, 0)
+    conn.simple_bind_s(dn, pw)
+    attrs = ['member']
+
+    ldap_source = AuthSource.objects.get(name='LDAP')
+
+    counter = 0
+    internal_groups = AuthGroup.objects.filter(source__source__name='INTERNAL')
+    for group in internal_groups:
+        result = conn.search_s(settings.AUTH_LDAP_GROUP_SEARCH.base_dn, ldap.SCOPE_SUBTREE, 'cn=%s' % group.name, attrs)
+        group_result = result[0][0]
+        if group_result:
+            print group_result
+            group.source.source = ldap_source
+            group.source.save()
+            counter += 1
+
+    print '%s Groups changed.' % counter
 
 
 def convert_groups():

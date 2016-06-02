@@ -291,6 +291,7 @@ class AuthGroupAdmin(GroupAdmin):
     form = AuthGroupAdminForm
     list_select_related = True
     inlines = [AuthGroupSourceInline]
+    actions = ['change_source_internal', 'change_source_ldap']
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)
@@ -344,6 +345,20 @@ class AuthGroupAdmin(GroupAdmin):
         return '%s' % (obj.source)
     authsources.short_description = 'Source'
     authsources.admin_order_field = 'source__source'
+
+    def change_source_internal(self, request, queryset):
+        source = AuthSource.objects.get(name='INTERNAL')
+        for group in queryset:
+            group.source.source = source
+            group.source.save()
+    change_source_internal.description = 'Change Group Source to INTERNAL'
+
+    def change_source_ldap(self, request, queryset):
+        source = AuthSource.objects.get(name='LDAP')
+        for group in queryset:
+            group.source.source = source
+            group.source.save()
+    change_source_ldap.description = 'Change Group Source to LDAP'
 
 
 class AuthPermissionAdmin(admin.ModelAdmin):

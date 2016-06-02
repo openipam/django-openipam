@@ -106,14 +106,16 @@
 			{% endif %}
 
 			{% block result_list %}
-				<div class="well well-sm">
-    					{% if action_form and actions_on_top and cl.full_result_count %}
-    						{% include "admin/actions.html" %}
-    					{% endif %}
-                        {% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
-                        {% include "admin/filters.html" %}
-					<div class="clear"><!-- --></div>
-				</div>
+				{% if action_form or cl and cl.search_fields %}
+					<div class="well well-sm">
+	    					{% if action_form and actions_on_top and cl.full_result_count %}
+	    						{% include "admin/actions.html" %}
+	    					{% endif %}
+	                        {% block search %}{% if cl %}{% search_form cl %}{% endif %}{% endblock %}
+	                        {% include "admin/filters.html" %}
+						<div class="clear"><!-- --></div>
+					</div>
+				{% endif %}
 				{% result_list cl %}
 				{% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
 			{% endblock %}

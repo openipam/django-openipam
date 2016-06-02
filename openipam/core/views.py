@@ -65,7 +65,9 @@ def login(request, internal=False, **kwargs):
 @require_http_methods(["GET"])
 def logout(request, next_page=None, **kwargs):
 
-    if CONFIG.get('CAS_LOGIN'):
+    backend = request.session['_auth_user_backend'].split('.')[-1]
+
+    if CONFIG.get('CAS_LOGIN') and backend == 'IPAMCASBackend':
         cas_logout(request, next_page, **kwargs)
 
         next_page = next_page or get_redirect_url(request)
@@ -83,7 +85,7 @@ def logout(request, next_page=None, **kwargs):
             # simply be logged in again on next request requiring authorization.
             return HttpResponseRedirect(next_page)
     else:
-        return auth_logout_view(request, **kwargs)
+        return auth_logout_view(request, next_page='internal_login', **kwargs)
 
 
 def mimic(request):

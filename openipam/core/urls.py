@@ -39,7 +39,7 @@ urlpatterns = [
 
 
     # Account URLS
-    url(r'^login/i/$', views.login, {'internal': True}, name='login'),
+    url(r'^login/i/$', views.login, {'internal': True}, name='internal_login'),
     url(r'^login/$', views.login, name='login'),
     url(r'^logout/$', views.logout, {'next_page': 'login'}, name='logout'),
     url(r'^mimic/$', views.mimic, name='mimic'),
