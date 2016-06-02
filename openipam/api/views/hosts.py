@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, DataError, DatabaseError
 
 from rest_framework.views import APIView
 from rest_framework import mixins
@@ -161,7 +161,7 @@ class HostCreate(generics.CreateAPIView):
         try:
             response = super(HostCreate, self).create(request, *args, **kwargs)
             return response
-        except ValidationError, e:
+        except (ValidationError, DataError) as e:
             error_list = []
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
