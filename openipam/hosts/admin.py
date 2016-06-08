@@ -19,7 +19,7 @@ class HostAdmin(ChangedAdmin):
 
     # Null Foreign Keys dont get included by default
     def get_queryset(self, request):
-        qs = super(HostAdmin, self).queryset(request)
+        qs = super(HostAdmin, self).get_queryset(request)
         qs = qs.select_related('dhcp_group').all()
         return qs
 

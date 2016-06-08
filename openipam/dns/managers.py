@@ -141,7 +141,9 @@ class DNSQuerySet(QuerySet):
                 user_or_group,
                 ['hosts.is_owner_host', 'hosts.change_host'],
                 any_perm=True
-            ).values_list('mac', flat=True)
+            )
+            host_perms_mac_list = [host.mac for host in host_perms]
+            host_perms_name_list = [host.hostname for host in host_perms]
             domain_perms = get_objects_for_user_or_group(
                 user_or_group,
                 ['dns.is_owner_domain', 'dns.change_domain'],
@@ -154,7 +156,8 @@ class DNSQuerySet(QuerySet):
             ).values_list('network', flat=True)
 
             qs = self.filter(
-                Q(ip_content__host__in=host_perms) |
+                Q(ip_content__host__in=host_perms_mac_list) |
+                Q(text_content__in=host_perms_name_list) |
                 Q(ip_content__network__in=network_perms)
             )
 

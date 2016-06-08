@@ -5,8 +5,9 @@ from django.views.generic.base import RedirectView
 from openipam.hosts import views
 
 urlpatterns = [
-    url(r'^host/add/$', RedirectView.as_view(url=reverse_lazy('add_hosts'))),
-    url(r'^host/\w*$', RedirectView.as_view(url=reverse_lazy('list_hosts'))),
+    url(r'^host/add/?$', RedirectView.as_view(url=reverse_lazy('add_hosts'))),
+    url(r'^host/(?P<pk>[0-9a-fA-F:_.-]+)$', views.HostRedirectView.as_view()),
+    url(r'^host/.*$', RedirectView.as_view(url=reverse_lazy('list_hosts'))),
     url(r'^$', views.HostListView.as_view(), name='list_hosts'),
     # url(r'^$', 'index', name='hosts'),
     url(r'^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/addresses/remove/$', views.HostAddressDeleteView.as_view(), name='remove_addresses_host'),

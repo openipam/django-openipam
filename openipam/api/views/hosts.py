@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.core.exceptions import ValidationError, DataError, DatabaseError
+from django.core.exceptions import ValidationError
+from django.db import DataError
 
 from rest_framework.views import APIView
 from rest_framework import mixins

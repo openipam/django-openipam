@@ -13,7 +13,7 @@ def delete_records(request, selected_records):
 
     # Must have global delete perm or object owner perm
     if not user.has_perm('dns.delete_dnsrecord') and not change_perms_check(user, selected_records):
-        messages.error(request, "You do not have permissions to perform this action on one or more the selected hosts. "
+        messages.error(request, "You do not have permissions to perform this action on one or more the selected dns records. "
                        "Please contact an IPAM administrator.")
     else:
         dns_records = DnsRecord.objects.filter(pk__in=selected_records)

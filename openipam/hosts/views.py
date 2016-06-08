@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView, FormView
+from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView, View
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
@@ -15,16 +16,14 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.utils import DatabaseError, DataError
+from django.db.utils import DatabaseError
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList, ErrorDict
-from django.db import transaction
 
-from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
@@ -202,7 +201,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             SELECT leases.mac from leases
                                 WHERE HOST(leases.address) = %(search)s
                         '''
-
                     cursor.execute(omni_sql, {'lsearch': like_search_term, 'search': search_item})
                     search_hosts = cursor.fetchall()
                     qs = qs.filter(mac__in=[host[0] for host in search_hosts])
@@ -454,6 +452,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 ),
             ])
         return json_data
+
+
+class HostRedirectView(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        pk = ''.join(re.split('[^a-zA-Z0-9]*', kwargs['pk']))
+        self.url = reverse_lazy('update_host', kwargs={'pk': pk})
+        return super(HostRedirectView, self).get_redirect_url(*args, **kwargs)
 
 
 class HostListView(PermissionRequiredMixin, TemplateView):

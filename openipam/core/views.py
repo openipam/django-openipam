@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
+from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
 from django.contrib.admin.sites import AdminSite
@@ -388,7 +389,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
                    'recordsFiltered': records_filtered,
                    'data': data
                    }
-        except DataError:
+        except (ValidationError, DataError):
             ret = {'draw': int(self.json_data.get('draw', 0)),
                    'recordsTotal': records_total,
                    'recordsFiltered': 0,

@@ -70,37 +70,36 @@ $(function(){
 				request.length = requestLength*conf.pages;
 
 				// Provide the same `data` options as DataTables.
-				if ( $.isFunction ( conf.data ) ) {
+				if ($.isFunction (conf.data)) {
 					// As a function it is executed with the data object as an arg
 					// for manipulation. If an object is returned, it is used as the
 					// data object to submit
-					var d = conf.data( request );
+					var d = conf.data(request);
 					if ( d ) {
-						$.extend( request, d );
+						$.extend(request, d);
 					}
 				}
-				else if ( $.isPlainObject( conf.data ) ) {
+				else if ($.isPlainObject(conf.data)) {
 					// As an object, the data given extends the default
-					$.extend( request, conf.data );
+					$.extend(request, conf.data);
 				}
 
-				settings.jqXHR = $.ajax( {
+				settings.jqXHR = $.ajax({
 					"type":     conf.method,
 					"url":      conf.url,
 					"data":     request,
 					"dataType": "json",
 					"cache":    false,
-					"success":  function ( json ) {
+					"success":  function (json) {
 						cacheLastJson = $.extend(true, {}, json);
 
-						if ( cacheLower != requestStart ) {
-							json.data.splice( 0, requestStart-cacheLower );
+						if (cacheLower != requestStart) {
+							json.data.splice(0, requestStart-cacheLower);
 						}
-						json.data.splice( requestLength, json.data.length );
-
-						drawCallback( json );
+						json.data.splice(requestLength, json.data.length);
+						drawCallback(json);
 					}
-				} );
+				});
 			}
 			else {
 				json = $.extend( true, {}, cacheLastJson );
@@ -108,7 +107,7 @@ $(function(){
 				json.data.splice( 0, requestStart-cacheLower );
 				json.data.splice( requestLength, json.data.length );
 
-				drawCallback(json);
+					drawCallback(json);
 			}
 		}
 	}
@@ -138,7 +137,7 @@ $(function(){
 		"ajax": $.fn.dataTable.pipeline({
 			"url": "data/",
 			"pages": 5,
-			"data": function(d) {
+			"data": function(d) {	
 				if (!$.isEmptyObject($.urlVars)) {
 					$.each(d.columns, function(key, obj){
 						obj.search.value = (obj.name in $.urlVars) ? $.urlVars[obj.name] : '';
@@ -170,8 +169,8 @@ $(function(){
 			//$("#s_host").val(('hostname' in $.urlVars) ? $.urlVars['hostname'] : data.columns[1].sSearch);
 			$("#s_host").val(data.columns[1].search.search);
 			$("#s_mac").val(data.columns[2].search.search);
-			$("#s_ip").val(data.columns[3].search.search);
-			$("#s_expires").val(data.columns[4].search.search);
+			$("#s_expires").val(data.columns[3].search.search);
+			$("#s_ip").val(data.columns[4].search.search);
 			$("#s_vendor").val(data.columns[5].search.search);
 		},
 		"columns": [
