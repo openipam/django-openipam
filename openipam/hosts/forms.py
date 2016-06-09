@@ -156,7 +156,7 @@ class HostForm(forms.ModelForm):
                 user_networks = NetworkRange.objects.none()
                 other_networks = False
 
-            if self.instance.pk:
+            if self.instance.address_type:
                 existing_address_type = self.instance.address_type.pk
             else:
                 existing_address_type = None
