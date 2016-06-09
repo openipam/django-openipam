@@ -46,6 +46,8 @@ import json
 import re
 import csv
 
+import collections
+
 # from django.db.models.sql.aggregates import Aggregate as SQLAggregate
 # from django.db.models import Aggregate
 # from django.db.models import DecimalField
@@ -770,6 +772,22 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
     template_name = 'hosts/host_form_bulk.html'
     form_class = HostBulkCreateForm
 
+    @staticmethod
+    def host_to_dict(host):
+        fields = ['hostname', 'mac', 'expire_days', 'description', 'ip_address',
+                  'network', 'pool', 'user_owners', 'group_owners', ]
+
+        if len(host) < 3:
+            raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
+
+        host_vals = collections.OrderedDict()
+
+        for i in range(len(host)):
+            if host[i]:
+                host_vals[fields[i]] = host[i]
+
+        return host_vals
+
     def form_valid(self, form):
         csv_file = form.cleaned_data['csv_file']
         lines = csv_file.read().splitlines()
@@ -780,54 +798,52 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             hosts.append(row)
         csv_file.close()
 
+        required_fields = ['hostname', 'mac', 'expire_days', ]
+
         error_list = []
         try:
             with transaction.atomic():
-                for host in hosts:
-                    if len(host) < 3:
-                        raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
+                for i in range(len(hosts)):
+                    host = self.host_to_dict(hosts[i])
 
-                    description = host[3] or None if len(host) >= 4 else None
-                    ip_address = host[4] or None if len(host) >= 5 else None
-                    network = host[5] or None if len(host) >= 6 else None
-                    pool = host[6] or None if len(host) >= 7 else None
+                    for field in required_fields:
+                        if field not in host:
+                            raise ValidationError("Missing required field '%s' on row '%s'" % (field, i + 1))
 
-                    if not ip_address and network and not pool:
-                        pool = 'routable-dynamic'
+                    if 'ip' in host and ('network' in host or 'pool' in host) or 'network' in host and 'pool' in host:
+                        raise ValidationError("Cannot set more than one of network, pool, or ip")
 
-                    if host[1] == 'vmware':
-                        mac = Host.objects.find_next_mac(vendor='vmware')
-                    else:
-                        mac = host[1]
+                    if 'ip_address' not in host and 'network' not in host and 'pool' not in host:
+                        host['pool'] = 'routable-dynamic'
 
-                    user_owners = host[7].split(',') or [] if len(host) >= 8 else []
-                    group_owners = host[8].split(',') or [] if len(host) == 9 else []
+                    if host['mac'] == 'vmware':
+                        host['mac'] = Host.objects.find_next_mac(vendor='vmware')
 
-                    if user_owners:
+                    if 'user_owners' in host:
+                        user_owners = host['user_owners'].split(',')
                         user_owners = [user.upper() for user in user_owners]
                         users_check = [user.username for user in User.objects.filter(username__in=user_owners)]
                         users_diff = set(user_owners) - set(users_check)
                         if users_diff:
                             raise ValidationError('Unknown User(s): %s' % ','.join(users_diff))
+                        host['user_owners'] = user_owners
 
-                    if group_owners:
+                    if 'group_owners' in host:
+                        group_owners = host['group_owners'].split(',')
                         groups_check = [group.name for group in Group.objects.filter(name__in=group_owners)]
                         groups_diff = set(group_owners) - set(groups_check)
                         if groups_diff:
                             raise ValidationError('Unknown Groups(s): %s' % ','.join(groups_diff))
+                        host['group_owners'] = group_owners
 
-                    Host.objects.add_or_update_host(
-                        self.request.user,
-                        hostname=host[0],
-                        mac=mac,
-                        expire_days=host[2],
-                        description=description,
-                        ip_address=ip_address,
-                        network=network,
-                        pool=pool,
-                        user_owners=user_owners,
-                        group_owners=group_owners
-                    )
+                    try:
+                        Host.objects.add_or_update_host(
+                            self.request.user,
+                            **host
+                        )
+                    except Exception, e:
+                        error_list.append('Error adding host from row %s' % (i + 1))
+                        raise
 
         except ValidationError as e:
             if hasattr(e, 'error_dict'):
@@ -837,7 +853,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             else:
                 error_list.append(e.message)
 
-            error_list.append(','.join(host))
+            pretty_print = []
+            for k, v in host.items():
+                pretty_print.append("%s: %r" % (k, v))
+
+            error_list.append('values: ' + ', '.join(pretty_print))
 
             error_list.append('Please try again.')
             messages.error(self.request, mark_safe('<br />'.join(error_list)))
