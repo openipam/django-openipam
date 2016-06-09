@@ -46,6 +46,8 @@ import json
 import re
 import csv
 
+import collections
+
 # from django.db.models.sql.aggregates import Aggregate as SQLAggregate
 # from django.db.models import Aggregate
 # from django.db.models import DecimalField
@@ -778,7 +780,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         if len(host) < 3:
             raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
 
-        host_vals = {}
+        host_vals = collections.OrderedDict()
 
         for i in range(len(host)):
             if host[i]:
@@ -806,7 +808,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                     for field in required_fields:
                         if field not in host:
-                            raise ValidationError("Missing required field '%s' on row '%s'" % (field, i+1))
+                            raise ValidationError("Missing required field '%s' on row '%s'" % (field, i + 1))
 
                     if 'ip' in host and ('network' in host or 'pool' in host) or 'network' in host and 'pool' in host:
                         raise ValidationError("Cannot set more than one of network, pool, or ip")
@@ -840,7 +842,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                             **host
                         )
                     except Exception, e:
-                        error_list.append(ValidationError("Error adding host from row %s" % (i+1)))
+                        error_list.append('Error adding host from row %s' % (i + 1)))
                         raise
 
         except ValidationError as e:
@@ -851,7 +853,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             else:
                 error_list.append(e.message)
 
-            error_list.append(','.join(host))
+            pretty_print = []
+            for k,v in host:
+                pretty_print.append("%s: %r" % (k, v))
+
+            error_list.append('values: ' + ', '.join(pretty_print))
 
             error_list.append('Please try again.')
             messages.error(self.request, mark_safe('<br />'.join(error_list)))
