@@ -793,8 +793,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         hosts = []
         records = csv.reader(lines)
         for row in records:
-            host = host_to_dict(row)
-            hosts.append(host)
+            hosts.append(row)
         csv_file.close()
 
         required_fields = ['hostname', 'mac', 'expire_days', ]
@@ -803,7 +802,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         try:
             with transaction.atomic():
                 for i in range(len(hosts)):
-                    host = hosts[i]
+                    host = self.host_to_dict(hosts[i])
 
                     for field in required_fields:
                         if field not in host:
