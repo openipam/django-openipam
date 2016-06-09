@@ -842,7 +842,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                             **host
                         )
                     except Exception, e:
-                        error_list.append('Error adding host from row %s' % (i + 1)))
+                        error_list.append('Error adding host from row %s' % (i + 1))
                         raise
 
         except ValidationError as e:
