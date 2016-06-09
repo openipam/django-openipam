@@ -854,7 +854,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                 error_list.append(e.message)
 
             pretty_print = []
-            for i, (k, v) in host:
+            for k, v in host.items():
                 pretty_print.append("%s: %r" % (k, v))
 
             error_list.append('values: ' + ', '.join(pretty_print))
