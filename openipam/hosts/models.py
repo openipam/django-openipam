@@ -74,7 +74,7 @@ class Disabled(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
     def __unicode__(self):
-        return self.pk
+        return '%s' % self.pk
 
     class Meta:
         db_table = 'disabled'
