@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from rest_framework.authtoken.models import Token
 
@@ -117,7 +118,24 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(GroupObjectPermissionAdminForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
-           self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
+            self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        content_type_id = cleaned_data['object_id'].split('-')[0]
+        object_pk = cleaned_data['object_id'].split('-')[1]
+
+        try:
+            GroupObjectPermission.objects.get(
+                group=cleaned_data['group'],
+                permission=cleaned_data['permission'],
+                content_type_id=content_type_id,
+                object_pk=object_pk
+            )
+        except GroupObjectPermission.DoesNotExist:
+            pass
+        else:
+            raise ValidationError('Group Permission with this Group, Permission, And Object already exist.')
 
     class Meta:
         model = GroupObjectPermission
