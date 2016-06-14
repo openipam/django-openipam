@@ -195,13 +195,15 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         self.fields['dhcp_group'] = serializers.ChoiceField(
             required=False,
             choices=blank_choice + [
-                (dhcp_group.pk, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()
+                (dhcp_group.name, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()
             ]
         )
 
     def to_representation(self, instance):
         ret = super(HostCreateUpdateSerializer, self).to_representation(instance)
         ret['ip_address'] = instance.master_ip_address
+        if instance.dhcp_group:
+            ret['dhcp_group'] = instance.dhcp_group.name
         return ret
 
     def save(self):
