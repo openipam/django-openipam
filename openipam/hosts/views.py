@@ -225,7 +225,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             if vendor_search:
                 qs = qs.extra(where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"], params=['%%%s%%' % vendor_search], tables=['ouis'])
             if ip_search:
-                if '/' in ip_search and len(ip_search.split('/')) > 1:
+                if re.search('[a-zA-Z]', ip_search):
+                    qs = qs.none()
+                elif '/' in ip_search and len(ip_search.split('/')) > 1:
                     if ip_search.endswith('/'):
                         qs = qs.none()
                     else:
@@ -234,7 +236,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
                         ).distinct()
                 else:
-
                     ip = ip_search.split(':')[-1]
                     tail_dot = '.' if ip[-1] == '.' else ''
                     ip_blocks = filter(None, ip.split('.'))
