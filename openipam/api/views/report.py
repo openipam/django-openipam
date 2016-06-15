@@ -395,6 +395,8 @@ def render_lease_chart(request, network):
                 f.write(chunk)
             f.seek(0)
             return HttpResponse(f, content_type='image/png')
+    else:
+        return HttpResponse(req.reason, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ServerHostCSVRenderer(CSVRenderer):
