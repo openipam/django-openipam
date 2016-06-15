@@ -17,7 +17,7 @@ import binascii
 
 class AddressAdminForm(forms.ModelForm):
     host = al.ModelChoiceField('HostAutocomplete', required=False)
-    network = al.ModelChoiceField('NetworkAutocomplete')
+    # network = al.ModelChoiceField('NetworkAutocomplete')
 
     class Meta:
         model = Address
@@ -69,7 +69,6 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
                 self.fields['readable_value'].initial = '0x' + binascii.hexlify(self.instance.value)
 
             self.original_value = self.fields['readable_value'].initial
-
 
     def clean_readable_value(self):
         value = self.cleaned_data['readable_value']

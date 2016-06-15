@@ -281,6 +281,12 @@ class Address(models.Model):
             raise ValidationError('Host and Pool cannot both be defined.  Choose one or the other.')
         elif (self.host or self.pool) and self.reserved:
             raise ValidationError('If a Host or Pool are defined, reserved must be false.')
+        elif self.address not in self.network.network:
+            raise ValidationError('Address entered must be a part of the network selected.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super(Address, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'addresses'

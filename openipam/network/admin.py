@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.db import DataError
 from django.contrib import messages
 
 from netaddr import IPNetwork
@@ -59,6 +60,12 @@ class NetworkAdmin(ChangedAdmin):
             return redirect('../')
 
         return render(request, 'admin/actions/tag_network.html', {'form': form})
+
+    def save_model(self, request, obj, form, change):
+        try:
+            obj.save()
+        except DataError as e:
+            raise ValidationError(e.message)
 
 
     def resize_network_view(self, request):
@@ -244,7 +251,7 @@ class IsExpiredFilter(admin.SimpleListFilter):
 
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
-    #form = al.modelform_factory(Lease)
+    # form = al.modelform_factory(Lease)
     list_display = ('address', 'mac', 'starts', 'ends', 'server', 'abandoned',)
     search_fields = ('address__address', 'host__mac', 'host__hostname',)
     list_filter = ('abandoned', 'starts', 'ends', 'server', IsExpiredFilter)
