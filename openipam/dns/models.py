@@ -1,8 +1,7 @@
 from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_ipv4_address, validate_ipv6_address
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_delete
 
 from openipam.dns.managers import DnsManager, DnsTypeManager, DomainQuerySet, DNSQuerySet
 from openipam.dns.validators import validate_fqdn, validate_soa_content, \
@@ -10,8 +9,6 @@ from openipam.dns.validators import validate_fqdn, validate_soa_content, \
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
 from guardian.shortcuts import get_objects_for_user
-
-from netaddr.core import AddrFormatError
 
 import re
 import operator
@@ -109,7 +106,6 @@ class DnsRecord(models.Model):
 
     def clean_permissions(self):
         from openipam.network.models import Address
-        from openipam.hosts.models import Host
 
         user = self.changed_by
 
@@ -135,7 +131,7 @@ class DnsRecord(models.Model):
         # Users must either have domain permissions when except for PTRs what are being created from host saves.
         if self.dns_type.is_ptr_record and self.host.is_dirty():
             pass
-        elif not valid_domains  or self.domain not in valid_domains:
+        elif not valid_domains or self.domain not in valid_domains:
             raise ValidationError('Invalid credentials: user %s does not have permissions'
                 ' to add DNS records to the domain provided. Please contact an IPAM administrator '
                 'to ensure you have the proper permissions.' % user)
@@ -150,7 +146,6 @@ class DnsRecord(models.Model):
         if self.dns_type.is_ptr_record and not valid_addresses.filter(host=self.host):
             raise ValidationError("Invalid credentials: user %s does not have permissions"
                 " to add or modify DNS Records for Host '%s'" % (user, self.text_content))
-
 
     def clean_fields(self, exclude=None):
         errors = {}
@@ -191,7 +186,7 @@ class DnsRecord(models.Model):
         # Make sure name is lowercase
         self.name = self.name.lower().strip()
 
-        #Clean name if A or AAAA record
+        # Clean name if A or AAAA record
         if self.dns_type.is_a_record:
             dns_exists = DnsRecord.objects.filter(
                 name=self.name,
@@ -276,9 +271,9 @@ class DnsRecord(models.Model):
                 if not self.ip_content:
                     error_list.append('IP Content must exist for A records.')
 
-            # Name and text content cannot be the same if its not an CNAME
-            if not self.dns_type.is_cname_record and self.name == self.text_content:
-                error_list.append('Name and Text Content cannot match for records other than CNAME.')
+            # Name and text content cannot be the same if its a CNAME
+            if self.dns_type.is_cname_record and self.name == self.text_content:
+                error_list.append('Name and Text Content cannot match for CNAME records.')
 
             if self.dns_type.is_cname_record:
                 records = DnsRecord.objects.filter(name=self.name, dns_type=self.dns_type).exclude(pk=self.pk)
@@ -328,9 +323,9 @@ class DnsRecord(models.Model):
         # Make sure that priority was set, or set it if they passed it
         match = None
 
-        if self.dns_type.is_mx_record: # MX
+        if self.dns_type.is_mx_record:  # MX
             match = re.compile('^([0-9]{1,2}) (.*)$').search(self.text_content)
-        elif self.dns_type.is_srv_record: # SRV
+        elif self.dns_type.is_srv_record:  # SRV
             match = re.compile('^([0-9]{1,2}) (\d+ \d+ .*)$').search(self.text_content)
 
         if match:
@@ -501,5 +496,5 @@ class RecordMunged(models.Model):
         db_table = 'records_munged'
 
 
-#Register Signals
+# Register Signals
 pre_delete.connect(remove_obj_perms_connected_with_user, sender=DnsType)

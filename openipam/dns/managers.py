@@ -176,7 +176,6 @@ class DNSQuerySet(QuerySet):
 class DnsManager(Manager):
 
     def add_or_update_record(self, user, name, content, dns_type, host=None, ttl=None, record=None):
-        from openipam.dns.models import Domain
         from openipam.network.models import Address
         from openipam.hosts.models import Host
 
@@ -193,7 +192,7 @@ class DnsManager(Manager):
 
             dns_record.changed_by = user
 
-           # Clear content if we are changing dnstype
+            # Clear content if we are changing dnstype
             if created is False and dns_record.dns_type != dns_type:
                 dns_record.clear_content()
 
