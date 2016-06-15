@@ -239,7 +239,10 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
         if host_exists:
             if host_exists[0].is_expired:
-                host_exists[0].delete()
+                if host_exists[0].is_disabled:
+                    raise serializers.ValidationError('The mac address %s cannot be added because it is currently diabled.' % host_exists[0].hostname)
+                else:
+                    host_exists[0].delete()
             else:
                 raise serializers.ValidationError('The mac address entered already exists for host: %s.' % host_exists[0].hostname)
         return value
@@ -267,7 +270,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 any_perm=True
             )
 
-            if pool not in [pool.name for pool in user_pools]:
+            if pool not in [p.name for p in user_pools]:
                 raise serializers.ValidationError('The pool entered is invalid or not permitted.')
 
         return value
@@ -377,8 +380,7 @@ class HostUpdateAttributeSerializer(serializers.Serializer):
             attr_exists = Attribute.objects.filter(name=key)
             if not attr_exists:
                 raise serializers.ValidationError("The attribute '%s', does not exist.  "
-                    "Please specifiy a valid attribute key." % key
-                )
+                    "Please specifiy a valid attribute key." % key)
             else:
                 if attr_exists[0].structured:
                     choices = [choice.value for choice in attr_exists[0].choices.all()]
@@ -400,8 +402,7 @@ class HostDeleteAttributeSerializer(serializers.Serializer):
             attr_exists = Attribute.objects.filter(name=key)
             if not attr_exists:
                 raise serializers.ValidationError("The attribute '%s', does not exist.  "
-                    "Please specifiy a valid attribute key." % key
-                )
+                    "Please specifiy a valid attribute key." % key)
         return value
 
 
@@ -444,6 +445,9 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
             host = Host.objects.filter(mac=value).first()
             if not host:
                 raise serializers.ValidationError('No Host found from MAC address entered.')
+            disabled_exists = Disabled.objects.filter(pk=value)
+            if disabled_exists:
+                raise serializers.ValidationError("Host '%s' has already been disabled." % value)
         except ValidationError as e:
                 raise serializers.ValidationError(str(e.message))
         return host
@@ -469,4 +473,3 @@ class DisabledHostDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Disabled
         fields = ('host',)
-
