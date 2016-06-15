@@ -1,35 +1,31 @@
 from django.views.generic.edit import FormView
-from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.utils.http import urlunquote
-from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.db.utils import DatabaseError
 from django.contrib import messages
 from django.forms.utils import ErrorList
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 
+from openipam.dns.forms import DSNCreateFrom
 from openipam.dns.models import DnsRecord, DnsType
-from openipam.dns.forms import DNSListForm, DSNCreateFrom
 from openipam.dns.actions import delete_records
-from openipam.hosts.models import Host
 from openipam.core.views import BaseDatatableView
 
-from guardian.shortcuts import get_objects_for_user, get_objects_for_group
+from guardian.shortcuts import get_objects_for_user
 
 from netaddr.core import AddrFormatError
 
 from braces.views import PermissionRequiredMixin
 
 import json
-
-import copy
 
 User = get_user_model()
 
@@ -70,9 +66,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             content_search = column_data[4]['search']['value']
             search = self.json_data.get('search_filter', '')
 
-            #host_filter = self.json_data.get('host_filter', None)
-            #group_filter = self.json_data.get('group_filter', None)
-            #user_filter = self.json_data.get('user_filter', None)
+            # host_filter = self.json_data.get('host_filter', None)
+            # group_filter = self.json_data.get('group_filter', None)
+            # user_filter = self.json_data.get('user_filter', None)
 
             search_list = search.strip().split(' ') if search else []
             for search_item in search_list:
@@ -169,7 +165,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         )
 
         def get_dns_types(dtype):
-            #dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
+            # dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:
@@ -238,7 +234,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 <span>%s</span>
                 <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s" value="%s" style="display:none;" />
             ''' % (dns_record.ttl, dns_record.pk, dns_record.ttl)
-
 
         def get_links(dns_record, has_change_permission):
             if has_change_permission:
@@ -484,4 +479,3 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     return redirect('list_dns')
         else:
             return self.form_invalid(form)
-
