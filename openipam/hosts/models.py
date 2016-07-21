@@ -563,12 +563,12 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Update Changed by Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_pointer | Q(ip_content=address, name=self.original_hostname),
+            Q(name=address.address.reverse_pointer) | Q(ip_content=address, name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).update(changed_by=user)
         # Delete Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_pointer| Q(ip_content=address, name=self.original_hostname),
+            Q(name=address.address.rreverse_pointer) | Q(ip_content=address, name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
 
