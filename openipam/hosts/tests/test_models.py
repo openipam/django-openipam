@@ -62,7 +62,7 @@ class HostTest(IPAMTestCase):
         ip_h_ptr = ip_h.dns_records.filter(dns_type__name='PTR')
         self.assertEqual(len(ip_h_ptr), 1)
         ip_h_ptr = ip_h_ptr[0]
-        self.assertEqual(ip_h.addresses.all()[0].address.reverse_dns[:-1], ip_h_ptr.name)
+        self.assertEqual(ip_h.addresses.all()[0].address.reverse_pointer, ip_h_ptr.name)
         self.assertEqual(ip_h_ptr.text_content, ip_h.hostname)
         return ip_h
 

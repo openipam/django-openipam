@@ -563,12 +563,12 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Update Changed by Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address, name=self.original_hostname),
+            Q(name=address.address.reverse_pointer | Q(ip_content=address, name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).update(changed_by=user)
         # Delete Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_dns[:-1]) | Q(ip_content=address, name=self.original_hostname),
+            Q(name=address.address.reverse_pointer| Q(ip_content=address, name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
 
@@ -588,7 +588,7 @@ class Host(DirtyFieldsMixin, models.Model):
         # Add Associated PTR
         DnsRecord.objects.add_or_update_record(
             user=user,
-            name=address.address.reverse_dns[:-1],
+            name=address.address.reverse_pointer,
             content=hostname,
             dns_type=DnsType.objects.PTR,
             host=self,
@@ -733,7 +733,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 if a_record:
                     ptr_record = self.get_dns_records().filter(
                         text_content=self.hostname,
-                        name=a_record.ip_content.address.reverse_dns[:-1]
+                        name=a_record.ip_content.address.reverse_pointer
                     )
                 else:
                     ptr_record = None

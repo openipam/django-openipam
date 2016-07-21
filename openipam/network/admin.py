@@ -1,14 +1,9 @@
 from django.contrib import admin
-from django import forms
 from django.shortcuts import redirect, render
 from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.db import DataError
 from django.contrib import messages
-
-from netaddr import IPNetwork
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
@@ -25,10 +20,10 @@ class NetworkAdmin(ChangedAdmin):
     list_display = ('nice_network', 'name', 'description', 'gateway')
     list_filter = (('tags__name', custom_titled_filter('Tags')), 'shared_network__name')
     search_fields = ('network', 'shared_network__name')
-    actions = ['tag_network', 'resize_network', 'release_abandoned_leases',]
+    actions = ['tag_network', 'resize_network', 'release_abandoned_leases']
 
     def get_actions(self, request):
-        #Disable delete
+        # Disable delete
         actions = super(NetworkAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
@@ -61,13 +56,6 @@ class NetworkAdmin(ChangedAdmin):
 
         return render(request, 'admin/actions/tag_network.html', {'form': form})
 
-    def save_model(self, request, obj, form, change):
-        try:
-            obj.save()
-        except DataError as e:
-            raise ValidationError(e.message)
-
-
     def resize_network_view(self, request):
         ids = request.REQUEST.get('ids').strip().split(',')
         if len(ids) > 1:
@@ -87,14 +75,14 @@ class NetworkAdmin(ChangedAdmin):
             addresses = []
             existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=new_network.pk)]
 
-            for address in IPNetwork(new_network.network):
+            for address in new_network.network:
                 if address not in existing_addresses:
                     reserved = False
                     if address in (new_network.gateway, new_network.network[0], new_network.network[-1]):
                         reserved = True
                     pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
                     addresses.append(
-                        #TODO: Need to set pool eventually.
+                        # TODO: Need to set pool eventually.
                         Address(
                             address=address,
                             network=new_network,
@@ -103,7 +91,8 @@ class NetworkAdmin(ChangedAdmin):
                             changed_by=request.user,
                         )
                     )
-            Address.objects.bulk_create(addresses)
+            if addresses:
+                Address.objects.bulk_create(addresses)
 
             messages.success(
                 request,
@@ -114,18 +103,15 @@ class NetworkAdmin(ChangedAdmin):
 
         return render(request, 'admin/actions/resize_network.html', {'form': form, 'network_error': network_error})
 
-
     def tag_network(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return redirect("tag/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
-
     def resize_network(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return redirect("resize/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-
 
     def release_abandoned_leases(self, request, queryset):
         for network in queryset:
@@ -133,19 +119,18 @@ class NetworkAdmin(ChangedAdmin):
                 address__address__net_contained_or_equal=network.network,
                 abandoned=True).update(abandoned=False, host='000000000000')
 
-
     def save_model(self, request, obj, form, change):
         super(NetworkAdmin, self).save_model(request, obj, form, change)
 
         if not change:
             addresses = []
-            for address in IPNetwork(obj.network):
+            for address in obj.network:
                 reserved = False
                 if address in (obj.gateway, obj.network[0], obj.network[-1]):
                     reserved = True
                 pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
                 addresses.append(
-                    #TODO: Need to set pool eventually.
+                    # TODO: Need to set pool eventually.
                     Address(
                         address=address,
                         network=obj,
@@ -154,8 +139,8 @@ class NetworkAdmin(ChangedAdmin):
                         changed_by=request.user,
                     )
                 )
-            Address.objects.bulk_create(addresses)
-
+            if addresses:
+                Address.objects.bulk_create(addresses)
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super(NetworkAdmin, self).get_search_results(request, queryset, search_term)
