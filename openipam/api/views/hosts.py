@@ -102,7 +102,7 @@ class HostMac(APIView):
             host = Host.objects.filter(addresses__address=registered_ip).first()
 
         if host:
-            return Response({'mac': host.mac})
+            return Response({'mac': str(host.mac)})
 
         return Response({})
 
