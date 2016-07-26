@@ -134,7 +134,7 @@ class AddressQuerySet(QuerySet):
                 obj_pool = Pool.objects.get(pk=pool)
 
             # Delete dns records and are linked via name
-            DnsRecord.objects.filter(name=obj.address.ip.reverse_pointer).delete()
+            DnsRecord.objects.filter(name=obj.address.reverse_pointer).delete()
             # Delete dns A records
             DnsRecord.objects.filter(ip_content=obj).delete()
 
