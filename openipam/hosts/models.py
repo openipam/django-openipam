@@ -193,7 +193,7 @@ class GulRecentArpBymac(models.Model):
 
 
 class Host(DirtyFieldsMixin, models.Model):
-    mac = MACAddressField('Mac Address', primary_key=True)
+    mac = models.CharField('Mac Address', primary_key=True, max_length=255)
     hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname], db_index=True)
     description = models.TextField(blank=True, null=True)
     address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id',
@@ -210,9 +210,9 @@ class Host(DirtyFieldsMixin, models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
     last_notified = models.DateTimeField(blank=True, null=True)
 
-    search_index = VectorField()
-
     objects = HostManager.from_queryset(HostQuerySet)()
+    
+    search_index = VectorField()
     searcher = SearchManager(
         fields=('hostname', 'description'),
         config='pg_catalog.english',  # this is default
@@ -579,12 +579,6 @@ class Host(DirtyFieldsMixin, models.Model):
             from openipam.network.models import Address
             address = Address.objects.filter(address=address).first()
 
-        arecord = DnsRecord.objects.filter(
-            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-            host=self,
-            name=self.hostname
-        ).first()
-
         # Add Associated PTR
         DnsRecord.objects.add_or_update_record(
             user=user,
@@ -595,6 +589,11 @@ class Host(DirtyFieldsMixin, models.Model):
         )
 
         # Add Associated A or AAAA record
+        arecord = DnsRecord.objects.filter(
+            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+            host=self,
+            name=self.hostname
+        ).first()
         DnsRecord.objects.add_or_update_record(
             user=user,
             name=hostname,

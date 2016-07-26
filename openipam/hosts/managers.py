@@ -11,6 +11,8 @@ from openipam.conf.ipam_settings import CONFIG
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
 
+#from netfields import NetManager
+
 import operator
 
 

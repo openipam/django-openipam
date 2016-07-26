@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 
 from guardian.shortcuts import get_objects_for_user
 
+#from netfields import NetManager
+
 import operator
 
 
@@ -84,6 +86,10 @@ class NetworkQuerySet(QuerySet):
             return self.exclude(reduce(operator.or_, q_list))
         else:
             return self.none()
+
+
+class NetworkManager(Manager):
+    pass
 
 
 class DhcpGroupManager(Manager):
@@ -167,6 +173,10 @@ class AddressQuerySet(QuerySet):
             return qs
 
 
+class AddressManager(Manager):
+    pass
+
+    
 # class AddressManager(NetManager):
 
     # TODO: Will we use the function below???

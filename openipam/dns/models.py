@@ -85,7 +85,7 @@ class DnsRecord(models.Model):
         if self.dns_type.is_ptr_record:
             from openipam.network.models import Address
 
-            host_addresses = Address.objects.filter(host=self.host).values_list('address', flat=True)
+            host_addresses = [str(address.address) for address in Address.objects.filter(host=self.host)]
             address = self.name.split('.')
             address.reverse()
             address = '.'.join(address[2:])

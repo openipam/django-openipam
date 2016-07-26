@@ -9,13 +9,13 @@ from django.utils import timezone
 from djorm_pgfulltext.fields import VectorField
 from djorm_pgfulltext.models import SearchManager
 
-from netfields import InetAddressField, MACAddressField, CidrAddressField, NetManager
+from netfields import InetAddressField, CidrAddressField
 
 from taggit.models import TaggedItemBase
 from taggit.managers import TaggableManager
 
 from openipam.network.managers import LeaseManager, PoolManager, DhcpGroupManager, DefaultPoolManager, \
-    AddressTypeManager, AddressQuerySet, NetworkQuerySet
+    AddressTypeManager, AddressManager, AddressQuerySet, NetworkManager, NetworkQuerySet
 from openipam.network.signals import validate_address_type, release_leases, set_default_pool
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
@@ -183,7 +183,9 @@ class Network(models.Model):
 
     search_index = VectorField()
 
-    objects = NetworkQuerySet.as_manager()
+    #objects = NetworkQuerySet.as_manager()
+    objects = NetworkManager.from_queryset(NetworkQuerySet)()
+
     searcher = SearchManager(
         fields=('name', 'description'),
         config='pg_catalog.english',  # this is default
@@ -259,7 +261,8 @@ class Address(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
-    objects = AddressQuerySet.as_manager()
+    #objects = AddressQuerySet.as_manager()
+    objects = AddressManager.from_queryset(AddressQuerySet)()
 
     def __unicode__(self):
         return unicode(self.address)
