@@ -422,10 +422,11 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
             kwargs['pk'] = self.kwargs.get('pk')
         if self.record:
             kwargs['object'] = self.record
-
         return super(DNSCreateUpdateView, self).get_context_data(**kwargs)
 
     def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
         return form_class(user=self.request.user, **self.get_form_kwargs())
 
     def dispatch(self, request, *args, **kwargs):
