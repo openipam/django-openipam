@@ -11,10 +11,15 @@ class NetworkSerializer(serializers.ModelSerializer):
 
 
 class AddressSerializer(serializers.ModelSerializer):
+    network = serializers.SerializerMethodField()
+    host = serializers.CharField()
     gateway = serializers.SerializerMethodField()
 
     def get_gateway(self, obj):
         return str(obj.network.gateway)
+
+    def get_network(self, obj):
+        return str(obj.network.network)
 
     class Meta:
         model = Address
