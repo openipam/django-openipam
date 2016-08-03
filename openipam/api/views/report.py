@@ -1,13 +1,12 @@
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BaseRenderer, BrowsableAPIRenderer
+from rest_framework.permissions import AllowAny
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer
 from rest_framework.exceptions import APIException, ValidationError
 
 from rest_framework_csv.renderers import CSVRenderer
 
-from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType

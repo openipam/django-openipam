@@ -3,11 +3,8 @@ from django.core.validators import validate_ipv46_address
 from django import forms
 
 from rest_framework import serializers
-from rest_framework.utils import html
 
-from netfields.forms import MACAddressFormField
-
-from netaddr import EUI, AddrFormatError, mac_bare
+from netaddr import EUI, mac_bare
 
 
 class MultipleChoiceField(serializers.Field):
@@ -19,7 +16,7 @@ class MultipleChoiceField(serializers.Field):
     def from_native(self, data):
         if isinstance(data, list):
             for item in data:
-                if not item in self.choices:
+                if item not in self.choices:
                     raise serializers.ValidationError("The item you entered is not in the allowed items list.")
             return data
         else:
@@ -68,7 +65,7 @@ class MACAddressField(serializers.CharField):
         if value:
             try:
                 value = EUI(str(value), dialect=mac_bare)
-            except (ValueError, TypeError, AddrFormatError):
+            except (ValueError, TypeError, ValidationError):
                 raise ValidationError(self.error_messages['invalid'] % {'value': value})
 
 

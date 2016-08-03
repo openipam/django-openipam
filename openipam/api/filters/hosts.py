@@ -2,14 +2,13 @@ from django.utils import timezone
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 from openipam.hosts.models import Host
 
 from guardian.shortcuts import get_objects_for_group, get_objects_for_user
 
 from django_filters import FilterSet, CharFilter, NumberFilter
-
-from netaddr import AddrFormatError
 
 User = get_user_model()
 
@@ -79,7 +78,7 @@ class IPFilter(CharFilter):
         if value:
             try:
                 qs = qs.filter(Q(addresses__address=value) | Q(leases__address__address=value)).distinct()
-            except AddrFormatError:
+            except ValidationError:
                 qs = qs.none()
         return qs
 

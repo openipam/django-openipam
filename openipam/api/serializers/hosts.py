@@ -1,20 +1,16 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone
-from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
 
 from rest_framework import serializers
 
-from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, Disabled
-from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
+from openipam.hosts.models import Host, Attribute, StructuredAttributeValue, Disabled
+from openipam.network.models import Network, Address, Pool, DhcpGroup
 from openipam.api.serializers.base import MACAddressField, IPAddressField, ListOrItemField
 
-from guardian.shortcuts import get_users_with_perms, get_groups_with_perms, get_objects_for_user, assign_perm
-
-from netaddr.core import AddrFormatError
+from guardian.shortcuts import get_objects_for_user
 
 User = get_user_model()
 
@@ -281,9 +277,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         if network:
             try:
                 network = Network.objects.get(network=network)
-            except Network.DoesNotExist:
-                raise serializers.ValidationError('Please enter a valid network.')
-            except AddrFormatError:
+            except (Network.DoesNotExist, ValidationError):
                 raise serializers.ValidationError('Please enter a valid network.')
 
             user_pools = get_objects_for_user(
