@@ -14,6 +14,8 @@ try:
 except:
     pass
 
+import re
+
 User = get_user_model()
 
 
@@ -148,7 +150,10 @@ class IPAMCASBackend(CASBackend):
         return self.user
 
     def _get_group_names(self):
-        return [name.split(',')[0].split('=')[1] for name in self.request.session['attributes']['memberOf']]
+        group_names_str = ''.join(self.request.session['attributes']['memberOf'])
+        pattern = re.compile('CN=([^,]*)')
+        group_names = pattern.findall(group_names_str)
+        return group_names
 
     def _mirror_groups(self):
         source = AuthSource.objects.get(name='LDAP')
