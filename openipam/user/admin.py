@@ -9,7 +9,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.contrib import messages
