@@ -243,7 +243,7 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'user.User'
 
-CAS_SERVER_URL = 'https://logindev.usu.edu/cas/p3/'
+CAS_SERVER_URL = locals().pop('CAS_SERVER_URL', 'https://login.usu.edu/cas/p3/')
 CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
