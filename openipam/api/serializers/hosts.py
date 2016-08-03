@@ -453,7 +453,7 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
         return changed_by
 
     def get_mac(self, obj):
-        return obj.pk
+        return str(obj.pk)
 
     def get_changed_by(self, obj):
         return '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
