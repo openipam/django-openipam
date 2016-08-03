@@ -1,49 +1,23 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import UpdateView, CreateView
-from django.views.generic import TemplateView, View
-from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import render, redirect
 from django.core.exceptions import ValidationError
-from django.template.defaultfilters import slugify
-from django.utils.safestring import mark_safe
+from django.views.generic import TemplateView
 from django.utils.http import urlunquote
 from django.utils import timezone
-from django.utils.encoding import force_unicode
-from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 
-from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.utils import DatabaseError, DataError
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
-from django.contrib.contenttypes.models import ContentType
-from django.db import connection
-from django.core import serializers
-from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.utils import ErrorList, ErrorDict
+from django.db.utils import DatabaseError
 
-from openipam.core.utils.merge_values import merge_values
 from openipam.core.views import BaseDatatableView
-from openipam.hosts.decorators import permission_change_host
-from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm
-from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Address
-from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts
 from openipam.conf.ipam_settings import CONFIG
-from openipam.user.forms import GroupForm, GroupObjectPermissionAdminForm, UserObjectPermissionAdminForm, UserObjectPermissionForm
+from openipam.user.forms import GroupForm, UserObjectPermissionForm
 from openipam.user import actions as user_actions
 
-from netaddr.core import AddrFormatError
+from braces.views import PermissionRequiredMixin
 
-from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
-    
 from guardian.models import UserObjectPermission, GroupObjectPermission
-
-import json
-import re
 
 User = get_user_model()
 
@@ -56,8 +30,8 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
         'username',
         'last_name',
         'email',
-        #'groups__nmae',
-        #'permissions__name',
+        # 'groups__nmae',
+        # 'permissions__name',
         'is_staff',
         'is_superuser',
         'is_ipamadmin',
@@ -100,7 +74,6 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                 elif search_item.startswith('uperm:'):
                     qs = qs.filter(userobjectpermission__pk=search_item[6:])
 
-
             if username_search:
                 qs = qs.filter(username__istartswith=username_search)
             if fullname_search:
@@ -122,12 +95,7 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
             if source_search:
                 qs = qs.filter(source__name='INTERNAL' if source_search == '1' else 'LDAP')
 
-
-
-        except DatabaseError:
-            pass
-
-        except AddrFormatError:
+        except (DatabaseError, ValidationError):
             pass
 
         return qs
@@ -164,7 +132,6 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return '<img src="/static/admin/img/icon-no.svg" alt="False">'
 
-
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
@@ -174,8 +141,8 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                 '<a class="user-details" href="user/%s">%s</a>' % (user.pk, user.username),
                 user.get_full_name() if user.first_name or user.last_name else '',
                 user.email,
-                #'<a href="#" class="group-href" rel="%s">Groups</a>' % user.pk,
-                #'<a href="#" class="perm-href" rel="%s">Permissions</a>' % user.pk,
+                # '<a href="#" class="group-href" rel="%s">Groups</a>' % user.pk,
+                # '<a href="#" class="perm-href" rel="%s">Permissions</a>' % user.pk,
                 boolean_img(user.is_staff),
                 boolean_img(user.is_superuser),
                 boolean_img(user.is_ipamadmin),
@@ -183,49 +150,6 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                 '' if user.last_login.year == 1970 else timezone.localtime(user.last_login).strftime('%Y-%m-%d %I:%M %p'),
             ])
         return json_data
-
-
-# @permission_required('users.view_user')
-# def user_manager(request):
-
-#     search_filter = request.COOKIES.get('search_filter')
-#     search_filter = urlunquote(search_filter).split(',') if search_filter else []
-#     group_form = GroupForm(request.POST or None)
-#     action = request.POST.get('action', None)
-#     selected_users = request.POST.getlist('selected_users', [])
-
-
-#     if search_filter:
-#         for index, item in enumerate(search_filter):
-#             name, value = item.split(':')
-#             if name == 'gperm':
-#                 gperm = GroupObjectPermission.objects.get(pk=value)
-#                 search_filter[index] = 'GroupObjectPermission | %s' % gperm
-#             elif name == 'uperm':
-#                 uperm = UserObjectPermission.objects.get(pk=value)
-#                 search_filter[index] = 'UserObjectPermission | %s' % uperm
-#             elif name == 'user':
-#                 uperm = User.objects.get(username=value)
-#                 search_filter[index] = 'User | %s' % uperm
-#             elif name == 'group':
-#                 uperm = Group.objects.get(name=value)
-#                 search_filter[index] = 'Group | %s' % uperm
-
-#     if action == 'assign-groups':
-#         if group_form.is_valid():
-#             assign_groups(request, selected_users)
-
-
-
-#     context = {
-#         'groups': Group.objects.filter(user__isnull=False),
-#         'group_form': group_form,
-#         'search_filter': search_filter,
-#     }
-
-#     return render(request, 'admin/user/manager.html', context)
-
-
 
 
 class UserManagerView(PermissionRequiredMixin, TemplateView):
@@ -260,8 +184,6 @@ class UserManagerView(PermissionRequiredMixin, TemplateView):
         return redirect('user_manager')
 
 
-
-
 @permission_required('users.view_user')
 def user_detail(request, pk):
     user = User.objects.get(pk=pk)
@@ -280,8 +202,8 @@ def user_detail(request, pk):
         'groups': groups,
         'user_object_permissions': user_object_permissions,
         'group_object_permissions': group_object_permissions,
-        'img_yes': '<img src="/static/admin/img/icon-yes.gif" alt="True">',
-        'img_no': '<img src="/static/admin/img/icon-no.gif" alt="False">',
+        'img_yes': '<img src="/static/admin/img/icon-yes.svg" alt="True">',
+        'img_no': '<img src="/static/admin/img/icon-no.svg" alt="False">',
     }
 
     return render(request, 'admin/user/user_detail.html', context)
