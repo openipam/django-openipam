@@ -136,8 +136,9 @@ TEMPLATES = [
     },
 ]
 
-LOCAL_MIDDLEWARE_CLASSES = locals().pop('LOCAL_MIDDLEWARE_CLASSES', ())
-MIDDLEWARE_CLASSES = (
+LOCAL_MIDDLEWARE_CLASSES = locals().pop('LOCAL_MIDDLEWARE_CLASSES', [])
+DEBUG_MIDDLEWARE_CLASS = locals().pop('DEBUG_MIDDLEWARE_CLASS', [])
+MIDDLEWARE_CLASSES = DEBUG_MIDDLEWARE_CLASS + [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -149,7 +150,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-) + LOCAL_MIDDLEWARE_CLASSES
+] + LOCAL_MIDDLEWARE_CLASSES
 
 ROOT_URLCONF = 'openipam.urls'
 
