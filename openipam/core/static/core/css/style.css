@@ -260,6 +260,9 @@
     moz-border-radius: 4px;
     webkit-border-radius: 4px;
 }
+#action-container {
+    margin-right: 10px;
+}
 .action-checkbox-column
 {
     padding: 5px !important;

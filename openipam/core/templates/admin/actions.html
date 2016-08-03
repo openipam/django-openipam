@@ -1,7 +1,7 @@
 {% load i18n openipam widget_tweaks %}
 
 {% spaceless %}
-<div class="pull-left">
+<div id="action-container" class="pull-left">
     {% for field in action_form %}
         {{ field|add_class:"form-control" }}
     {% endfor %}
