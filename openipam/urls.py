@@ -38,6 +38,10 @@ if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
         url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     ]
 else:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
     urlpatterns += staticfiles_urlpatterns()
 
 handler403 = 'openipam.core.views.page_denied'
