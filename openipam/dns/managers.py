@@ -1,4 +1,4 @@
-from django.db.models import Model, Manager, Q
+from django.db.models import Manager, Q
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django.contrib.auth import get_user_model
@@ -9,8 +9,6 @@ from django.utils.encoding import force_unicode
 from django.core.cache import cache
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
-
-from netaddr.core import AddrFormatError
 
 import operator
 
@@ -238,7 +236,7 @@ class DnsManager(Manager):
 
             return dns_record, created
 
-        except AddrFormatError:
+        except ValidationError:
             raise ValidationError('Invalid IP for content: %s' % content)
 
         except Address.DoesNotExist:
