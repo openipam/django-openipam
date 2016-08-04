@@ -80,16 +80,22 @@ class GuestRegister(APIView):
             mac_address = serializer.data.get('mac_address')
 
             try:
+                hostname = '%s%s%s' % (hostname_prefix, hostname_index + 1, hostname_suffix)
+
+                # Check if instance already created.  Bug in DHCP thats registering it twice??
+                instance = Host.objects.filter(hostname=hostname, mac=mac_address).first()
+
                 # Add or update host
                 Host.objects.add_or_update_host(
                     user=guest_user,
-                    hostname='%s%s%s' % (hostname_prefix, hostname_index+1, hostname_suffix),
+                    hostname=hostname,
                     mac=mac_address,
                     expires=serializer.valid_ticket.ends,
                     description=description if description else 'Name: %s; Ticket used: %s' % (name, ticket),
                     pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
                     user_owners=[user_owner],
-                    group_owners=[CONFIG.get('GUEST_GROUP')]
+                    group_owners=[CONFIG.get('GUEST_GROUP')],
+                    instance=instance or None
                 )
             except ValidationError as e:
                 error_list = []
