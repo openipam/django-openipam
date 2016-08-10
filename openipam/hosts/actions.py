@@ -5,16 +5,16 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
 
-from openipam.hosts.models import Host, Disabled, Attribute, StructuredAttributeToHost, FreeformAttributeToHost
+from openipam.hosts.models import Host, Disabled
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm
 
 
 def assign_owner_hosts(request, selected_hosts, add_only=False):
     user = request.user
 
-    # User must have global change permission on hosts to use this action.
-    if not user.has_perm('hosts.change_host'):
-        messages.error(request, "You do not have permissions to change ownership on the selected hosts. "
+    # User must have global change perm or object owner perm.
+    if not user.has_perm('hosts.change_host') and not change_perms_check(user, selected_hosts):
+        messages.error(request, "You do not have permissions to perform this action on one or more the selected hosts. "
                        "Please contact an IPAM administrator.")
     else:
         owner_form = HostOwnerForm(request.POST)
@@ -61,9 +61,9 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
 def remove_owner_hosts(request, selected_hosts):
     user = request.user
 
-    # User must have global change permission on hosts to use this action.
-    if not user.has_perm('hosts.change_host'):
-        messages.error(request, "You do not have permissions to change ownership on the selected hosts. "
+    # User must have global change perm or object owner perm.
+    if not user.has_perm('hosts.change_host') and not change_perms_check(user, selected_hosts):
+        messages.error(request, "You do not have permissions to perform this action on one or more the selected hosts. "
                        "Please contact an IPAM administrator.")
     else:
         owner_form = HostOwnerForm(request.POST)
