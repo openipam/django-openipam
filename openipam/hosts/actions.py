@@ -146,8 +146,7 @@ def renew_hosts(request, selected_hosts):
                 data = serializers.serialize('json', [host])
 
                 host.set_expiration(expiration)
-                host.changed_by = user
-                host.save()
+                host.save(user=user)
 
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,

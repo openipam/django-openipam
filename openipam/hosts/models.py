@@ -1,24 +1,22 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from django.utils.timezone import localtime, utc
+from django.utils.timezone import utc
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete
 from django.db import connection
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
 
-from netfields import InetAddressField, MACAddressField, NetManager
-from netaddr.core import AddrFormatError
+from netfields import MACAddressField, NetManager
 
 from djorm_pgfulltext.fields import VectorField
 from djorm_pgfulltext.models import SearchManager
 
-from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms, \
-    get_groups_with_perms, remove_perm, assign_perm
+from guardian.shortcuts import get_objects_for_user, remove_perm, assign_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from openipam.core.mixins import DirtyFieldsMixin
@@ -152,7 +150,7 @@ class GuestTicket(models.Model):
             structure.append('%s%s%s%s%s%s%s%s' % (cons[0], vowel[0], cons[1], vowel[1], cons[2], vowel[2], cons[3], vowel[2]))
             structure.append('%s%s%s%s%s' % (group[0], vowel[1], group[1], vowel[1], cons[0]))
 
-            return structure[random.randint(0, len(structure)-1)]
+            return structure[random.randint(0, len(structure) - 1)]
 
         ticket = generate_random_ticket()
         while GuestTicket.objects.filter(ticket=ticket):
@@ -199,9 +197,9 @@ class Host(DirtyFieldsMixin, models.Model):
     address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id',
                                         on_delete=models.SET_NULL)
     pools = models.ManyToManyField('network.Pool', through='network.HostToPool', related_name='pool_hosts')
-    #freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
+    # freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
     #                                             related_name='freeform_hosts',  blank=True, null=True)
-    #structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
+    # structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
     #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group',
                                    verbose_name='DHCP Group', blank=True, null=True, on_delete=models.SET_NULL)
@@ -247,7 +245,7 @@ class Host(DirtyFieldsMixin, models.Model):
             return _original(name.split('_')[1])
         else:
             return self.__getattribute__(name)
-            #raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+            # raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
     @cached_property
     def _addresses_cache(self):
@@ -422,10 +420,6 @@ class Host(DirtyFieldsMixin, models.Model):
 
     @property
     def mac_last_seen(self):
-        # if self.gul_recent_arp_bymac is None:
-        #     self.gul_recent_arp_bymac = GulRecentArpBymac.objects.all()
-
-        #gul_mac = filter(lambda x: x.mac == self.mac, self.gul_recent_arp_bymac)
         gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
 
         if gul_mac:
@@ -457,14 +451,14 @@ class Host(DirtyFieldsMixin, models.Model):
 
     def add_ip_address(self, user=None, ip_address=None, network=None, hostname=None):
         from openipam.network.models import Network, Address
-        from openipam.dns.models import DnsRecord, DnsType
+        # from openipam.dns.models import DnsRecord, DnsType
 
         address = None
 
         if not hostname:
             raise ValidationError('A hostname is required.')
 
-         # Check to see if hostname already taken
+        # Check to see if hostname already taken
         # used_hostname = DnsRecord.objects.filter(
         #     dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
         #     name=hostname
@@ -513,13 +507,13 @@ class Host(DirtyFieldsMixin, models.Model):
                 else:
                     address = network_address
 
-            except AddrFormatError:
+            except ValidationError:
                 raise ValidationError("The network '%s' is invalid." % network)
             except Address.DoesNotExist:
                 raise ValidationError('There are no avaiable addresses for the network entered: %s' % network)
 
         elif ip_address:
-            #Validate IP Address
+            # Validate IP Address
             try:
                 validate_ipv46_address(ip_address)
             except ValidationError:
@@ -536,7 +530,7 @@ class Host(DirtyFieldsMixin, models.Model):
                     address=ip_address,
                     reserved=False,
                 )
-            except AddrFormatError:
+            except ValidationError:
                 raise ValidationError('There IP Address %s is not available.' % ip_address)
             except Address.DoesNotExist:
                 raise ValidationError('There are no avaiable addresses for the IP entered: %s' % ip_address)
@@ -554,21 +548,20 @@ class Host(DirtyFieldsMixin, models.Model):
 
         return address
 
-    def delete_primary_dns_records(self, user, address):
-        from openipam.dns.models import DnsRecord, DnsType
-
-        if isinstance(address, str) or isinstance(address, unicode):
-            from openipam.network.models import Address
-            address = Address.objects.filter(address=address).first()
+    def delete_primary_dns_records(self, user, addresses):
+        from openipam.dns.models import DnsType
 
         # Update Changed by Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_pointer) | Q(ip_content=address, name=self.original_hostname),
+            Q(name=[address.address.reverse_pointer for address in addresses]) |
+            Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
-        ).update(changed_by=user)
+        ).update(changed=timezone.now(), changed_by=user)
+
         # Delete Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
-            Q(name=address.address.reverse_pointer) | Q(ip_content=address, name=self.original_hostname),
+            Q(name=[address.address.reverse_pointer for address in addresses]) |
+            Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
 
@@ -644,7 +637,6 @@ class Host(DirtyFieldsMixin, models.Model):
             cursor.execute('''
                 UPDATE hosts SET mac = %s WHERE mac = %s
             ''', [str(new_mac_address), str(self.mac)])
-            #Host.objects.filter(mac=self.mac).update(mac=new_mac_address)
             self.mac = str(new_mac_address).lower()
         elif not self.pk:
             self.mac = str(new_mac_address).lower()
@@ -738,10 +730,10 @@ class Host(DirtyFieldsMixin, models.Model):
                     ptr_record = None
                 if not a_record or not ptr_record:
                     from openipam.network.models import Address
-                    address = Address.objects.filter(address=self.master_ip_address).first()
+                    address = Address.objects.filter(address=self.master_ip_address)
 
                     self.delete_primary_dns_records(user, address)
-                    self.add_dns_records(user, self.hostname, address)
+                    self.add_dns_records(user, self.hostname, address[0])
 
     def remove_owners(self):
         users, groups = self.get_owners()
@@ -756,13 +748,37 @@ class Host(DirtyFieldsMixin, models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
-    def save(self, *args, **kwargs):
+    def save(self, user=None, *args, **kwargs):
+
+        if not user:
+            raise ValidationError('A user is required to save hosts.')
+
         # Make sure hostname is lowercase
         self.hostname = self.hostname.lower()
         # Make sure mac is lowercase
         self.mac = str(self.mac).lower()
 
+        # Updating changed and changed_by
+        self.changed_by = user
+        self.changed = timezone.now()
+
         super(Host, self).save(*args, **kwargs)
+
+    def delete(self, user=None, *args, **kwargs):
+
+        if not user:
+            raise ValidationError('A user is required to delete hosts.')
+
+        # Set host foreign key on addresses to null and update the changed and change by
+        self.addresses.all().update(host=None, changed_by=user, changed=timezone.now())
+        addresses = self.addresses.all()
+
+        # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
+        self.delete_primary_dns_records(user, addresses)
+
+        # Re-save so that it captures user for postgres log table
+        self.save(user=user)
+        super(Host, self).delete(*args, **kwargs)
 
     def clean(self):
         from openipam.dns.models import DnsRecord, DnsType

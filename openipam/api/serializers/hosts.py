@@ -238,7 +238,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 if host_exists[0].is_disabled:
                     raise serializers.ValidationError('The mac address %s cannot be added because it is currently diabled.' % host_exists[0].hostname)
                 else:
-                    host_exists[0].delete()
+                    host_exists[0].delete(user=self.context['request'].user)
             else:
                 raise serializers.ValidationError('The mac address entered already exists for host: %s.' % host_exists[0].hostname)
         return value
@@ -251,7 +251,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
         if host_exists:
             if host_exists[0].is_expired:
-                host_exists[0].delete()
+                host_exists[0].delete(user=self.context['request'].user)
             else:
                 raise serializers.ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
         return value
@@ -333,9 +333,8 @@ class HostRenewSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.expire_days = validated_data.get('expire_days')
         instance.user = self.context['request'].user
-        instance.changed_by = self.context['request'].user
         instance.exipires = instance.set_expiration(validated_data.get('expire_days'))
-        instance.save()
+        instance.save(user=instance.user)
 
         return instance
 

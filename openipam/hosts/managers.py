@@ -145,15 +145,25 @@ class HostQuerySet(QuerySet):
 
     def delete_and_free(self, user=None, **kwargs):
         from openipam.network.models import Address
+        from openipam.dns.models import DnsRecord, DnsType
+
+        # Set host foreign key on addresses to null and update the changed and change by
+        Address.objects.filter(host__in=self.all()).update(host=None, changed_by=user, changed=timezone.now())
         addresses = Address.objects.filter(host__in=self.all())
-        for address in addresses:
-            address.host = None
-            if user:
-                address.changed_by = user
-                address.changed = timezone.now()
-            address.save()
-        self.update(changed_by=user)
-        self.delete()
+
+        # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
+        DnsRecord.objects.filter(
+            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+            Q(ip_content__in=[str(address.address) for address in addresses], name__in=[host.hostname for host in self.all()]),
+            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+        ).update(changed=timezone.now(), changed_by=user)
+        DnsRecord.objects.filter(
+            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+            Q(ip_content__in=[str(address.address) for address in addresses], name__in=[host.hostname for host in self.all()]),
+            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+        ).delete()
+        
+        self.delete(user=user)
 
 
 class HostManager(Manager):
@@ -230,12 +240,12 @@ class HostManager(Manager):
 
         if full_clean is True:
             instance.full_clean()
-        instance.save()
+        instance.save(user=user)
 
         if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
             instance.set_address_type()
-            instance.save()
+            instance.save(user=user)
 
         if user_owners is not None or group_owners is not None:
             # Remove owners

@@ -402,7 +402,7 @@ class HostForm(forms.ModelForm):
 
         if host_exists:
             if host_exists[0].is_expired:
-                host_exists[0].delete()
+                host_exists[0].delete(user=self.user)
             else:
                 raise ValidationError(mark_safe('The mac address entered already exists for host: %s.' % host_exists[0].hostname))
         return mac
@@ -416,7 +416,7 @@ class HostForm(forms.ModelForm):
 
         if host_exists:
             if host_exists[0].is_expired:
-                host_exists[0].delete()
+                host_exists[0].delete(user=self.user)
             else:
                 raise ValidationError('The hostname entered already exists for host %s.' % host_exists[0].mac)
 

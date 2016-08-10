@@ -10,7 +10,8 @@ class ChangedAdmin(admin.ModelAdmin):
     def delete_model(self, request, obj):
         if getattr(obj, 'changed_by'):
             obj.changed_by = request.user
-            obj.save()
+            # TODO: Save overrides for these models so we can not set changed_by here
+            obj.save(user=request.user)
 
         super(ChangedAdmin, self).delete_model(request, obj)
 
