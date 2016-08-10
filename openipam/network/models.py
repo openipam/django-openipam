@@ -105,7 +105,7 @@ class DhcpGroup(models.Model):
     objects = DhcpGroupManager()
 
     def __unicode__(self):
-        return '%s -- %s' % (self.name, self.description)
+        return '%s' % self.name
 
     class Meta:
         db_table = 'dhcp_groups'
