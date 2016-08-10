@@ -226,33 +226,6 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
             return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
-    # def update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-
-    #     if not serializer.is_valid(raise_exception=True):
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    #     try:
-    #         if instance is None:
-    #             instance = serializer.save()
-    #             self.post_save(instance, created=True)
-    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    #         instance = serializer.save()
-    #         self.post_save(instance, created=False)
-    #     except ValidationError, e:
-    #         error_list = []
-    #         if hasattr(e, 'error_dict'):
-    #             for key, errors in e.message_dict.items():
-    #                 for error in errors:
-    #                     error_list.append(error)
-    #         else:
-    #             error_list.append(e.message)
-    #         return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class HostRenew(generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
