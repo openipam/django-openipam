@@ -162,8 +162,10 @@ class HostQuerySet(QuerySet):
             Q(ip_content__in=[str(address.address) for address in addresses], name__in=[host.hostname for host in self.all()]),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
-        
-        self.delete(user=user)
+
+        # TODO: Override queryset delete?
+        self.update(changed_by=user)
+        self.delete()
 
 
 class HostManager(Manager):
