@@ -223,11 +223,11 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         return data
 
     def validate_mac(self, value):
-        # mac = value
-        # mac = ''.join([c for c in mac if c.isdigit() or c.isalpha()])
+        mac = value
+        mac = ''.join([c for c in mac if c.isdigit() or c.isalpha()])
 
-        # if len(mac) != 12:
-        #     raise serializers.ValidationError('The mac address entered is not valid: %s.' % mac)
+        if len(mac) != 12:
+            raise serializers.ValidationError('The mac address entered is not valid: %s.' % mac)
 
         host_exists = Host.objects.filter(mac=value)
         if self.instance:
