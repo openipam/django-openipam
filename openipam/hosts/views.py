@@ -34,17 +34,13 @@ from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts
     delete_attribute_from_host
 from openipam.conf.ipam_settings import CONFIG
 
-from netaddr.core import AddrFormatError
-
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
 from itertools import izip_longest
 
-import operator
 import json
 import re
 import csv
-
 import collections
 
 # from django.db.models.sql.aggregates import Aggregate as SQLAggregate
@@ -264,10 +260,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             elif expired_search and expired_search == '0':
                 qs = qs.filter(expires__lt=timezone.now())
 
-        except DatabaseError:
-            pass
-
-        except AddrFormatError:
+        except (DatabaseError, ValidationError):
             pass
 
         return qs
@@ -763,7 +756,7 @@ class HostAddressDeleteView(SuperuserRequiredMixin, View):
                     host=host,
                     address=address
                 ).release()
-            except AddrFormatError:
+            except ValidationError:
                 return redirect('add_addresses_host', pk=host.mac_stripped)
 
             messages.info(request, 'Address %s has been removed and released.' % address)
