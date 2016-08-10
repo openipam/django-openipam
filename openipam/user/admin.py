@@ -1,9 +1,7 @@
 from django.contrib import admin
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext, ugettext_lazy as _
-from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponse
+from django.http import Http404
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup, Permission as AuthPermission
@@ -27,8 +25,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
 from autocomplete_light import shortcuts as al
-
-from datetime import date
 
 
 class IPAMAdminFilter(SimpleListFilter):
@@ -191,10 +187,10 @@ class AuthUserAdmin(UserAdmin):
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'groups', 'user_permissions',), 'classes': ('collapse',)}),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined'), 'classes': ('collapse',)}),
+        ('Important dates', {'fields': ('last_login', 'date_joined'), 'classes': ('collapse',)}),
     )
 
     def permissions(self, obj):
@@ -229,7 +225,13 @@ class AuthUserAdmin(UserAdmin):
             content_object = user_add_form.cleaned_data['object_id'].split('-')
             instance.content_type_id = content_object[0]
             instance.object_pk = content_object[1]
-            instance.save()
+            try:
+                instance.save()
+            except ValidationError as e:
+                messages.error(
+                    request,
+                    'There was an error saving: %s' % e
+                )
 
             return redirect('admin:user_user_change', object_id)
 
@@ -588,14 +590,20 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.content_type_id = form.cleaned_data['object_id'].split('-')[0]
         obj.object_pk = form.cleaned_data['object_id'].split('-')[1]
-        obj.save()
+        try:
+            obj.save()
+        except ValidationError as e:
+            messages.error(
+                request,
+                'There was an error saving: %s' % e
+            )
 
     def permission_name(self, obj):
         return obj.permission.codename
     permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
-        #c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
+        # c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
         return '%s - %s' % (obj.content_type.model, obj.content_object)
     object_name.short_description = 'Object'
 
@@ -618,7 +626,13 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.content_type_id = form.cleaned_data['object_id'].split('-')[0]
         obj.object_pk = form.cleaned_data['object_id'].split('-')[1]
-        obj.save()
+        try:
+            obj.save()
+        except ValidationError as e:
+            messages.error(
+                request,
+                'There was an error saving: %s' % e
+            )
 
     def permission_name(self, obj):
         return obj.permission.codename
