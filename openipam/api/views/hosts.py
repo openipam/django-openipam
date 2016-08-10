@@ -255,6 +255,9 @@ class HostDelete(generics.DestroyAPIView):
         """
         pass
 
+    def perform_destroy(self, instance):
+        instance.delete(user=self.request.user)
+
 
 class HostOwnerList(generics.RetrieveAPIView):
     serializer_class = host_serializers.HostOwnerSerializer
