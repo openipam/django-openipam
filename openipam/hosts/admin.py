@@ -15,7 +15,7 @@ class HostAdmin(ChangedAdmin):
     list_filter = ('dhcp_group',)
     readonly_fields = ('changed_by', 'changed')
     search_fields = ('hostname', 'mac')
-    #inlines = [HostGroupPermissionInline, HostUserPermissionInline]
+    # inlines = [HostGroupPermissionInline, HostUserPermissionInline]
 
     # Null Foreign Keys dont get included by default
     def get_queryset(self, request):
@@ -31,9 +31,14 @@ class HostAdmin(ChangedAdmin):
 
 
 class DisabledAdmin(ChangedAdmin):
-    list_display = ('host', 'reason', 'changed', 'changed_by_full',)
+    list_display = ('host', 'mac', 'reason', 'changed', 'changed_by_full',)
     form = al.modelform_factory(Disabled, fields=('host', 'reason', 'changed_by',))
     list_select_related = True
+    search_fields = ('host__hostname', 'host__mac', 'changed_by__username')
+
+    def mac(self, obj):
+        return obj.host.mac
+    mac.short_description = 'MAC Address'
 
     def changed_by_full(self, obj):
         return '%s (%s)' % (obj.changed_by.username, obj.changed_by.get_full_name())
