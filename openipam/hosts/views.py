@@ -774,7 +774,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
     @staticmethod
     def host_to_dict(host):
         fields = ['hostname', 'mac', 'expire_days', 'description', 'ip_address',
-                  'network', 'pool', 'user_owners', 'group_owners', ]
+                  'network', 'pool', 'dhcp_group', 'user_owners', 'group_owners', ]
 
         if len(host) < 3:
             raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
