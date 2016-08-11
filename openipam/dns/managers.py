@@ -235,9 +235,10 @@ class DnsManager(Manager):
             )
 
             return dns_record, created
-
-        except ValidationError:
-            raise ValidationError('Invalid IP for content: %s' % content)
+            
+        # This needs to go....too vague an exception
+        # except ValidationError:
+        #     raise ValidationError('Invalid IP for content: %s' % content)
 
         except Address.DoesNotExist:
             raise ValidationError('Static IP does not exist for content: %s' % content)

@@ -554,14 +554,15 @@ class Host(DirtyFieldsMixin, models.Model):
         # Update Changed by Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
             Q(name=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname),
+            # Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname) |
+            Q(text_content=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).update(changed=timezone.now(), changed_by=user)
-
         # Delete Assocatiated PTR and A or AAAA records.
         self.dns_records.filter(
             Q(name=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname),
+            # Q(ip_content__in=[str(address.address) for address in addresses], name=self.original_hostname) |
+            Q(text_content=self.original_hostname),
             dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
         ).delete()
 
