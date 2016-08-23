@@ -1,11 +1,11 @@
 from django_filters import FilterSet, CharFilter
-from openipam.network.models import Network, Address, DhcpGroup
+from openipam.network.models import Network
 
 
 class NetworkFilter(FilterSet):
-    network = CharFilter(lookup_type='net_contained_or_equal')
+    network = CharFilter(lookup_type='net_contains_or_equals')
     name = CharFilter(lookup_type='icontains')
 
     class Meta:
         model = Network
-        fields = ['network', 'name']
+        fields = ['name']

@@ -257,7 +257,7 @@ LOGIN_EXEMPT_URLS = (
     # 'reports/leases/usage/',
 )
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = reverse_lazy('openipam.core.views.index')
+LOGIN_REDIRECT_URL = reverse_lazy('index')
 LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
 
 REST_FRAMEWORK = {

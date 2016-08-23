@@ -6,8 +6,6 @@ from django.core.exceptions import ValidationError
 
 from openipam.hosts.models import Host
 
-from guardian.shortcuts import get_objects_for_group, get_objects_for_user
-
 from django_filters import FilterSet, CharFilter, NumberFilter
 
 User = get_user_model()
@@ -84,8 +82,8 @@ class IPFilter(CharFilter):
 
 
 class HostFilter(FilterSet):
-    mac = CharFilter(lookup_type='istartswith')
-    hostname = CharFilter(lookup_type='icontains')
+    mac = CharFilter(lookup_expr='icontains')
+    hostname = CharFilter(lookup_expr='icontains')
     is_expired = IsExpiredFilter()
     group = GroupFilter()
     user = UserFilter()
@@ -95,4 +93,5 @@ class HostFilter(FilterSet):
 
     class Meta:
         model = Host
-        fields = ['mac', 'hostname']
+        # TODO: This is dumb, django-filter 0.14 needs docs and bug fixes
+        fields = ['hostname']

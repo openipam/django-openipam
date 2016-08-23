@@ -168,6 +168,7 @@ def page_error(request, template_name, extra_context=None):
     template = loader.get_template(template_name)
     error_type, error_value, traceback = sys.exc_info()
     context = {
+        'request': request,
         'request_path': request.path,
         'kitty': kitty,
         'email': CONFIG.get('EMAIL_ADDRESS'),

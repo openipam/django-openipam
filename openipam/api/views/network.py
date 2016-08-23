@@ -1,22 +1,14 @@
-from rest_framework.views import APIView
+from django.core.exceptions import ValidationError
+
 from rest_framework import generics
 from rest_framework import filters
 from rest_framework import permissions
+from rest_framework import serializers
 
-from openipam.network.models import Network, Address, DhcpGroup, Lease
+from openipam.network.models import Network, Address, DhcpGroup
 from openipam.api.views.base import APIPagination
 from openipam.api.serializers.network import NetworkSerializer, AddressSerializer, DhcpGroupListSerializer
-
-from django_filters import FilterSet, CharFilter
-
-
-class NetworkFilter(FilterSet):
-    network = CharFilter(lookup_type='net_contained_or_equal')
-    name = CharFilter(lookup_type='icontains')
-
-    class Meta:
-        model = Network
-        fields = ['network', 'name']
+from openipam.api.filters.network import NetworkFilter
 
 
 class NetworkList(generics.ListAPIView):
@@ -26,6 +18,12 @@ class NetworkList(generics.ListAPIView):
     serializer_class = NetworkSerializer
     filter_fields = ('network', 'name',)
     filter_class = NetworkFilter
+
+    def filter_queryset(self, queryset):
+        try:
+            return super(NetworkList, self).filter_queryset(queryset)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message)
 
 
 class AddressList(generics.ListAPIView):
