@@ -46,7 +46,7 @@ class NetworkAdmin(ChangedAdmin):
         form = NetworkTagForm(request.POST or None)
 
         if form.is_valid():
-            ids = request.REQUEST.get('ids').strip().split(',')
+            ids = request.POST.get('ids').strip().split(',')
             networks = Network.objects.filter(pk__in=ids)
 
             for network in networks:
@@ -57,7 +57,7 @@ class NetworkAdmin(ChangedAdmin):
         return render(request, 'admin/actions/tag_network.html', {'form': form})
 
     def resize_network_view(self, request):
-        ids = request.REQUEST.get('ids').strip().split(',')
+        ids = request.POST.get('ids').strip().split(',')
         if len(ids) > 1:
             network_error = True
             network = None
