@@ -242,11 +242,11 @@ class HostManager(Manager):
 
         if full_clean is True:
             instance.full_clean()
-        instance.save(user=user)
+        instance.save()
 
         if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
-            instance.save(user=user)
+            instance.save()
 
         if user_owners is not None or group_owners is not None:
             # Remove owners

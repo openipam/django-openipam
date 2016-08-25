@@ -666,10 +666,9 @@ class Host(DirtyFieldsMixin, models.Model):
             self.mac = str(new_mac_address).lower()
 
     def set_hostname(self, hostname, user=None):
-        if not user and self.user:
-            user = self.user
-        else:
-            raise Exception('A User must be given to set a hostname')
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to save hosts.')
 
         self.hostname = hostname
 
@@ -678,10 +677,9 @@ class Host(DirtyFieldsMixin, models.Model):
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
-        if not user and self.user:
-            user = self.user
-        else:
-            raise Exception('A User must be given to set a network or pool')
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to save hosts.')
 
         # If we are changing ip address or from from dynamic to static or static to dynamic,
         # we delete all primary DNS records (PTR, A, AAAA DHCPDNS)
@@ -764,10 +762,8 @@ class Host(DirtyFieldsMixin, models.Model):
         return assign_perm('is_owner_host', user_or_group, self)
 
     def save(self, user=None, *args, **kwargs):
-
-        if not user and self.user:
-            user = self.user
-        else:
+        user = user or self._user
+        if not user:
             raise Exception('A User must be given to save hosts.')
 
         # Make sure hostname is lowercase
@@ -782,11 +778,9 @@ class Host(DirtyFieldsMixin, models.Model):
         super(Host, self).save(*args, **kwargs)
 
     def delete(self, user=None, *args, **kwargs):
-
-        if not user and self.user:
-            user = self.user
-        else:
-            raise Exception('A User must be given to delete hosts.')
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to save hosts.')
 
         # Release all addresses associated with host.
         self.addresses.release(user=user)
