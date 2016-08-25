@@ -219,7 +219,6 @@ def add_attribute_to_hosts(request, selected_hosts):
             messages.success(request, "Attributes for selected hosts have been added.")
 
         else:
-            assert False, attribute_form.__dict__
             error_list = []
             for key, errors in attribute_form.errors.items():
                 for error in errors:
