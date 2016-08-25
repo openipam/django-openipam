@@ -228,16 +228,15 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
         kwargs.update({'app_title': app_title, 'models': models})
         super(IPAMAppIndexDashboard, self).__init__(**kwargs)
 
-
     def init_with_context(self, context):
         """
         Use this method if you need to access the request context.
         """
-        request = context['request']
+        # request = context['request']
         models = self.models
         exclude = None
 
-        #Hack for DNS App
+        # Hack for DNS App
         if 'dns' in self.app_title.lower():
             self.app_title = 'Domains & DNS'
         elif 'admin' in self.app_title.lower():
@@ -246,11 +245,9 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
         elif 'auth' in self.app_title.lower():
             models = ('django.contrib.auth.*',)
 
-
-        #assert False, self.models
         self.app_title = self.app_title + ' Admin'
 
-        #append a model list module and a recent actions module
+        # append a model list module and a recent actions module
         self.children += [
             modules.ModelList(
                 title=self.app_title,
