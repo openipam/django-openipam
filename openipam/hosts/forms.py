@@ -67,7 +67,7 @@ class HostForm(forms.ModelForm):
 
         self.previous_form_data = request.session.get('host_form_add')
 
-        #Populate some fields if we are editing the record
+        # Populate some fields if we are editing the record
         self.primary_address_html = None
         self.secondary_address_html = None
         self.expire_date = None
@@ -369,8 +369,6 @@ class HostForm(forms.ModelForm):
         return instance
 
     def clean(self):
-        #assert False, self.data
-
         cleaned_data = super(HostForm, self).clean()
 
         self.instance.user = self.user
