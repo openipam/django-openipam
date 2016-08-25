@@ -63,7 +63,7 @@ class BaseDNSUpdateFormset(BaseModelFormSet):
 
 class DNSUpdateForm(forms.ModelForm):
     dns_types = forms.ChoiceField(choices=(), required=True)
-    #ttl = forms.IntegerField(initial='86400', widget=forms.HiddenInput)
+    # ttl = forms.IntegerField(initial='86400', widget=forms.HiddenInput)
 
     def __init__(self, dns_type_choices, *args, **kwargs):
         super(DNSUpdateForm, self).__init__(*args, **kwargs)
@@ -82,7 +82,7 @@ class DNSUpdateForm(forms.ModelForm):
 
     def clean(self, *args, **kwargs):
 
-        #data = self.cleaned_data
+        # data = self.cleaned_data
         # if data['text_content'] and self.instance.ip_content:
         #     raise ValidationError('Content for DNS entry %s cannot be added because'
         #                           ' it has IP Content of %s' % (self.instance.name, self.instance.ip_content))
@@ -94,7 +94,7 @@ class DNSUpdateForm(forms.ModelForm):
         self.instance.dns_type_id = self.cleaned_data['dns_types']
         return super(DNSUpdateForm, self).save(*args, **kwargs)
 
-        #assert False, dns_type_queryset
+        # assert False, dns_type_queryset
         # if dns_type_queryset:
         #     self.fields['dns_type'] = forms.ModelChoiceField(queryset=dns_type_queryset)
 
@@ -139,4 +139,3 @@ class DnsTypeGroupPermissionForm(BaseGroupObjectPermissionForm):
 
 class DnsTypeUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(queryset=Permission.objects.filter(content_type__model='dnstype'))
-

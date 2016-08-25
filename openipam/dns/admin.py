@@ -57,11 +57,10 @@ class DnsRecordAdmin(ChangedAdmin):
     form = al.modelform_factory(DnsRecord, exclude=('changed',))
     list_editable = ('name', 'dns_type', 'text_content')
     list_display_links = ('edit_link',)
-    #list_select_related = True
+    # list_select_related = True
     search_fields = ('name', 'domain__name', 'text_content')
 
     def lookup_allowed(self, lookup, value):
-        #assert False, lookup
         if 'address__host__mac' in lookup:
             return True
         return super(DnsRecordAdmin, self).lookup_allowed(lookup, value)
