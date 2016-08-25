@@ -2,6 +2,8 @@ from django.db.models import Model, Manager
 from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -120,30 +122,28 @@ class AddressTypeManager(Manager):
 
 class AddressQuerySet(QuerySet):
 
-    def release(self, pool=False):
-        from openipam.dns.models import DnsRecord
+    def release(self, user=None, pool=False):
         from openipam.network.models import DefaultPool, Pool
 
+        if not user:
+            raise ValidationError('A user is required to delete hosts.')
+
         # Loop through addresses and release them
-        for obj in self:
+        for address in self:
             # Get default pool if false
             if pool is False:
-                obj_pool = DefaultPool.objects.get_pool_default(address=obj.address)
+                obj_pool = DefaultPool.objects.get_pool_default(address=address.address)
             # Assume an int if not Model
             elif not isinstance(pool, Model):
                 obj_pool = Pool.objects.get(pk=pool)
 
-            # Delete dns records and are linked via name
-            DnsRecord.objects.filter(name=obj.address.reverse_pointer).delete()
-            # Delete dns A records
-            DnsRecord.objects.filter(ip_content=obj).delete()
-
-            obj.host = None
-            obj.pool = obj_pool
-            obj.save()
+            address.host = None
+            address.pool = obj_pool
+            address.changed_by = user
+            address.changed = timezone.now()
+            address.save()
 
         return self
-
 
     def by_dns_change_perms(self, user, pk=None):
         if user.has_perm('network.change_network') or user.has_perm('network.is_owner_network'):

@@ -200,7 +200,7 @@ class HostManager(Manager):
         instance.user = instance.changed_by = user
 
         if hostname:
-            instance.hostname = hostname
+            instance.set_hostname(hostname)
 
         if description is not None:
             instance.description = description
@@ -246,7 +246,6 @@ class HostManager(Manager):
 
         if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
-            instance.set_address_type()
             instance.save(user=user)
 
         if user_owners is not None or group_owners is not None:

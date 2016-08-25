@@ -749,13 +749,11 @@ class HostAddressDeleteView(SuperuserRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         host = get_object_or_404(Host, pk=self.kwargs.get('pk'))
-        address = request.REQUEST.get('address', None)
+        address = request.GET.get('address', None)
         if address:
             try:
-                Address.objects.filter(
-                    host=host,
-                    address=address
-                ).release()
+                # Release address and delete DSN records.
+                host.delete_ip_address(user=request.user, address=address)
             except ValidationError:
                 return redirect('add_addresses_host', pk=host.mac_stripped)
 
