@@ -70,7 +70,6 @@ class HostList(generics.ListAPIView):
     ordering = ('expires',)
 
     # def get_paginate_by(self, queryset=None):
-    #     #assert False, self.max_paginate_by
     #     param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
     #     if param and param == '0':
     #         return self.max_paginate_by
