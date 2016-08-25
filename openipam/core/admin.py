@@ -11,7 +11,10 @@ class ChangedAdmin(admin.ModelAdmin):
         if getattr(obj, 'changed_by'):
             obj.changed_by = request.user
             # TODO: Save overrides for these models so we can not set changed_by here
-            obj.save(user=request.user)
+            try:
+                obj.save(user=request.user)
+            except:
+                obj.save()
 
         super(ChangedAdmin, self).delete_model(request, obj)
 
