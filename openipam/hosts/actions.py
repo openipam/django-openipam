@@ -5,7 +5,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
 
-from openipam.hosts.models import Host, Disabled
+from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm
 
 
@@ -125,7 +125,7 @@ def delete_hosts(request, selected_hosts):
             )
 
         # Delete hosts
-        selected_hosts.delete_and_free(user=request.user)
+        selected_hosts.delete(user=request.user)
 
         messages.success(request, "Selected hosts have been deleted.")
 
@@ -170,22 +170,6 @@ def renew_hosts(request, selected_hosts):
 
 def change_addresses(request, selected_hosts):
     pass
-
-
-def change_perms_check(user, selected_hosts):
-    selected_macs = [host.mac for host in selected_hosts]
-
-    # Check for disabled hosts
-    disabled_qs = Disabled.objects.filter(pk__in=selected_macs)
-    if len(disabled_qs) != 0:
-        return False
-
-    # Check onwership of hosts for users with only object level permissions.
-    host_perms_qs = Host.objects.filter(mac__in=selected_macs).by_change_perms(user)
-    for host in selected_hosts:
-        if host not in host_perms_qs:
-            return False
-    return True
 
 
 def add_attribute_to_hosts(request, selected_hosts):
@@ -254,3 +238,43 @@ def delete_attribute_from_host(request, selected_hosts):
                     ).delete()
             messages.success(request, "Attributes for selected hosts have been deleted.")
 
+
+def populate_primary_dns(request, selected_hosts):
+    user = request.user
+
+    # Must have global delete perm or object owner perm
+    if not user.has_perm('hosts.change_host') and not change_perms_check(user, selected_hosts):
+        messages.error(request, "You do not have permissions to perform this action on one or more the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        # Log Deletion
+        for host in selected_hosts:
+            host.delete_dns_records(user=user)
+            host.add_dns_records(user=user)
+
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(host).pk,
+                object_id=host.pk,
+                object_repr=force_unicode(host),
+                action_flag=CHANGE,
+                change_message='Primary DNS Records populated.'
+            )
+
+        messages.success(request, "DNS for selected hosts have been populated.")
+
+
+def change_perms_check(user, selected_hosts):
+    selected_macs = [host.mac for host in selected_hosts]
+
+    # Check for disabled hosts
+    disabled_qs = Disabled.objects.filter(pk__in=selected_macs)
+    if len(disabled_qs) != 0:
+        return False
+
+    # Check onwership of hosts for users with only object level permissions.
+    host_perms_qs = Host.objects.filter(mac__in=selected_macs).by_change_perms(user)
+    for host in selected_hosts:
+        if host not in host_perms_qs:
+            return False
+    return True

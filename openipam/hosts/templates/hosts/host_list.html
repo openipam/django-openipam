@@ -46,7 +46,7 @@
 {% endblock %}
 
 {% block contentbody %}
-	<form id="changelist-form" action="" method="post" class="quickbody form-inline">
+	<form id="changelist-form" action="" method="post" class="quickbody form-inline" novalidate="novalidate">
 		{% csrf_token %}
 		<div id="actions">
 			{% spaceless %}
@@ -57,13 +57,16 @@
 								<option value="">Choose an action...</option>
 								<option value="">--------------</option>
 								<option value="delete">Delete selected hosts</option>
+								<option value="renew">Renew selected hosts</option>
+								<option value="dns">Populate DNS on selected hosts</option>
+								<!--<option value="address">Add/Update addresses on selected hosts</option>-->
+								<option value="">--ONWERSHIP--</option>
 								<option value="add-owners">Add owners on selected hosts</option>
 								<option value="replace-owners">Replace owners on selected hosts</option>
 								<option value="remove-owners">Remove owners on selected hosts</option>
-								<option value="renew">Renew selected hosts</option>
+								<option value="">--ATTRIBUTES--</option>
 								<option value="add-attributes">Add Attribute on selected hosts</option>
 								<option value="delete-attributes">Delete Attribute on selected hosts</option>
-								<option value="address">Add/Update addresses on selected hosts</option>
 							</select>
 							<button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
 								<span class="glyphicon glyphicon-play"></span>

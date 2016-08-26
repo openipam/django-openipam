@@ -478,6 +478,8 @@ $(function(){
 	$("#action-submit").on('click', function() {
 		var action = $("#host-action").val();
 		var hosts = $(".action-select:checked");
+		
+		//$("div.modal input").removeAttr('required');
 
 		if (hosts.length > 0) {
 			if (action == 'add-owners' || action == 'replace-owners' || action == 'remove-owners') {
@@ -490,9 +492,15 @@ $(function(){
 					return true;
 				}
 			}
+			else if (action == 'dns') {
+				var res = confirm("Are you sure you want to populate DNS on the selected hosts?")
+				if (res == true) {
+					return true;
+				}
+			}
 			else if (action == 'renew') {
 				$('#host-renew').modal();
-			}
+			}			
 			else if (action == 'address') {
 				//
 			}

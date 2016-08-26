@@ -225,6 +225,7 @@ class Host(DirtyFieldsMixin, models.Model):
         self._user_owners = None
         self._group_owners = None
         self._user = None
+        self._master_dns_deleted = False
 
         self.ip_address = None
         self.pool = None
@@ -346,6 +347,14 @@ class Host(DirtyFieldsMixin, models.Model):
         self._user = value
 
     @property
+    def master_dns_deleted(self):
+        return self._master_dns_deleted
+
+    @master_dns_deleted.setter
+    def master_dns_deleted(self, value):
+        self._master_dns_deleted = value
+
+    @property
     def group_owners(self):
         if self._group_owners:
             return self._group_owners
@@ -454,19 +463,24 @@ class Host(DirtyFieldsMixin, models.Model):
         if isinstance(address, unicode) or isinstance(address, str):
             address = self.addresses.filter(address=address)
 
-        # Release address
-        address.release(user=user)
         # Delete DNS PTR and A Records
         self.delete_dns_records(user=user, addresses=address)
+
+        # Release address
+        address.release(user=user)
 
     def add_ip_address(self, user=None, ip_address=None, network=None, hostname=None):
         from openipam.network.models import Network, Address
         from openipam.dns.models import DnsRecord, DnsType
 
-        address = None
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to add ip addresses.')
 
         if not hostname:
             raise ValidationError('A hostname is required.')
+
+        address = None
 
         # Check to see if hostname already taken
         used_hostname = DnsRecord.objects.filter(
@@ -475,11 +489,6 @@ class Host(DirtyFieldsMixin, models.Model):
         ).first()
         if used_hostname:
             raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
-
-        if not user and self.user:
-            user = self.user
-        elif not user:
-            raise ValidationError('A User must be specified to an address to this host.')
 
         user_pools = get_objects_for_user(
             user,
@@ -554,70 +563,95 @@ class Host(DirtyFieldsMixin, models.Model):
         address.save()
 
         # Update A and PTR dns records
-        self.add_dns_records(user, hostname, address)
+        self.add_dns_records(user=user, hostname=hostname, address=address)
 
         return address
 
-    def delete_dns_records(self, user, delete_dchpdns=True, addresses=[]):
+    def delete_dns_records(self, user=None, delete_dchpdns=True, addresses=[]):
         from openipam.dns.models import DnsType
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to delete dns records for host.')
 
-        # If addresses list is empty, we use the master address
-        if not addresses:
-            addresses = self.addresses.filter(address=self.master_ip_address)
+        if self.master_dns_deleted is False:
 
-        # TODO: There is a foreign key for host on this table but we cant use it
-        # cause are aren't sure this will get everything due to not all records
-        # using the FK.
-        # Update Changed by Assocatiated PTR and A or AAAA records.
-        self.dns_records.filter(
-            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[address for address in addresses]),
-            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
-        ).update(changed=timezone.now(), changed_by=user)
-        # Delete Assocatiated PTR and A or AAAA records.
-        self.dns_records.filter(
-            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[address for address in addresses]),
-            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
-        ).delete()
+            # If addresses list is empty, we use the master address
+            # So By default we are deleting DNS for just the primary address
+            if not addresses:
+                addresses = self.addresses.filter(address=self.master_ip_address)
 
-        if delete_dchpdns:
-            # Delete DHCP DNS records for dynamics if they exist.
-            try:
-                self.dhcpdnsrecord.delete()
-            except ObjectDoesNotExist:
-                pass
+            # TODO: There is a foreign key for host on this table but we cant use it
+            # cause are aren't sure this will get everything due to not all records
+            # using the FK.
+            # Update Changed by Assocatiated PTR and A or AAAA records.
+            self.dns_records.filter(
+                Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+                Q(ip_content__in=[address for address in addresses]),
+                dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+            ).update(changed=timezone.now(), changed_by=user)
+            # Delete Assocatiated PTR and A or AAAA records.
+            self.dns_records.filter(
+                Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+                Q(ip_content__in=[address for address in addresses]),
+                dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+            ).delete()
 
-    def add_dns_records(self, user, hostname, address):
+            if delete_dchpdns:
+                # Delete DHCP DNS records for dynamics if they exist.
+                try:
+                    self.dhcpdnsrecord.delete()
+                except ObjectDoesNotExist:
+                    pass
+
+            if not addresses or self.master_ip_address in [str(address.address) for address in addresses]:
+                self.master_dns_deleted = True
+
+    def add_dns_records(self, user=None, hostname=None, address=None):
         from openipam.dns.models import DnsRecord, DnsType
+        from openipam.network.models import Address
 
-        if isinstance(address, str) or isinstance(address, unicode):
-            from openipam.network.models import Address
-            address = Address.objects.filter(address=address).first()
+        user = user or self._user
+        if not user:
+            raise Exception('A User must be given to add dns records for host.')
 
-        # Add Associated PTR
-        DnsRecord.objects.add_or_update_record(
-            user=user,
-            name=address.address.reverse_pointer,
-            content=hostname,
-            dns_type=DnsType.objects.PTR,
-            host=self,
-        )
+        # Only do this on static hosts.
+        if self.is_static:
 
-        # Add Associated A or AAAA record
-        arecord = DnsRecord.objects.filter(
-            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-            host=self,
-            name=self.hostname
-        ).first()
-        DnsRecord.objects.add_or_update_record(
-            user=user,
-            name=hostname,
-            content=address.address,
-            dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
-            host=self,
-            record=arecord if arecord else None
-        )
+            if not hostname:
+                hostname = self.hostname
+
+            if isinstance(address, str) or isinstance(address, unicode):
+                address = Address.objects.filter(address=address).first()
+            elif not address:
+                address = Address.objects.filter(address=self.master_ip_address).first()
+
+            # Add Associated PTR
+            DnsRecord.objects.add_or_update_record(
+                user=user,
+                name=address.address.reverse_pointer,
+                content=hostname,
+                dns_type=DnsType.objects.PTR,
+                host=self,
+            )
+
+            # Add Associated A or AAAA record
+            arecord = DnsRecord.objects.filter(
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                host=self,
+                name=self.hostname
+            ).first()
+            DnsRecord.objects.add_or_update_record(
+                user=user,
+                name=hostname,
+                content=address.address,
+                dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
+                host=self,
+                record=arecord if arecord else None
+            )
+
+        # Reset dns deleted flag if this is the master hostname
+        if hostname == self.hostname:
+            self.master_dns_deleted = False
 
     def get_dns_records(self):
         from openipam.dns.models import DnsRecord
@@ -667,8 +701,7 @@ class Host(DirtyFieldsMixin, models.Model):
             raise Exception('A User must be given to save hosts.')
 
         self.hostname = hostname
-
-        if self.hostname and self.hostname != self.original_hostname:
+        if self.original_hostname and self.hostname and self.hostname != self.original_hostname:
             self.delete_dns_records(user=user)
 
     # TODO: Clean this up, I dont like where this is at.
@@ -677,31 +710,27 @@ class Host(DirtyFieldsMixin, models.Model):
         if not user:
             raise Exception('A User must be given to save hosts.')
 
-        # If we are changing ip address or from from dynamic to static or static to dynamic,
-        # we delete all primary DNS records (PTR, A, AAAA DHCPDNS)
-        self.delete_dns_records(user=user)
-
         # Set the pool if attached to model otherwise find it by address type
         pool = self.pool
         current_pool = getattr(self.address_type, 'pool', None)
 
-        # TODO: Current un-used function
+        # TODO: Currently un-used function
         if delete:
             # Remove all pools
             self.pools.clear()
+            # Delete DNS
+            self.delete_dns_records(user=user, addresses=self.addresses.all())
             # Remove all addresses
             self.addresses.release(user=user)
-            # Delete DNS
-            self.delete_dns_records(user=user)
 
         # If we have a pool, this dynamic and we assign
         if pool and pool != current_pool:
             from openipam.network.models import Pool
 
+            # Delete DNS
+            self.delete_dns_records(user=user, addresses=self.addresses.all())
             # Remove all addresses
             self.addresses.release(user=user)
-            # Delete DNS
-            self.delete_dns_records(user=user)
 
             # TODO: Kill this later.
             host_pool_check = self.host_pools.all()
@@ -757,7 +786,7 @@ class Host(DirtyFieldsMixin, models.Model):
     def assign_owner(self, user_or_group):
         return assign_perm('is_owner_host', user_or_group, self)
 
-    def save(self, user=None, *args, **kwargs):
+    def save(self, user=None, add_dns=True, *args, **kwargs):
         user = user or self._user
         if not user:
             raise Exception('A User must be given to save hosts.')
@@ -771,6 +800,10 @@ class Host(DirtyFieldsMixin, models.Model):
         self.changed_by = user
         self.changed = timezone.now()
 
+        # If master DNS delete, re-create it
+        if add_dns and self.master_dns_deleted is True:
+            self.add_dns_records(user=user)
+
         super(Host, self).save(*args, **kwargs)
 
     def delete(self, user=None, *args, **kwargs):
@@ -778,14 +811,14 @@ class Host(DirtyFieldsMixin, models.Model):
         if not user:
             raise Exception('A User must be given to save hosts.')
 
+        # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
+        self.delete_dns_records(user=user, addresses=self.addresses.all())
+
         # Release all addresses associated with host.
         self.addresses.release(user=user)
 
-        # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
-        self.delete_dns_records(user=user)
-
         # Re-save so that it captures user for postgres log table
-        self.save(user=user)
+        self.save(user=user, add_dns=False)
         super(Host, self).delete(*args, **kwargs)
 
     def clean(self):

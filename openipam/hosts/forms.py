@@ -383,7 +383,7 @@ class HostForm(forms.ModelForm):
         if cleaned_data.get('mac_address'):
             self.instance.set_mac_address(cleaned_data['mac_address'])
         if cleaned_data.get('hostname'):
-            self.instance.hostname = cleaned_data['hostname']
+            self.instance.set_hostname(cleaned_data['hostname'])
         if cleaned_data.get('ip_address'):
             self.instance.ip_address = cleaned_data['ip_address']
         if cleaned_data.get('network'):

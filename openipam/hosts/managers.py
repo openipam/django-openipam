@@ -143,29 +143,16 @@ class HostQuerySet(QuerySet):
         except self.model.DoesNotExist:
             return None
 
-    def delete_and_free(self, user=None, **kwargs):
+    def delete(self, user=None, **kwargs):
         from openipam.network.models import Address
-        from openipam.dns.models import DnsRecord, DnsType
+        if not user:
+            raise Exception('A User must be given to delete hosts.')
 
-        # Set host foreign key on addresses to null and update the changed and change by
-        Address.objects.filter(host__in=self.all()).update(host=None, changed_by=user, changed=timezone.now())
-        addresses = Address.objects.filter(host__in=self.all())
+        # Release all addresses for host in queryset
+        Address.objects.filter(host__in=self.all()).release(user=user)
 
-        # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
-        DnsRecord.objects.filter(
-            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[str(address.address) for address in addresses], name__in=[host.hostname for host in self.all()]),
-            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
-        ).update(changed=timezone.now(), changed_by=user)
-        DnsRecord.objects.filter(
-            Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-            Q(ip_content__in=[str(address.address) for address in addresses], name__in=[host.hostname for host in self.all()]),
-            dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
-        ).delete()
-
-        # TODO: Override queryset delete?
-        self.update(changed_by=user)
-        self.delete()
+        for host in self.all():
+            host.delete(user=user)
 
 
 class HostManager(Manager):
@@ -192,7 +179,7 @@ class HostManager(Manager):
             instance = self.model()
             if mac:
                 # Delete existing expired host is it exists.
-                self.filter(mac=mac, expires__lt=timezone.now()).delete_and_free(user=user)
+                self.filter(mac=mac, expires__lt=timezone.now()).delete(user=user)
                 instance.set_mac_address(mac)
             else:
                 raise ValidationError('Mac address is required for new Hosts.')
