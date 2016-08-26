@@ -482,13 +482,13 @@ class Host(DirtyFieldsMixin, models.Model):
 
         address = None
 
-        # Check to see if hostname already taken
+        # Check to see if hostname already taken for any hosts other then the current one if being updated.
         used_hostname = DnsRecord.objects.filter(
             dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
             name=hostname
-        ).first()
+        ).exclude(ip_content__address=self.master_ip_address).first()
         if used_hostname:
-            raise ValidationError('Hostname %s is already assigned to Address %s.' % (hostname, used_hostname.ip_content))
+            raise ValidationError('Hostname %s is already assigned to DNS A Record: %s.' % (hostname, used_hostname.ip_content))
 
         user_pools = get_objects_for_user(
             user,
