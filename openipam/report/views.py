@@ -18,11 +18,6 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from braces.views import GroupRequiredMixin
 
-import qsstats
-
-import requests
-import operator
-
 
 class DashboardView(TemplateView):
     template_name = 'report/dashboard.html'
@@ -65,3 +60,14 @@ class DisabledHostsView(GroupRequiredMixin, TemplateView):
 class ServerHostsView(GroupRequiredMixin, TemplateView):
     group_required = 'ipam_admins'
     template_name = 'report/server_hosts.html'
+
+
+class HostDNSView(GroupRequiredMixin, TemplateView):
+    group_required = 'ipam_admins'
+    template_name = 'report/host_dns.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(HostDNSView, self).get_context_data(**kwargs)
+        hosts = Host.objects.filter(dns_records__isnull=True, addresses__isnull=False, expires__gte=timezone.now())
+        context['hosts'] = hosts
+        return context

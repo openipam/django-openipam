@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'^weathermap/$', views.WeatherMapView.as_view(), name='reports_weather_map'),
     url(r'^disabled/$', views.DisabledHostsView.as_view(), name='reports_disabled'),
     url(r'^server_hosts/$', views.ServerHostsView.as_view(), name='reports_server_hosts'),
+    url(r'^host_dns/$', views.HostDNSView.as_view(), name='reports_host_dns'),
     url(r'^$', views.DashboardView.as_view(), name='reports_dashboard'),
 ]
