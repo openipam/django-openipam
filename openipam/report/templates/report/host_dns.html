@@ -1,0 +1,64 @@
+{% extends "report/base.html" %}
+
+{% block page_title %}Disabled Hosts Report{% endblock %}
+
+{% block extrahead %}
+	{{ block.super }}
+	<style type="text/css">
+		#content {
+			background: #fff;
+			padding: 20px;
+		}
+	</style>
+
+	<script type="text/javascript">
+		$(function(){
+			$("#disabled_link").addClass('active');
+	        $("#reports_dropdown").addClass('active');
+		});
+
+	</script>
+{% endblock %}
+
+{% block content %}
+	<h4>
+		Host DNS Issues 
+	</h4>
+	<p>Hosts that appear not have the required A and/or PTR records or Hosts that just dont have a Foreign Key to DnsRecord.</p>
+	<table id="result_list" class="table table-striped table-condensed table-bordered">
+		<tr>
+			<thead>
+				<th>Host</th>
+				<th>Mac Address</th>
+				<th>IP Addresses</th>
+				<th>DNS Records</th>
+			</thead>
+		</tr>
+		<tbody>
+			{% if hosts %}
+				{% for host in hosts %}
+				<tr>
+					<td nowrap="nowrap"><a href="{% url 'update_host' pk=host.mac_stripped %}">{{ host.hostname }}</a></td>
+					<td>{{ host.mac }}</td>
+					<td>{{ host.ip_addresses|join:", " }}</td>
+					<td>
+						<table class="table table-striped table-condensed table-bordered">
+							{% for record in host.get_dns_records %}
+							<tr>
+								<td>{{ record.name }}</td>
+								<td>{{ record.dns_type }}</td>
+								<td>{{ record.content }}</td>
+							</tr>
+							{% endfor %}
+						</table>
+					</td>
+				</tr>
+				{% endfor %}
+			{% else %}
+				<tr>
+					<td colspan="4" class="warning">No Records... ;)</td>
+				</tr>
+			{% endif %}
+		</tbody>
+	</table>
+{% endblock %}
