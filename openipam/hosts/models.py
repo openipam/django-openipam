@@ -381,16 +381,12 @@ class Host(DirtyFieldsMixin, models.Model):
     @property
     def address_type(self):
         # TODO: Address type is old and eventually will be deprecated.
-        # Try to set address type if doesn't exist.
-        if not self.address_type_id:
+        # Try to set address type if doesn't exist if host already exists in DB.
+        if self.pk and not self.address_type_id:
             from openipam.network.models import AddressType, NetworkRange
 
             addresses = self.addresses.all()
             pools = self.pools.all()
-
-            if not pools and not addresses:
-                raise ValidationError('No Pool or address Assigned.  Address type cannot be determined.'
-                                      '  Is this a new record? Please assign an address or pool.')
 
             try:
                 # if (len(addresses) + len(pools)) > 1:
