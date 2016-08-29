@@ -64,6 +64,6 @@ urlpatterns = [
     url(r'^dhcpgroup/$', views.network.DhcpGroupList.as_view(), name='api_dhcpgroup_list'),
 
     url(r'^login/has_auth/', views.base.UserAuthenticated.as_view(), name='api_has_auth'),
-    url(r'^login/jwt_token/', obtain_jwt_token),
+    url(r'^login/jwt_token/', views.base.obtain_jwt_token),
     url(r'^', include('rest_framework.urls', namespace='rest_framework')),
 ]
