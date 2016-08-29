@@ -118,7 +118,7 @@ class DomainQuerySet(QuerySet):
 
 
 class DNSQuerySet(QuerySet):
-    def by_change_perms(self, user_or_group, pk=None):
+    def by_change_perms(self, user_or_group, pk=None, ids_only=False):
         User = get_user_model()
 
         if isinstance(user_or_group, User) and user_or_group.has_perm('dns.change_dnsrecord'):
@@ -167,6 +167,8 @@ class DNSQuerySet(QuerySet):
             if pk:
                 qs = qs.filter(mac=pk)
                 return qs[0] if qs else None
+            elif ids_only:
+                return tuple([dnsrecord.pk for dnsrecord in qs])
             else:
                 return qs
 

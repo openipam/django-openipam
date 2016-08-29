@@ -36,8 +36,8 @@ def delete_records(request, selected_records):
 
 def change_perms_check(user, selected_records):
     # Check permission of dnsrecords for users with only object level permissions.
-    allowed_dnsrecords = DnsRecord.objects.filter(pk__in=selected_records).by_change_perms(user)
+    allowed_dnsrecords = DnsRecord.objects.filter(pk__in=selected_records).by_change_perms(user_or_group=user, ids_only=True)
     for record in selected_records:
-        if record not in allowed_dnsrecords:
+        if int(record) not in allowed_dnsrecords:
             return False
     return True
