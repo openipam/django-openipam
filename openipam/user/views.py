@@ -148,7 +148,7 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                 boolean_img(user.is_ipamadmin),
                 user.source.name if user.source else '',
                 #'' if user.last_login is None or user.last_login.year == 1970 else timezone.localtime(user.last_login).strftime('%Y-%m-%d %I:%M %p'),
-                #timezone.localtime(user.last_login).strftime('%Y-%m-%d %I:%M %p') if user.last_login else None,
+                timezone.localtime(user.last_login).strftime('%Y-%m-%d %I:%M %p') if user.last_login else None,
                 user.last_login
             ])
         return json_data
