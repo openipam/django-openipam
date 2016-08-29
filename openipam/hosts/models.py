@@ -712,7 +712,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Set the pool if attached to model otherwise find it by address type
         pool = self.pool
-        current_pool = getattr(self.address_type, 'pool', None)
+        current_pool = self._pools_cache[0] if self._pools_cache else None
 
         # TODO: Currently un-used function
         if delete:
