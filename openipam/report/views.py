@@ -33,7 +33,7 @@ class DashboardView(TemplateView):
 
         context['dynamic_hosts'] = Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count()
         context['static_hosts'] = Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count()
-        context['active_leases'] = Lease.objects.filter(host__isnull=False).count()
+        context['active_leases'] = Lease.objects.filter(ends__gte=timezone.now()).count()
         context['abandoned_leases'] = Lease.objects.filter(abandoned=True).count()
         context['total_networks'] = Network.objects.all().count()
         wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
