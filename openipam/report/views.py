@@ -40,7 +40,7 @@ class DashboardView(TemplateView):
         context['wireless_networks'] = wireless_networks.count()
         wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
         context['wireless_addresses_total'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count()
-        context['wireless_addresses_available'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), host__isnull=True).count()
+        context['wireless_addresses_available'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count()
         context['dns_a_records'] = DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count()
         context['dns_cname_records'] = DnsRecord.objects.filter(dns_type__name='CNAME').count()
         context['dns_mx_records'] = DnsRecord.objects.filter(dns_type__name='MX').count()
