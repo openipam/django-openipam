@@ -20,9 +20,6 @@ urlpatterns = [
     url(r'^reports/leasegraph/(?P<network>.*)/$', views.report.LeaseGraphView.as_view(), name='api_reports_lease_graph'),
     url(r'^reports/weathermap/$', views.report.WeatherMapView.as_view(), name='api_reports_weather_map'),
     url(r'^reports/chartstats/$', views.report.StatsAPIView.as_view(), name='api_reports_chart_stats'),
-    #url(r'^reports/hoststats/$', views.report.host_stats, name='api_reports_host_stats'),
-    #url(r'^reports/leasestats/$', views.report.lease_stats, name='api_reports_lease_stats'),
-    #url(r'^reports/userstats/$', views.report.user_stats, name='api_reports_user_stats'),
 
     # Users
     url(r'^users/$', views.users.UserList.as_view(), name='api_users_list'),
