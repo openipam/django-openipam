@@ -247,6 +247,26 @@ class Host(DirtyFieldsMixin, models.Model):
         else:
             return self.__getattribute__(name)
 
+    def reset_state(self):
+        self._expire_days = None
+        self._user_owners = None
+        self._group_owners = None
+        self._user = None
+        self._master_dns_deleted = False
+
+        self.ip_address = None
+        self.pool = None
+        self.network = None
+
+        try:
+            del self.ip_addresses
+            del self.master_ip_address
+            del self.owners
+            del self._pools_cache
+            del self._addresses_cache
+        except AttributeError:
+            pass
+
     @cached_property
     def _addresses_cache(self):
         return list(self.addresses.all())
@@ -394,8 +414,8 @@ class Host(DirtyFieldsMixin, models.Model):
         if self.pk and not self.address_type_id:
             from openipam.network.models import AddressType, NetworkRange
 
-            addresses = self.addresses.all()
-            pools = self.pools.all()
+            addresses = self._addresses_cache
+            pools = self._pools_cache
 
             try:
                 # if (len(addresses) + len(pools)) > 1:
@@ -904,24 +924,6 @@ class Host(DirtyFieldsMixin, models.Model):
             if not address:
                 raise ValidationError('The IP Address is reserved, in use, or not allowed. '
                                       'Please contact an IPAM Administrator.')
-
-    def reset_state(self):
-        self._expire_days = None
-        self._user_owners = None
-        self._group_owners = None
-        self._user = None
-
-        self.ip_address = None
-        self.pool = None
-        self.network = None
-
-        try:
-            del self.ip_addresses
-            del self.master_ip_address
-            del self._pools_cache
-            del self._addresses_cache
-        except AttributeError:
-            pass
 
     class Meta:
         db_table = 'hosts'
