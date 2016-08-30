@@ -15,12 +15,14 @@ urlpatterns = [
     url(r'^web/', include('autocomplete_light.urls')),
 
     # Reports
-    url(r'^reports/serverhosts/$', views.report.server_hosts, name='api_reports_server_hosts'),
-    url(r'^reports/subnetdata/$', views.report.subnet_data, name='api_reports_subnet_data'),
-    url(r'^reports/weatherdata/$', views.report.weather_data, name='api_reports_weather_data'),
-    url(r'^reports/hoststats/$', views.report.host_stats, name='api_reports_host_stats'),
-    url(r'^reports/leasestats/$', views.report.lease_stats, name='api_reports_lease_stats'),
-    url(r'^reports/leasegraph/(?P<network>.*)/$', views.report.render_lease_chart, name='api_reports_lease_graph'),
+    url(r'^reports/serverhosts/$', views.report.ServerHostView.as_view(), name='api_reports_server_hosts'),
+    url(r'^reports/leaseusage/$', views.report.LeaseUsageView.as_view(), name='api_reports_lease_usage'),
+    url(r'^reports/leasegraph/(?P<network>.*)/$', views.report.LeaseGraphView.as_view(), name='api_reports_lease_graph'),
+    url(r'^reports/weathermap/$', views.report.WeatherMapView.as_view(), name='api_reports_weather_map'),
+    url(r'^reports/chartstats/$', views.report.StatsAPIView.as_view(), name='api_reports_chart_stats'),
+    #url(r'^reports/hoststats/$', views.report.host_stats, name='api_reports_host_stats'),
+    #url(r'^reports/leasestats/$', views.report.lease_stats, name='api_reports_lease_stats'),
+    #url(r'^reports/userstats/$', views.report.user_stats, name='api_reports_user_stats'),
 
     # Users
     url(r'^users/$', views.users.UserList.as_view(), name='api_users_list'),

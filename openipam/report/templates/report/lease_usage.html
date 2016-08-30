@@ -57,7 +57,7 @@
 
         var start = new Date;
         var updatePage = function() {
-          $.get('/api/reports/subnetdata/?format=html').done(function(data){
+          $.get('/api/reports/leaseusage/?format=html').done(function(data){
           	$("#usage-chart").html(data);
             $('div.network').each(function() {
               $(this).qtip({

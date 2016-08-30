@@ -68,6 +68,6 @@
         "CORE-DMZ": {"bw": "10G", "linkDelta": [10, 10]}
     },
 
-    "utilizationURL": "/api/reports/weatherdata/?format=json&links=",
+    "utilizationURL": "/api/reports/weathermap/?format=json&links=",
     "recheckConfig": 60
 }

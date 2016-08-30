@@ -8,12 +8,18 @@
 	<script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
 	<script>
 		$(function(){
-			$.get('/api/reports/hoststats/', function(data){
+			$.get('/api/reports/chartstats/?app=hosts&model=Host&column=changed', function(data){
 				$("#hoststats").append(data);
 			});
-			$.get('/api/reports/leasestats/', function(data){
+			$.get('/api/reports/chartstats/?app=network&model=Lease&column=starts', function(data){
 				$("#leasestats").append(data);
 			});
+			$.get('/api/reports/chartstats/?app=dns&model=DnsRecord&column=changed', function(data){
+				$("#dnsstats").append(data);
+			});
+			$.get('/api/reports/chartstats/?app=user&model=User&column=last_login', function(data){
+				$("#userstats").append(data);
+			});			
 			$("#dashboard_link").addClass('active');
 		});
 	</script>
@@ -30,10 +36,10 @@
 		.nvd3 .nv-axis path {
 			stroke: #999 !important;
 		}
-		#charts {
+		.window {
 			background: #454545;
-			float: left;
 			padding: 30px;
+			margin: 10px 0px 10px 20px;
 		}
 		.panel {
 			background-color: #222222;
@@ -42,33 +48,18 @@
 {% endblock %}
 
 {% block content %}
-	<div id="charts">
-		<h3>Host(s) Updated:</h3>
-		<div id="hoststats"></div>
-		<h3>Leases Updated:</h3>
-
+	<div class="window pull-left panel panel-primary">
+		<div class="panel-heading">Host Updated</div>
+		<div id="hoststats" class="bottom20"></div>
+		<div class="panel-heading">Leases Updated</div>
 		<div id="leasestats"></div>
+	</div>	
+
+	<div class="window pull-left panel panel-primary">
+		<div class="panel-heading">DNS Records Updated</div>
+		<div id="dnsstats" class="bottom20"></div>
+		<div class="panel-heading">Active Users</div>
+		<div id="userstats"></div>
 	</div>
 
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-md-4">
-				<div class="panel panel-primary">
-					<div class="panel-heading">Host Registrations</div>
-					<div class="panel-body">
-						<div id="hoststats"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="panel panel-primary">
-					<div class="panel-heading">Leases Used</div>
-					<div class="panel-body">
-						<div id="leasestats"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-4"></div>
-		</div>
-	</div>
 {% endblock %}
