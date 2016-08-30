@@ -3,6 +3,9 @@ from django.db.models import Q
 from django.db import connection
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.utils.encoding import force_unicode
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import serializers
 
@@ -203,10 +206,21 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         return ret
 
     def save(self):
+        is_new = True if self.instance is None else False
         data = self.validated_data.copy()
         data['instance'] = self.instance
         data['user'] = self.context['request'].user
         self.instance = Host.objects.add_or_update_host(**data)
+
+        LogEntry.objects.log_action(
+            user_id=self.instance.user.pk,
+            content_type_id=ContentType.objects.get_for_model(self.instance).pk,
+            object_id=self.instance.pk,
+            object_repr=force_unicode(self.instance),
+            action_flag=ADDITION if is_new else CHANGE,
+            change_message='API call.'
+        )
+
         return self.instance
 
     def validate(self, data):
