@@ -44,6 +44,21 @@
 		.panel {
 			background-color: #222222;
 		}
+
+		.table-inverse {
+			width: 350px;
+			color: #eceeef;
+			border-collapse: collapse;
+		}
+
+		.table-inverse tr {
+			vertical-align: bottom;
+    		border-bottom: 2px solid #999;
+		}
+
+		.table-inverse tr:first-child td {
+			border: 0px;
+		}
 	</style>
 {% endblock %}
 
@@ -60,6 +75,60 @@
 		<div id="dnsstats" class="bottom20"></div>
 		<div class="panel-heading">Active Users</div>
 		<div id="userstats"></div>
+	</div>	
+
+	<div class="window pull-left panel panel-primary">
+		<div class="panel-heading">Snapshot</div>
+		<div id="numbers" class="bottom20">
+			<table class="table table-inverse">
+				<tr>
+					<td>Active Dynamic Hosts: </td>
+					<td align="right">{{ dynamic_hosts }}</td>
+				</tr>				
+				<tr>
+					<td>Active Static Hosts:</td>
+					<td align="right">{{ static_hosts }}</td>
+				</tr>				
+				<tr>
+					<td>Active Leases:</td>
+					<td align="right">{{ active_leases }}</td>
+				</tr>				
+				<tr>
+					<td>Abandoned Leases:</td>
+					<td align="right">{{ abandoned_leases }}</td>
+				</tr>
+				<tr>
+					<td>Networks:</td>
+					<td align="right">{{ total_networks }}</td>
+				</tr>					
+				<tr>
+					<td>Total Wireless Addresses:</td>
+					<td align="right">{{ wireless_addresses_total }}</td>
+				</tr>				
+				<tr>
+					<td>Available Wireless Addresses:</td>
+					<td align="right">{{ wireless_addresses_available }}</td>
+				</tr>				
+				<tr>
+					<td>DNS A Records:</td>
+					<td align="right">{{ dns_a_records }}</td>
+				</tr>				
+				<tr>
+					<td>DNS CNAME Records:</td>
+					<td align="right">{{ dns_cname_records }}</td>
+				</tr>				
+				<tr>
+					<td>DNS MX Records:</td>
+					<td align="right">{{ dns_mx_records }}</td>
+				</tr>				
+				<tr>
+					<td>Active Users within 1 year:</td>
+					<td align="right">{{ active_users }}</td>
+				</tr>
+
+			</table>
+		
+		</div>
 	</div>
 
 {% endblock %}

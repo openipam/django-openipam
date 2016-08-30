@@ -8,19 +8,45 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView
+from django.contrib.auth import get_user_model
 
 from datetime import timedelta
 
 from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
-from openipam.network.models import Network, NetworkRange, AddressType
+from openipam.network.models import Network, NetworkRange, AddressType, Lease, Address
+from openipam.dns.models import DnsRecord, DnsType
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from braces.views import GroupRequiredMixin
 
+import operator
+
+User = get_user_model()
+
 
 class DashboardView(TemplateView):
     template_name = 'report/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DashboardView, self).get_context_data(**kwargs)
+
+        context['dynamic_hosts'] = Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count()
+        context['static_hosts'] = Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count()
+        context['active_leases'] = Lease.objects.filter(host__isnull=False).count()
+        context['abandoned_leases'] = Lease.objects.filter(abandoned=True).count()
+        context['total_networks'] = Network.objects.all().count()
+        wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
+        context['wireless_networks'] = wireless_networks.count()
+        wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
+        context['wireless_addresses_total'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count()
+        context['wireless_addresses_available'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), host__isnull=True).count()
+        context['dns_a_records'] = DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count()
+        context['dns_cname_records'] = DnsRecord.objects.filter(dns_type__name='CNAME').count()
+        context['dns_mx_records'] = DnsRecord.objects.filter(dns_type__name='MX').count()
+        context['active_users'] = User.objects.filter(last_login__gte=(timezone.now() - timedelta(days=365))).count()
+
+        return context
 
 
 class LeaseUsageView(TemplateView):
