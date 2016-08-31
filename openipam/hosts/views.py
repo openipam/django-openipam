@@ -364,11 +364,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             host['ends'] = [host['ends']] if not isinstance(host['ends'], list) else host['ends']
             if host['address']:
                 for address in host['address']:
-                    if address:
+                    if address and address not in addresses:
                         addresses.append(address)
             if host['lease']:
                 for index, lease in enumerate(host['lease']):
-                    if lease:
+                    if lease and lease not in addresses:
                         try:
                             if host['ends'][index] and host['ends'][index] > timezone.now():
                                 addresses.append(lease)
