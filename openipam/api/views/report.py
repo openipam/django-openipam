@@ -13,14 +13,19 @@ from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.apps import apps
+from django.db.models import Q
+from django.utils import timezone
 
 from openipam.hosts.models import Host
 from openipam.report.models import Ports, database as observium_db
-from openipam.network.models import Network, Lease
+from openipam.network.models import Network, Lease, Address
+from openipam.dns.models import DnsRecord
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import qsstats
+
+import operator
 
 from netaddr import IPNetwork
 
@@ -30,7 +35,7 @@ import itertools
 
 from tempfile import TemporaryFile
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from collections import OrderedDict
 
@@ -368,6 +373,34 @@ class StatsAPIView(APIView):
         }
 
         return Response(context, template_name='api/web/ipam_stats.html')
+
+
+class DashboardAPIView(APIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer,)
+
+    def get(self, request, format=None, **kwargs):
+        wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
+        wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
+        
+        data = (
+            ('Active Dynamic Hosts', Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count(),),
+            ('Active Static Hosts', Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count(),),
+            ('Active Leases', Lease.objects.filter(ends__gte=timezone.now()).count(),),
+            ('Abandoned Leases', Lease.objects.filter(abandoned=True).count(),),
+            ('Total Networks', Network.objects.all().count(),),
+            ('Total Wireless Networks', wireless_networks.count(),),
+            ('Total Wireless Addresses', Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count(),),
+            ('Available Wireless Addresses', Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count(),),
+            ('DNS A Records', DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count(),),
+            ('DNS CNAME Records', DnsRecord.objects.filter(dns_type__name='CNAME').count(),),
+            ('DNS MX Records', DnsRecord.objects.filter(dns_type__name='MX').count(),),
+            ('Active Users Within 1 Year', User.objects.filter(last_login__gte=(timezone.now() - timedelta(days=365))).count(),),
+        )
+
+        data = OrderedDict(data)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ServerHostCSVRenderer(CSVRenderer):

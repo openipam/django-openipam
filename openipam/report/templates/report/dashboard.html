@@ -8,18 +8,40 @@
 	<script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
 	<script>
 		$(function(){
-			$.get('/api/reports/chartstats/?app=hosts&model=Host&column=changed', function(data){
-				$("#hoststats").append(data);
-			});
-			$.get('/api/reports/chartstats/?app=network&model=Lease&column=starts', function(data){
-				$("#leasestats").append(data);
-			});
-			$.get('/api/reports/chartstats/?app=dns&model=DnsRecord&column=changed', function(data){
-				$("#dnsstats").append(data);
-			});
-			$.get('/api/reports/chartstats/?app=user&model=User&column=last_login', function(data){
-				$("#userstats").append(data);
-			});			
+
+			var start = new Date;
+			var updatePage = function() {
+
+				$.get('/api/reports/chartstats/?app=hosts&model=Host&column=changed', function(data){
+					$("#hoststats").html(data);
+				});
+				$.get('/api/reports/chartstats/?app=network&model=Lease&column=starts', function(data){
+					$("#leasestats").html(data);
+				});
+				$.get('/api/reports/chartstats/?app=dns&model=DnsRecord&column=changed', function(data){
+					$("#dnsstats").html(data);
+				});
+				$.get('/api/reports/chartstats/?app=user&model=User&column=last_login', function(data){
+					$("#userstats").html(data);
+				});				
+				$.getJSON('/api/reports/dashboard/', function(data){
+					$("#dashboard-stats").empty();
+					$.each(data, function(index){
+						var name = index;
+						var value = data[index];
+						$("#dashboard-stats").append("<tr><td>" + name + "</td><td align='right'>" + value + "</td></tr>");
+						
+					});
+				});		
+				start = new Date;	
+			}
+			var updateTime = function() {
+	          $('#time').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
+	        }
+			updatePage();
+	        setInterval(updateTime, 1000);
+	        setInterval(updatePage, 150000);
+			
 			$("#dashboard_link").addClass('active');
 		});
 	</script>
@@ -59,6 +81,10 @@
 		.table-inverse tr:first-child td {
 			border: 0px;
 		}
+
+		#time {
+        	color: #ccc;
+      	}
 	</style>
 {% endblock %}
 
@@ -79,9 +105,8 @@
 
 	<div class="window pull-left panel panel-primary">
 		<div class="panel-heading">Snapshot</div>
-		<div id="numbers" class="bottom20">
-			<table class="table table-inverse">
-				<tr>
+			<table id="dashboard-stats" class="table table-inverse">
+				<!--<tr>
 					<td>Active Dynamic Hosts: </td>
 					<td align="right">{{ dynamic_hosts }}</td>
 				</tr>				
@@ -124,10 +149,9 @@
 				<tr>
 					<td>Active Users within 1 year:</td>
 					<td align="right">{{ active_users }}</td>
-				</tr>
+				</tr>-->
 
 			</table>
-		
 		</div>
 	</div>
 
