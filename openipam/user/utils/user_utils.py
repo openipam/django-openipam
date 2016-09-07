@@ -30,7 +30,7 @@ def get_objects_for_owner(user, app_label):
     return model_class.objects.filter(pk__in=user_objects)
 
 
-def fix_ldap_groups():
+def fix_ldap_groups(test=False):
     url = settings.AUTH_LDAP_SERVER_URI
     dn = settings.AUTH_LDAP_BIND_DN
     pw = settings.AUTH_LDAP_BIND_PASSWORD
@@ -43,14 +43,17 @@ def fix_ldap_groups():
 
     counter = 0
     internal_groups = AuthGroup.objects.filter(source__source__name='INTERNAL')
+    if test is True:
+        print 'Testing...'
     for group in internal_groups:
         result = conn.search_s(settings.AUTH_LDAP_GROUP_SEARCH.base_dn, ldap.SCOPE_SUBTREE, 'cn=%s' % group.name, attrs)
         group_result = result[0][0]
         if group_result:
             print group_result
-            group.source.source = ldap_source
-            group.source.save()
-            counter += 1
+            if test is False:
+                group.source.source = ldap_source
+                group.source.save()
+                counter += 1
 
     print '%s Groups changed.' % counter
 
