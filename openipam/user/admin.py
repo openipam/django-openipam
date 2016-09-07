@@ -611,7 +611,10 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
-        return '%s - %s' % (obj.content_type.model, obj.object_pk)
+        if obj.content_type.model == 'domain':
+            return '%s - %s' % (obj.content_type.model, obj.content_object)
+        else:
+            return '%s - %s' % (obj.content_type.model, obj.object_pk)
     object_name.short_description = 'Object'
 
 
@@ -646,7 +649,10 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
-        return '%s - %s' % (obj.content_type.model, obj.object_pk)
+        if obj.content_type.model == 'domain':
+            return '%s - %s' % (obj.content_type.model, obj.content_object)
+        else:
+            return '%s - %s' % (obj.content_type.model, obj.object_pk)
     object_name.short_description = 'Object'
 
 
