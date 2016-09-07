@@ -93,8 +93,13 @@ class _IPAMLDAPUser(_LDAPUser):
         existing_groups = list(Group.objects.filter(name__in=target_group_names).iterator())
         existing_group_names = frozenset(group.name for group in existing_groups)
 
-        new_groups = [Group.objects.get_or_create(name=name)[0] for name
-                      in target_group_names if name not in existing_group_names]
+        new_groups = []
+        for name in target_group_names:
+            if name not in existing_groups:
+                obj, created = Group.objects.get_or_create(name=name)
+                obj.source.source = source
+                obj.source.save()
+                new_groups.append(obj)
 
         self._user.groups = static_groups + existing_groups + new_groups
 
@@ -166,7 +171,12 @@ class IPAMCASBackend(CASBackend):
         existing_groups = list(Group.objects.filter(name__in=target_group_names).iterator())
         existing_group_names = frozenset(group.name for group in existing_groups)
 
-        new_groups = [Group.objects.get_or_create(name=name)[0] for name
-                      in target_group_names if name not in existing_group_names]
+        new_groups = []
+        for name in target_group_names:
+            if name not in existing_groups:
+                obj, created = Group.objects.get_or_create(name=name)
+                obj.source.source = source
+                obj.source.save()
+                new_groups.append(obj)
 
         self.user.groups = static_groups + existing_groups + new_groups
