@@ -155,13 +155,24 @@ class GroupSourceFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             queryset = queryset.filter(source__source=AuthSource.objects.get(pk=self.value()))
-        else:
-            internal_source = AuthSource.objects.get(name='INTERNAL')
-            queryset = queryset.filter(
-                Q(source__source=internal_source) |
-                Q(permissions__isnull=False) |
-                Q(groupobjectpermission__isnull=False)
-            ).distinct()
+
+        return queryset
+
+class IPAMGroupHasPermissionsFilter(SimpleListFilter):
+    title = 'Has Permissions'
+    parameter_name = 'permissions'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', 'Yes'),
+            ('0', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            queryset = queryset.extra(where=[
+                'auth_group.id IN (select group_id FROM guardian_groupobjectpermission)'
+            ])
 
         return queryset
 
@@ -289,7 +300,7 @@ class AuthGroupSourceInline(admin.StackedInline):
 
 class AuthGroupAdmin(GroupAdmin):
     list_display = ('name', 'authsources')
-    list_filter = (IPAMObjUserFilter, GroupSourceFilter)
+    list_filter = (IPAMObjUserFilter, GroupSourceFilter, IPAMGroupHasPermissionsFilter)
     form = AuthGroupAdminForm
     list_select_related = True
     inlines = [AuthGroupSourceInline]
@@ -297,13 +308,7 @@ class AuthGroupAdmin(GroupAdmin):
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)
-        if not len(request.GET):
-            return qs.select_related('source__source').extra(where=[
-                'auth_group.id in (select group_id from guardian_groupobjectpermission) OR '
-                'auth_group.id IN (SELECT group_id FROM user_groupsource where group_id = auth_group.id)'
-            ])
-        else:
-            return qs
+        return qs.select_related('source__source')
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
