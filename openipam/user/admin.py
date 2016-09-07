@@ -611,8 +611,7 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
-        # c_obj = obj.content_type.model_class().objects.get(pk=obj.object_pk)
-        return '%s - %s' % (obj.content_type.model, obj.content_object)
+        return '%s - %s' % (obj.content_type.model, obj.object_pk)
     object_name.short_description = 'Object'
 
 
@@ -628,7 +627,7 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(GroupObjectPermissionAdmin, self).get_queryset(request)
-        qs = qs.prefetch_related('permission', 'content_object').distinct()
+        qs = qs.distinct()
         return qs
 
     def save_model(self, request, obj, form, change):
@@ -647,11 +646,7 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     permission_name.short_description = 'Permission'
 
     def object_name(self, obj):
-        if obj.content_type.model == 'network':
-            return '%s - %s' % (obj.content_type.model, obj.object_pk)
-        else:
-            return '%s - %s' % (obj.content_type.model, obj.content_object)
-        #return obj.content_object
+        return '%s - %s' % (obj.content_type.model, obj.object_pk)
     object_name.short_description = 'Object'
 
 
