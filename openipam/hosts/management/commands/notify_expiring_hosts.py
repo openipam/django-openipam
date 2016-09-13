@@ -44,17 +44,17 @@ class Command(BaseCommand):
 
         from_address = CONFIG.get('NOTIFICATION_EMAIL_ADDRESS')
 
-        dynamic_subject = '[USU:Important] Your USU computer registrations are about to expire'
+        dynamic_subject = '[USU:Important] Your USU device registrations are about to expire'
         dynamic_msg = '''%(name)s (%(username)s),
 
-The following computer registrations are going to expire soon.
+The following device registrations are going to expire soon.
 
 If you would like to continue using the USU network for another year:
 
 1. If you are on the USU network, you can log in at https://bluezone.usu.edu/ . However, if you are
    not on the USU network you must first connect your device to the network using VPN
    and then go to https://bluezone.usu.edu/ and login.
-2. Click "Renew" next to the following computers:
+2. Click "Renew" next to the following devices:
 
 %(rows)s
 
@@ -88,7 +88,7 @@ http://usu.service-now.com (Issue Tracking System)
         static_subject = '[USU:Important] openIPAM Host Renewal Notice'
         static_msg = '''%(name)s (%(username)s),
 
-The following computer registrations are going to expire soon.
+The following device registrations are going to expire soon.
 
 To renew your servers and clients for another year:
 
