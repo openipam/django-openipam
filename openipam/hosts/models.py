@@ -658,7 +658,7 @@ class Host(DirtyFieldsMixin, models.Model):
             arecord = DnsRecord.objects.filter(
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
                 host=self,
-                name=self.hostname
+                name=hostname
             ).first()
             DnsRecord.objects.add_or_update_record(
                 user=user,
