@@ -279,7 +279,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
             any_perm=True,
             use_groups=True,
-            with_superuser=False
+            with_superuser=True
         )
         type_records = DnsRecord.objects.all().only('dns_type_id').values_list('id')
         context['dns_types'] = DnsType.objects.filter(id__in=type_records)
