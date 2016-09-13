@@ -781,10 +781,10 @@ class Host(DirtyFieldsMixin, models.Model):
             current_ip_address = self.master_ip_address
 
             if current_ip_address:
-                # Release the current IP to add another
-                self.addresses.filter(address=current_ip_address).release(user=user)
                 # Delete DNS
                 self.delete_dns_records(user=user)
+                # Release the current IP to add another
+                self.addresses.filter(address=current_ip_address).release(user=user)
 
             # Add new IP
             self.add_ip_address(
