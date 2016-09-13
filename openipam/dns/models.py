@@ -192,6 +192,7 @@ class DnsRecord(models.Model):
                 name=self.name,
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
                 ip_content=self.ip_content,
+                dns_view__isnull=True,
             ).exclude(pk=self.pk)
             if dns_exists:
                 raise ValidationError({'name': ["Invalid name for A or AAAA record: '%s'. "
