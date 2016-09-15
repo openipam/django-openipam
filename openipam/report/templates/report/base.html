@@ -35,7 +35,8 @@
 			<ul id="reports_div" class="dropdown-menu">
 				<li id="disabled_link"><a href="{% url 'reports_disabled' %}">Hardcoded Disabled Hosts</a></li>
 				<li id="server_link"><a href="{% url 'reports_server_hosts' %}">Server Profile Hosts</a></li>
-				<li id="host_dns_link"><a href="{% url 'reports_host_dns' %}">Host DNS Issues</a></li>
+				<li id="host_dns_link"><a href="{% url 'reports_host_dns' %}">Host with no DNS Records</a></li>
+				<li id="host_dns_link"><a href="{% url 'reports_ptr_dns' %}">Broken PTR Records</a></li>
 			</ul>
 		</li>
 	</ul>

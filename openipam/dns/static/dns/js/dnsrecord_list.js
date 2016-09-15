@@ -177,6 +177,7 @@ $(function(){
             { "name": "ttl", "orderable": false, "searchable": false },
             { "name": "ttl", "orderable": true },
             { "name": "content", "orderable": true },
+            { "name": "host", "orderable": false, "searchable": false  },
             { "name": "view", "orderable": false, "searchable": false  },
             { "name": "edit", "orderable": false, "searchable": false  },
         ],

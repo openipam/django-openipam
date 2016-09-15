@@ -37,6 +37,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         'ttl',
         'dns_type',
         'text_content',
+        'host',
         'dns_view',
     )
 
@@ -248,6 +249,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             href = '.'.join(name_list)
             return reverse_lazy('list_dns', args=(href,))
 
+        def get_dns_host_href(dns_record):
+            return '<a href="%s">Host</a>' % reverse_lazy('view_host', args=(dns_record.host.mac_stripped,))
+
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
@@ -262,6 +266,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 get_ttl(dns_record, has_change_permission),
                 get_type(dns_record, has_change_permission),
                 get_content(dns_record, has_change_permission),
+                get_dns_host_href(dns_record) if dns_record.host else '',
                 dns_record.dns_view.name if dns_record.dns_view else '',
                 get_links(dns_record, has_change_permission),
             ])

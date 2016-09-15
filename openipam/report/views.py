@@ -97,3 +97,34 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
         hosts = Host.objects.filter(dns_records__isnull=True, addresses__isnull=False, expires__gte=timezone.now())
         context['hosts'] = hosts
         return context
+
+
+class PTRDNSView(GroupRequiredMixin, TemplateView):
+    group_required = 'ipam_admins'
+    template_name = 'report/ptr_dns.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PTRDNSView, self).get_context_data(**kwargs)
+
+        rogue_ptrs = DnsRecord.objects.raw(r'''
+            SELECT d.*, a.address as address, d3.name as arecord, a.mac as arecord_host
+            FROM dns_records AS d
+                LEFT JOIN addresses AS a ON (
+                    regexp_replace(d.name, '([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)..*', E'\\4.\\3.\\2.\\1')::inet = a.address
+                )
+                LEFT JOIN dns_records AS d2 ON (
+                    d2.name = d.text_content AND d2.ip_content IS NOT NULL
+                )
+                LEFT JOIN dns_records AS d3 ON (
+                    a.address = d3.ip_content
+                )
+            WHERE d.tid = '12'
+                AND d.name LIKE '%%.in-addr.arpa'
+                AND d2.ip_content IS NULL
+
+            ORDER BY d.changed DESC
+                --AND d.text_content != d2.name
+        ''')
+
+        context['rogue_ptrs'] = rogue_ptrs
+        return context
