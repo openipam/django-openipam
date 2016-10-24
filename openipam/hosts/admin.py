@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from openipam.hosts.models import Host, Attribute, Disabled, GuestTicket, ExpirationType, \
     StructuredAttributeValue, Notification
-from openipam.hosts.forms import ExpirationTypeAdminForm
+from openipam.hosts.forms import ExpirationTypeAdminForm, HostDisableForm
 from openipam.core.admin import ChangedAdmin
 
 from autocomplete_light import shortcuts as al
@@ -31,18 +31,28 @@ class HostAdmin(ChangedAdmin):
 
 
 class DisabledAdmin(ChangedAdmin):
-    list_display = ('host', 'mac', 'reason', 'changed', 'changed_by_full',)
-    form = al.modelform_factory(Disabled, fields=('host', 'reason', 'changed_by',))
+    list_display = ('mac', 'hostname', 'reason', 'changed', 'changed_by_full',)
+    form = HostDisableForm
     list_select_related = True
-    search_fields = ('host__hostname', 'host__mac', 'changed_by__username')
+    search_fields = ('mac', 'changed_by__username')
 
-    def mac(self, obj):
-        return obj.host.mac
-    mac.short_description = 'MAC Address'
+    def save_model(self, request, obj, form, change):
+        data = form.cleaned_data
+        obj.mac = data['mac']
+        super(DisabledAdmin, self).save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        qs = super(DisabledAdmin, self).get_queryset(request)
+        qs = qs.extra(select={'hostname': 'SELECT hostname from hosts where hosts.mac = disabled.mac'})
+        return qs
 
     def changed_by_full(self, obj):
         return '%s (%s)' % (obj.changed_by.username, obj.changed_by.get_full_name())
     changed_by_full.short_description = 'Changed By'
+
+    def hostname(self, obj):
+        return '%s' % obj.hostname
+    hostname.short_description = 'Hostname'
 
 
 class GuestTicketAdmin(admin.ModelAdmin):
