@@ -157,6 +157,14 @@ class HostQuerySet(QuerySet):
 
 class HostManager(Manager):
 
+    def get_queryset(self):
+        qs = super(HostManager, self).get_queryset()
+        qs = (qs
+            .extra(select={'is_disabled': 'EXISTS (SELECT 1 FROM disabled WHERE hosts.mac = disabled.mac)'})
+        )
+        return qs
+
+
     def get_owners(self, mac):
         host = self.get(mac=mac)
         owners = get_users_with_perms(host, attach_perms=True, with_group_users=False)
