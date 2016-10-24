@@ -59,8 +59,7 @@ class HostList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer,)
     queryset = (
-        Host.objects.prefetch_related('addresses', 'leases', 'pools')
-        .select_related('disabled_host', 'disabled_host__changed_by').all()
+        Host.objects.prefetch_related('addresses', 'leases', 'pools').all()
     )
     serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
@@ -123,7 +122,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    queryset = Host.objects.select_related().all()
+    queryset = Host.objects.prefetch_related('addresses', 'leases', 'pools').all()
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
 
@@ -491,15 +490,18 @@ class HostDeleteAttribute(APIView):
 class DisabledHostList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
-    queryset = Disabled.objects.select_related('changed_by__username').all()
     pagination_class = APIPagination
+    queryset = (Disabled.objects.select_related('changed_by')
+        .extra(select={'hostname': 'SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac'})
+        .all()
+    )
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('changed_by__username',)
 
 
 class DisabledHostCreate(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    queryset = Disabled.objects.select_related('changed_by__username').all()
+    queryset = Disabled.objects.select_related('changed_by').all()
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
 
 
