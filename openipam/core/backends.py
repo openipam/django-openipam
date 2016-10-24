@@ -5,7 +5,7 @@ from django.core.mail.backends.smtp import EmailBackend
 from django.core.mail.backends.console import EmailBackend as ConsoleEmailBackend
 
 from openipam.log.models import EmailLog
-from openipam.user.models import GroupSource, AuthSource
+from openipam.user.models import AuthSource
 
 # Dont require this.
 try:
@@ -106,7 +106,6 @@ class _IPAMLDAPUser(_LDAPUser):
         self._user.groups = static_groups + existing_groups + new_groups
 
 
-
 class LoggingEmailBackend(EmailBackend):
 
     def send_messages(self, email_messages):
@@ -116,7 +115,7 @@ class LoggingEmailBackend(EmailBackend):
                 EmailLog.objects.create(
                     to='; '.join(email_message.recipients()),
                     subject=email_message.subject, body=email_message.body,
-                    )
+                )
         except:
             pass
         return message_len
@@ -131,7 +130,7 @@ class ConsoleLoggingEmailBackend(ConsoleEmailBackend):
                 EmailLog.objects.create(
                     to='; '.join(email_message.recipients()),
                     subject=email_message.subject, body=email_message.body,
-                    )
+                )
         except:
             pass
         return message_len
