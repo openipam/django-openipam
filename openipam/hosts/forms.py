@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
 from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
@@ -10,20 +10,22 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
 
-from openipam.network.models import Address, AddressType, DhcpGroup, Network, NetworkRange
-from openipam.dns.models import Domain
+from openipam.network.models import Address, AddressType, Network, NetworkRange
 from openipam.hosts.validators import validate_hostname, validate_csv_file
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
-    FreeformAttributeToHost, StructuredAttributeToHost
+    FreeformAttributeToHost, StructuredAttributeToHost, Disabled
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Field, Button, HTML, Div
-from crispy_forms.bootstrap import FormActions, Accordion, AccordionGroup, PrependedText, PrependedAppendedText
+from crispy_forms.layout import Layout, HTML
+from crispy_forms.bootstrap import Accordion, AccordionGroup, PrependedText
 
 from netfields.forms import MACAddressFormField
+from netfields.mac import mac_unix_common
 
-from guardian.shortcuts import get_objects_for_user, assign_perm
+from netaddr import EUI, AddrFormatError
+
+from guardian.shortcuts import get_objects_for_user
 
 from autocomplete_light import shortcuts as al
 import operator
@@ -208,7 +210,6 @@ class HostForm(forms.ModelForm):
             elif self.previous_form_data and attribute_field_key in self.previous_form_data:
                 self.fields[attribute_field_key].initial = self.previous_form_data.get(attribute_field_key)
 
-
     def _init_ip_address(self):
         if self.instance.pk and self.instance.is_static:
             master_ip_address = str(self.instance.master_ip_address)
@@ -243,7 +244,7 @@ class HostForm(forms.ModelForm):
                 add_link = ''
                 if self.user.is_ipamadmin:
                     add_link = ('<a href="%s" class="pull-left renew">Add/Delete Additional Addresses</a>'
-                        % reverse('add_addresses_host', kwargs={'pk':self.instance.mac_stripped}))
+                        % reverse('add_addresses_host', kwargs={'pk': self.instance.mac_stripped}))
 
                 self.secondary_address_html = HTML('''
                     <div class="form-group">
@@ -483,12 +484,10 @@ class HostForm(forms.ModelForm):
         # If this is a dynamic address type, then bypass
         if address_type and address_type.pk not in self.address_types_with_ranges_or_default:
             return ip_address
-            #return ip_addresses
         elif ip_address in current_addresses:
             return ip_address
 
         if network_or_ip and network_or_ip == '1':
-            #if not ip_addresses:
             if not ip_address:
                 raise ValidationError('This field is required.')
 
@@ -588,3 +587,27 @@ class HostAttributesCreateForm(forms.Form):
 
 class HostAttributesDeleteForm(forms.Form):
     del_attribute = forms.ModelChoiceField(queryset=Attribute.objects.all())
+
+
+class HostDisableForm(forms.ModelForm):
+    host_mac = forms.CharField(max_length='255', label='Host or Mac', widget=al.TextWidget('HostAutocomplete', widget_attrs={'placeholder': 'HO'}))
+
+    def __init__(self, *args, **kwargs):
+        super(HostDisableForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['host_mac'] = forms.CharField(max_length=255, label='Mac')
+            self.fields['host_mac'].widget.attrs['readonly'] = 'readonly'
+            self.fields['host_mac'].initial = str(self.instance.pk)
+            if self.instance.host:
+                self.fields['host_mac'].label = '%s (%s)' % ('Mac', self.instance.host)
+
+    def clean(self):
+        cleaned_data = super(HostDisableForm, self).clean()
+        try:
+            cleaned_data['mac'] = EUI(cleaned_data['host_mac'], dialect=mac_unix_common)
+        except (AddrFormatError, TypeError):
+            cleaned_data['mac'] = Host.objects.filter(hostname=cleaned_data['host_mac']).first().mac
+
+    class Meta:
+        Model = Disabled
+        fields = ('host_mac', 'reason',)
