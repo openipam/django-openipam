@@ -14,9 +14,9 @@ User = get_user_model()
 class DisabledFlagFilter(NumberFilter):
     def filter(self, qs, value):
         if value == 1:
-            qs = qs.filter(disabled_host__isnull=False)
+            qs = qs.extra(where=['hosts.mac IN (SELECT mac from disabled)'])
         elif value == 0:
-            qs = qs.filter(disabled_host__isnull=True)
+            qs = qs.extra(where=['hosts.mac NOT IN (SELECT mac from disabled)'])
         return qs
 
 
