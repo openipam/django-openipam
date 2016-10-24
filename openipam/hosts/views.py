@@ -530,7 +530,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context['pools'] = self.object.pools.all()
         context['leased_addresses'] = self.object.leases.select_related('address', 'host').all()
         context['user_owners'], context['group_owners'] = self.object.get_owners()
-        context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
+        context['disabled_info'] = Disabled.objects.filter(pk=self.object.pk).first()
         context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
 
         return context
@@ -597,7 +597,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(HostUpdateView, self).get_context_data(**kwargs)
-        context['disabled_info'] = Disabled.objects.filter(host=self.object.pk).first()
+        context['disabled_info'] = Disabled.objects.filter(pk=self.object.pk).first()
         context['disabled_website'] = CONFIG.get('DISABLED_HOSTS_WEBSITE')
         return context
 
