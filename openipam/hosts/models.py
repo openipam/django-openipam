@@ -27,6 +27,7 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 from datetime import datetime, timedelta
 
 import string
+import random
 
 
 class Attribute(models.Model):
