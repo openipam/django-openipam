@@ -425,7 +425,7 @@ class Host(DirtyFieldsMixin, models.Model):
     @property
     def disabled_host(self):
         if self.is_disabled:
-            return Disabled.objects.filter(mac=self.mac).first()
+            return Disabled.objects.filter(pk=self.mac).first()
         else:
             return None
 
