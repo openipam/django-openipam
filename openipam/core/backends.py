@@ -84,6 +84,7 @@ class _IPAMLDAPUser(_LDAPUser):
 
     def _mirror_groups(self):
         source = AuthSource.objects.get(name='LDAP')
+        source_id = source.pk
 
         target_group_names = frozenset(self._get_groups().get_group_names())
         # current_group_names = frozenset(self._user.groups.values_list('name', flat=True).iterator())
@@ -97,8 +98,9 @@ class _IPAMLDAPUser(_LDAPUser):
         for name in target_group_names:
             if name not in existing_groups:
                 obj, created = Group.objects.get_or_create(name=name)
-                obj.source.source = source
-                obj.source.save()
+                if obj.source.source_id != source_id:
+                    obj.source.source_id = source_id
+                    obj.source.save()
                 new_groups.append(obj)
 
         self._user.groups = static_groups + existing_groups + new_groups
@@ -175,8 +177,9 @@ class IPAMCASBackend(CASBackend):
         for name in target_group_names:
             if name not in existing_groups:
                 obj, created = Group.objects.get_or_create(name=name)
-                obj.source.source = source
-                obj.source.save()
+                if obj.source.source_id != source_id:
+                    obj.source.source_id = source_id
+                    obj.source.save()
                 new_groups.append(obj)
 
         self.user.groups = static_groups + existing_groups + new_groups
