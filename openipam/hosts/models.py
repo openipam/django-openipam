@@ -27,7 +27,6 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 from datetime import datetime, timedelta
 
 import string
-import random
 
 
 class Attribute(models.Model):
@@ -66,13 +65,32 @@ class AttributeToHost(models.Model):
 
 
 class Disabled(models.Model):
-    host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
+    mac = MACAddressField(primary_key=True)
+    #host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column='disabled')
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
 
+    def __init__(self, *args, **kwargs):
+        # Initialize setters
+        self._host = None
+
+        super(Disabled, self).__init__(*args, **kwargs)
+
     def __unicode__(self):
         return '%s' % self.pk
+
+    @property
+    def host(self):
+        if self._host:
+            return self._host
+        else:
+            host_obj = Host.objects.filter(mac=self.mac).first()
+            return host_obj.hostname if host_obj else None
+
+    @host.setter
+    def host(self, host):
+        self._host = host
 
     class Meta:
         db_table = 'disabled'
@@ -396,12 +414,20 @@ class Host(DirtyFieldsMixin, models.Model):
     def is_static(self):
         return True if self.is_dynamic is False else False
 
+    # This is set on the queryset manager now.
+    # @property
+    # def is_disabled(self):
+    #     try:
+    #         return True if self.disabled_host else False
+    #     except ObjectDoesNotExist:
+    #         return False
+
     @property
-    def is_disabled(self):
-        try:
-            return True if self.disabled_host else False
-        except ObjectDoesNotExist:
-            return False
+    def disabled_host(self):
+        if self.is_disabled:
+            return Disabled.objects.filter(mac=self.mac).first()
+        else:
+            return None
 
     @property
     def is_expired(self):
