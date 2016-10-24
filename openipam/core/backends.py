@@ -164,6 +164,7 @@ class IPAMCASBackend(CASBackend):
 
     def _mirror_groups(self):
         source = AuthSource.objects.get(name='LDAP')
+        source_id = source.pk
 
         target_group_names = frozenset(self._get_group_names())
         # current_group_names = frozenset(self._user.groups.values_list('name', flat=True).iterator())
