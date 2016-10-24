@@ -29,6 +29,7 @@ class HostListSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
     disabled_flag = serializers.SerializerMethodField()
+    is_disabled = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(HostListSerializer, self).__init__(*args, **kwargs)
@@ -65,8 +66,8 @@ class HostListSerializer(serializers.ModelSerializer):
         return rows
 
     def get_disabled_flag(self, obj):
-        disabled_host = getattr(obj, 'disabled_host', False)
-        if disabled_host:
+        if getattr(obj, 'is_disabled', False):
+            disabled_host = obj.disabled_host
             return {
                 'status': True,
                 'reason': disabled_host.reason,
@@ -77,6 +78,9 @@ class HostListSerializer(serializers.ModelSerializer):
             return {
                 'status': False,
             }
+
+    def get_is_disabled(self, obj):
+        return obj.is_disabled
 
     class Meta:
         model = Host
@@ -90,6 +94,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
     address_type = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
     disabled_flag = serializers.SerializerMethodField()
+    is_disabled = serializers.SerializerMethodField()
 
     def get_owners(self, obj):
         users, groups = obj.get_owners(owner_detail=True)
@@ -141,8 +146,8 @@ class HostDetailSerializer(serializers.ModelSerializer):
         return rows
 
     def get_disabled_flag(self, obj):
-        disabled_host = getattr(obj, 'disabled_host', False)
-        if disabled_host:
+        if getattr(obj, 'is_disabled', False):
+            disabled_host = obj.disabled_host
             return {
                 'status': True,
                 'reason': disabled_host.reason,
@@ -154,10 +159,13 @@ class HostDetailSerializer(serializers.ModelSerializer):
                 'status': False,
             }
 
+    def get_is_disabled(self, obj):
+        return obj.is_disabled
+
     class Meta:
         model = Host
         fields = ('mac', 'hostname', 'address_type', 'expires', 'expire_days', 'is_dynamic', 'description', 'owners',
-                  'addresses', 'master_ip_address', 'attributes', 'disabled_flag',)
+                  'addresses', 'master_ip_address', 'attributes', 'is_disabled', 'disabled_flag',)
 
 
 class HostCreateUpdateSerializer(serializers.ModelSerializer):
@@ -250,7 +258,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         if host_exists:
             if host_exists[0].is_expired:
                 if host_exists[0].is_disabled:
-                    raise serializers.ValidationError('The mac address %s cannot be added because it is currently diabled.' % host_exists[0].hostname)
+                    raise serializers.ValidationError('The mac address %s cannot be added because it is currently disabled.' % host_exists[0].hostname)
                 else:
                     host_exists[0].delete(user=self.context['request'].user)
             else:
@@ -438,9 +446,9 @@ class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
 
 
 class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
-    host = MACAddressField()
+    mac = MACAddressField()
     changed_by = serializers.CharField()
-    mac = serializers.SerializerMethodField()
+    host = serializers.SerializerMethodField()
 
     def to_representation(self, obj):
         ret = super(DisabledHostListUpdateSerializer, self).to_representation(obj)
@@ -449,9 +457,10 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
 
     def validate_host(self, value):
         try:
-            host = Host.objects.filter(mac=value).first()
-            if not host:
-                raise serializers.ValidationError('No Host found from MAC address entered.')
+            # TODO: We are not validation hosts anymore.  Any mac address will do.
+            # host = Host.objects.filter(mac=value).first()
+            # if not host:
+            #     raise serializers.ValidationError('No Host found from MAC address entered.')
             disabled_exists = Disabled.objects.filter(pk=value)
             if disabled_exists:
                 raise serializers.ValidationError("Host '%s' has already been disabled." % value)
@@ -465,18 +474,18 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('No User found from username entered.')
         return changed_by
 
-    def get_mac(self, obj):
-        return str(obj.pk)
+    def get_host(self, obj):
+        return getattr(obj, 'hostname', None)
 
     def get_changed_by(self, obj):
         return '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
 
     class Meta:
         model = Disabled
-        fields = ('host', 'mac', 'reason', 'changed_by')
+        fields = ('mac', 'host', 'reason', 'changed_by')
 
 
 class DisabledHostDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Disabled
-        fields = ('host',)
+        fields = ('mac',)
