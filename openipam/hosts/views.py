@@ -206,6 +206,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             if host_search:
                 if host_search.startswith('^'):
                     qs = qs.filter(hostname__startswith=host_search[1:].lower())
+                if host_search.startswith('~'):
+                    qs = qs.filter(hostname__iregex=r'%s' % host_search[1:])
                 elif host_search.startswith('='):
                     qs = qs.filter(hostname__exact=host_search[1:].lower())
                 else:
