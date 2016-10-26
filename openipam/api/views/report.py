@@ -1,4 +1,3 @@
-from rest_framework.decorators import api_view, renderer_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -246,7 +245,7 @@ class LeaseUsageView(APIView):
 
 class LeaseGraphView(APIView):
     permission_classes = (AllowAny,)
-    #renderer_classes = (TemplateHTMLRenderer,)
+    # renderer_classes = (TemplateHTMLRenderer,)
 
     def get(self, request, network, format=None, **kwargs):
         parsed_network = network.replace('/', '_').replace('.', '-')
@@ -382,15 +381,20 @@ class DashboardAPIView(APIView):
     def get(self, request, format=None, **kwargs):
         wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
         wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
-        
+        wireless_addresses_total = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count()
+        wireless_addresses_avaiable = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count()
+        wireless_addresses_inuse = wireless_addresses_total - wireless_addresses_avaiable
+
         data = (
-            ('Active Dynamic Hosts', Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count(),),
-            ('Active Static Hosts', Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count(),),
-            ('Active Leases', Lease.objects.filter(ends__gte=timezone.now()).count(),),
-            ('Abandoned Leases', Lease.objects.filter(abandoned=True).count(),),
-            ('Total Networks', Network.objects.all().count(),),
-            ('Total Wireless Networks', wireless_networks.count(),),
-            ('Total Wireless Addresses', Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count(),),
+            ('Static Hosts', '%s' % Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count(),),
+            ('Dynamic Hosts', '%s' % Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count(),),
+            ('Active Leases', '%s' % Lease.objects.filter(ends__gte=timezone.now()).count(),),
+            ('Abandoned Leases', '%s' % Lease.objects.filter(abandoned=True).count(),),
+            ('Networks: (Total / Wireless)', '%s / %s' % (Network.objects.all().count(), wireless_networks.count()),),
+            # ('Addresses: (Total / Available)', '%s / %s' % (
+            #     Address.objects.all().count(),
+            #     Address.objects.filter(host__isnull=True).count()),
+            # ),
             ('Available Wireless Addresses', Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count(),),
             ('DNS A Records', DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count(),),
             ('DNS CNAME Records', DnsRecord.objects.filter(dns_type__name='CNAME').count(),),
@@ -413,7 +417,7 @@ class ServerHostView(APIView):
 
     def get(self, request, format=None, **kwargs):
         hosts = (
-        Host.objects
+            Host.objects
             .prefetch_related('addresses')
             .filter(structured_attributes__structured_attribute_value__attribute__name='border-profile',
                     structured_attributes__structured_attribute_value__value='server')
