@@ -311,16 +311,16 @@ class AuthGroupAdmin(GroupAdmin):
         return qs.select_related('source__source')
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
+        # group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
 
-        if group_add_form.is_valid():
-            instance = group_add_form.save(commit=False)
-            content_object = group_add_form.cleaned_data['object_id'].split('-')
-            instance.content_type_id = content_object[0]
-            instance.object_pk = content_object[1]
-            instance.save()
+        # if group_add_form.is_valid():
+        #     instance = group_add_form.save(commit=False)
+        #     content_object = group_add_form.cleaned_data['object_id'].split('-')
+        #     instance.content_type_id = content_object[0]
+        #     instance.object_pk = content_object[1]
+        #     instance.save()
 
-            return redirect('admin:auth_group_change', object_id)
+        #     return redirect('admin:auth_group_change', object_id)
 
         group_object_permissions = GroupObjectPermission.objects.prefetch_related('content_object').filter(group__pk=object_id)
         host_permissions = group_object_permissions.filter(content_type__model='host')
@@ -333,7 +333,7 @@ class AuthGroupAdmin(GroupAdmin):
             'host_permissions': host_permissions,
             'domain_permissions': domain_permissions,
             'network_permissions': network_permissions,
-            'group_add_form': group_add_form
+            #'group_add_form': group_add_form
         }
         return super(AuthGroupAdmin, self).change_view(request, object_id,
             form_url, extra_context=extra_context)
