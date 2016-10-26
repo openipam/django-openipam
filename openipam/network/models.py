@@ -201,7 +201,7 @@ class Network(models.Model):
         return str(self.network)
 
     def __unicode__(self):
-        return '%s -- %s' % (self.network, self.name)
+        return '%s' % self.network
 
     class Meta:
         db_table = 'networks'

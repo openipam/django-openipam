@@ -3,8 +3,13 @@ from rest_framework import serializers
 from openipam.network.models import Network, Address, DhcpGroup, Pool
 from openipam.hosts.models import Host
 
+from netaddr import EUI, AddrFormatError
+
+from netfields.mac import mac_unix_common
+
+
 class NetworkSerializer(serializers.ModelSerializer):
-    #network = serializers.CharField()
+    # network = serializers.CharField()
 
     class Meta:
         model = Network
@@ -13,9 +18,9 @@ class NetworkSerializer(serializers.ModelSerializer):
 
 class AddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(read_only=True)
-    network = serializers.CharField(source='network.network', required=False)
+    network = serializers.CharField()
     pool = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    host = serializers.CharField(source='host.hostname', required=False, allow_blank=True, allow_null=True)
+    host = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     gateway = serializers.SerializerMethodField()
     changed_by = serializers.ReadOnlyField(source='changed_by.username')
     changed = serializers.ReadOnlyField()
@@ -24,12 +29,16 @@ class AddressSerializer(serializers.ModelSerializer):
         return str(obj.network.gateway.ip)
 
     def validate_host(self, value):
-        if not isinstance(value, Host):
-            host = Host.objects.filter(hostname=value.lower()).first()
+        if value and not isinstance(value, Host):
+            try:
+                value = EUI(value, dialect=mac_unix_common)
+                host = Host.objects.filter(pk=value).first()
+            except (AddrFormatError, TypeError):
+                host = Host.objects.filter(hostname=value.lower()).first()
             if not host:
                 raise serializers.ValidationError('The hostname enetered does not exist.  Please first create the host.')
             return host
-        return value
+        return None
 
     def validate_network(self, value):
         network = Network.objects.filter(network=value).first()
@@ -40,7 +49,7 @@ class AddressSerializer(serializers.ModelSerializer):
         return network
 
     def validate_pool(self, value):
-        if not isinstance(value, Pool):
+        if value and not isinstance(value, Pool):
             if value.isdigit():
                 pool = Pool.objects.filter(pk=value).first()
             else:
@@ -48,10 +57,9 @@ class AddressSerializer(serializers.ModelSerializer):
             if not pool:
                 raise serializers.ValidationError('The pool enetered does not exist.')
             return pool
-        return value
+        return None
 
     def update(self, instance, validated_data):
-        assert False, validated_data
         instance.host = validated_data.get('host', instance.host)
         instance.reserved = validated_data.get('reserved', instance.reserved)
         instance.pool = validated_data.get('pool', instance.pool)
