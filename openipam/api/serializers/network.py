@@ -14,7 +14,7 @@ class NetworkSerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(read_only=True)
     network = serializers.CharField(source='network.network', required=False)
-    pool = serializers.CharField(required=False, allow_blank=True, allow_true=True)
+    pool = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     host = serializers.CharField(source='host.hostname', required=False, allow_blank=True, allow_null=True)
     gateway = serializers.SerializerMethodField()
     changed_by = serializers.ReadOnlyField(source='changed_by.username')
