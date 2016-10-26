@@ -60,6 +60,7 @@ urlpatterns = [
     url(r'^domain/name/$', views.dns.DomainNameList.as_view(), name='api_domain_name_list'),
     url(r'^network/$', views.network.NetworkList.as_view(), name='api_network_list'),
     url(r'^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/$', views.network.AddressDetail.as_view(), name='api_address_view'),
+    url(r'^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/update/$', views.network.AddressUpdate.as_view(), name='api_address_update'),
     url(r'^address/$', views.network.AddressList.as_view(), name='api_address_list'),
     url(r'^dhcpgroup/$', views.network.DhcpGroupList.as_view(), name='api_dhcpgroup_list'),
 
