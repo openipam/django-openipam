@@ -1,5 +1,6 @@
 #import unittest
 #import ipaddr
+import netaddr
 from django.test import TestCase
 
 from openipam.hosts.models import Host
@@ -20,12 +21,13 @@ class IPAMTestCase(TestCase):
     dns_domains = None
     dns_records = None
     hosts = None
-    fixtures = ['initial_data', 'dns_types', 'user_permission']
+    fixtures = ['dns_types', 'user_permission']
 
     def _add_network(self, network, user):
             obj = Network.objects.create(changed_by=user, **network)
             addresses = []
-            for address in obj.network:
+            net = netaddr.IPNetwork(obj.network)
+            for address in net:
                 reserved = False
                 if address in (obj.gateway, obj.network[0], obj.network[-1]):
                     reserved = True
@@ -61,7 +63,7 @@ class IPAMTestCase(TestCase):
             if 'expires' not in host:
                 host['expires'] = self.expires
 
-            host = Host.objects.create(changed_by=user, **host)
+            host = Host.objects.create(user=user, **host)
             if address:
                 a_obj = Address.objects.get(address=address)
                 a_obj.mac = host.mac

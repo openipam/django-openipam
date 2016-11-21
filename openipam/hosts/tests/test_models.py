@@ -2,8 +2,9 @@
 #import ipaddr
 #from django.test import TestCase
 
+import django.conf
 from openipam.hosts.models import Host
-#from openipam.network.models import Network, Address, Pool, HostToPool, AddressType, NetworkRange
+from openipam.network.models import Network, Address, Pool, HostToPool, AddressType, NetworkRange
 #from openipam.dns.models import Domain, DnsRecord, DnsType
 from openipam.dns.models import DnsRecord
 #from openipam.user.models import User
@@ -68,12 +69,12 @@ class HostTest(IPAMTestCase):
 
     def test_add_existing_hostname(self):
         with self.assertRaises(IntegrityError):
-            Host.objects.create(changed_by=self.user_model, hostname='existing-host.invalid', mac='ffffff000001', expires=self.expires)
+            Host.objects.create(user=self.user_model, hostname='existing-host.invalid', mac='ffffff000001', expires=self.expires)
 
     def test_add_existing_mac(self):
         with self.assertRaises(IntegrityError):
             # MAC already exists
-            Host.objects.create(changed_by=self.user_model, hostname='not-existing.invalid', mac='ffffff000000', expires=self.expires)
+            Host.objects.create(user=self.user_model, hostname='not-existing.invalid', mac='ffffff000000', expires=self.expires)
 
     def test_create_new_dynamic_host(self):
         pool_h = Host.objects.add_or_update_host(user=self.user_model, hostname='new-pool.valid', expire_days=7, mac='123456123456', pool='pool1')

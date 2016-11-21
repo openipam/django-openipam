@@ -3,6 +3,7 @@
 #from django.test import TestCase
 
 from openipam.hosts.models import Host
+from openipam.user.models import User
 #from openipam.network.models import Network, Address, Pool, HostToPool, AddressType, NetworkRange
 #from openipam.dns.models import Domain, DnsRecord, DnsType
 #from openipam.dns.models import DnsRecord
@@ -66,18 +67,18 @@ class AddressTest(IPAMTestCase):
         self.assertEqual(ip_h_ptr.text_content, ip_h.hostname)
         return ip_h
 
-    def test_create_network(self):
+    def xtest_create_network(self):
         # create network
         # check stuff
         self.assertEqual(1, 0)
 
-    def test_release_address(self):
+    def xtest_release_address(self):
         # release address
         # check DNS records
         # check address.pool
         self.assertEqual(1, 0)
 
-    def test_assign_address(self):
+    def xtest_assign_address(self):
         # assign address
         # check stuff
         self.assertEqual(1, 0)

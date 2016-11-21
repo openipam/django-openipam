@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.safestring import mark_safe
+from datetime import datetime
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -48,7 +49,7 @@ class UserLog(BaseLog):
     min_permissions = models.CharField(max_length=8)
 
     password = models.CharField(max_length=128, default='!')
-    last_login = models.DateTimeField(blank=True, null=True)
+    last_login = models.DateTimeField(blank=True, null=True, default=datetime.now)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_ipamadmin = models.BooleanField(default=False)
