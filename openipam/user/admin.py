@@ -246,7 +246,7 @@ class AuthUserAdmin(UserAdmin):
 
             return redirect('admin:user_user_change', object_id)
 
-        user_object_permissions = UserObjectPermission.objects.prefetch_related('content_object', 'permission', 'permission__content_type').filter(user__pk=object_id)
+        user_object_permissions = UserObjectPermission.objects.prefetch_related('permission').filter(user__pk=object_id)
         host_permissions = user_object_permissions.filter(content_type__model='host')
         domain_permissions = user_object_permissions.filter(content_type__model='domain')
         # Prefetch related doesn't seem to work here.
@@ -322,7 +322,7 @@ class AuthGroupAdmin(GroupAdmin):
 
         #     return redirect('admin:auth_group_change', object_id)
 
-        group_object_permissions = GroupObjectPermission.objects.prefetch_related('content_object').filter(group__pk=object_id)
+        group_object_permissions = GroupObjectPermission.objects.filter(group__pk=object_id)
         host_permissions = group_object_permissions.filter(content_type__model='host')
         domain_permissions = group_object_permissions.filter(content_type__model='domain')
         # Prefetch related doesn't seem to work here.
@@ -592,7 +592,8 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(UserObjectPermissionAdmin, self).get_queryset(request)
-        qs = qs.prefetch_related('user', 'permission', 'content_object').all()
+        #qs = qs.prefetch_related('user', 'permission', 'content_object').all()
+        qs = qs.distinct()
         return qs
 
     def save_model(self, request, obj, form, change):
