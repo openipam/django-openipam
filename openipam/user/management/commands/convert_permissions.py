@@ -1,29 +1,27 @@
 from django.core.management.base import BaseCommand, CommandError
 from openipam.user.utils.user_utils import convert_host_permissions, convert_permissions
-from optparse import make_option
 
 
 class Command(BaseCommand):
     args = ''
     help = 'Convert User Permissions'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--delete',
-            action='store_true',
-            dest='delete',
-            default=False,
-            help='Delete poll instead of closing it'),
+    def add_arguments(self, parser):
+        parser.add_option('--delete',
+                          action='store_true',
+                          dest='delete',
+                          default=False,
+                          help='Delete poll instead of closing it')
 
-        make_option('--username',
-            dest='username',
-            default=False,
-            help='Specify a specific username to update'),
+        parser.add_option('--username',
+                          dest='username',
+                          default=False,
+                          help='Specify a specific username to update')
 
-        make_option('--groupname',
-            dest='groupname',
-            default=False,
-            help='Specify a specific groupname to update'),
-    )
+        parser.add_option('--groupname',
+                          dest='groupname',
+                          default=False,
+                          help='Specify a specific groupname to update')
 
     def handle(self, *args, **options):
         delete = options['delete']

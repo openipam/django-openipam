@@ -1,9 +1,9 @@
+# Host expiration notification
+
 from django.core.management.base import BaseCommand
 from django.core.mail import send_mail, send_mass_mail, get_connection
 from django.utils import timezone
 
-
-from optparse import make_option
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
@@ -14,23 +14,22 @@ class Command(BaseCommand):
     args = ''
     help = 'Convert Dns Type Permissions'
 
-    option_list = BaseCommand.option_list + (
-        make_option('-t', '--test',
-            action='store_true',
-            dest='test',
-            default=False,
-            help='Send as test only.  This will NOT send emails, but rather print them to the screen'),
-        make_option('-c', '--count',
-            action='store_true',
-            dest='count',
-            default=False,
-            help='Display notifications counts to send but this will not send anything'),
-        make_option('-n', '--noasync',
-            action='store_true',
-            dest='noasync',
-            default=False,
-            help='This flag will sent using send_mail instead of send_mass_mail'),
-    )
+    def add_arguments(self, parser):
+        parser.add_option('-t', '--test',
+                          action='store_true',
+                          dest='test',
+                          default=False,
+                          help='Send as test only.  This will NOT send emails, but rather print them to the screen')
+        parser.add_option('-c', '--count',
+                          action='store_true',
+                          dest='count',
+                          default=False,
+                          help='Display notifications counts to send but this will not send anything')
+        parser.add_option('-n', '--noasync',
+                          action='store_true',
+                          dest='noasync',
+                          default=False,
+                          help='This flag will sent using send_mail instead of send_mass_mail')
 
     def handle(self, *args, **options):
         test = options['test']
@@ -143,7 +142,7 @@ http://usu.service-now.com (Issue Tracking System)
             host_users = host.get_owners(users_only=True)
 
             for user in host_users:
-                if not user in users_to_notify:
+                if user not in users_to_notify:
                     users_to_notify[user] = {
                         'static': [],
                         'dynamic': []

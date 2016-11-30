@@ -5,8 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from openipam.hosts.management.oui_import import import_ouis
 from openipam.hosts.models import Host
 
-from optparse import make_option
-
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
 
@@ -14,10 +12,9 @@ class Command(BaseCommand):
     args = ''
     help = 'Find expired hosts with no owner.'
 
-    option_list = BaseCommand.option_list + (
-        make_option('-d', '--delete',
-                    help="Delete Hosts"),
-    )
+    def add_arguments(self, parser):
+        parser.add_option('-d', '--delete',
+                          help="Delete Hosts")
 
     def handle(self, *args, **options):
 
@@ -35,4 +32,3 @@ class Command(BaseCommand):
 
         self.stdout.write('%s hosts are epired and have no owner.' % len(orphaned_hosts))
         self.stdout.write('\n'.join(orphaned_hosts))
-
