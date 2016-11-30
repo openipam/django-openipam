@@ -15,21 +15,21 @@ class Command(BaseCommand):
     help = 'Convert Dns Type Permissions'
 
     def add_arguments(self, parser):
-        parser.add_option('-t', '--test',
-                          action='store_true',
-                          dest='test',
-                          default=False,
-                          help='Send as test only.  This will NOT send emails, but rather print them to the screen')
-        parser.add_option('-c', '--count',
-                          action='store_true',
-                          dest='count',
-                          default=False,
-                          help='Display notifications counts to send but this will not send anything')
-        parser.add_option('-n', '--noasync',
-                          action='store_true',
-                          dest='noasync',
-                          default=False,
-                          help='This flag will sent using send_mail instead of send_mass_mail')
+        parser.add_argument('-t', '--test',
+                            action='store_true',
+                            dest='test',
+                            default=False,
+                            help='Send as test only.  This will NOT send emails, but rather print them to the screen')
+        parser.add_argument('-c', '--count',
+                            action='store_true',
+                            dest='count',
+                            default=False,
+                            help='Display notifications counts to send but this will not send anything')
+        parser.add_argument('-n', '--noasync',
+                            action='store_true',
+                            dest='noasync',
+                            default=False,
+                            help='This flag will sent using send_mail instead of send_mass_mail')
 
     def handle(self, *args, **options):
         test = options['test']

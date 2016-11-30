@@ -7,10 +7,10 @@ class Command(BaseCommand):
     help = 'Convert User Permissions'
 
     def add_arguments(self, parser):
-        parser.add_option('--username',
-                          dest='username',
-                          default=False,
-                          help='Specify a specific username to update')
+        parser.add_argument('--username',
+                            dest='username',
+                            default=False,
+                            help='Specify a specific username to update')
 
     def handle(self, *args, **options):
         username = options['username'] or None

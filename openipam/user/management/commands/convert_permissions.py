@@ -7,21 +7,21 @@ class Command(BaseCommand):
     help = 'Convert User Permissions'
 
     def add_arguments(self, parser):
-        parser.add_option('--delete',
-                          action='store_true',
-                          dest='delete',
-                          default=False,
-                          help='Delete poll instead of closing it')
+        parser.add_argument('--delete',
+                            action='store_true',
+                            dest='delete',
+                            default=False,
+                            help='Delete poll instead of closing it')
 
-        parser.add_option('--username',
-                          dest='username',
-                          default=False,
-                          help='Specify a specific username to update')
+        parser.add_argument('--username',
+                            dest='username',
+                            default=False,
+                            help='Specify a specific username to update')
 
-        parser.add_option('--groupname',
-                          dest='groupname',
-                          default=False,
-                          help='Specify a specific groupname to update')
+        parser.add_argument('--groupname',
+                            dest='groupname',
+                            default=False,
+                            help='Specify a specific groupname to update')
 
     def handle(self, *args, **options):
         delete = options['delete']

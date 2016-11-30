@@ -13,8 +13,8 @@ class Command(BaseCommand):
     help = 'Find expired hosts with no owner.'
 
     def add_arguments(self, parser):
-        parser.add_option('-d', '--delete',
-                          help="Delete Hosts")
+        parser.add_argument('-d', '--delete',
+                            help="Delete Hosts")
 
     def handle(self, *args, **options):
 

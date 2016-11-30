@@ -7,8 +7,8 @@ class Command(BaseCommand):
     help = 'Update OUI table used to display manufacturer info'
 
     def add_arguments(self, parser):
-        parser.add_option('-u', '--url',
-                          help="URL for wireshark 'manuf'-style file")
+        parser.add_argument('-u', '--url',
+                            help="URL for wireshark 'manuf'-style file")
 
     def handle(self, *args, **options):
 
