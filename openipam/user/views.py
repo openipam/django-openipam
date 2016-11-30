@@ -192,11 +192,9 @@ def user_detail(request, pk):
     groups = user.groups.all()
     user_object_permissions = (UserObjectPermission.objects
         .select_related('permission', 'content_type')
-        .prefetch_related('content_object')
         .filter(user=user))
     group_object_permissions = (GroupObjectPermission.objects
         .select_related('permission', 'group', 'content_type')
-        .prefetch_related('content_object')
         .filter(group__in=groups))
 
     context = {
