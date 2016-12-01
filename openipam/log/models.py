@@ -46,7 +46,7 @@ class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
     source = models.IntegerField()
-    min_permissions = models.CharField(max_length=8)
+    min_permissions = models.BinaryField(max_length=8)
 
     password = models.CharField(max_length=128, default='!')
     last_login = models.DateTimeField(blank=True, null=True, default=datetime.now)

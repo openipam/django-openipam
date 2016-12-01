@@ -29,7 +29,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # TODO: Remove later
     min_permissions = models.ForeignKey('Permission', db_column='min_permissions', blank=True, null=True,
-                                        related_name='user_min_permissions')
+                                        related_name='user_min_permissions', db_index=False)
     source = models.ForeignKey('AuthSource', db_column='source', blank=True, null=True)
 
     objects = IPAMUserManager()
@@ -166,7 +166,7 @@ class AuthSource(models.Model):
 
 
 class Permission(models.Model):
-    permission = models.CharField(max_length=8, primary_key=True, db_column='id')
+    permission = models.CharField(primary_key=True, db_column='id', max_length=8)
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 

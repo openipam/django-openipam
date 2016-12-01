@@ -253,11 +253,11 @@ class NetworkToVlan(models.Model):
 class Address(models.Model):
     address = InetAddressField(primary_key=True, store_prefix_length=False)
     # Force manual removal of addresses so they are unassigned and properly re-classified
-    host = models.ForeignKey('hosts.Host', db_column='mac', blank=True, null=True, related_name='addresses', on_delete=models.SET_NULL)
+    host = models.ForeignKey('hosts.Host', db_column='mac', to_field='mac', blank=True, null=True, related_name='addresses', on_delete=models.SET_NULL)
     pool = models.ForeignKey('Pool', db_column='pool', blank=True, null=True, on_delete=models.SET_NULL)
     reserved = models.BooleanField(default=False)
     # Do we want to allow deletion of a network with addresses referencing it?
-    network = models.ForeignKey('Network', db_column='network', related_name='net_addresses')
+    network = models.ForeignKey('Network', db_column='network', to_field='network', related_name='net_addresses')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 

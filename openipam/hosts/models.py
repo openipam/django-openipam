@@ -101,7 +101,7 @@ class Disabled(models.Model):
 
 class ExpirationType(models.Model):
     expiration = models.DateTimeField()
-    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions', db_index=False)
 
     def __unicode__(self):
         return '%s days' % self.expiration.days
@@ -115,7 +115,7 @@ class ExpirationType(models.Model):
 
 
 class FreeformAttributeToHost(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
+    host = models.ForeignKey('Host', db_column='mac', to_field='mac', related_name='freeform_attributes')
     attribute = models.ForeignKey('Attribute', db_column='aid')
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
@@ -985,7 +985,7 @@ class MacOui(models.Model):
 
 class Notification(models.Model):
     notification = models.DateField()
-    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions', db_index=False)
 
     def __unicode__(self):
         return '%s' % self.notification
@@ -1010,7 +1010,7 @@ class StructuredAttributeValue(models.Model):
 
 
 class StructuredAttributeToHost(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='structured_attributes')
+    host = models.ForeignKey('Host', db_column='mac', to_field='mac', related_name='structured_attributes')
     structured_attribute_value = models.ForeignKey('StructuredAttributeValue', db_column='avid')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')

@@ -161,21 +161,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 LOCAL_INSTALLED_APPS = locals().pop('LOCAL_INSTALLED_APPS', ())
 INSTALLED_APPS = (
-    # openIPAM Apps
-    'openipam.core',
-    'openipam.user',
-    'openipam.api',
-    'openipam.hosts',
-    'openipam.network',
-    'openipam.dns',
-    'openipam.log',
-
-    # openIPAM reports
-    'openipam.report',
-
-    # Firewall
-    # 'openipam.firewall',
-
     # Admin Tools
     'admin_tools',
     'admin_tools.theming',
@@ -202,6 +187,21 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+
+    # openIPAM Apps
+    'openipam.core',
+    'openipam.user',
+    'openipam.api',
+    'openipam.hosts',
+    'openipam.network',
+    'openipam.dns',
+    'openipam.log',
+
+    # openIPAM reports
+    'openipam.report',
+
+    # Firewall
+    # 'openipam.firewall',
 
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
