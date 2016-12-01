@@ -8,6 +8,10 @@ from openipam.hosts.models import Host
 
 from django_filters import FilterSet, CharFilter, NumberFilter
 
+import re
+
+from itertools import izip_longest
+
 User = get_user_model()
 
 
@@ -81,8 +85,20 @@ class IPFilter(CharFilter):
         return qs
 
 
+class HostFilter(CharFilter):
+    def filter(self, qs, value):
+        if value:
+            rgx = re.compile('[:,-. ]')
+            mac_str = rgx.sub('', value)
+            # Split to list to put back togethor with :
+            mac_str = iter(mac_str)
+            mac_str = ':'.join(a + b for a, b in izip_longest(mac_str, mac_str, fillvalue=''))
+            qs = qs.filter(mac__startswith=mac_str.lower())
+        return qs
+
+
 class HostFilter(FilterSet):
-    mac = CharFilter(lookup_expr='icontains')
+    mac = HostFilter()
     hostname = CharFilter(lookup_expr='icontains')
     is_expired = IsExpiredFilter()
     group = GroupFilter()

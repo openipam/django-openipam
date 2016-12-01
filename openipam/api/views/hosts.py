@@ -59,7 +59,7 @@ class HostList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer,)
     queryset = (
-        Host.objects.prefetch_related('addresses', 'leases', 'pools').all()
+        Host.objects.all()
     )
     serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
@@ -122,7 +122,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    queryset = Host.objects.prefetch_related('addresses', 'leases', 'pools').all()
+    queryset = Host.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
 
