@@ -54,9 +54,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, db_column=b'source', null=True, on_delete=django.db.models.deletion.CASCADE, to='user.AuthSource'),
         ),
 
-        migrations.RunSQL("BEGIN;\
-                            ALTER TABLE permissions ALTER COLUMN id TYPE bit(8) USING(id::bit);\
-                            ALTER TABLE users ALTER COLUMN min_permissions TYPE bit(8) USING(min_permissions::bit);\
-                           COMMIT;"
+        migrations.RunSQL("ALTER TABLE permissions ALTER COLUMN id TYPE bit(8) USING(id::bit);\
+                           ALTER TABLE users ALTER COLUMN min_permissions TYPE bit(8) USING(min_permissions::bit);"
         ),
     ]

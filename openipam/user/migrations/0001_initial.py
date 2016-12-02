@@ -6,6 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import openipam.user.managers
+from openipam.core.fields import BitField
 
 
 class Migration(migrations.Migration):
@@ -45,7 +46,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Permission',
             fields=[
-                ('permission', models.IntegerField(db_column=b'id', primary_key=True, serialize=False, db_index=False)),
+                ('permission', BitField(db_column=b'id', primary_key=True, serialize=False, db_index=False)),
                 ('name', models.TextField(blank=True)),
                 ('description', models.TextField(blank=True)),
             ],

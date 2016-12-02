@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.functional import cached_property
 
+from openipam.core.fields import BitField
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
    remove_obj_perms_connected_with_user, add_group_souce
@@ -166,7 +167,7 @@ class AuthSource(models.Model):
 
 
 class Permission(models.Model):
-    permission = models.CharField(primary_key=True, db_column='id', max_length=8)
+    permission = BitField(primary_key=True, db_column='id', max_length=8)
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 

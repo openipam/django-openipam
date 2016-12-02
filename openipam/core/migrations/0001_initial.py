@@ -24,9 +24,9 @@ def get_initial_sql_list(filename):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0003_alter_min_permissions_type'),
         ('taggit', '0002_auto_20150616_2121'),
-        ('hosts', '0002_auto_20161129_1719'),
+        ('dns', '0002_auto_20161201_1426'),
+        ('hosts', '0002_auto_20161201_1426'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

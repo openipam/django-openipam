@@ -40,13 +40,13 @@ class Domain(models.Model):
 
 class DnsRecord(models.Model):
     domain = models.ForeignKey('Domain', db_column='did', verbose_name='Domain')
-    host = models.ForeignKey('hosts.Host', db_column='mac', related_name='dns_records', blank=True, null=True)
+    host = models.ForeignKey('hosts.Host', db_column='mac', to_field='mac', related_name='dns_records', blank=True, null=True)
     dns_type = models.ForeignKey('DnsType', db_column='tid', verbose_name='Type', related_name='records',
         error_messages={'blank': 'Type fields for DNS records cannot be blank.'})
     dns_view = models.ForeignKey('DnsView', db_column='vid', verbose_name='View', blank=True, null=True)
     name = models.CharField(max_length=255, error_messages={'blank': 'Name fields for DNS records cannot be blank.'})
     text_content = models.CharField(max_length=255, blank=True, null=True)
-    ip_content = models.ForeignKey('network.Address', db_column='ip_content',
+    ip_content = models.ForeignKey('network.Address', db_column='ip_content', to_field='address',
         verbose_name='IP Content', blank=True, null=True, related_name='arecords')
     ttl = models.IntegerField(default=14400, blank=True, null=True)
     priority = models.IntegerField(verbose_name='Priority', blank=True, null=True)
@@ -364,9 +364,9 @@ class DnsRecordMunged(models.Model):
 
 
 class DhcpDnsRecord(models.Model):
-    did = models.ForeignKey('Domain', db_column='did')
-    name = models.OneToOneField('hosts.Host', db_column='name', to_field='hostname')
-    ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
+    did = models.ForeignKey('Domain', db_column='did', to_field='id')
+    name = models.OneToOneField('hosts.Host', db_column='name', to_field='hostname', unique=True)
+    ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', to_field='address', blank=True)
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
 

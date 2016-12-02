@@ -22,7 +22,7 @@ from openipam.user.signals import remove_obj_perms_connected_with_user
 
 class Lease(models.Model):
     address = models.OneToOneField('Address', primary_key=True, db_column='address', related_name='leases')
-    host = models.ForeignKey('hosts.Host', db_column='mac', db_constraint=False, related_name='leases', null=True)
+    host = models.ForeignKey('hosts.Host', db_column='mac', to_field='mac', db_constraint=False, related_name='leases', null=True)
     abandoned = models.BooleanField(default=False)
     server = models.CharField(max_length=255, blank=True, null=True)
     starts = models.DateTimeField()
@@ -141,7 +141,7 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 
 class HostToPool(models.Model):
-    host = models.ForeignKey('hosts.Host', db_column='mac', db_index=True, related_name='host_pools')
+    host = models.ForeignKey('hosts.Host', db_column='mac', to_field='mac', db_index=True, related_name='host_pools')
     pool = models.ForeignKey('Pool', db_index=True, related_name='host_pools')
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
@@ -171,7 +171,7 @@ class TaggedNetworks(TaggedItemBase):
 
 
 class Network(models.Model):
-    network = CidrAddressField(primary_key=True)
+    network = CidrAddressField(unique=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     gateway = InetAddressField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
