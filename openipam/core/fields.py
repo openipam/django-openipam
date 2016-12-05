@@ -10,4 +10,4 @@ class BitField(CharField):
         return 'BitField'
 
     def db_type(self, connection):
-        return 'bit'
+        return 'bit({})'.format(self.max_length)

@@ -171,7 +171,7 @@ class TaggedNetworks(TaggedItemBase):
 
 
 class Network(models.Model):
-    network = CidrAddressField(unique=True)
+    network = CidrAddressField(primary_key=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     gateway = InetAddressField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)

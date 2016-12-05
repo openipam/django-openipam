@@ -182,7 +182,7 @@ class GuestTicket(models.Model):
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
+    host = models.OneToOneField('Host', db_column='mac', to_field='mac', db_constraint=False, related_name='ip_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
     stopstamp = models.DateTimeField()
 
@@ -196,7 +196,7 @@ class GulRecentArpByaddress(models.Model):
 
 
 class GulRecentArpBymac(models.Model):
-    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
+    host = models.OneToOneField('Host', db_column='mac', to_field='mac', db_constraint=False, related_name='mac_history', primary_key=True)
     address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='mac_history')
     stopstamp = models.DateTimeField()
 
