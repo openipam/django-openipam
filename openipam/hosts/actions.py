@@ -4,9 +4,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core import serializers
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm
+
+import csv
+
+User = get_user_model()
 
 
 def assign_owner_hosts(request, selected_hosts, add_only=False):
@@ -264,6 +271,22 @@ def populate_primary_dns(request, selected_hosts):
         messages.success(request, "DNS for selected hosts have been populated.")
 
 
+def export_csv(request, selected_hosts):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="hosts.csv"'
+    writer = csv.writer(response)
+
+    for host in selected_hosts:
+        owners = host.get_owners(ids_only=True)
+        users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
+        usernames = ','.join(set([user.username for user in users]))
+        emails = ','.join(set([user.email for user in users]))
+
+        writer.writerow([host.mac, host.hostname, usernames, emails])
+
+    return response
+
+
 def change_perms_check(user, selected_hosts):
     selected_macs = [host.mac for host in selected_hosts]
 
@@ -278,3 +301,5 @@ def change_perms_check(user, selected_hosts):
         if host not in host_perms_qs:
             return False
     return True
+
+

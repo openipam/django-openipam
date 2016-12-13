@@ -85,7 +85,7 @@ class IPFilter(CharFilter):
         return qs
 
 
-class HostFilter(CharFilter):
+class HostCharFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             rgx = re.compile('[:,-. ]')
@@ -97,8 +97,15 @@ class HostFilter(CharFilter):
         return qs
 
 
+class NetworkFilter(CharFilter):
+    def filter(self, qs, value):
+        if value:
+            qs = qs.filter(addresses__network=value)
+        return qs
+
+
 class HostFilter(FilterSet):
-    mac = HostFilter()
+    mac = HostCharFilter()
     hostname = CharFilter(lookup_expr='icontains')
     is_expired = IsExpiredFilter()
     group = GroupFilter()
@@ -106,6 +113,7 @@ class HostFilter(FilterSet):
     ip_address = IPFilter()
     attribute = AttributeFilter()
     disabled = DisabledFlagFilter()
+    network = NetworkFilter()
 
     class Meta:
         model = Host

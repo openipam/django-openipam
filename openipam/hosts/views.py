@@ -31,7 +31,7 @@ from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBul
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Address
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
-    delete_attribute_from_host, populate_primary_dns
+    delete_attribute_from_host, populate_primary_dns, export_csv
 from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
@@ -489,6 +489,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
         if selected_hosts:
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
+            response = None
 
             # If action is to change owners on host(s)
             if action == 'replace-owners':
@@ -499,6 +500,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 remove_owner_hosts(request, selected_hosts)
             elif action == 'delete':
                 delete_hosts(request, selected_hosts)
+            elif action == 'export':
+                response = export_csv(request, selected_hosts)
             elif action == 'dns':
                 populate_primary_dns(request, selected_hosts)
             elif action == 'renew':
@@ -508,7 +511,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
             elif action == 'delete-attributes':
                 delete_attribute_from_host(request, selected_hosts)
 
-        return redirect('list_hosts')
+        if response:
+            return response
+        else:
+            return redirect('list_hosts')
 
 
 class HostDetailView(PermissionRequiredMixin, DetailView):

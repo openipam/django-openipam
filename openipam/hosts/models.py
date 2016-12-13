@@ -67,7 +67,7 @@ class AttributeToHost(models.Model):
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
-    #host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
+    # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column='disabled')
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')

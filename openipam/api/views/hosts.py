@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.core.exceptions import ValidationError
 from django.db import DataError
 
@@ -59,7 +59,7 @@ class HostList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer,)
     queryset = (
-        Host.objects.all()
+        Host.objects.prefetch_related('addresses', 'leases').all()
     )
     serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
@@ -122,7 +122,7 @@ class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    queryset = Host.objects.all()
+    queryset = Host.objects.prefetch_related('addresses', 'leases').all()
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
 

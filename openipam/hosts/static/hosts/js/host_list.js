@@ -497,6 +497,12 @@ $(function(){
 				if (res == true) {
 					return true;
 				}
+			}			
+			else if (action == 'export') {
+				var res = confirm("Are you sure you want export selected hosts to a CSV?")
+				if (res == true) {
+					return true;
+				}
 			}
 			else if (action == 'renew') {
 				$('#host-renew').modal();
