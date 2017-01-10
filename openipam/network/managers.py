@@ -78,14 +78,14 @@ class NetworkQuerySet(QuerySet):
         # Get specific ranges on a address
         net_range = address_type.ranges.all()
 
-        # If address has a range(s)
-        if net_range:
-            q_list = [Q(network__net_contained_or_equal=net.range) for net in net_range]
-            return self.filter(reduce(operator.or_, q_list))
-        # Otherwise try and get from default ranges
-        elif address_type.is_default:
+        # Try and get from default ranges
+        if address_type.is_default:
             q_list = [Q(network__net_contained_or_equal=net.range) for net in assigned_ranges]
             return self.exclude(reduce(operator.or_, q_list))
+        # Else If address has a range(s)
+        elif net_range:
+            q_list = [Q(network__net_contained_or_equal=net.range) for net in net_range]
+            return self.filter(reduce(operator.or_, q_list))
         else:
             return self.none()
 
