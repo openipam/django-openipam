@@ -155,7 +155,7 @@ $(function(){
 			//type: "POST"
 		}),
 		"paging": true,
-		"lengthMenu": [10, 25, 50, 100, 250],
+		"lengthMenu": [10, 25, 50, 100, 250, 500],
 		"paginationType": "full_numbers",
 		"autoWidth": false,
 		"stateSave": true,

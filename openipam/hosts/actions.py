@@ -280,7 +280,7 @@ def export_csv(request, selected_hosts):
         owners = host.get_owners(ids_only=True)
         users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
         usernames = ','.join(set([user.username for user in users]))
-        emails = ','.join(set([user.email for user in users]))
+        emails = ','.join(set([user.email or '' for user in users]))
 
         writer.writerow([host.mac, host.hostname, usernames, emails])
 
