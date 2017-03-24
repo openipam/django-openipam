@@ -32,10 +32,9 @@ class UserFilter(CharFilter):
 
 
 class DomainFilter(FilterSet):
-    name = CharFilter(lookup_type='icontains')
+    name = CharFilter(lookup_expr='icontains')
     username = UserFilter()
 
     class Meta:
         model = Domain
         fields = ['name']
-
