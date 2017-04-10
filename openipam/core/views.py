@@ -184,6 +184,13 @@ def page_error(request, template_name, extra_context=None):
     return HttpResponseNotFound(body, content_type='text/html')
 
 
+def duo_authenticate(request):
+    """
+    Record in the session that the user has authenticated with Duo.
+    """
+    request.session['duo_authenticated'] = request.user.username
+
+
 class FeatureRequestView(CreateView):
     form_class = FeatureRequestForm
     model = FeatureRequest

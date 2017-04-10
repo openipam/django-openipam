@@ -4,7 +4,7 @@ from openipam.hosts.models import GuestTicket
 
 
 class GuestTicketFilter(FilterSet):
-    user = CharFilter(name='user__username', lookup_type='iexact')
+    user = CharFilter(name='user__username', lookup_expr='iexact')
 
     class Meta:
         model = GuestTicket
