@@ -56,6 +56,10 @@ urlpatterns = [
     url(r'^guests/tickets/$', views.guests.GuestTicketList.as_view(), name='api_guest_list'),
     url(r'^guests/tickets/(?P<ticket>\w+)/$', views.guests.GuestTicketDelete.as_view(), name='api_guest_delete'),
 
+    url(r'^dns/(?P<pk>\d+)/delete/$', views.dns.DnsDelete.as_view(), name='api_dns_delete'),
+    url(r'^dns/(?P<pk>\d+)/$', views.dns.DnsDetail.as_view(), name='api_dns_view'),
+    url(r'^dns/add/$', views.dns.DnsCreate.as_view(), name='api_dns_add'),
+    url(r'^dns/$', views.dns.DnsList.as_view(), name='api_dns_list'),
     url(r'^domain/$', views.dns.DomainList.as_view(), name='api_domain_list'),
     url(r'^domain/name/$', views.dns.DomainNameList.as_view(), name='api_domain_name_list'),
     url(r'^network/$', views.network.NetworkList.as_view(), name='api_network_list'),
