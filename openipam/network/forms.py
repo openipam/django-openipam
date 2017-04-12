@@ -49,7 +49,6 @@ class AddressTypeAdminForm(forms.ModelForm):
 
 
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
-    group = al.ModelChoiceField('DhcpGroupAutocomplete')
     readable_value = forms.CharField(label='Value')
 
     def __init__(self, *args, **kwargs):
