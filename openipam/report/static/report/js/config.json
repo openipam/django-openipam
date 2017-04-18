@@ -5,7 +5,7 @@
 
     "updateInterval": 30,
 
-    "linkStyle": { "maxWidth": 13, "minWidth": 8 },
+    "linkStyle": { "maxWidth": 10, "minWidth": 5 },
 
     "utilizationColors": {
         "100": "#ff0000",
@@ -29,44 +29,52 @@
 
 
     "nodes": {
-        "MAIN":  { "coords": [1060, 480], "size": 25 },
-        "RPARK":  { "coords": [100, 550], "size": 25 },
-        "ED":   { "coords": [800, 430], "size": 25 },
-        "ASTE":   { "coords": [50, 380], "size": 25 },
-        "SPEC": { "coords": [620, 370], "size": 25 },
-        "SER":  { "coords": [950, 320], "size": 25 },
-        "HOUS":  { "coords": [625, 170], "size": 25 },
-        "BR":  { "coords": [950 , 100], "size": 25 },
+        "UEN-A":  { "coords": [200, 50], "type": "square", "size": 50 },
+        "UEN-B":  { "coords": [300, 50], "type": "square", "size": 50 },
 
-        "UEN-A":  { "coords": [1200, 50], "type": "square", "size": 50 },
-        "UEN-B":  { "coords": [1200, 150], "type": "square", "size": 50 },
+        "REM":  { "coords": [550, 50], "type": "square", "size": 50 },
 
-        "CORE": {"coords": [1200, 500], "size": 25},
-        "NSER": {"coords": [1200, 250], "size": 25},
-        "DMZ": {"coords": [900, 550], "size": 25}
+        "VIDEO":  { "coords": [850, 50], "type": "square", "size": 50 },
+
+        "BR":  { "coords": [250, 200], "size": 20 },
+        "SER":  { "coords": [550, 200], "size": 20 },
+        "CORE": {"coords": [850, 200], "size": 20},
+        "SER-AB": {"coords": [1150, 200], "size": 20},
+
+        "HOUS":  { "coords": [550, 350], "size": 20 },
+
+        "DMZ": {"coords": [850, 350], "size": 20},
+
+        "DC": {"coords": [1150, 450], "size": 20},
+        "DC-FW": {"coords": [1000, 325], "size": 20}
 
     },
 
     "links": {
-        "MAIN-RPARK": { "bw": "10G" },
-        "MAIN-ED": { "bw": "10G" },
-        "MAIN-SER": { "bw": "10G" },
-        "RPARK-ASTE": { "bw": "10G" },
-        "RPARK-SER": { "bw": "10G", "linkDelta": [-80, -80] },
-        "RPARK-SPEC": { "bw": "10G" },
-        "SER-ED": { "bw": "10G" },
-        "SER-SPEC": { "bw": "10G" },
-        "SER-ASTE": { "bw": "10G", "linkDelta": [-80, -80] },
         "SER-HOUS": { "bw": "10G" },
+        "SER-REM": { "bw": "1G", "inLabelDelta": [0, 5] },
         "SER-BR": { "bw": "10G" },
-        "SER-BR-BYP": { "bw": "4G", "nodes": ["SER", "BR"], "linkDelta": [-40, 0], "inLabelDelta": [-25, 0],  "outLabelDelta": [-25, -15] },
-        "SER-BR-SEC": { "bw": "10G", "nodes": ["SER", "BR"], "linkDelta": [40, 0], "inLabelDelta": [25, 0], "outLabelDelta": [25, -10] },
-        "BR-UEN-A": { "bw": "10G", "nodes": ["BR", "UEN-A"] },
-        "BR-UEN-B": { "bw": "10G", "nodes": ["BR", "UEN-B"] },
-        "CORE-SER": {"bw": "10G", "linkDelta": [30, -30]},
-        "CORE-NEWSER": {"bw": "10G", "nodes": ["CORE", "NSER"]},
-        "CORE-DMZ": {"bw": "10G", "linkDelta": [10, 10]}
+        "SER-BR-BYP": { "bw": "4G", "nodes": ["SER", "BR"], "linkDelta": [0, -40] },
+        "SER-BR-SEC": { "bw": "10G", "nodes": ["SER", "BR"], "linkDelta": [0, 40] },
+        "BR-UEN-A": { "bw": "10G", "nodes": ["BR", "UEN-A"], "inLabelDelta": [0, 5], "outLabelDelta": [-10, 0] },
+        "BR-UEN-B": { "bw": "10G", "nodes": ["BR", "UEN-B"], "inLabelDelta": [0, 5], "outLabelDelta": [10, 0] },
+        "CORE-SER": { "bw": "10G" },
+        "CORE-SER-AB": { "bw": "10G", "nodes": ["CORE", "SER-AB"] },
+        "CORE-VIDEO": { "bw": "1G", "nodes": ["CORE", "VIDEO"], "inLabelDelta": [0, 5] },
+        "CORE-DMZ": { "bw": "10G" },
+        "SER-AB-DC": { "bw": "10G", "nodes": ["DC", "SER-AB"] },
+        "SER-AB-DC-FIREWALL": { "bw": "10G", "nodes": ["DC-FW", "SER-AB"] },
+        "DC-FIREWALL-DC": { "bw": "10G", "nodes": ["DC-FW", "DC"] }
     },
+
+    "circuits":{
+        "CORE-A": { "connections": ["VIDEO", "SER-A", "SER-B", "DMZ-A", "DMZ-B", "SER"] },
+        "CORE-B": { "connections": ["VIDEO", "SER-A", "SER-B", "DMZ-A", "DMZ-B", "SER"] },
+        "SER-A": { "connections": ["DC", "FW"] },
+        "SER-B": { "connections": ["DC", "FW"] }
+    },
+
+    "circuitsContainer": { "coords": [10, 450], "height": 135, "width": 950 },
 
     "utilizationURL": "/api/reports/weathermap/?format=json&links=",
     "recheckConfig": 60

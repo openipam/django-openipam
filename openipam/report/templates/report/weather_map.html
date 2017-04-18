@@ -7,6 +7,7 @@
     {{ block.super }}
     <link media="all" href="{% static 'report/css/weathermap.css' %}" type="text/css" rel="stylesheet" />
     <link media="all" href="{% static 'report/css/svg.css' %}" type="text/css" rel="stylesheet" />
+    <link media="all" href="{% static 'report/css/uplinks.css' %}" type="text/css" rel="stylesheet" />
     <style type="text/css">
         #map {
             background: url('/static/report/img/campus_map.png') no-repeat center center;
@@ -30,6 +31,16 @@
     <img id="logo" />
 
     <svg id="map" viewBox="0 0 1280 750" />
+
+    <template id="arrow">
+      <svg>
+        <g class="label in"><text class="label" x="21" y="12"></text></g>
+        <line class="out" x1="16" y1="25" x2="16" y2="74" marker-endj="url(#stub5)"></line>
+        <line class="in" x1="26" y1="63" x2="26" y2="15" marker-endj="url(#stub5)"></line>
+        <text class="name label" x="21" y="47" filter="url(#label-shadow)"></text>
+        <g class="label out"><text class="label" x="21" y="88"></text></g>
+      </svg>
+    </template>
 
     <script src="{% static 'report/js/d3.v3.min.js' %}" type="text/javascript"></script>
     <script src="{% static 'report/js/weathermap.js' %}" type="text/javascript"></script>

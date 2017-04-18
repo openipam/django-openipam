@@ -210,7 +210,8 @@ INSTALLED_APPS = (
 
 OPENIPAM = {
     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.usu.edu'],
-    'CAS_LOGIN': True,
+    'CAS_LOGIN': locals().pop('LOCAL_OPENIPAM_CAS_LOGIN', False),
+    'WEATHERMAP_DATA': locals().pop('LOCAL_WEATHERMAP_DATA', {})
 }
 
 BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
