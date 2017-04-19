@@ -49,7 +49,7 @@
     <script type="text/javascript">
       var site = (window.location.href.match(/site=([^;&]+)/) || [])[1] || '';
       site = site ? site.concat(".") : site;
-      (new Map("/static/report/js/" + site + "config.json", "#map", "#time", "#mapName", "#acronym")).init();
+      (new Map("/api/reports/weathermap/config.json", "#map", "#time", "#mapName", "#acronym")).init();
       if (site) {
         d3.select('span#return').attr('style','display:inline');
         d3.select('span#site').text(site.toUpperCase().substr(0,site.length-1)).attr('style','display:inline');

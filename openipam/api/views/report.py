@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, renderer_classes, permission_classes
 
 from rest_framework_csv.renderers import CSVRenderer
 
@@ -292,7 +293,7 @@ class WeatherMapView(APIView):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
         observium_db.connect()
 
-        data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA')))
+        data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
 
         all_ports = []
         for k, v in data.items():
@@ -434,3 +435,11 @@ class ServerHostView(APIView):
             return Response({"data": data}, status=status.HTTP_200_OK)
         else:
             return Response(data, status=status.HTTP_200_OK)
+
+@api_view(('GET',))
+@permission_classes((AllowAny,))
+@renderer_classes((JSONRenderer,))
+def weathermap_config(request):
+    data = copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('config'))
+
+    return Response(data)
