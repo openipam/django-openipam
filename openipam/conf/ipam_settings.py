@@ -29,9 +29,15 @@ CONFIG_DEFAULTS = {
     'LEGACY_DOMAIN': 'https://legacy.openipam.usu.edu',
     'DISABLED_HOSTS_WEBSITE': 'https://usu.service-now.com/services/disabled.do',
     'CAS_LOGIN': False,
+    'DUO_LOGIN': False,
+    'DUO_SETTINGS': {
+        'IKEY': '',
+        'SKEY': '',
+        'AKEY': '',
+        'HOST': '',
+    },
 }
 
 USER_CONFIG = getattr(settings, 'OPENIPAM', {})
 CONFIG = CONFIG_DEFAULTS.copy()
 CONFIG.update(USER_CONFIG)
-
