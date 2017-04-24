@@ -193,7 +193,7 @@ INSTALLED_APPS = (
     'guardian',
     'netfields',
     'taggit',
-    'django_cas_ng',    
+    'django_cas_ng',
 
     'django.contrib.auth',
     'django.contrib.contenttypes',

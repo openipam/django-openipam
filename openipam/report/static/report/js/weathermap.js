@@ -306,6 +306,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
                 if (cb) cb(err);
             } else {
                 initMap(data);
+                initUplinks(data);
 
                 if (cb) cb();
             }
@@ -370,6 +371,86 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
     if (config.logo) {
         d3.select('#logo').attr('src', 'images/' + config.logo).style('display','inline');
     }
+    }
+
+    // Initialize uplinks
+    function initUplinks(config) {
+        var container = config.circuitsContainer;
+        svg.append("foreignObject")
+            .attr("width", container.width)
+            .attr("height", container.height)
+            .attr("x", container.coords[0])
+            .attr("y", container.coords[1])
+            .attr("id", "sites");
+
+        Object.keys(config.circuits).forEach(function(site){
+        	$("#sites").append('<div class="site" id="'+site+'"><p>' + site + '</p></div>');
+        	config.circuits[site].connections.forEach(function(connection){
+        		$("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + site + "-" + connection +'"></div>');
+            });
+        });
+
+        // All lines are same width
+        var bandwidths = { '-all': 1 };
+
+        // Generate global and template tags
+        createCSS('svg', config.utilizationColors, bandwidths, 6, 6);
+
+        svg = d3.select(document.querySelector('#arrow').content.querySelector('svg'));
+        createMarkers(getUtilizationLevels(config.utilizationColors), svg);
+        createFilters(svg);
+
+        var circuits = [];
+        Array.prototype.forEach.call(document.querySelectorAll('div.circuit[data-circuit]'), function(e) {
+            var circuit = e.getAttribute('data-circuit');
+            if (circuit) circuits.push(circuit);
+        });
+
+        if (circuits.length > 0) {
+            d3.json(config.utilizationURL + '/' + circuits.join(','), function(data) {
+        		links = Object.keys(data || {});
+
+        		links.forEach(function(circuit) {
+        		    if (circuit == 'timestamp') return;
+
+        		    var e = d3.select('div.circuit[data-circuit=' + circuit + ']');
+        		    if (e.empty()) return;
+
+        		    var clone = document.importNode(document.querySelector('#arrow').content, true);
+
+        		    var svg = d3.select(clone.querySelector('svg'));
+        		    svg.attr('id',"svg-" + circuit);
+                    svg.attr('class', "uplink");
+
+        		    var reverse = e.attr('data-reverse-link');
+
+        		    var lineOut = clone.querySelector('line.out');
+        		    lineOut.id = 'link-' +  (reverse ? linkReverse(circuit) : circuit);
+        		    lineOut.classList.add('bw-all');
+        		    lineOut.setAttribute('data-circuit', circuit);
+        		    lineOut.setAttribute('data-bw', data[circuit].speed);
+        		    setLinkUtil(utilizationLevels, circuit, 0);
+
+        		    var lineIn = clone.querySelector('line.in');
+        		    lineIn.id = 'link-' +  (reverse ? circuit : linkReverse(circuit));
+        		    lineIn.setAttribute('data-circuit', circuit);
+        		    lineIn.setAttribute('data-bw', data[circuit].speed);
+        		    lineIn.classList.add('bw-all');
+        		    setLinkUtil(utilizationLevels, linkReverse(circuit), 0);
+
+        		    clone.querySelector('g.label.in').id = 'label-' + (reverse ? circuit : linkReverse(circuit));
+        		    clone.querySelector('g.label.out').id = 'label-' + (reverse ? linkReverse(circuit) : circuit);
+
+        		    if (e.attr('data-name')) {
+        			clone.querySelector('.name').textContent = e.attr('data-name');
+        		    }
+
+        		    e.node(0).appendChild(clone);
+        		});
+            });
+
+            setTimeout(function() { updateUtil(config.utilizationURL, 30, '#time'); }, 500);
+        }
     }
 
     // Periodically check the E-Tag header from the config file, and refresh page if it changes

@@ -36,6 +36,10 @@ CONFIG_DEFAULTS = {
         'AKEY': '',
         'HOST': '',
     },
+    'WEATHERMAP_DATA': {
+        'data': {},
+        'config': {}
+    }
 }
 
 USER_CONFIG = getattr(settings, 'OPENIPAM', {})

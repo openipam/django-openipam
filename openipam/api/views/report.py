@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, renderer_classes, permission_classes
 
 from rest_framework_csv.renderers import CSVRenderer
 
@@ -19,8 +20,11 @@ from openipam.hosts.models import Host
 from openipam.report.models import Ports, database as observium_db
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
+from openipam.conf.ipam_settings import CONFIG
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
+
+import copy
 
 import qsstats
 
@@ -289,26 +293,7 @@ class WeatherMapView(APIView):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
         observium_db.connect()
 
-        data = OrderedDict({
-            "MAIN-RPARK": {'id': [954]},
-            "MAIN-ED": {'id': [953]},
-            "MAIN-SER": {'id': [955]},
-            "RPARK-ASTE": {'id': [714]},
-            "RPARK-SER": {'id': [712]},
-            "RPARK-SPEC": {'id': [709]},
-            "SER-ED": {'id': [449]},
-            "SER-SPEC": {'id': [447]},
-            "SER-ASTE": {'id': [450]},
-            "SER-HOUS": {'id': [453]},
-            "SER-BR": {'id': [445]},
-            "BR-UEN-A": {'id': [1152]},
-            "BR-UEN-B": {'id': [1150]},
-            "SER-BR-BYP": {'id': [552]},
-            "SER-BR-SEC": {'id': [457]},
-            "CORE-SER": {'id': [1236, 1192]},
-            "CORE-NEWSER": {'id': [1223, 1231, 1179, 1187]},
-            "CORE-DMZ": {'id': [1222, 1230, 1178, 1186]},
-        })
+        data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
 
         all_ports = []
         for k, v in data.items():
@@ -450,3 +435,11 @@ class ServerHostView(APIView):
             return Response({"data": data}, status=status.HTTP_200_OK)
         else:
             return Response(data, status=status.HTTP_200_OK)
+
+@api_view(('GET',))
+@permission_classes((AllowAny,))
+@renderer_classes((JSONRenderer,))
+def weathermap_config(request):
+    data = copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('config'))
+
+    return Response(data)
