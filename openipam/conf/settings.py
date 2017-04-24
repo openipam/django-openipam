@@ -193,7 +193,7 @@ INSTALLED_APPS = (
     'guardian',
     'netfields',
     'taggit',
-    'django_cas_ng',
+    'django_cas_ng',    
 
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -207,11 +207,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
 ) + LOCAL_INSTALLED_APPS
-
-OPENIPAM = {
-    'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.usu.edu'],
-    'CAS_LOGIN': True,
-}
 
 BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
 BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
