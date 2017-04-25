@@ -79,6 +79,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         'hostname',
         'mac',
         'expires',
+        'addresses.address',
     )
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
@@ -273,6 +274,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             'hosts.hostname',
             'hosts.mac',
             'hosts.expires',
+            'first_address',
         )
 
         # Number of columns that are used in sorting
@@ -308,6 +310,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             c.execute('''
                 SELECT
                     hosts.mac, hosts.hostname, hosts.expires, disabled.mac AS disabled, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
+                    coalesce(min(addresses.address), min(leases.address)) as first_address,
                     array_agg(leases.ends) AS ends, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
                     (SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1) AS vendor,
                     (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
