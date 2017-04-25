@@ -208,12 +208,6 @@ INSTALLED_APPS = (
 
 ) + LOCAL_INSTALLED_APPS
 
-OPENIPAM = {
-    'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.usu.edu'],
-    'CAS_LOGIN': locals().pop('LOCAL_OPENIPAM_CAS_LOGIN', False),
-    'WEATHERMAP_DATA': locals().pop('LOCAL_WEATHERMAP_DATA', {})
-}
-
 BOWER_COMPONENTS_ROOT = '%s/components/' % BASE_DIR
 BOWER_PATH = locals().pop('LOCAL_BOWER_PATH', '/usr/bin/bower')
 
