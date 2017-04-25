@@ -23,6 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
 from django.views.decorators.http import require_http_methods
 from django.utils.six.moves import urllib_parse
+from django.core.urlresolvers import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
@@ -31,6 +32,8 @@ from openipam.conf.ipam_settings import CONFIG
 
 from django_cas_ng.views import login as cas_login, logout as cas_logout
 from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
+
+import duo_web
 
 import os
 import random
@@ -44,6 +47,8 @@ User = get_user_model()
 
 
 def index(request):
+    if CONFIG.get('DUO_LOGIN') and not is_duo_authenticated(request):
+        return redirect('duo_auth')
     if not request.user.get_full_name() or not request.user.email:
         return redirect('profile')
     else:
@@ -140,6 +145,67 @@ def profile(request):
     return render(request, 'registration/profile.html', context)
 
 
+def duo_auth(request):
+    sig_request = None
+    duo_settings = CONFIG.get('DUO_SETTINGS', {})
+
+    if request.POST:
+        sig_response = request.POST.get('sig_response', None)
+        if sig_response:
+            authenticated_username = duo_web.verify_response(
+                duo_settings.get('IKEY'),
+                duo_settings.get('SKEY'),
+                duo_settings.get('AKEY'),
+                sig_response)
+            if authenticated_username:
+                duo_authenticate(request)
+                return redirect('admin:index')
+
+    sig_request = duo_web.sign_request(
+        duo_settings.get('IKEY'),
+        duo_settings.get('SKEY'),
+        duo_settings.get('AKEY'),
+        request.user.username)
+
+    context = {
+        'sig_request': sig_request,
+        'host': duo_settings.get('HOST'),
+        'post_action': reverse('duo_auth'),
+    }
+    return render(request, "registration/duo.html", context)
+
+
+# def duo_verify(request):
+#     duo_settings = CONFIG.get('DUO_SETTINGS', {})
+#     success = None
+
+#     if request.POST:
+#         sig_response = request.POST.get('sig_response', None)
+#         if sig_response:
+#             authenticated_username = duo_web.verify_response(
+#                 duo_settings.get('IKEY'),
+#                 duo_settings.get('SKEY'),
+#                 duo_settings.get('AKEY'),
+#                 sig_response)
+#             if authenticated_username:
+#                 duo_authenticate(request)
+#                 return redirect('admin:index')
+
+#     context = {
+#         'success': success
+#     }
+
+#     return render(request, 'duo/verify.html', context)
+
+
+def is_duo_authenticated(request):
+    return request.session.get('duo_authenticated', False)
+
+
+def duo_authenticate(request):
+    request.session['duo_authenticated'] = request.user.username
+
+
 def password_change(request, *args, **kwargs):
     if request.user.has_usable_password():
         return auth_password_change(request, *args, **kwargs)
@@ -182,13 +248,6 @@ def page_error(request, template_name, extra_context=None):
         context.update(extra_context)
     body = template.render(RequestContext(request, context))
     return HttpResponseNotFound(body, content_type='text/html')
-
-
-def duo_authenticate(request):
-    """
-    Record in the session that the user has authenticated with Duo.
-    """
-    request.session['duo_authenticated'] = request.user.username
 
 
 class FeatureRequestView(CreateView):

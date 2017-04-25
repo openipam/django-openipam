@@ -37,6 +37,8 @@ urlpatterns = [
     url(r'^cas/logout$', cas_logout, name='cas_ng_logout'),
     # url(r'^cas/callback$', callback, name='cas_ng_proxy_callback'),
 
+    # Duo Auth
+    url(r'^duo/auth$', views.duo_auth, name='duo_auth'),
 
     # Account URLS
     url(r'^login/i/$', views.login, {'internal': True}, name='internal_login'),
