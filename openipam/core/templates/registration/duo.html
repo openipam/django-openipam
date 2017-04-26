@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+{% load static i18n openipam widget_tweaks %}
+
+{% block page_nav %}
+
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style type="text/css">
+        label.control-label {
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block coltype %}{% endblock %}
+
+{% block content %}
+    <div id="content-main" class="well">
+        <script src="{% static "duo/js/Duo-Web-v2.min.js" %}"></script>
+        <script>
+          Duo.init({
+            'host': '{{ host }}',
+            'sig_request': '{{ sig_request }}',
+            'post_action': '{{ post_action }}'
+          });
+        </script>
+        <div style="text-align: center;">
+            <div class="embed-responsive embed-responsive-16by9" style="height:500px;">
+                <iframe id="duo_iframe" frameborder="0"></iframe>
+            </div>
+            <form id="duo_form" action="." method="post">
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -144,7 +144,8 @@ MIDDLEWARE_CLASSES = DEBUG_MIDDLEWARE_CLASS + [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'openipam.middleware.LoginRequiredMiddleware',
+    #'openipam.middleware.LoginRequiredMiddleware',
+    'openipam.middleware.LoginDuoAuthRequiredMiddleware',
     'openipam.middleware.MimicUserMiddleware',
     'openipam.middleware.SetRemoteAddrMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -245,9 +246,11 @@ ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
     'static/?.*',
     'password/forgot/',
+    'logout/',
     'api/?.*',
     'reports/?.*',
     'cas/?.*',
+    'duo/auth',
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
 )

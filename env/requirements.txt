@@ -31,6 +31,7 @@ djangorestframework-csv==2.0.0
 djangorestframework-jwt==1.8.0
 djorm-ext-pgfulltext==0.10
 drf-compound-fields==1.0.0
+duo-web==1.2.0
 ecdsa==0.13
 enum34==1.1.6
 et-xmlfile==1.0.1
