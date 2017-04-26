@@ -79,7 +79,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         'hostname',
         'mac',
         'expires',
-        'addresses.address',
+        'addresses',
     )
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
