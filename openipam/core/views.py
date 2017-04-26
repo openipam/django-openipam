@@ -175,29 +175,6 @@ def duo_auth(request):
     return render(request, "registration/duo.html", context)
 
 
-# def duo_verify(request):
-#     duo_settings = CONFIG.get('DUO_SETTINGS', {})
-#     success = None
-
-#     if request.POST:
-#         sig_response = request.POST.get('sig_response', None)
-#         if sig_response:
-#             authenticated_username = duo_web.verify_response(
-#                 duo_settings.get('IKEY'),
-#                 duo_settings.get('SKEY'),
-#                 duo_settings.get('AKEY'),
-#                 sig_response)
-#             if authenticated_username:
-#                 duo_authenticate(request)
-#                 return redirect('admin:index')
-
-#     context = {
-#         'success': success
-#     }
-
-#     return render(request, 'duo/verify.html', context)
-
-
 def is_duo_authenticated(request):
     return request.session.get('duo_authenticated', False)
 

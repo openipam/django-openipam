@@ -246,6 +246,7 @@ ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
     'static/?.*',
     'password/forgot/',
+    'logout/',
     'api/?.*',
     'reports/?.*',
     'cas/?.*',
