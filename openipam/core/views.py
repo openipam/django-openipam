@@ -146,6 +146,9 @@ def profile(request):
 
 
 def duo_auth(request):
+    if is_duo_authenticated(request):
+        return redirect('index')
+
     sig_request = None
     duo_settings = CONFIG.get('DUO_SETTINGS', {})
 

@@ -51,7 +51,7 @@ class LoginRequiredMiddleware(object):
                 return HttpResponseRedirect(settings.LOGIN_URL + '?%s=%s' % (REDIRECT_FIELD_NAME, request.path))
 
 
-class LoginDuoAuthRequiredMiddleware(object):
+class DuoAuthRequiredMiddleware(object):
     def process_request(self, request):
         assert hasattr(request, 'user'), "The Duo Auth Required middleware\
  requires authentication middleware to be installed. Edit your\
@@ -59,15 +59,13 @@ class LoginDuoAuthRequiredMiddleware(object):
  'django.contrib.auth.middlware.AuthenticationMiddleware'. If that doesn't\
  work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
  'django.core.context_processors.auth'."
-        path = request.path.lstrip('/')
 
-        if not request.user.is_authenticated():
-            if not any(m.match(path) for m in EXEMPT_URLS):
-                return HttpResponseRedirect(settings.LOGIN_URL + '?%s=%s' % (REDIRECT_FIELD_NAME, request.path))
-
-        elif CONFIG.get('DUO_LOGIN') and not request.session.get('duo_authenticated', False):
-            if not any(m.match(path) for m in EXEMPT_URLS):
-                return redirect('duo_auth')
+        if CONFIG.get('DUO_LOGIN'):
+            if request.user.is_authenticated() and not request.session.get('duo_authenticated', False):
+                path = request.path.lstrip('/')
+                if not any(m.match(path) for m in EXEMPT_URLS):
+                    if request.path != reverse('duo_auth'):
+                        return redirect('duo_auth')
 
 
 class MimicUserMiddleware(object):
