@@ -60,11 +60,18 @@ class DuoAuthRequiredMiddleware(object):
  work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
  'django.core.context_processors.auth'."
 
+        duo_exempt_urls = [
+            reverse('profile'),
+            reverse('password_change'),
+            reverse('password_change_done'),
+            reverse('duo_auth'),
+        ]
+
         if CONFIG.get('DUO_LOGIN'):
             if request.user.is_authenticated() and not request.session.get('duo_authenticated', False):
                 path = request.path.lstrip('/')
                 if not any(m.match(path) for m in EXEMPT_URLS):
-                    if request.path != reverse('duo_auth'):
+                    if request.path not in duo_exempt_urls:
                         return redirect('duo_auth')
 
 
