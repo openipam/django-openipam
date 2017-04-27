@@ -91,7 +91,8 @@ def logout(request, next_page=None, **kwargs):
             # simply be logged in again on next request requiring authorization.
             return HttpResponseRedirect(next_page)
     else:
-        return auth_logout_view(request, next_page='internal_login', **kwargs)
+        next_page = 'internal_login' if CONFIG.get('CAS_LOGIN') else 'login'
+        return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
 def mimic(request):
@@ -146,6 +147,9 @@ def profile(request):
 
 
 def duo_auth(request):
+    if is_duo_authenticated(request):
+        return redirect('index')
+
     sig_request = None
     duo_settings = CONFIG.get('DUO_SETTINGS', {})
 
