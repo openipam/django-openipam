@@ -1,5 +1,5 @@
 BeautifulSoup==3.2.1
-Django==1.10.3
+Django==1.10.7
 django-admin-tools==0.8.0
 django-auth-ldap==1.2.11
 django-autocomplete-light==2.3.3
