@@ -27,7 +27,11 @@ class APIPagination(pagination.LimitOffsetPagination):
     max_limit = None
 
     def get_limit(self, request):
-        ret = super(APIPagination, self).get_limit(request)
+        ret = pagination._positive_int(
+            request.query_params[self.limit_query_param],
+            strict=False,
+            cutoff=self.max_limit
+        )
         if ret == 0:
             return self.max_limit
         return ret
@@ -36,10 +40,14 @@ class APIPagination(pagination.LimitOffsetPagination):
 class APIMaxPagination(pagination.LimitOffsetPagination):
     default_limit = 50
     limit_query_param = 'limit'
-    max_limit = 5000
+    max_limit = 10000
 
     def get_limit(self, request):
-        ret = super(APIMaxPagination, self).get_limit(request)
+        ret = pagination._positive_int(
+            request.query_params[self.limit_query_param],
+            strict=False,
+            cutoff=self.max_limit
+        )
         if ret == 0:
             return self.max_limit
         return ret
