@@ -101,3 +101,5 @@ class DhcpGroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DhcpGroup
+        fields = '__all__'
+

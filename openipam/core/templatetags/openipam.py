@@ -214,12 +214,12 @@ def admin_select_filter(cl, spec):
     tpl = get_template(spec.template)
     query_string = cl.get_query_string({}, [spec.parameter_name] if hasattr(spec, 'parameter_name') else [])
 
-    return tpl.render(Context({
+    return tpl.render({
         'title': spec.title,
         'choices': list(spec.choices(cl)),
         'query_string': query_string,
         'spec': spec,
-    }))
+    })
 
 
 @register.simple_tag
@@ -246,11 +246,11 @@ def admin_filter_selected(cl, spec):
                 href = '&'.join(query_string_list)
             break
 
-    return tpl.render(Context({
+    return tpl.render({
         'title': spec.title.capitalize(),
         'value': value,
         'href': href
-    }))
+    })
 
 
 @register.filter

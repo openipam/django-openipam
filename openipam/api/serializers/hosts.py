@@ -429,6 +429,7 @@ class AttributeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attribute
+        fields = '__all__'
 
 
 class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
@@ -443,6 +444,7 @@ class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructuredAttributeValue
+        fields = '__all__'
 
 
 class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
