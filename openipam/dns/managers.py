@@ -212,10 +212,10 @@ class DnsManager(Manager):
                 if host:
                     dns_record.host = host
                 else:
-                    try:
-                        dns_record.host = Host.objects.get(addresses__arecords__name=content)
-                    except Host.DoesNotExist:
+                    host = Host.objects.filter(addresses__arecords__name=content).first()
+                    if not host:
                         raise ValidationError("An 'A' Record for '%s' needs to exists to create '%s' records." % (content, dns_record.dns_type.name))
+                    dns_record.host = host
 
             if ttl:
                 dns_record.ttl = ttl
