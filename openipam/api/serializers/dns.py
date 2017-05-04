@@ -24,6 +24,7 @@ class DomainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Domain
+        fields = '__all__'
 
 
 class DnsDeleteSerializer(serializers.ModelSerializer):
