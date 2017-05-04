@@ -28,7 +28,7 @@ class APIPagination(pagination.LimitOffsetPagination):
 
     def get_limit(self, request):
         ret = pagination._positive_int(
-            request.query_params[self.limit_query_param],
+            request.query_params.get(self.limit_query_param, self.default_limit),
             strict=False,
             cutoff=self.max_limit
         )
@@ -44,7 +44,7 @@ class APIMaxPagination(pagination.LimitOffsetPagination):
 
     def get_limit(self, request):
         ret = pagination._positive_int(
-            request.query_params[self.limit_query_param],
+            request.query_params.get(self.limit_query_param, self.default_limit),
             strict=False,
             cutoff=self.max_limit
         )
