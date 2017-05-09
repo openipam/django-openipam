@@ -247,7 +247,7 @@ class DnsRecord(models.Model):
         error_list = []
 
         # Priority must exist for MX and SRV records
-        if not self.priority:
+        if self.priority is None:
             if self.dns_type and self.dns_type.name in ['MX', 'SRV']:
                 error_list.append('Priority must exist for MX and SRV records.')
 
@@ -325,10 +325,9 @@ class DnsRecord(models.Model):
         match = None
 
         if self.dns_type.is_mx_record:  # MX
-            match = re.compile('^([0-9]{1,2}) (.*)$').search(self.text_content)
+            match = re.compile('^([0-9]{1,3}) (.*)$').search(self.text_content)
         elif self.dns_type.is_srv_record:  # SRV
-            match = re.compile('^([0-9]{1,2}) (\d+ \d+ .*)$').search(self.text_content)
-
+            match = re.compile('^([0-9]{1,3}) (\d+ \d+ .*)$').search(self.text_content)
         if match:
             # We have priority in the content
             self.priority = match.group(1)
