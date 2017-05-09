@@ -150,7 +150,10 @@ class HostForm(forms.ModelForm):
                 range_nets = NetworkRange.objects.filter(reduce(operator.or_, r_list))
 
                 n_list = [Q(network__net_contains_or_equals=nr.range) for nr in range_nets]
-                other_networks = True if self.user_nets.exclude(reduce(operator.or_, n_list)) else False
+                if n_list:
+                    other_networks = True if self.user_nets.exclude(reduce(operator.or_, n_list)) else False
+                else:
+                    other_networks = False
             else:
                 range_nets = NetworkRange.objects.none()
                 other_networks = False
