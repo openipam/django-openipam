@@ -28,7 +28,9 @@ from netaddr import EUI, AddrFormatError
 from guardian.shortcuts import get_objects_for_user
 
 from autocomplete_light import shortcuts as al
+
 import operator
+import string
 
 User = get_user_model()
 
@@ -395,7 +397,10 @@ class HostForm(forms.ModelForm):
     def clean_mac_address(self):
         mac = self.cleaned_data.get('mac_address', '')
 
-        host_exists = Host.objects.filter(mac=mac)
+        try:
+            host_exists = Host.objects.filter(mac=mac)
+        except IndexError:
+            raise ValidationError(mark_safe('The mac address entered is invalid: %s.' % self.data['mac_address']))
         if self.instance.pk:
             host_exists = host_exists.exclude(mac=self.instance.pk)
 
