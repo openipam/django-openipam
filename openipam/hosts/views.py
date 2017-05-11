@@ -493,10 +493,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
         action = request.POST.get('action', None)
         selected_hosts = request.POST.getlist('selected_hosts', [])
+        response = None
 
         if selected_hosts:
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
-            response = None
 
             # If action is to change owners on host(s)
             if action == 'replace-owners':
