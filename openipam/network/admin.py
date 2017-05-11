@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
@@ -124,6 +125,11 @@ class NetworkAdmin(ChangedAdmin):
 
         if not change:
             addresses = []
+            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj.pk)]
+
+            if existing_addresses:
+                raise ValidationError('Addresses already exist!  Please remove or reassign. %s' % existing_addresses.split(','))
+
             for address in obj.network:
                 reserved = False
                 if address in (obj.gateway, obj.network[0], obj.network[-1]):

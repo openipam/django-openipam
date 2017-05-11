@@ -26,7 +26,10 @@ class AddressSerializer(serializers.ModelSerializer):
     changed = serializers.ReadOnlyField()
 
     def get_gateway(self, obj):
-        return str(obj.network.gateway.ip)
+        if obj.network.gateway:
+            return str(obj.network.gateway.ip)
+        else:
+            return None
 
     def validate_host(self, value):
         if value and not isinstance(value, Host):

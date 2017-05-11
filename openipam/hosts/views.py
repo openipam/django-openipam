@@ -29,7 +29,7 @@ from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
     HostAttributesDeleteForm
 from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Address
+from openipam.network.models import AddressType, Address, Network
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
     delete_attribute_from_host, populate_primary_dns, export_csv
 from openipam.conf.ipam_settings import CONFIG
@@ -230,10 +230,14 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     if ip_search.endswith('/'):
                         qs = qs.none()
                     else:
-                        qs = qs.filter(
-                            Q(addresses__address__net_contained_or_equal=ip_search) |
-                            Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
-                        ).distinct()
+                        try:
+                            qs = qs.filter(
+                                Q(addresses__address__net_contained_or_equal=ip_search) |
+                                Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
+                            ).distinct()
+                        except ValueError:
+                            # If netmask is not valid, fail silently
+                            pass
                 else:
                     ip = ip_search.split(':')[-1]
                     tail_dot = '.' if ip[-1] == '.' else ''
@@ -489,10 +493,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
         action = request.POST.get('action', None)
         selected_hosts = request.POST.getlist('selected_hosts', [])
+        response = None
 
         if selected_hosts:
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
-            response = None
 
             # If action is to change owners on host(s)
             if action == 'replace-owners':

@@ -156,9 +156,12 @@ class IPAMCASBackend(CASBackend):
         return self.user
 
     def _get_group_names(self):
-        group_names_str = ''.join(self.request.session['attributes']['memberOf'])
-        pattern = re.compile('CN=([^,]*)')
-        group_names = pattern.findall(group_names_str)
+        group_names = []
+        attributes = self.request.session.get('attributes', {})
+        if attributes.get('memberOf', None):
+            group_names_str = ''.join(attributes['memberOf'])
+            pattern = re.compile('CN=([^,]*)')
+            group_names = pattern.findall(group_names_str)
         return group_names
 
     def _mirror_groups(self):

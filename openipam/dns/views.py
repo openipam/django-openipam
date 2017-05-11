@@ -160,7 +160,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
             any_perm=True,
             use_groups=True,
-            with_superuser=False
+            with_superuser=True
         )
 
         def get_dns_types(dtype):

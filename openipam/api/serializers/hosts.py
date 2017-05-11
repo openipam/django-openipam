@@ -457,6 +457,11 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
         ret['changed_by'] = '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
         return ret
 
+    def validate_mac(self, value):
+        exists = Disabled.objects.filter(mac=value)
+        if exists:
+            raise serializers.ValidationError('Mac has already been disabled.')
+
     def validate_host(self, value):
         try:
             # TODO: We are not validation hosts anymore.  Any mac address will do.
