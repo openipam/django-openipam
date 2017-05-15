@@ -1,20 +1,85 @@
 from rest_framework import serializers
 
-from openipam.network.models import Network, Address, DhcpGroup, Pool
+from openipam.network.models import Network, Address, DhcpGroup, Pool, SharedNetwork, DefaultPool
+from openipam.user.models import User
 from openipam.hosts.models import Host
 
 from netaddr import EUI, AddrFormatError
 
 from netfields.mac import mac_unix_common
+from netfields.rest_framework import InetAddressField, CidrAddressField
 
 
-class NetworkSerializer(serializers.ModelSerializer):
+class NetworkListSerializer(serializers.ModelSerializer):
     # network = serializers.CharField()
 
     class Meta:
         model = Network
         fields = ('network', 'name', 'description')
 
+class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
+    network = CidrAddressField()
+    gateway = InetAddressField(allow_blank=True, allow_null=True)
+    dhcp_group = serializers.CharField(allow_blank=True, allow_null=True)
+    shared_network = serializers.CharField(allow_blank=True, allow_null=True)
+
+    def validate_dhcp_group(self, value):
+        if value:
+            dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
+            if not dhcp_group_exists:
+                raise serializers.ValidationError('The dhcp group entered does not exist.')
+            return dhcp_group_exists
+        return None
+
+    def validate_shared_network(self, value):
+        if value:
+            shared_network_exists = SharedNetwork.objects.filter(name=value).first()
+            if not shared_network_exists:
+                raise serializers.ValidationError('The shared network entered does not exist.')
+            return shared_network_exists
+        return None
+
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(NetworkCreateUpdateSerializer, self).create(validated_data)
+
+        network = Network.objects.filter(network=instance.network).first()
+
+        if network:
+            addresses = []
+            for address in network.network:
+                reserved = False
+                if address in (network.gateway, network.network[0], network.network[-1]):
+                    reserved = True
+                pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
+                addresses.append(
+                    # TODO: Need to set pool eventually.
+                    Address(
+                        address=address,
+                        network=network,
+                        reserved=reserved,
+                        pool=pool,
+                        changed_by=self.context['request'].user,
+                    )
+                )
+            if addresses:
+                Address.objects.bulk_create(addresses)
+
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(NetworkCreateUpdateSerializer, self).update(instance, validated_data)
+
+    class Meta:
+        model = Network
+        exclude = ('changed_by',)
+
+class NetworkDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Network
+        fields = ('network',)
+        read_only_fields = ('network',)
 
 class AddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(read_only=True)
@@ -101,3 +166,4 @@ class DhcpGroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DhcpGroup
+        fields = ('name', 'changed_by', 'pk')
