@@ -39,6 +39,7 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GuestTicket
+        fields = ('username', 'user', 'ticket', 'starts', 'ends', 'description')
 
 
 class GuestDeleteSerializer(serializers.ModelSerializer):

@@ -344,9 +344,7 @@ class DomainAutocomplete(al.AutocompleteModelBase):
     attrs = {'placeholder': 'Search Domains'}
     limit_choices = 10
 
-    def __init__(self, *args, **kwargs):
-        super(DomainAutocomplete, self).__init__(*args, **kwargs)
-
+    def choices_for_request(self):
         if not self.request.user.is_ipamadmin:
             self.choices = get_objects_for_user(
                 self.request.user,
@@ -354,6 +352,7 @@ class DomainAutocomplete(al.AutocompleteModelBase):
                 klass=Domain,
                 any_perm=True,
             )
+        return super(DomainAutocomplete, self).choices_for_request()
 al.register(Domain, DomainAutocomplete)
 
 
@@ -402,8 +401,7 @@ class AddressAvailableAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase)
     search_fields = ['^address']
     attrs = {'placeholder': 'Search Addresses'}
 
-    def __init__(self, *args, **kwargs):
-        super(AddressAvailableAutocomplete, self).__init__(*args, **kwargs)
+    def choices_for_request(self):
         user_pools = get_objects_for_user(
             self.request.user,
             ['network.add_records_to_pool', 'network.change_pool'],
@@ -421,6 +419,7 @@ class AddressAvailableAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase)
             host__isnull=True,
             reserved=False
         )
+        return super(AddressAvailableAutocomplete, self).choices_for_request()
 al.register(Address, AddressAvailableAutocomplete)
 
 

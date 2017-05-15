@@ -865,7 +865,7 @@ class Host(DirtyFieldsMixin, models.Model):
         self.addresses.release(user=user)
 
         # Re-save so that it captures user for postgres log table
-        self.save(user=user, add_dns=False)
+        self.save(user=user, add_dns=False, force_update=True)
         super(Host, self).delete(*args, **kwargs)
 
     def clean(self):

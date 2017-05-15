@@ -2,6 +2,10 @@ from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
+
+from openipam.conf.ipam_settings import CONFIG
 
 from re import compile
 
@@ -45,6 +49,30 @@ class LoginRequiredMiddleware(object):
             path = request.path.lstrip('/')
             if not any(m.match(path) for m in EXEMPT_URLS):
                 return HttpResponseRedirect(settings.LOGIN_URL + '?%s=%s' % (REDIRECT_FIELD_NAME, request.path))
+
+
+class DuoAuthRequiredMiddleware(object):
+    def process_request(self, request):
+        assert hasattr(request, 'user'), "The Duo Auth Required middleware\
+ requires authentication middleware to be installed. Edit your\
+ MIDDLEWARE_CLASSES setting to insert\
+ 'django.contrib.auth.middlware.AuthenticationMiddleware'. If that doesn't\
+ work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
+ 'django.core.context_processors.auth'."
+
+        duo_exempt_urls = [
+            reverse('profile'),
+            reverse('password_change'),
+            reverse('password_change_done'),
+            reverse('duo_auth'),
+        ]
+
+        if CONFIG.get('DUO_LOGIN'):
+            if request.user.is_authenticated() and not request.session.get('duo_authenticated', False):
+                path = request.path.lstrip('/')
+                if not any(m.match(path) for m in EXEMPT_URLS):
+                    if request.path not in duo_exempt_urls:
+                        return redirect('duo_auth')
 
 
 class MimicUserMiddleware(object):

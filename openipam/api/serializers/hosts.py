@@ -429,6 +429,7 @@ class AttributeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attribute
+        fields = '__all__'
 
 
 class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
@@ -443,6 +444,7 @@ class StructuredAttributeValueListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructuredAttributeValue
+        fields = '__all__'
 
 
 class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
@@ -454,6 +456,11 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
         ret = super(DisabledHostListUpdateSerializer, self).to_representation(obj)
         ret['changed_by'] = '%s (%s)' % (obj.changed_by.get_full_name(), obj.changed_by.username)
         return ret
+
+    def validate_mac(self, value):
+        exists = Disabled.objects.filter(mac=value)
+        if exists:
+            raise serializers.ValidationError('Mac has already been disabled.')
 
     def validate_host(self, value):
         try:

@@ -121,21 +121,25 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
             self.fields['object_id'].initial = '%s-%s' % (self.instance.content_type.pk, self.instance.object_pk)
 
     def clean(self):
-        cleaned_data = self.cleaned_data
-        content_type_id = cleaned_data['object_id'].split('-')[0]
-        object_pk = cleaned_data['object_id'].split('-')[1]
+        cleaned_data = super(GroupObjectPermissionAdminForm, self).clean()
 
-        try:
-            GroupObjectPermission.objects.get(
-                group=cleaned_data['group'],
-                permission=cleaned_data['permission'],
-                content_type_id=content_type_id,
-                object_pk=object_pk
-            )
-        except GroupObjectPermission.DoesNotExist:
-            pass
-        else:
-            raise ValidationError('Group Permission with this Group, Permission, And Object already exist.')
+        content_type_id = cleaned_data['object_id'].split('-')[0] if cleaned_data.get('object_id') else None
+        object_pk = cleaned_data['object_id'].split('-')[1] if cleaned_data.get('object_id') else None
+        group = cleaned_data['group'] if cleaned_data.get('group') else None
+        permission = cleaned_data['permission'] if cleaned_data.get('permission') else None
+
+        if content_type_id and object_pk and group and permission:
+            try:
+                GroupObjectPermission.objects.get(
+                    group=group,
+                    permission=permission,
+                    content_type_id=content_type_id,
+                    object_pk=object_pk
+                )
+            except GroupObjectPermission.DoesNotExist:
+                pass
+            else:
+                raise ValidationError('Group Permission with this Group, Permission, And Object already exist.')
 
     class Meta:
         model = GroupObjectPermission

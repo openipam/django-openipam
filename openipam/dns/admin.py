@@ -5,7 +5,9 @@ from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView
 # from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
 #     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
 from openipam.core.admin import ChangedAdmin
+
 from guardian.models import GroupObjectPermission, UserObjectPermission
+
 from autocomplete_light import shortcuts as al
 
 
@@ -67,7 +69,7 @@ class DnsRecordAdmin(ChangedAdmin):
 
     def get_queryset(self, request):
         qs = super(DnsRecordAdmin, self).get_queryset(request)
-        qs = qs.select_related('address', 'dns_type')
+        qs = qs.select_related('ip_content', 'dns_type')
 
         return qs
 

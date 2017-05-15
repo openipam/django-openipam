@@ -11,7 +11,7 @@ def release_leases(sender, instance, **kwargs):
 def set_default_pool(sender, instance, **kwargs):
     from openipam.network.models import DefaultPool
 
-    if not instance.host:
+    if not instance.host and not instance.reserved:
         pool = DefaultPool.objects.get_pool_default(instance.address)
         instance.pool = pool
 

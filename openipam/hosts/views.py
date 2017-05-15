@@ -29,7 +29,7 @@ from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
     HostAttributesDeleteForm
 from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Address
+from openipam.network.models import AddressType, Address, Network
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
     delete_attribute_from_host, populate_primary_dns, export_csv
 from openipam.conf.ipam_settings import CONFIG
@@ -79,6 +79,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         'hostname',
         'mac',
         'expires',
+        'addresses',
     )
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
@@ -229,10 +230,14 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     if ip_search.endswith('/'):
                         qs = qs.none()
                     else:
-                        qs = qs.filter(
-                            Q(addresses__address__net_contained_or_equal=ip_search) |
-                            Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
-                        ).distinct()
+                        try:
+                            qs = qs.filter(
+                                Q(addresses__address__net_contained_or_equal=ip_search) |
+                                Q(leases__address__address__net_contained_or_equal=ip_search, leases__ends__gt=timezone.now())
+                            ).distinct()
+                        except ValueError:
+                            # If netmask is not valid, fail silently
+                            pass
                 else:
                     ip = ip_search.split(':')[-1]
                     tail_dot = '.' if ip[-1] == '.' else ''
@@ -273,6 +278,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             'hosts.hostname',
             'hosts.mac',
             'hosts.expires',
+            'first_address',
         )
 
         # Number of columns that are used in sorting
@@ -308,6 +314,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             c.execute('''
                 SELECT
                     hosts.mac, hosts.hostname, hosts.expires, disabled.mac AS disabled, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
+                    coalesce(min(addresses.address), min(leases.address)) as first_address,
                     array_agg(leases.ends) AS ends, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
                     (SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1) AS vendor,
                     (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
@@ -486,10 +493,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
         action = request.POST.get('action', None)
         selected_hosts = request.POST.getlist('selected_hosts', [])
+        response = None
 
         if selected_hosts:
             selected_hosts = Host.objects.filter(pk__in=selected_hosts)
-            response = None
 
             # If action is to change owners on host(s)
             if action == 'replace-owners':

@@ -175,6 +175,7 @@ class HostManager(Manager):
     def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=False,
                            pool=False, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
         User = get_user_model()
+        force_update = False
 
         if isinstance(user, str):
             user = User.objects.get(username=user)
@@ -183,6 +184,7 @@ class HostManager(Manager):
         if instance and mac:
             instance.set_mac_address(mac)
             instance = self.get(mac=mac)
+            force_update = True
         if not instance:
             instance = self.model()
             if mac:
@@ -203,6 +205,8 @@ class HostManager(Manager):
         if expires:
             instance.expires = expires
         elif expire_days:
+            if not expire_days.isdigit():
+                raise ValidationError('Expire Days needs to be a number not %s.' % expire_days)
             instance.set_expiration(expire_days)
 
         if dhcp_group:
@@ -237,11 +241,11 @@ class HostManager(Manager):
 
         if full_clean is True:
             instance.full_clean()
-        instance.save()
+        instance.save(force_update=force_update)
 
         if instance.pool or instance.network or instance.ip_address:
             instance.set_network_ip_or_pool()
-            instance.save()
+            instance.save(force_update=True)
 
         if user_owners is not None or group_owners is not None:
             # Remove owners
