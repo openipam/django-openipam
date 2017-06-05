@@ -381,7 +381,13 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             .attr("height", container.height)
             .attr("x", container.coords[0])
             .attr("y", container.coords[1])
-            .attr("id", "sites");
+            .attr("id", "circuits-container");
+
+        if (container.scale) {
+            $("#circuits-container").attr("transform", container.scale);
+        }
+        
+        $("#circuits-container").append('<div class="flex-grid" id="sites"></div>');
 
         Object.keys(config.circuits).forEach(function(site){
         	$("#sites").append('<div class="site" id="'+site+'"><p>' + site + '</p></div>');

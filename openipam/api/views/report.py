@@ -293,7 +293,10 @@ class WeatherMapView(APIView):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
         observium_db.connect()
 
-        data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
+        if request.query_params.get('buildings', False):
+            data = OrderedDict(copy.deepcopy(CONFIG.get('BUILDINGMAP_DATA').get('data')))
+        else:
+            data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
 
         all_ports = []
         for k, v in data.items():
@@ -441,5 +444,13 @@ class ServerHostView(APIView):
 @renderer_classes((JSONRenderer,))
 def weathermap_config(request):
     data = copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('config'))
+
+    return Response(data)
+
+@api_view(('GET',))
+@permission_classes((AllowAny,))
+@renderer_classes((JSONRenderer,))
+def buildingmap_config(request):
+    data = copy.deepcopy(CONFIG.get('BUILDINGMAP_DATA').get('config'))
 
     return Response(data)

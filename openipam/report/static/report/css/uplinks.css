@@ -15,9 +15,9 @@ p.section	{
 	margin-top: 20px;
 	}
 
-#sites {
-	position: absolute;
-	top: 650px;
+.flex-grid {
+	display: flex;
+	flex-flow: row wrap;
 }
 
 div.circuit	{
@@ -36,8 +36,8 @@ div.site	{
 	-webkit-border-horizontal-spacing: 5px;
         //border-spacing: 5px;
 	display: table-cell;
-	width: 300px;
-	padding: 2px;
+	min-width: 165px;
+	padding: 2px 4px;
 	}
 
 
