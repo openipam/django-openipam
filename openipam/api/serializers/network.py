@@ -161,12 +161,27 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ('address', 'gateway', 'host', 'pool', 'reserved', 'network', 'changed_by', 'changed',)
 
 
-class DhcpGroupListSerializer(serializers.ModelSerializer):
+class DhcpGroupSerializer(serializers.ModelSerializer):
     changed_by = serializers.SerializerMethodField()
 
     def get_changed_by(self, obj):
         return obj.changed_by.username
 
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(DhcpGroupSerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(DhcpGroupSerializer, self).update(instance, validated_data)
+
     class Meta:
         model = DhcpGroup
         fields = '__all__'
+
+class DhcpGroupDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=DhcpGroup
+        fields = ('name',)
+        read_only_fields = ('name',)
