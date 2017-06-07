@@ -7,10 +7,13 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import viewsets
+from rest_framework import mixins
+from rest_framework.decorators import permission_classes
 
 from openipam.network.models import Network, Address, DhcpGroup
 from openipam.api.views.base import APIPagination
-from openipam.api.serializers.network import NetworkListSerializer, NetworkCreateUpdateSerializer, NetworkDeleteSerializer, AddressSerializer, DhcpGroupListSerializer
+from openipam.api.serializers.network import NetworkListSerializer, NetworkCreateUpdateSerializer, NetworkDeleteSerializer, AddressSerializer, DhcpGroupSerializer, DhcpGroupDeleteSerializer
 from openipam.api.filters.network import NetworkFilter
 from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission, IPAMAPIPermission
 
@@ -117,8 +120,14 @@ class AddressUpdate(generics.RetrieveUpdateAPIView):
 
 
 
-class DhcpGroupList(generics.ListAPIView):
+class DhcpGroupViewSet(viewsets.ModelViewSet):
     queryset = DhcpGroup.objects.select_related().prefetch_related('dhcp_options').all()
-    serializer_class = DhcpGroupListSerializer
     filter_backends = (filters.SearchFilter,)
     filter_fields = ('name',)
+    lookup_field = 'name'
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def get_serializer_class(self):
+        if self.action == 'destroy':
+            return DhcpGroupDeleteSerializer
+        return DhcpGroupSerializer
