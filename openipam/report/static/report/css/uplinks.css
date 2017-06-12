@@ -7,7 +7,8 @@ p	{
 	margin-bottom: 6px;
 	padding-bottom: 3px;
 	border-bottom: 2px solid #f00;
-	}
+	text-align: center;
+}
 
 p.section	{
 	border-bottom: 3px solid #333;
