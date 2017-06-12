@@ -11,9 +11,9 @@ from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.decorators import permission_classes
 
-from openipam.network.models import Network, Address, DhcpGroup
+from openipam.network.models import Network, Address, DhcpGroup, SharedNetwork, Vlan
 from openipam.api.views.base import APIPagination
-from openipam.api.serializers.network import NetworkListSerializer, NetworkCreateUpdateSerializer, NetworkDeleteSerializer, AddressSerializer, DhcpGroupSerializer, DhcpGroupDeleteSerializer
+from openipam.api.serializers.network import NetworkListSerializer, NetworkCreateUpdateSerializer, NetworkDeleteSerializer, AddressSerializer, DhcpGroupSerializer, DhcpGroupDeleteSerializer, SharedNetworkSerializer, SharedNetworkDeleteSerializer, VlanSerializer, VlanDeleteSerializer
 from openipam.api.filters.network import NetworkFilter
 from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission, IPAMAPIPermission
 
@@ -131,3 +131,27 @@ class DhcpGroupViewSet(viewsets.ModelViewSet):
         if self.action == 'destroy':
             return DhcpGroupDeleteSerializer
         return DhcpGroupSerializer
+
+class SharedNetworkViewSet(viewsets.ModelViewSet):
+    queryset = SharedNetwork.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    filter_fields = ('name',)
+    lookup_field = 'name'
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def get_serializer_class(self):
+        if self.action == 'destroy':
+            return SharedNetworkDeleteSerializer
+        return SharedNetworkSerializer
+
+class VlanViewSet(viewsets.ModelViewSet):
+    queryset = Vlan.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    filter_fields = ('name',)
+    lookup_field = 'name'
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def get_serializer_class(self):
+        if self.action == 'destroy':
+            return VlanDeleteSerializer
+        return VlanSerializer

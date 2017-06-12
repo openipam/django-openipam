@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from openipam.network.models import Network, Address, DhcpGroup, Pool, SharedNetwork, DefaultPool
+from openipam.network.models import Network, Address, DhcpGroup, Pool, SharedNetwork, DefaultPool, Vlan
 from openipam.user.models import User
 from openipam.hosts.models import Host
 
@@ -183,5 +183,55 @@ class DhcpGroupSerializer(serializers.ModelSerializer):
 class DhcpGroupDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model=DhcpGroup
+        fields = ('name',)
+        read_only_fields = ('name',)
+
+class SharedNetworkSerializer(serializers.ModelSerializer):
+    changed_by = serializers.SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username
+
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(SharedNetworkSerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(SharedNetworkSerializer, self).update(instance, validated_data)
+
+    class Meta:
+        model = SharedNetwork
+        fields = '__all__'
+
+class SharedNetworkDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=SharedNetwork
+        fields = ('name',)
+        read_only_fields = ('name',)
+
+class VlanSerializer(serializers.ModelSerializer):
+    changed_by = serializers.SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username
+
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(VlanSerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(VlanSerializer, self).update(instance, validated_data)
+
+    class Meta:
+        model = Vlan
+        exclude = ('id', 'changed')
+
+class VlanDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Vlan
         fields = ('name',)
         read_only_fields = ('name',)

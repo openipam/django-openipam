@@ -45,6 +45,8 @@ class OPENIPAMAPIRouter(SimpleRouter):
 
 router = OPENIPAMAPIRouter()
 router.register('dhcpgroup', views.network.DhcpGroupViewSet)
+router.register('network/sharednetwork', views.network.SharedNetworkViewSet)
+router.register('vlans', views.network.VlanViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
