@@ -40,7 +40,7 @@
 {% endblock %}
 
 {% block content %}
-<form id="changelist-form" action="" method="post" class="quickbody form-inline">
+<form id="changelist-form" action="" method="post" class="quickbody form-inline" novalidate="novalidate">
 	{% csrf_token %}
 	<div id="actions">
 		{% spaceless %}
