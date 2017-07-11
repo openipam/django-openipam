@@ -220,7 +220,10 @@ class VlanAdmin(ChangedAdmin):
 
 
 class NetworkToVlanAdmin(ChangedAdmin):
-    list_display = ('network', 'vlan', 'changed_by', 'changed',)
+    list_display = ('network', 'vlan', 'description', 'changed_by', 'changed',)
+
+    def description(self, obj):
+        return '%s' % obj.vlan.description
 
 
 class IsExpiredFilter(admin.SimpleListFilter):
