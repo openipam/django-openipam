@@ -25,10 +25,10 @@ class Command(BaseCommand):
         group_hosts_with_perms = [gop.object_pk for gop in GroupObjectPermission.objects.filter(content_type=ct)]
 
         hosts_with_perms = Host.objects.raw('''
-            SELECT hosts.mac from hosts where host.mac in %s or hosts.mac in %s
+            SELECT mac from hosts where mac IN %s or mac IN %s
         ''', [user_hosts_with_perms, group_hosts_with_perms])
 
         orphaned_hosts = Host.objects.filter(expires__lt=timezone.now()).exclude(mac__in=[host.pk for host in hosts_with_perms])
 
-        self.stdout.write('%s hosts are epired and have no owner.' % len(orphaned_hosts))
+        self.stdout.write('%s hosts are expired and have no owner.' % len(orphaned_hosts))
         self.stdout.write('\n'.join(orphaned_hosts))

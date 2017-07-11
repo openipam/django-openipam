@@ -34,6 +34,7 @@ class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     structured = models.BooleanField(default=False)
+    multiple = models.BooleanField(default=False)
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)

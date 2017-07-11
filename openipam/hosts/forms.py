@@ -203,12 +203,19 @@ class HostForm(forms.ModelForm):
             self.attribute_field_keys.append(attribute_field_key)
             if attribute_field.structured:
                 attribute_choices_qs = StructuredAttributeValue.objects.filter(attribute=attribute_field.id)
-                self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
+                if attribute_field.multiple:
+                    self.fields[attribute_field_key] = forms.ModelMultipleChoiceField(queryset=attribute_choices_qs, required=False)
+                else:
+                    self.fields[attribute_field_key] = forms.ModelChoiceField(queryset=attribute_choices_qs, required=False)
             else:
                 self.fields[attribute_field_key] = forms.CharField(required=False)
             initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
             if initial:
-                self.fields[attribute_field_key].initial = initial[0][1]
+                #assert False, initial
+                if attribute_field.multiple:
+                    self.fields[attribute_field_key].initial = [pk for a, pk in initial]
+                else:
+                    self.fields[attribute_field_key].initial = initial[0][1]
             elif self.previous_form_data and attribute_field_key in self.previous_form_data:
                 self.fields[attribute_field_key].initial = self.previous_form_data.get(attribute_field_key)
 
@@ -354,8 +361,17 @@ class HostForm(forms.ModelForm):
             form_attribute = self.cleaned_data.get(attribute_name, '')
             if form_attribute:
                 if attribute.structured:
-                    attribute_value = filter(lambda x: x == form_attribute, structured_attributes)
-                    if attribute_value:
+                    if attribute.multiple:
+                        for attribute in form_attribute:
+                            attribute_value = filter(lambda x: x == attribute, structured_attributes)
+                            if attribute_value:
+                                StructuredAttributeToHost.objects.create(
+                                    host=instance,
+                                    structured_attribute_value=attribute_value[0],
+                                    changed_by=self.user
+                                )
+                    else:
+                        attribute_value = filter(lambda x: x == form_attribute, structured_attributes)
                         StructuredAttributeToHost.objects.create(
                             host=instance,
                             structured_attribute_value=attribute_value[0],
