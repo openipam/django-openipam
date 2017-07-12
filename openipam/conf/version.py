@@ -1,3 +1,3 @@
 # Some version numbers, for reference
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
