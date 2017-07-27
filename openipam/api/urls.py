@@ -14,38 +14,44 @@ class OPENIPAMAPIRouter(SimpleRouter):
         Route(
             url=r'^{prefix}/$',
             mapping={'get': 'list'},
-            name='{basename}-list',
+            name='api_{basename}_list',
             initkwargs={'suffix': 'List'}
         ),
         Route(
             url=r'^{prefix}/add/$',
             mapping={'post': 'create'},
-            name='{basename}-create',
+            name='api_{basename}_create',
             initkwargs={'suffix': 'Create'}
         ),
         Route(
             url=r'^{prefix}/{lookup}/$',
             mapping={'get': 'retrieve'},
-            name='{basename}-detail',
+            name='api_{basename}_detail',
             initkwargs={'suffix': 'Detail'}
         ),
         Route(
             url=r'^{prefix}/{lookup}/update/$',
             mapping={'get': 'retrieve', 'post': 'update', 'put': 'update'},
-            name='{basename}-update',
+            name='api_{basename}_update',
             initkwargs={'suffix': 'Update'}
         ),
         Route(
             url=r'^{prefix}/{lookup}/delete/$',
             mapping={'get': 'retrieve', 'delete': 'destroy', 'post': 'destroy'},
-            name='{basename}-delete',
-            initkwargs={'suffix': 'Destroy'}
+            name='api_{basename}_delete',
+            initkwargs={'suffix': 'Delete'}
         )
     ]
 
 router = OPENIPAMAPIRouter()
 router.register('dhcpgroup', views.network.DhcpGroupViewSet)
-router.register('network/sharednetwork', views.network.SharedNetworkViewSet)
+router.register('dhcpoption', views.network.DhcpOptionViewSet)
+router.register('dhcpoptiontodhcpgroup', views.network.DhcpOptionToDhcpGroupViewSet)
+router.register('sharednetworks', views.network.SharedNetworkViewSet)
+router.register('networkranges', views.network.NetworkRangeViewSet)
+router.register('networktovlan', views.network.NetworkToVlanViewSet)
+router.register('pools', views.network.PoolViewSet)
+router.register('defaultpools', views.network.DefaultPoolViewSet)
 router.register('vlans', views.network.VlanViewSet)
 
 urlpatterns = [

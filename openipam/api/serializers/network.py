@@ -1,13 +1,15 @@
+import binascii
+
 from rest_framework import serializers
 
-from openipam.network.models import Network, Address, DhcpGroup, Pool, SharedNetwork, DefaultPool, Vlan
+from openipam.network.models import Network, Address, DhcpGroup, DhcpOption, DhcpOptionToDhcpGroup, Pool, SharedNetwork, DefaultPool, Vlan, NetworkRange, NetworkToVlan, Lease
 from openipam.user.models import User
 from openipam.hosts.models import Host
 
 from netaddr import EUI, AddrFormatError
 
 from netfields.mac import mac_unix_common
-from netfields.rest_framework import InetAddressField, CidrAddressField
+from netfields.rest_framework import InetAddressField, CidrAddressField, MACAddressField
 
 
 class NetworkListSerializer(serializers.ModelSerializer):
@@ -80,6 +82,58 @@ class NetworkDeleteSerializer(serializers.ModelSerializer):
         model = Network
         fields = ('network',)
         read_only_fields = ('network',)
+
+class NetworkRangeSerializer(serializers.ModelSerializer):
+    range = CidrAddressField()
+
+    class Meta:
+        model = NetworkRange
+        fields = ('id', 'range',)
+
+class NetworkRangeDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NetworkRange
+        fields = ('range',)
+        read_only_fields = ('range',)
+
+class NetworkToVlanSerializer(serializers.ModelSerializer):
+    network = CidrAddressField()
+    vlan = serializers.CharField()
+
+    def validate_vlan(self, value):
+        if value:
+            vlan_exists = Vlan.objects.filter(name=value).first()
+            if not vlan_exists:
+                raise serializers.ValidationError('The vlan entered does not exist.')
+            return vlan_exists
+        return None
+
+    def validate_network(self, value):
+        if value:
+            network_exists = Network.objects.filter(network=value).first()
+            if not network_exists:
+                raise serializers.ValidationError('The network entered does not exist.')
+            return network_exists
+        return None
+
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(NetworkToVlanSerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(NetworkToVlanSerializer, self).update(instance, validated_data)
+
+    class Meta:
+        model = NetworkToVlan
+        fields = ('network', 'vlan')
+
+class NetworkToVlanDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NetworkToVlan
+        fields = ('network', 'vlan')
+        read_only_fields = ('network', 'vlan')
 
 class AddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(read_only=True)
@@ -186,6 +240,62 @@ class DhcpGroupDeleteSerializer(serializers.ModelSerializer):
         fields = ('name',)
         read_only_fields = ('name',)
 
+class DhcpOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DhcpOption
+        fields = '__all__'
+
+class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
+    group = serializers.CharField(allow_blank=True, allow_null=True)
+    option = serializers.CharField(allow_blank=True, allow_null=True)
+    readable_value = serializers.CharField(source='get_readable_value', read_only=True, label='value')
+    value = serializers.CharField(write_only=True, allow_blank=True, allow_null=True)
+    changed_by = serializers.StringRelatedField()
+
+    def validate_group(self, value):
+        if value:
+            dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
+            if not dhcp_group_exists:
+                raise serializers.ValidationError('The dhcp group entered does not exist.')
+            return dhcp_group_exists
+        return None
+
+    def validate_option(self, value):
+        if value:
+            dhcp_option_exists = DhcpOption.objects.filter(name=value).first()
+            if not dhcp_option_exists:
+                raise serializers.ValidationError('The dhcp option entered does not exist.')
+            return dhcp_option_exists
+        return None
+
+    def validate_value(self, value):
+        if value:
+            try:
+                int(value, 16)
+            except ValueError as e:
+                raise serializers.ValidationError('Value entered was not in hexidecimal.')
+            return binascii.unhexlify(value)
+        return None
+
+    def create(self, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        instance = super(DhcpOptionToDhcpGroupSerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data['changed_by'] = self.context['request'].user
+        return super(DhcpOptionToDhcpGroupSerializer, self).update(instance, validated_data)
+
+    class Meta:
+        model = DhcpOptionToDhcpGroup
+        fields = ('id', 'group', 'option', 'readable_value', 'value', 'changed_by',)
+
+class DhcpOptionToDhcpGroupDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=DhcpOptionToDhcpGroup
+        fields = ('group', 'option', 'value',)
+        read_only_fields = ('group', 'option', 'value',)
+
 class SharedNetworkSerializer(serializers.ModelSerializer):
     changed_by = serializers.SerializerMethodField()
 
@@ -228,10 +338,54 @@ class VlanSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vlan
-        exclude = ('id', 'changed')
+        exclude = ('changed',)
 
 class VlanDeleteSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Vlan
+        model = Vlan
         fields = ('name',)
         read_only_fields = ('name',)
+
+class PoolSerializer(serializers.ModelSerializer):
+    name = serializers.SlugField()
+    dhcp_group = serializers.CharField(allow_blank=True, allow_null=True)
+
+    def validate_dhcp_group(self, value):
+        if value:
+            dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
+            if not dhcp_group_exists:
+                raise serializers.ValidationError('The dhcp group entered does not exist.')
+            return dhcp_group_exists
+        return None
+
+    class Meta:
+        model = Pool
+        fields = '__all__'
+
+class PoolDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pool
+        fields = ('name',)
+        read_only_fields = ('name',)
+
+class DefaultPoolSerializer(serializers.ModelSerializer):
+    pool = serializers.CharField(allow_blank=True, allow_null=True)
+    cidr = CidrAddressField()
+
+    def validate_pool(self, value):
+        if value:
+            pool_exists = Pool.objects.filter(cidr=value).first()
+            if not pool_exists:
+                raise serializers.ValidationError('The pool entered does not exist.')
+            return pool_exists
+        return None
+
+    class Meta:
+        model = DefaultPool
+        fields = '__all__'
+
+class DefaultPoolDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DefaultPool
+        fields = ('cidr', 'pool',)
+        read_only_fields = ('cidr', 'pool',)
