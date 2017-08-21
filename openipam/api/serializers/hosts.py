@@ -461,6 +461,7 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
         exists = Disabled.objects.filter(mac=value)
         if exists:
             raise serializers.ValidationError('Mac has already been disabled.')
+        return value
 
     def validate_host(self, value):
         try:
@@ -473,10 +474,10 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Host '%s' has already been disabled." % value)
         except ValidationError as e:
                 raise serializers.ValidationError(str(e.message))
-        return host
+        return value
 
     def validate_changed_by(self, value):
-        changed_by = User.objects.filter(username=value).first()
+        changed_by = User.objects.filter(username=value.upper()).first()
         if not changed_by:
             raise serializers.ValidationError('No User found from username entered.')
         return changed_by
