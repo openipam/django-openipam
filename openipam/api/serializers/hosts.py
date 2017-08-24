@@ -477,7 +477,7 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_changed_by(self, value):
-        changed_by = User.objects.filter(username=value.upper()).first()
+        changed_by = User.objects.filter(username__iexact=value).first()
         if not changed_by:
             raise serializers.ValidationError('No User found from username entered.')
         return changed_by
