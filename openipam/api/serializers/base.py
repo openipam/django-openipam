@@ -65,6 +65,7 @@ class MACAddressField(serializers.CharField):
         if value:
             try:
                 value = EUI(str(value), dialect=mac_bare)
+                return
             except (ValueError, TypeError, ValidationError):
                 raise ValidationError(self.error_messages['invalid'] % {'value': value})
 
