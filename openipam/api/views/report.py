@@ -265,7 +265,7 @@ class LeaseGraphView(APIView):
                 'color(aliasByMetric(ipam.leases.%s.reserved),"purple")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.static),"orange")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.abandoned),"red")' % parsed_network,
-                'color(alias(diffSeries(ipam.leases.%s.leased,ipam.leases.%s.expired),"active"),"yellow")' % (parsed_network, parsed_network),
+                'color(aliasByMetric(ipam.leases.%s.leased),"yellow")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.expired),"green")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.unleased),"blue")' % parsed_network,
             ]

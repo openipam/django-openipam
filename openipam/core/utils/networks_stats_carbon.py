@@ -1,29 +1,32 @@
 from django.db import connection
 import socket
 
+available = """count((leases.ends < NOW() AND NOT leases.abandoned) OR (addresses.pool IS NOT NULL AND leases.address IS NULL) OR NULL)"""
+
 query = """SELECT addresses.network,
-           extract(epoch from now())::bigint as epoch,
-           count(leases.ends < NOW() OR NULL) + (count(addresses.pool) - count(leases.address) - count(leases.abandoned OR NULL)) AS available,
-           count((leases.ends < NOW() OR (addresses.pool IS NOT NULL AND leases.address IS NULL AND leases.abandoned IS NULL)) OR NULL) AS available2,
-           count(addresses.mac) AS static,
-           count(addresses.pool) AS dynamic,
-           count(leases.address) AS leased,
-           count(addresses.reserved OR NULL) AS reserved,
-           count(leases.abandoned OR NULL) AS abandoned,
-           count(leases.ends < now() OR NULL) AS expired,
-           count( 1 ) AS total,
-           count(leases.address IS NULL AND addresses.pool IS NOT NULL OR NULL) AS unleased,
-	   CASE WHEN count(addresses.pool) > 0
-		THEN (count(leases.ends < NOW() OR NULL) + (count(addresses.pool) - count(leases.address) - count(leases.abandoned OR NULL))) / count(addresses.pool)::float
-		ELSE 1.0
-	   END AS available_ratio
-    FROM addresses  LEFT OUTER JOIN leases ON addresses.address = leases.address
-    GROUP BY addresses.network;
+  extract(epoch from now())::bigint as epoch,
+  {available} AS available,
+  count(addresses.mac) AS static,
+  count(addresses.pool) AS dynamic,
+  count(leases.address AND NOT leases.abandoned AND leases.ends > NOW() OR NULL) AS leased,
+  count(addresses.reserved OR NULL) AS reserved,
+  count(leases.abandoned OR NULL) AS abandoned,
+  count(leases.ends < now() AND NOT leases.abandoned OR NULL) AS expired,
+  count( 1 ) AS total,
+  count(leases.address IS NULL AND addresses.pool IS NOT NULL OR NULL) AS unleased,
+  CASE WHEN count(addresses.pool) > 0
+    THEN {available} / count(addresses.pool)::float
+    ELSE 1.0
+  END AS available_ratio
+FROM addresses LEFT OUTER JOIN leases ON addresses.address = leases.address
+GROUP BY addresses.network;
 """
 
-query_colnames = ['network', 'epoch', 'available', 'available2', 'static',
-                  'dynamic', 'leased', 'reserved', 'abandoned', 'expired',
-                  'total', 'unleased', 'available_ratio']
+query = query.format(available=available)
+
+query_colnames = ['network', 'epoch', 'available', 'static', 'dynamic',
+                  'leased', 'reserved', 'abandoned', 'expired', 'total',
+                  'unleased', 'available_ratio']
 
 
 def push_data(carbon_server, carbon_port):
