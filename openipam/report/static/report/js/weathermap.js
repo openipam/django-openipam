@@ -246,8 +246,15 @@ function updateUtil(url, refresh, timeSelector) {
         var dataOut = data[linkOut].A,
             dataIn = data[linkOut].Z;
 
-        if (dataOut == 0) console.log(linkOut + '.A had 0 bps at ' + data.timestamp);
-        if (dataIn == 0) console.log(linkOut + '.Z had 0 bps at ' + data.timestamp);
+        if (dataOut == 0) {
+            d3.select('.site #link-' + linkOut).classed('stroke100', true);
+            console.log(linkOut + '.A had 0 bps at ' + data.timestamp);
+        }
+        if (dataIn == 0) {
+            d3.select('.site #link-' + linkIn).classed('stroke100', true);
+            console.log(linkOut + '.Z had 0 bps at ' + data.timestamp);
+        }
+
 
         var link = d3.select('#link-' + linkOut);
         if (!link.empty() && link.attr('data-add-links')) {
@@ -389,12 +396,28 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         
         $("#circuits-container").append('<div class="flex-grid" id="sites"></div>');
 
+        let sites = [], remoteSites = [];
         Object.keys(config.circuits).forEach(function(site){
-        	$("#sites").append('<div class="site" id="'+site+'"><p>' + site + '</p></div>');
-        	config.circuits[site].connections.forEach(function(connection){
-        		$("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + site + "-" + connection +'"></div>');
-            });
+            if(config.circuits[site].remote) {
+                remoteSites.push(site);
+            } else {
+                sites.push(site);
+            }
         });
+
+        sites.sort();
+        remoteSites.sort();
+        sites = sites.concat(remoteSites);
+
+        for (let i = 0; i < sites.length; i++) {
+            const site = sites[i];
+            const buildingNum = config.circuits[site].buildingNum;
+            const siteName = buildingNum ? `${site}-${buildingNum}` : site
+            $("#sites").append(`<div class="site" id="${site}"><p>${siteName}</p></div>`);
+            config.circuits[site].connections.forEach(function(connection){
+                $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + site + "-" + connection +'"></div>');
+            });
+        }
 
         // All lines are same width
         var bandwidths = { '-all': 1 };
