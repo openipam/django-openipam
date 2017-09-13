@@ -19,6 +19,8 @@ from openipam.network.managers import LeaseManager, PoolManager, DhcpGroupManage
 from openipam.network.signals import validate_address_type, release_leases, set_default_pool
 from openipam.user.signals import remove_obj_perms_connected_with_user
 
+import binascii
+
 
 class Lease(models.Model):
     address = models.OneToOneField('Address', primary_key=True, db_column='address', related_name='leases')
@@ -135,6 +137,11 @@ class DhcpOptionToDhcpGroup(models.Model):
 
     def __unicode__(self):
         return '%s:%s=%r' % (self.group.name, self.option.name, str(self.value))
+
+    def get_readable_value(self):
+        if self.value:
+            return binascii.hexlify(self.value)
+        return None
 
     class Meta:
         db_table = 'dhcp_options_to_dhcp_groups'

@@ -2,13 +2,60 @@ from django.conf.urls import url, include
 
 from rest_framework_jwt.views import obtain_jwt_token
 
+from rest_framework.routers import SimpleRouter, Route
+
 from openipam.api import views
 
-# router = DefaultRouter()
-# router.register('hosts2', HostViewSet)
+class OPENIPAMAPIRouter(SimpleRouter):
+    """
+    A router to match existing url patterns
+    """
+    routes = [
+        Route(
+            url=r'^{prefix}/$',
+            mapping={'get': 'list'},
+            name='api_{basename}_list',
+            initkwargs={'suffix': 'List'}
+        ),
+        Route(
+            url=r'^{prefix}/add/$',
+            mapping={'post': 'create'},
+            name='api_{basename}_create',
+            initkwargs={'suffix': 'Create'}
+        ),
+        Route(
+            url=r'^{prefix}/{lookup}/$',
+            mapping={'get': 'retrieve'},
+            name='api_{basename}_detail',
+            initkwargs={'suffix': 'Detail'}
+        ),
+        Route(
+            url=r'^{prefix}/{lookup}/update/$',
+            mapping={'get': 'retrieve', 'post': 'update', 'put': 'update'},
+            name='api_{basename}_update',
+            initkwargs={'suffix': 'Update'}
+        ),
+        Route(
+            url=r'^{prefix}/{lookup}/delete/$',
+            mapping={'get': 'retrieve', 'delete': 'destroy', 'post': 'destroy'},
+            name='api_{basename}_delete',
+            initkwargs={'suffix': 'Delete'}
+        )
+    ]
+
+router = OPENIPAMAPIRouter()
+router.register('dhcpgroup', views.network.DhcpGroupViewSet)
+router.register('dhcpoption', views.network.DhcpOptionViewSet)
+router.register('dhcpoptiontodhcpgroup', views.network.DhcpOptionToDhcpGroupViewSet)
+router.register('sharednetworks', views.network.SharedNetworkViewSet)
+router.register('networkranges', views.network.NetworkRangeViewSet)
+router.register('networktovlan', views.network.NetworkToVlanViewSet)
+router.register('pools', views.network.PoolViewSet)
+router.register('defaultpools', views.network.DefaultPoolViewSet)
+router.register('vlans', views.network.VlanViewSet)
 
 urlpatterns = [
-    # url(r'^', include(router.urls)),
+    url(r'^', include(router.urls)),
 
     url(r'^web/networkselects/(?P<address_type_id>\d+)$', views.web.network_selects, name='api_network_select'),
     url(r'^web/structuredattributevalues/(?P<attribute_id>\d+)$', views.web.structured_attribute_selects, name='api_structured_attribute_select'),
@@ -72,7 +119,6 @@ urlpatterns = [
     url(r'^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/$', views.network.AddressDetail.as_view(), name='api_address_view'),
     url(r'^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/update/$', views.network.AddressUpdate.as_view(), name='api_address_update'),
     url(r'^address/$', views.network.AddressList.as_view(), name='api_address_list'),
-    url(r'^dhcpgroup/$', views.network.DhcpGroupList.as_view(), name='api_dhcpgroup_list'),
 
     url(r'^login/has_auth/', views.base.UserAuthenticated.as_view(), name='api_has_auth'),
     url(r'^login/jwt_token/', views.base.obtain_jwt_token),
