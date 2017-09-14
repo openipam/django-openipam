@@ -313,6 +313,7 @@ class WeatherMapView(APIView):
                         value['speed'] = value.get('speed', 0) + port.ifspeed if port.ifspeed else 0
                         value['timestamp'] = port.poll_time
                         value['poll_frequency'] = 300
+                        value['isUp'] = bool(port.ifoperstatus == "up")
 
         for key, value in data.items():
             del value['id']
