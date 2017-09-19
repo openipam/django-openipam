@@ -246,15 +246,8 @@ function updateUtil(url, refresh, timeSelector) {
         var dataOut = data[linkOut].A,
             dataIn = data[linkOut].Z;
 
-        if (dataOut == 0) {
-            d3.select('.site #link-' + linkOut).classed('stroke100', true);
-            console.log(linkOut + '.A had 0 bps at ' + data.timestamp);
-        }
-        if (dataIn == 0) {
-            d3.select('.site #link-' + linkIn).classed('stroke100', true);
-            console.log(linkOut + '.Z had 0 bps at ' + data.timestamp);
-        }
-
+        if (dataOut == 0) console.log(linkOut + '.A had 0 bps at ' + data.timestamp);
+        if (dataIn == 0) console.log(linkOut + '.Z had 0 bps at ' + data.timestamp);
 
         var link = d3.select('#link-' + linkOut);
         if (!link.empty() && link.attr('data-add-links')) {
@@ -280,6 +273,13 @@ function updateUtil(url, refresh, timeSelector) {
         setLinkUtil(utilizationLevels, linkIn, dataIn, data[linkOut].timestamp);
         } else {
         console.log('No update for', linkOut, ' as [' + data[linkOut].timestamp + '] >=', linkTimeout, 'seconds after', now, (dateDiff ? ', time adjusted by ' + dateDiff/1000 + 's' : ''));
+        }
+
+        if (!data[linkOut].isUp) { 
+            d3.select('.site #link-' + linkOut).classed('stroke100', true);
+        }
+        if (!data[linkOut].isUp) {
+            d3.select('.site #link-' + linkIn).classed('stroke100', true);
         }
     });
     if (updated) {
@@ -393,7 +393,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         if (container.scale) {
             $("#circuits-container").attr("transform", container.scale);
         }
-        
+
         $("#circuits-container").append('<div class="flex-grid" id="sites"></div>');
 
         let sites = [], remoteSites = [];
