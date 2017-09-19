@@ -58,7 +58,9 @@ class NetworkAdmin(ChangedAdmin):
         return render(request, 'admin/actions/tag_network.html', {'form': form})
 
     def resize_network_view(self, request):
-        ids = request.POST.get('ids').strip().split(',')
+        ids = request.GET.get('ids')
+        if ids:
+            ids = ids.strip().split(',')
         if len(ids) > 1:
             network_error = True
             network = None
@@ -70,11 +72,11 @@ class NetworkAdmin(ChangedAdmin):
 
         if form.is_valid():
             # Update primary key
-            new_network_rows = Network.objects.filter(network=network).update(network=form.cleaned_data['network'])
+            Network.objects.filter(network=network).update(network=form.cleaned_data['network'])
             new_network = Network.objects.filter(network=form.cleaned_data['network']).first()
 
             addresses = []
-            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=new_network.pk)]
+            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=new_network)]
 
             for address in new_network.network:
                 if address not in existing_addresses:
@@ -125,7 +127,7 @@ class NetworkAdmin(ChangedAdmin):
 
         if not change:
             addresses = []
-            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj.pk)]
+            existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj)]
 
             if existing_addresses:
                 raise ValidationError('Addresses already exist!  Please remove or reassign. %s' % existing_addresses.split(','))
