@@ -8,9 +8,9 @@ from django.contrib import messages
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
-    NetworkToVlan#, Building, BuildingToVlan
+    NetworkToVlan, Building, BuildingToVlan
 from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, \
-    AddressAdminForm, LeaseAdminForm, NetworkReziseForm#, VlanForm
+    AddressAdminForm, LeaseAdminForm, NetworkReziseForm, VlanForm
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
 from autocomplete_light import shortcuts as al
@@ -290,8 +290,8 @@ class AddressAdmin(ChangedAdmin):
         return qs.select_related('host', 'network', 'changed_by').all()
 
 
-# class VlanAdmin(ChangedAdmin):
-#     form = VlanForm
+ class VlanAdmin(ChangedAdmin):
+     form = VlanForm
 
 
 admin.site.register(DefaultPool, DefaultPoolAdmin)
@@ -299,8 +299,8 @@ admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)
 admin.site.register(Vlan, ChangedAdmin)
-#admin.site.register(Vlan, VlanAdmin)
-#admin.site.register(Building, ChangedAdmin)
+admin.site.register(Vlan, VlanAdmin)
+admin.site.register(Building, ChangedAdmin)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(Lease, LeaseAdmin)
