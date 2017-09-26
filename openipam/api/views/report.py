@@ -54,7 +54,6 @@ class LeaseUsageView(APIView):
         network_tags = request.GET.get('network_tags')
         by_router = request.GET.get('by_router')
         exclude_free = request.GET.get('exclude_free')
-        sort_by_network = request.GET.get('sort_by_network')
 
         if network_blocks:
             show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
@@ -129,10 +128,7 @@ class LeaseUsageView(APIView):
                 else:
                     child['size_width'] = (32 - 4 - network.prefixlen) ** 1.5 * 20 + 50
 
-            if sort_by_network:
-                lease_data = sorted(lease_data, key=lambda item: IPNetwork(item['network']))
-            else:
-                lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] is not None else 1.1)
+            lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] is not None else 1.1)
 
             if request.accepted_renderer.format == 'html':
                 context = {
