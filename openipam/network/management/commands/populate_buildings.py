@@ -83,8 +83,6 @@ class Command(BaseCommand):
                 building = Building.objects.filter(number=code).first()
                 vlan = Vlan.objects.filter(vlan_id=item[0]).first()
                 if building and vlan:
-                    print building
-                    print vlan
                     BuildingToVlan.objects.get_or_create(
                         building=building,
                         vlan=vlan,
