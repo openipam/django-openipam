@@ -12,7 +12,7 @@ User = get_user_model()
 
 class Command(BaseCommand):
     args = ''
-    help = 'Convert Dns Type Permissions'
+    help = 'Populate building vlan data.'
 
     def add_arguments(self, parser):
 
