@@ -507,6 +507,9 @@ $(function(){
 			else if (action == 'renew') {
 				$('#host-renew').modal();
 			}			
+			else if (action == 'rename') {
+				$('#host-rename').modal();
+			}			
 			else if (action == 'address') {
 				//
 			}

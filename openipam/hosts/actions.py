@@ -9,9 +9,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 
 from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost
-from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm
+from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm, \
+    HostRenameForm
 
 import csv
+import re
 
 User = get_user_model()
 
@@ -172,6 +174,37 @@ def renew_hosts(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error renewing the expiration of the selected hosts. "
+                    "<br/>%s" % '<br />'.join(error_list)))
+
+
+def rename_hosts(request, selected_hosts):
+    user = request.user
+
+    # Must super user access (for now)
+    if not user.is_superuser:
+        messages.error(request, "You do not have permissions to perform this action one or more of the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        rename_form = HostRenameForm(data=request.POST)
+
+        if rename_form.is_valid():
+            regex = rename_form.cleaned_data['regex']
+            substitution = rename_form.cleaned_data['substitution']
+
+            for host in selected_hosts:
+                current_hostname = host.hostname
+                new_hostname = re.sub(regex, substitution, current_hostname)
+                host.set_hostname(hostname=new_hostname, user=user)
+                host.save(user=user)
+
+            messages.success(request, "Renaming for selected hosts have been applied.")
+
+        else:
+            error_list = []
+            for key, errors in rename_form.errors.items():
+                for error in errors:
+                    error_list.append(error)
+            messages.error(request, mark_safe("There was an error renaming the selected hosts. "
                     "<br/>%s" % '<br />'.join(error_list)))
 
 

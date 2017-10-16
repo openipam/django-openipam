@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 
-from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView
-# from openipam.dns.forms import DomainGroupPermissionForm, DomainUserPermissionForm, \
-#     DnsTypeGroupPermissionForm, DnsTypeUserPermissionForm
+from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
+from openipam.dns.forms import DhcpDnsRecordForm
 from openipam.core.admin import ChangedAdmin
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
@@ -82,6 +81,12 @@ class DnsRecordAdmin(ChangedAdmin):
     edit_link.allow_tags = True
 
 
+class DhcpDnsRecordAdmin(admin.ModelAdmin):
+    list_display = ('host', 'ip_content', 'domain', 'ttl', 'changed')
+    search_fields = ('domain', 'host', 'ip_content')
+    form = DhcpDnsRecordForm
+
+
 class DnsTypeAdmin(OpjectPermissionAdmin):
     list_display = ('name', 'description', 'min_permission', 'sgroup_permissions', 'suser_permissions')
     list_filter = ('min_permissions__name',)
@@ -93,4 +98,5 @@ class DnsTypeAdmin(OpjectPermissionAdmin):
 admin.site.register(DnsView)
 admin.site.register(DnsType, DnsTypeAdmin)
 admin.site.register(DnsRecord, DnsRecordAdmin)
+admin.site.register(DhcpDnsRecord, DhcpDnsRecordAdmin)
 admin.site.register(Domain, DomainAdmin)

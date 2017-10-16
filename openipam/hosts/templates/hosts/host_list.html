@@ -59,6 +59,7 @@
 								<option value="delete">Delete selected hosts</option>
 								<option value="export">Export Hosts to CSV</option>
 								<option value="renew">Renew selected hosts</option>
+								<option value="rename">Rename selected hosts</option>
 								<option value="dns">Populate DNS on selected hosts</option>
 								<!--<option value="address">Add/Update addresses on selected hosts</option>-->
 								<option value="">--OWNERSHIP--</option>
@@ -257,6 +258,27 @@
 							<div class="form-group">
 								{{ renew_form.expire_days|label_with_classes:"control-label right10" }}
 								{{ renew_form.expire_days|add_class:"form-control" }}
+							</div>
+							<div class="clear"><!-- --></div>
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-primary" type="submit">Save</button>
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>			
+
+			<div id="host-rename" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title">Rename for selected hosts</h3>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								{% crispy rename_form %}
 							</div>
 							<div class="clear"><!-- --></div>
 						</div>

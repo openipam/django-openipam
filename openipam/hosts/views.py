@@ -27,11 +27,11 @@ from django.forms.utils import ErrorList, ErrorDict
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
-    HostAttributesDeleteForm
+    HostAttributesDeleteForm, HostRenameForm
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Address, Network
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
-    delete_attribute_from_host, populate_primary_dns, export_csv
+    delete_attribute_from_host, populate_primary_dns, export_csv, rename_hosts
 from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
@@ -480,6 +480,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context['search_filter'] = search_filter
         context['owners_form'] = HostOwnerForm()
         context['renew_form'] = HostRenewForm(user=self.request.user)
+        context['rename_form'] = HostRenameForm()
         context['attribute_add_from'] = HostAttributesCreateForm()
         context['attribute_delete_from'] = HostAttributesDeleteForm()
 
@@ -513,6 +514,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 populate_primary_dns(request, selected_hosts)
             elif action == 'renew':
                 renew_hosts(request, selected_hosts)
+            elif action == 'rename':
+                rename_hosts(request, selected_hosts)
             elif action == 'add-attributes':
                 add_attribute_to_hosts(request, selected_hosts)
             elif action == 'delete-attributes':
