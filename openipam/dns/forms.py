@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
-from openipam.dns.models import DnsRecord, DnsType
+from openipam.dns.models import DnsRecord, DnsType, DhcpDnsRecord
 from openipam.hosts.models import Host
 from openipam.core.forms import BaseGroupObjectPermissionForm, BaseUserObjectPermissionForm
 
@@ -123,6 +123,15 @@ class DSNCreateFrom(forms.Form):
         self.helper = FormHelper()
         self.helper.label_class = 'col-sm-2 col-md-2 col-lg-2'
         self.helper.field_class = 'col-sm-6 col-md-6 col-lg-6'
+
+
+class DhcpDnsRecordForm(forms.ModelForm):
+    domain = al.ModelChoiceField('DomainAutocomplete')
+    host = forms.CharField()
+
+    class Meta:
+        model = DhcpDnsRecord
+        fields = ('host', 'domain', 'ttl',)
 
 
 class DomainGroupPermissionForm(BaseGroupObjectPermissionForm):

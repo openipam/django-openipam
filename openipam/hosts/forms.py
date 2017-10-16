@@ -574,6 +574,11 @@ class HostRenewForm(forms.Form):
             self.fields['expire_days'].queryset = ExpirationType.objects.filter(min_permissions='00000000')
 
 
+class HostRenameForm(forms.Form):
+    regex = forms.CharField()
+    substitution = forms.CharField()
+
+
 class HostBulkCreateForm(forms.Form):
     csv_file = forms.FileField(validators=[validate_csv_file])
 

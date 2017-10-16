@@ -363,14 +363,14 @@ class DnsRecordMunged(models.Model):
 
 
 class DhcpDnsRecord(models.Model):
-    did = models.ForeignKey('Domain', db_column='did')
-    name = models.OneToOneField('hosts.Host', db_column='name', to_field='hostname')
+    domain = models.ForeignKey('Domain', db_column='did')
+    host = models.OneToOneField('hosts.Host', db_column='name', to_field='hostname')
     ip_content = models.ForeignKey('network.Address', null=True, db_column='ip_content', blank=True)
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return '%s' % self.name_id
+        return '%s' % self.host_id
 
     class Meta:
         db_table = 'dhcp_dns_records'
