@@ -8,9 +8,9 @@ from django.contrib import messages
 
 from openipam.network.models import Network, NetworkRange, Address, Pool, DhcpGroup, \
     Vlan, AddressType, DefaultPool, DhcpOptionToDhcpGroup, Lease, DhcpOption, SharedNetwork, \
-    NetworkToVlan
+    NetworkToVlan, Building, BuildingToVlan
 from openipam.network.forms import NetworkTagForm, AddressTypeAdminForm, DhcpOptionToDhcpGroupAdminForm, \
-    AddressAdminForm, LeaseAdminForm, NetworkReziseForm
+    AddressAdminForm, LeaseAdminForm, NetworkReziseForm, VlanForm
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
 from autocomplete_light import shortcuts as al
@@ -281,8 +281,8 @@ class HasHostFilter(admin.SimpleListFilter):
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ('address', 'host__mac', 'host__hostname',)
-    list_filter = ('network', 'reserved', 'pool', HasHostFilter)
-    list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed')
+    list_filter = ('network', 'reserved', 'pool', HasHostFilter,)
+    list_display = ('address', 'network', 'host', 'pool', 'reserved', 'changed_by', 'changed',)
     list_select_related = True
 
     def get_queryset(self, request):
@@ -290,11 +290,31 @@ class AddressAdmin(ChangedAdmin):
         return qs.select_related('host', 'network', 'changed_by').all()
 
 
+class BuildingAdmin(ChangedAdmin):
+    list_display = ('number', 'name', 'abbreviation', 'vlans', 'city', 'changed_by', 'changed',)
+    list_select_related = True
+    search_fields = ('name', 'number', 'abbreviation', 'city', 'building_vlans__vlan_id')
+    list_filter = ('city', 'building_vlans__vlan_id',)
+
+    def vlans(self, obj):
+        building_vlans = [str(vlan.vlan_id) for vlan in obj.building_vlans.all()]
+        return '%s' % ' '.join(building_vlans)
+
+
+class VlanAdmin(ChangedAdmin):
+    list_display = ('vlan_id', 'name', 'changed_by', 'changed',)
+    search_fields = ('vlan_id', 'name',)
+    list_select_related = True
+    form = VlanForm
+
+
 admin.site.register(DefaultPool, DefaultPoolAdmin)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)
-admin.site.register(Vlan, ChangedAdmin)
+#admin.site.register(Vlan, ChangedAdmin)
+admin.site.register(Vlan, VlanAdmin)
+admin.site.register(Building, BuildingAdmin)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(Lease, LeaseAdmin)

@@ -231,10 +231,11 @@ class NetworkRange(models.Model):
 
 
 class Vlan(models.Model):
-    id = models.SmallIntegerField(primary_key=True)
+    vlan_id = models.SmallIntegerField()
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    changed = models.DateTimeField(null=True, blank=True)
+    buildings = models.ManyToManyField('Building', through='BuildingToVlan', related_name='building_vlans')
+    changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
@@ -255,6 +256,33 @@ class NetworkToVlan(models.Model):
 
     class Meta:
         db_table = 'networks_to_vlans'
+
+
+class Building(models.Model):
+    name = models.CharField(max_length=255, blank=True)
+    number = models.CharField(max_length=255, unique=True)
+    abbreviation = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
+    description = models.TextField()
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+    def __unicode__(self):
+        return '%s - %s' % (self.number, self.name)
+
+    class Meta:
+        db_table = 'buildings'
+
+
+class BuildingToVlan(models.Model):
+    building = models.ForeignKey('Building', db_column='building')
+    vlan = models.ForeignKey('Vlan', db_column='vlan')
+    tagged = models.BooleanField(default=False)
+    changed = models.DateTimeField(auto_now=True)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+
+    class Meta:
+        db_table = 'buildings_to_vlans'
 
 
 class Address(models.Model):
