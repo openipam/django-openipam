@@ -1,7 +1,7 @@
 {% for item in lease_data %}
   <div class="network" style="background: {{ item.style }};">
-    <p>{{ item.network }}</p>
-    <p>{{ item.utilized }}% used ({{ item.usage.available }}/{{ item.usage.dynamic }} left)</p>
+    <p class="network-address">{{ item.network }}</p>
+    <p><span class="network-usage">{{ item.utilized }}</span>% used ({{ item.usage.available }}/{{ item.usage.dynamic }} left)</p>
   </div>
   <div class="tip">
     <table>

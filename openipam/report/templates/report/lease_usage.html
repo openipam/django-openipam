@@ -44,6 +44,10 @@
         width: 700px;
         margin: 60px auto;
       }
+
+      #searchbar {
+        margin-top: 4px;
+      }
     </style>
 
     <link type="text/css" rel="stylesheet" href="{% static "qtip2/jquery.qtip.min.css" %}" />
@@ -51,13 +55,88 @@
     <script type="text/javascript" src="{% static "qtip2/jquery.qtip.min.js" %}"></script>
     {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
     <script type="text/javascript">
+      // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+      if (!String.prototype.padStart) {
+        String.prototype.padStart = function padStart(targetLength,padString) {
+          targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+          padString = String(padString || ' ');
+          if (this.length > targetLength) {
+            return String(this);
+          }
+          else {
+            targetLength = targetLength-this.length;
+            if (targetLength > padString.length) {
+              padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return padString.slice(0,targetLength) + String(this);
+          }
+        };
+      }
+    </script>
+    <script type="text/javascript">
       $(function(){
         $("#lease_usage_link").addClass('active');
         $("#charts_graphs_dropdown").addClass('active');
+        $("#header .navbar-nav.pull-right").prepend(`
+          <li class="form-inline">
+            <div class="form-group">
+              <label class="sr-only" for="search">Search</label>
+              <input type="text" class="form-control" placeholder="Search" id="searchbar">
+            </div>
+          </li>
+          <li id="sort_dropdown" class="dropdown" role="menu">
+            <a class="dropdown-toggle" href="#" data-toggle="dropdown">Sort by: <span id="sort_type">Usage</span><span class="caret"></span></a>
+            <ul id="sort_options" class="dropdown-menu">
+              <li id="sort_by_usage" class="active sort_option"><a href="#">Usage</a></li>
+              <li id="sort_by_network" class="sort_option"><a href="#">Network</a></li>
+            </ul>
+          </li>
+        `);
+
+        var filterBySearchbox = function(){
+          var filter = $("#searchbar").val().toUpperCase();
+          $("div.network").each(function(index) {
+            var addressText = this.firstElementChild.textContent.toUpperCase();
+            if (addressText.indexOf(filter) == 0 || addressText.indexOf(filter) == addressText.length - filter.length) {
+              this.style.display = "";
+            } else {
+              this.style.display = "none";
+            }
+          })
+        }
+
+        var sortBy = "usage";
+        let sortNetworks = function() {
+          let getReadableNetwork = function(networkString) {
+            let [address, mask] = networkString.split("/");
+            mask = mask.padStart(2,"0");
+            let parts = address.split(".");
+            address = "";
+            parts.forEach(function(part) {
+              address += part.padStart(3, "0");
+            });
+            return address + mask;
+          }
+          let networks = $("#usage-chart .network").sort((a, b) => {
+            let valA, valB;
+            if (sortBy == "usage") {
+              valA = parseInt($(".network-usage", a).text());
+              valB = parseInt($(".network-usage", b).text());
+              return (valA > valB) ? -1 : (valA < valB) ? 1 : 0;
+            } else {
+              valA = getReadableNetwork($(".network-address", a).text());
+              valB = getReadableNetwork($(".network-address", b).text());
+              return (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+            }
+          });
+          $("#usage-chart").append(networks);
+        }
 
         var start = new Date;
         var updatePage = function() {
-          $.get('/api/reports/leaseusage/?format=html').done(function(data){
+          // var sortByNetwork = (sortBy == "usage" ? '' : '&sort_by_network=true');
+          $.get('/api/reports/leaseusage/?format=html&network_blocks=129.123.0.0/16,144.39.0.0/16,172.16.0.0/12').done(function(data){
           	$("#usage-chart").html(data);
             $('div.network').each(function() {
               $(this).qtip({
@@ -75,6 +154,8 @@
               $("div.modal-body").html(img);
               $('#lease-graph').modal();
             });
+            sortNetworks();
+            filterBySearchbox();
           });
           start = new Date;
         }
@@ -90,6 +171,21 @@
         updatePage();
         setInterval(updateTime, 1000);
         setInterval(updatePage, 150000);
+
+        $("#searchbar").on("keyup", filterBySearchbox);
+        $("li.sort_option").on("click", function() {
+          if ($(this)[0].id == "sort_by_usage") {
+            sortBy = "usage";
+            $("#sort_type").html("Usage");
+          }
+          else {
+            sortBy = "name";
+            $("#sort_type").html("Network");
+          }
+          sortNetworks();
+          $("li.sort_option").removeClass("active");
+          $(this).addClass("active");
+        });
       });
     </script>
 {% endblock %}
