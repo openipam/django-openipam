@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
 from django import forms
 
-from openipam.log.models import HostLog, EmailLog
+from openipam.log.models import HostLog, EmailLog, DnsRecordsLog
 
 from autocomplete_light import shortcuts as al
 
@@ -100,7 +100,37 @@ class HostLogAdmin(admin.ModelAdmin):
         #Return nothing to make sure user can't update any data
         pass
 
+class DnsRecordsLogAdmin(admin.ModelAdmin):
+    list_display = ('name', 'dns_type', 'ttl', 'priority', 'ip_content', 'changed', 'nice_changed_by',)
+    search_fields = ('name', 'dns_type', 'ttl', 'priority', 'ip_content', 'changed_by__username')
+    list_select_related = True
+    readonly_fields = ('changed_by',)
+
+    def nice_changed_by(self, obj):
+        href = '<a href="%s">%s (%s)</a>'
+
+        username = obj.changed_by.username
+        if obj.changed_by.first_name and obj.changed_by.last_name:
+            full_name = obj.changed_by.get_full_name()
+        else:
+            full_name = ''
+
+        return href % (reverse_lazy('admin:user_user_change', args=[obj.changed_by.pk]), full_name, username)
+    nice_changed_by.short_description = 'Changed By'
+    nice_changed_by.allow_tags = True
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        #Return nothing to make sure user can't update any data
+        pass
+
 admin.site.disable_action('delete_selected')
 admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(HostLog, HostLogAdmin)
+admin.site.register(DnsRecordsLog, DnsRecordsLogAdmin)

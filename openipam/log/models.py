@@ -79,6 +79,24 @@ class EmailLog(models.Model):
     class Meta:
         db_table = 'email_log'
 
+class DnsRecordsLog(BaseLog):
+    id = models.IntegerField()
+    domain = models.IntegerField(db_column='did')
+    dns_type = models.IntegerField(db_column='tid')
+    dns_view = models.IntegerField(db_column='vid')
+    name = models.CharField(max_length=255)
+    text_content = models.CharField(max_length=255, blank=True, null=True)
+    ip_content = models.TextField(null=True, blank=True)
+    ttl = models.IntegerField(null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+    changed = models.DateTimeField(null=True, blank=True)
+    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+
+    class Meta:
+        managed = False
+        db_table = 'dns_records_log'
+
+
 # class AddressLog(BaseLog):
 #     address = models.GenericIPAddressField()
 #     mac = models.TextField(blank=True) # This field type is a guess.
