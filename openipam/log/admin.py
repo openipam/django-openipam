@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
 from django import forms
 
-from openipam.log.models import HostLog, EmailLog, DnsRecordsLog
+from openipam.log.models import HostLog, EmailLog, DnsRecordsLog, UserLog
 
 from autocomplete_light import shortcuts as al
 
@@ -129,8 +129,25 @@ class DnsRecordsLogAdmin(admin.ModelAdmin):
         #Return nothing to make sure user can't update any data
         pass
 
+class UserLogAdmin(admin.ModelAdmin):
+    list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'source', 'last_login')
+    search_fields = ('username', 'email')
+    list_select_related = True
+
+    def full_name(self, obj):
+        first_name = '' if obj.first_name is None else obj.first_name
+        last_name = '' if obj.last_name is None else obj.last_name
+        return '%s %s' % (first_name, last_name)
+    full_name.admin_order_field = 'last_name'
+
+    def is_ipamadmin(self, obj):
+        return obj.is_ipamadmin
+    is_ipamadmin.short_description = 'IPAM Admin Status'
+    is_ipamadmin.boolean = True
+
 admin.site.disable_action('delete_selected')
 admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(HostLog, HostLogAdmin)
 admin.site.register(DnsRecordsLog, DnsRecordsLogAdmin)
+admin.site.register(UserLog, UserLogAdmin)

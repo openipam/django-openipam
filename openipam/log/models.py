@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.safestring import mark_safe
+from django.utils.functional import cached_property
+from django.contrib.auth.models import Group
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -44,22 +46,37 @@ class PoolLog(BaseLog):
 class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
-    source = models.IntegerField()
+    source = models.ForeignKey('AuthSource', db_column='source', blank=True, null=True)
     min_permissions = models.CharField(max_length=8)
 
     password = models.CharField(max_length=128, default='!')
     last_login = models.DateTimeField(blank=True, null=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    is_ipamadmin = models.BooleanField(default=False)
+    # is_ipamadmin = models.BooleanField(default=False)
     first_name = models.CharField(max_length=255, blank=True, null=True)
     last_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=255, blank=True, null=True)
     date_joined = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
+    @cached_property
+    def is_ipamadmin(self):
+        if self.is_superuser:
+            return True
+        else:
+            group = Group.objects.get(name='ipam-admins')
+            users = [user.username for user in group.user_set.all()]
+            # assert False, users
+            return True if self.username in users else False
+
+    @cached_property
+    def full_name (self):
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
     class Meta:
-        managed = True
+        managed = False
         db_table = 'users_log'
 
 
@@ -126,3 +143,12 @@ class DnsRecordsLog(BaseLog):
 #     class Meta:
 #         managed = False
 #         db_table = 'domains_log'
+
+class AuthSource(models.Model):
+    name = models.CharField(unique=True, max_length=255, blank=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'auth_sources'
