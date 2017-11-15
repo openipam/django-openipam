@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
 from django import forms
 
-from openipam.log.models import HostLog, EmailLog, DnsRecordsLog, UserLog
+from openipam.log.models import HostLog, EmailLog, DnsRecordsLog, AddressLog, UserLog
 
 from autocomplete_light import shortcuts as al
 
@@ -129,6 +129,35 @@ class DnsRecordsLogAdmin(admin.ModelAdmin):
         #Return nothing to make sure user can't update any data
         pass
 
+class AddressLogAdmin(admin.ModelAdmin):
+    list_display = ('address', 'network', 'host', 'pool_name', 'reserved', 'nice_changed_by', 'changed',)
+    search_fields = ('address','network', 'changed_by__username',)
+    list_select_related = True
+    readonly_fields = ('changed_by',)
+
+    def nice_changed_by(self, obj):
+        href = '<a href="%s">%s (%s)</a>'
+
+        username = obj.changed_by.username
+        if obj.changed_by.first_name and obj.changed_by.last_name:
+            full_name = obj.changed_by.get_full_name()
+        else:
+            full_name = ''
+
+        return href % (reverse_lazy('admin:user_user_change', args=[obj.changed_by.pk]), full_name, username)
+    nice_changed_by.short_description = 'Changed By'
+    nice_changed_by.allow_tags = True
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        #Return nothing to make sure user can't update any data
+        pass
+
 class UserLogAdmin(admin.ModelAdmin):
     list_display = ('username', 'full_name', 'email', 'is_staff', 'is_superuser', 'is_ipamadmin', 'source', 'last_login')
     search_fields = ('username', 'email')
@@ -150,4 +179,5 @@ admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(HostLog, HostLogAdmin)
 admin.site.register(DnsRecordsLog, DnsRecordsLogAdmin)
+admin.site.register(AddressLog, AddressLogAdmin)
 admin.site.register(UserLog, UserLogAdmin)

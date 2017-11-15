@@ -2,6 +2,9 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
+
+from openipam.hosts.models import Host
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -23,6 +26,9 @@ class HostLog(BaseLog):
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+
+    def __unicode__(self):
+        return unicode(self.hostname)
 
     class Meta:
         managed = False
@@ -114,18 +120,34 @@ class DnsRecordsLog(BaseLog):
         db_table = 'dns_records_log'
 
 
-# class AddressLog(BaseLog):
-#     address = models.GenericIPAddressField()
-#     mac = models.TextField(blank=True) # This field type is a guess.
-#     pool = models.IntegerField(null=True, blank=True)
-#     reserved = models.BooleanField()
-#     network = models.TextField(blank=True) # This field type is a guess.
-#     changed = models.DateTimeField(null=True, blank=True)
-#     changed_by = models.IntegerField(null=True, blank=True)
+class AddressLog(BaseLog):
+    address = models.GenericIPAddressField()
+    mac = models.TextField(blank=True) # This field type is a guess.
+    pool = models.IntegerField()
+    reserved = models.BooleanField()
+    network = models.TextField(blank=True) # This field type is a guess.
+    changed = models.DateTimeField(null=True, blank=True)
+    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
 
-#     class Meta:
-#         managed = False
-#         db_table = 'addresses_log'
+    @cached_property
+    def pool_name(self):
+        pool = Pool.objects.filter(id=self.pool).first()
+        return pool
+
+    @cached_property
+    def host(self):
+        try:
+            host_obj = Host.objects.get(mac=self.mac)
+        except ObjectDoesNotExist:
+            host_obj = HostLog.objects.filter(mac=self.mac).order_by('-trigger_id').first()
+        return host_obj
+
+    def __unicode__(self):
+        return unicode(self.address)
+
+    class Meta:
+        managed = False
+        db_table = 'addresses_log'
 
 
 # class DomainLog(BaseLog):
