@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 
 from openipam.hosts.models import Host
+from openipam.dns.models import DnsType
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -52,7 +53,7 @@ class PoolLog(BaseLog):
 class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
-    source = models.ForeignKey('AuthSource', db_column='source', blank=True, null=True)
+    source_id = models.IntegerField(db_column='source', blank=True, null=True)
     min_permissions = models.CharField(max_length=8)
 
     password = models.CharField(max_length=128, default='!')
@@ -65,6 +66,10 @@ class UserLog(BaseLog):
     email = models.CharField(max_length=255, blank=True, null=True)
     date_joined = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+
+    @cached_property
+    def source(self):
+        return AuthSource.objects.get(self.source_id)
 
     @cached_property
     def is_ipamadmin(self):
@@ -105,7 +110,7 @@ class EmailLog(models.Model):
 class DnsRecordsLog(BaseLog):
     id = models.IntegerField()
     domain = models.IntegerField(db_column='did')
-    dns_type = models.IntegerField(db_column='tid')
+    type_id = models.IntegerField(db_column='tid')
     dns_view = models.IntegerField(db_column='vid')
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
@@ -114,6 +119,10 @@ class DnsRecordsLog(BaseLog):
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+
+    @cached_property
+    def dns_type(self):
+        return DnsType.objects.get(id=self.type_id)
 
     class Meta:
         managed = False

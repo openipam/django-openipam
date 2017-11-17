@@ -101,7 +101,7 @@ class HostLogAdmin(admin.ModelAdmin):
         pass
 
 class DnsRecordsLogAdmin(admin.ModelAdmin):
-    list_display = ('name', 'dns_type', 'ttl', 'priority', 'ip_content', 'changed', 'nice_changed_by',)
+    list_display = ('name', 'ttl', 'dns_type', 'priority', 'ip_content', 'changed', 'nice_changed_by',)
     search_fields = ('name', 'dns_type', 'ttl', 'priority', 'ip_content', 'changed_by__username')
     list_select_related = True
     readonly_fields = ('changed_by',)
