@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from openipam.hosts.models import Host
 from openipam.dns.models import DnsType
+from openipam.network.models import Pool
 
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
@@ -69,7 +70,7 @@ class UserLog(BaseLog):
 
     @cached_property
     def source(self):
-        return AuthSource.objects.get(self.source_id)
+        return AuthSource.objects.get(id=self.source_id)
 
     @cached_property
     def is_ipamadmin(self):
