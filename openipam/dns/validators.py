@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 import re
 
 #FQDN = "([0-9A-Za-z]+\.[0-9A-Za-z]+|[0-9A-Za-z]+[\-0-9A-Za-z\.]*[0-9A-Za-z])"
-FQDN = "(([a-z0-9-]+\.)?[a-z0-9][a-z0-9-]*\.)+[a-z]{2,6}"
+FQDN = "(([a-z0-9-_]+\.)?[a-z0-9][a-z0-9-]*\.)+[a-z]{2,6}"
 
 
 def validate_fqdn(value):
@@ -13,7 +13,7 @@ def validate_fqdn(value):
     '''
     re_fqdn = re.compile('(?i)^%s$' % FQDN)
     if not re_fqdn.search(value):
-        raise ValidationError('Invalid Domain Name: %s. Please use only numbers, letters, and dashes when creating domain names.' % value)
+        raise ValidationError('Invalid Domain Name: %s. Please use only numbers, lowercase letters, underscores, and dashes when creating domain names.' % value)
 
 
 def validate_srv_content(value):
