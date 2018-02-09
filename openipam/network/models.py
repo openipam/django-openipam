@@ -261,7 +261,7 @@ class NetworkToVlan(models.Model):
 class Building(models.Model):
     name = models.CharField(max_length=255, blank=True)
     number = models.CharField(max_length=255, unique=True)
-    abbreviation = models.CharField(max_length=255, blank=True)
+    abbreviation = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True)
     description = models.TextField()
     changed = models.DateTimeField(auto_now=True)
