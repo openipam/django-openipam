@@ -41,7 +41,7 @@ class Command(BaseCommand):
             if row['fields']['u_type'] == 'Building':
                 Building.objects.get_or_create(
                     name=row['fields']['u_display_name'],
-                    abbreviation=row['fields']['u_abbreviation'],
+                    abbreviation=row['fields']['u_abbreviation'] or None,
                     number=row['fields']['u_code'],
                     city=row['fields']['city'],
                     changed_by=admin,

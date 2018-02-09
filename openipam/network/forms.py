@@ -3,8 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django import forms
 
-from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup, Address, Vlan, Building
-
+from openipam.network.models import AddressType, DhcpOptionToDhcpGroup, DhcpGroup, Address, Vlan, \
+    Building, BuildingToVlan
 from autocomplete_light import shortcuts as al
 from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
 
@@ -104,8 +104,14 @@ class NetworkReziseForm(forms.Form):
 
 
 class VlanForm(forms.ModelForm):
-    buildings = forms.ModelMultipleChoiceField(queryset=Building.objects.all())
+    building_ids = forms.ModelMultipleChoiceField(label='Buildings', queryset=Building.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        super(VlanForm, self).__init__(*args, **kwargs)
+
+        if self.instance:
+            self.fields['building_ids'].initial = [bv.building_id for bv in BuildingToVlan.objects.filter(vlan=self.instance)]
 
     class Meta:
         model = Vlan
-        fields = ('vlan_id', 'name', 'description', 'buildings', 'changed_by',)
+        fields = ('vlan_id', 'name', 'description', 'building_ids', 'changed_by',)
