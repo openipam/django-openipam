@@ -308,7 +308,7 @@ class VlanAdmin(ChangedAdmin):
     form = VlanForm
 
     def save_model(self, request, obj, form, change):
-        super(ChangedAdmin, self).save_model(request, obj, form, change)
+        super(VlanAdmin, self).save_model(request, obj, form, change)
 
         obj.buildings.clear()
         buildings = form.cleaned_data['building_ids']
@@ -320,7 +320,6 @@ admin.site.register(DefaultPool, DefaultPoolAdmin)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
 admin.site.register(DhcpOption)
-#admin.site.register(Vlan, ChangedAdmin)
 admin.site.register(Vlan, VlanAdmin)
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(NetworkRange)
