@@ -239,7 +239,7 @@ class Vlan(models.Model):
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
 
     def __unicode__(self):
-        return '%s %s' % (self.id, self.name)
+        return '%s %s' % (self.vlan_id, self.name)
 
     class Meta:
         db_table = 'vlans'
