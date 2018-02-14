@@ -104,7 +104,7 @@ class NetworkReziseForm(forms.Form):
 
 
 class VlanForm(forms.ModelForm):
-    building_ids = forms.ModelMultipleChoiceField(label='Buildings', queryset=Building.objects.all())
+    building_ids = forms.ModelMultipleChoiceField(label='Buildings', queryset=Building.objects.all(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(VlanForm, self).__init__(*args, **kwargs)
