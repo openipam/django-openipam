@@ -83,7 +83,7 @@ class DnsRecordAdmin(ChangedAdmin):
 
 class DhcpDnsRecordAdmin(admin.ModelAdmin):
     list_display = ('host', 'ip_content', 'domain', 'ttl', 'changed')
-    search_fields = ('domain', 'host', 'ip_content')
+    search_fields = ('domain__name', 'host__mac', 'host__hostname', 'ip_content__address',)
     form = DhcpDnsRecordForm
 
 
