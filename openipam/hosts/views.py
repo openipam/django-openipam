@@ -516,6 +516,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 renew_hosts(request, selected_hosts)
             elif action == 'rename':
                 rename_hosts(request, selected_hosts)
+            elif action == 'rename-confirm':
+                rename_hosts(request, selected_hosts)
             elif action == 'add-attributes':
                 add_attribute_to_hosts(request, selected_hosts)
             elif action == 'delete-attributes':
@@ -866,9 +868,9 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
-                        error_list.append(error)
+                        error_list.append(str(error))
             else:
-                error_list.append(e.message)
+                error_list.append(str(e.message))
 
             pretty_print = []
             for k, v in host.items():
