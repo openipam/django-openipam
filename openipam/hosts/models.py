@@ -10,6 +10,7 @@ from django.db import connection
 from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
+from django.db.utils import DatabaseError
 
 from netfields import MACAddressField, NetManager
 
@@ -866,7 +867,10 @@ class Host(DirtyFieldsMixin, models.Model):
         self.addresses.release(user=user)
 
         # Re-save so that it captures user for postgres log table
-        self.save(user=user, add_dns=False, force_update=True)
+        try:
+            self.save(user=user, add_dns=False, force_update=True)
+        except DatabaseError:
+            pass
         super(Host, self).delete(*args, **kwargs)
 
     def clean(self):
