@@ -796,6 +796,8 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         fields = ['hostname', 'mac', 'expire_days', 'description', 'ip_address',
                   'network', 'pool', 'dhcp_group', 'user_owners', 'group_owners', ]
 
+        hosts = []
+
         if len(host) < 3:
             raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
 
@@ -811,7 +813,6 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         csv_file = form.cleaned_data['csv_file']
         lines = csv_file.read().splitlines()
         # with csv.open() as f:
-        hosts = []
         records = csv.reader(lines)
         for row in records:
             hosts.append(row)
