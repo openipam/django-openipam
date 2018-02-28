@@ -187,6 +187,7 @@ INSTALLED_APPS = (
     'django_nvd3',
     'django_extensions',
     'widget_tweaks',
+    'django_filters',
     'crispy_forms',
     'autocomplete_light',
     'rest_framework',
