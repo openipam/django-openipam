@@ -26,6 +26,8 @@ from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermi
 
 from guardian.shortcuts import assign_perm, remove_perm
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 User = get_user_model()
 
 
@@ -63,7 +65,7 @@ class HostList(generics.ListAPIView):
     )
     serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = HostFilter
     ordering_fields = ('expires', 'changed')
     ordering = ('expires',)
@@ -365,7 +367,7 @@ class AttributeList(generics.ListAPIView):
 class StructuredAttributeValueList(generics.ListAPIView):
     serializer_class = host_serializers.StructuredAttributeValueListSerializer
     queryset = StructuredAttributeValue.objects.select_related().all()
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,)
     filter_fields = ('attribute__name', 'value', 'attribute')
 
 
@@ -495,7 +497,7 @@ class DisabledHostList(generics.ListCreateAPIView):
         .extra(select={'hostname': 'SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac'})
         .all()
     )
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,)
     filter_fields = ('changed_by__username',)
 
 

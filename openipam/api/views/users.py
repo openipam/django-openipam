@@ -7,6 +7,8 @@ from rest_framework import filters
 from rest_framework import permissions
 from rest_framework.response import Response
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from openipam.api.permissions import IPAMAPIAdminPermission
 from openipam.api.serializers.users import UserSerializer, GroupSerializer
 
@@ -17,7 +19,7 @@ class UserList(generics.ListAPIView):
     queryset = User.objects.prefetch_related('user_permissions').all()
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = UserSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,)
     filter_fields = ('groups__name', 'username', 'email',)
 
 
@@ -25,7 +27,7 @@ class GroupList(generics.ListAPIView):
     queryset = Group.objects.all()
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = GroupSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend,)
     filter_fields = ('name',)
 
 
