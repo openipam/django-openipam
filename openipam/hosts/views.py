@@ -752,9 +752,9 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
                     for error in errors:
-                        error_list.append(error)
+                        error_list.append(str(error))
             else:
-                error_list.append(e.message)
+                error_list.append(str(e.message))
 
             error_list.append('Please try again.')
             messages.error(request, mark_safe('<br />'.join(error_list)))
@@ -796,8 +796,6 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         fields = ['hostname', 'mac', 'expire_days', 'description', 'ip_address',
                   'network', 'pool', 'dhcp_group', 'user_owners', 'group_owners', ]
 
-        hosts = []
-
         if len(host) < 3:
             raise ValidationError('CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.')
 
@@ -810,6 +808,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         return host_vals
 
     def form_valid(self, form):
+        hosts = []
         csv_file = form.cleaned_data['csv_file']
         lines = csv_file.read().splitlines()
         # with csv.open() as f:
@@ -821,6 +820,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         required_fields = ['hostname', 'mac', 'expire_days', ]
 
         error_list = []
+        host = {}
         try:
             with transaction.atomic():
                 for i in range(len(hosts)):
@@ -863,7 +863,8 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         )
                     except Exception, e:
                         error_list.append('Error adding host from row %s' % (i + 1))
-                        raise
+                        error_list.append(str(e))
+                        raise ValidationError
 
         except ValidationError as e:
             if hasattr(e, 'error_dict'):
