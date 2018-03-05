@@ -130,7 +130,7 @@ class NetworkAdmin(ChangedAdmin):
             existing_addresses = [address.address for address in Address.objects.filter(address__net_contained_or_equal=obj)]
 
             if existing_addresses:
-                raise ValidationError('Addresses already exist!  Please remove or reassign. %s' % existing_addresses.split(','))
+                raise ValidationError('Addresses already exist!  Please remove or reassign. %s' % ','.join(str(e) for e in existing_addresses))
 
             for address in obj.network:
                 reserved = False

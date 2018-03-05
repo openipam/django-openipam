@@ -76,7 +76,7 @@ class NetworkQuerySet(QuerySet):
         assigned_ranges = NetworkRange.objects.filter(address_ranges__isnull=False)
 
         # Get specific ranges on a address
-        net_range = address_type.ranges.all()
+        net_range = address_type.ranges.all() if address_type else None
 
         # Try and get from default ranges
         if address_type.is_default:

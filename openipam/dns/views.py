@@ -109,7 +109,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 if name_search.startswith('~'):
                     qs = qs.filter(name__iregex=name_search[1:]).distinct()
                 else:
-                    qs = qs.filter(name__startswith=name_search.lower()).distinct()
+                    qs = qs.filter(name__icontains=name_search.lower()).distinct()
             if type_search:
                 qs = qs.filter(dns_type=type_search)
             if content_search:
