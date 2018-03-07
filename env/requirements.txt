@@ -30,14 +30,14 @@ six==1.10.0
 ## EXCLUDE FROM DOCKER ##
 
 # Packages that may be installed via apt-get
-python-ldap==2.4.27
-psycopg2==2.7.4
-psycopg2-binary==2.7.4
-MySQL-python==1.2.5
+#python-ldap==2.4.27
+#psycopg2==2.7.4
+#psycopg2-binary==2.7.4
+#MySQL-python==1.2.5
 
 # Local Packages Only
-Fabric==1.14.0
-coverage==4.5.1
-ipython==5.5.0
-pip-review==1.0
-pipdeptree==0.11.0
+#Fabric==1.14.0
+#coverage==4.5.1
+#ipython==5.5.0
+#pip-review==1.0
+#pipdeptree==0.11.0
