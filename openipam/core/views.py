@@ -227,7 +227,7 @@ def page_error(request, template_name, extra_context=None):
     }
     if extra_context:
         context.update(extra_context)
-    body = template.render(RequestContext(request, context))
+    body = template.render(context)
     return HttpResponseNotFound(body, content_type='text/html')
 
 
