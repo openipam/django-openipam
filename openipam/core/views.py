@@ -1,4 +1,4 @@
-#from django.contrib.auth.views import login as auth_login, logout as auth_logout
+# from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
@@ -8,7 +8,7 @@ from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
 from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
-from django.template import RequestContext, loader
+from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_unicode
 from django.contrib.auth import get_user_model
@@ -227,7 +227,7 @@ def page_error(request, template_name, extra_context=None):
     }
     if extra_context:
         context.update(extra_context)
-    body = template.render(context)
+    body = template.render(context, request)
     return HttpResponseNotFound(body, content_type='text/html')
 
 
@@ -380,7 +380,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
             ann_kargs = {
                 sortcol + '_foo': Count(sortcol)
             }
-            #qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
+            # qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
             order.append('%s%s' % (sdir, sortcol))
 
         if order:
