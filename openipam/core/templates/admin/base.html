@@ -6,6 +6,10 @@
 
         <link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}">
         <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
+        
+        <link rel="icon" type="image/png" href="{% static "core/img/favicon-32x32.png" %}" sizes="32x32" />
+        <link rel="icon" type="image/png" href="{% static "core/img/favicon-16x16.png" %}" sizes="16x16" />
+
         {% block extrastyle %}{% endblock %}
 
         {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}

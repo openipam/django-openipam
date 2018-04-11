@@ -113,6 +113,7 @@ TEMPLATES = [
         ],
         # 'APP_DIRS': True,
         'OPTIONS': {
+            'debug' : DEBUG,
             'context_processors': [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -256,7 +257,7 @@ LOGIN_EXEMPT_URLS = (
 )
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = reverse_lazy('index')
-LOGOUT_URL = reverse_lazy('django.contrib.auth.views.logout')
+LOGOUT_URL = reverse_lazy('logout')
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 25,
