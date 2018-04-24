@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils.encoding import force_unicode
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from rest_framework import serializers
 
@@ -260,7 +261,8 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 if host_exists[0].is_disabled:
                     raise serializers.ValidationError('The mac address %s cannot be added because it is currently disabled.' % host_exists[0].hostname)
                 else:
-                    host_exists[0].delete(user=self.context['request'].user)
+                    with transaction.atomic():
+                        host_exists[0].delete(user=self.context['request'].user)
             else:
                 raise serializers.ValidationError('The mac address entered already exists for host: %s.' % host_exists[0].hostname)
         return value
