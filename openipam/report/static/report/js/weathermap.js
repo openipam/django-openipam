@@ -220,7 +220,7 @@ function updateUtil(url, refresh, timeSelector) {
         e.attr('data-subtract-links').split(',').forEach(function(circuit) { links[circuit.replace(/\.reverse$/,'')] = true; });
     }
     });
-    d3.json(url + "/" + Object.keys(links).join(','), function(data) {
+    d3.json(url, function(data) {
     var updated,
         links = Object.keys(data || {});
 
@@ -405,17 +405,31 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             }
         });
 
-        sites.sort();
-        remoteSites.sort();
+        // Sort by abbrevName
+        let compareSites = (a, b) => {
+            let nameA = config.circuits[a].abbrevName,
+                nameB = config.circuits[b].abbrevName;
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            return 0;
+        }
+
+        sites.sort(compareSites);
+        remoteSites.sort(compareSites);
         sites = sites.concat(remoteSites);
 
         for (let i = 0; i < sites.length; i++) {
             const site = sites[i];
+            const buildingName = config.circuits[site].abbrevName;
             const buildingNum = config.circuits[site].buildingNum;
-            const siteName = buildingNum ? `${site}-${buildingNum}` : site
+            const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site
             $("#sites").append(`<div class="site" id="${site}"><p>${siteName}</p></div>`);
             config.circuits[site].connections.forEach(function(connection){
-                $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + site + "-" + connection +'"></div>');
+                $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + buildingName + "-" + connection +'"></div>');
             });
         }
 
@@ -436,7 +450,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         });
 
         if (circuits.length > 0) {
-            d3.json(config.utilizationURL + '/' + circuits.join(','), function(data) {
+            d3.json(config.utilizationURL, function(data) {
         		links = Object.keys(data || {});
 
         		links.forEach(function(circuit) {

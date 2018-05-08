@@ -21,6 +21,7 @@ from openipam.report.models import Ports, database as observium_db
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
+from openipam.conf.settings import get_buildingmap_data
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
@@ -294,7 +295,7 @@ class WeatherMapView(APIView):
         observium_db.connect()
 
         if request.query_params.get('buildings', False):
-            data = OrderedDict(copy.deepcopy(CONFIG.get('BUILDINGMAP_DATA').get('data')))
+            data = OrderedDict(copy.deepcopy(get_buildingmap_data().get('data')))
         else:
             data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
 
@@ -452,6 +453,6 @@ def weathermap_config(request):
 @permission_classes((AllowAny,))
 @renderer_classes((JSONRenderer,))
 def buildingmap_config(request):
-    data = copy.deepcopy(CONFIG.get('BUILDINGMAP_DATA').get('config'))
+    data = copy.deepcopy(get_buildingmap_data().get('config'))
 
     return Response(data)

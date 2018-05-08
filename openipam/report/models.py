@@ -95,6 +95,12 @@ class Ports(BaseModel):
         db_table = 'ports'
 
 
+class Devices(BaseModel):
+    device = PrimaryKeyField(db_column='device_id')
+    sysname = CharField(db_column='sysName')
+    class Meta:
+        db_table = 'devices'
+
 # class Portsstate(BaseModel):
 #     port = PrimaryKeyField(db_column='port_id')
 

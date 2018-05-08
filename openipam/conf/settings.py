@@ -6,6 +6,9 @@ import socket
 import datetime
 import os
 
+# Returns basic building map data. Overwritten in local_settings to get data dynamically.
+def get_buildingmap_data():
+    return OPENIPAM['BUILDINGMAP_DATA']
 
 DEBUG = True
 
