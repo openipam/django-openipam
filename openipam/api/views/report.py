@@ -294,6 +294,16 @@ class WeatherMapView(APIView):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
         observium_db.connect()
 
+        result = False
+
+        try:
+            result = self._get(request, format, **kwargs)
+        finally:
+            observium_db.close()
+
+        return result
+
+    def _get(self, request, format=None, **kwargs):
         if request.query_params.get('buildings', False):
             data = OrderedDict(copy.deepcopy(get_buildingmap_data().get('data')))
         else:
@@ -320,9 +330,6 @@ class WeatherMapView(APIView):
             del value['id']
 
         data["timestamp"] = int(datetime.now().strftime('%s'))
-
-        if not observium_db.is_closed():
-            observium_db.close()
 
         return Response(data, status=status.HTTP_200_OK)
 
