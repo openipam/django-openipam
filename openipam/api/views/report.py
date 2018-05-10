@@ -27,6 +27,8 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import copy
 
+import threading
+
 import qsstats
 
 import operator
@@ -290,16 +292,20 @@ class WeatherMapView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer,)
 
-    def get(self, request, format=None, **kwargs):
-        # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
-        observium_db.connect()
+    # peewee + mysql kind of sucks... hack around threading issues
+    db_lock = threading.Lock()
 
+    def get(self, request, format=None, **kwargs):
         result = False
 
-        try:
-            result = self._get(request, format, **kwargs)
-        finally:
-            observium_db.close()
+        with self.db_lock:
+            # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
+            observium_db.connect()
+
+            try:
+                result = self._get(request, format, **kwargs)
+            finally:
+                observium_db.close()
 
         return result
 
