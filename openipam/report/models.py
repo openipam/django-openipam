@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
 from peewee import *
-import threading
-
 
 database = MySQLDatabase(
     'librenms', **{
