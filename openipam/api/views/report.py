@@ -18,6 +18,7 @@ from django.utils import timezone
 
 from openipam.hosts.models import Host
 from openipam.report.models import Ports, database as observium_db
+from openipam.report.models import database_connect, database_close
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
@@ -292,14 +293,14 @@ class WeatherMapView(APIView):
 
     def get(self, request, format=None, **kwargs):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
-        observium_db.connect()
+        database_connect()
 
         result = False
 
         try:
             result = self._get(request, format, **kwargs)
         finally:
-            observium_db.close()
+            database_close()
 
         return result
 
