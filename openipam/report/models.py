@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from peewee import *
+from peewee import MySQLDatabase, Model, IntegerField, CharField, BigIntegerField,PrimaryKeyField, DateTimeField
 
 
 database = MySQLDatabase(
