@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from peewee import *
 
-
 database = MySQLDatabase(
     'librenms', **{
         'passwd': settings.OBSERVIUM_AUTH[1],
@@ -11,6 +10,24 @@ database = MySQLDatabase(
     }
 )
 
+db_ref_count = 0
+
+def database_connect():
+    try:
+        if db_ref_count == 0:
+            database.connect()
+    finally:
+        db_ref_count += 1
+
+def database_close():
+    try:
+        if db_ref_count == 1:
+            database.close()
+    finally:
+        db_ref_count -= 1
+
+    if db_ref_count < 0:
+        raise Exception("Database closed when not connected.")
 
 class UnknownField(object):
     pass
