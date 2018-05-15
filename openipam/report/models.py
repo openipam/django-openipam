@@ -11,6 +11,26 @@ database = MySQLDatabase(
     }
 )
 
+db_ref_count = 0
+
+def database_connect():
+    global db_ref_count
+    try:
+        if db_ref_count == 0:
+            database.connect()
+    finally:
+        db_ref_count += 1
+
+def database_close():
+    global db_ref_count
+    try:
+        if db_ref_count == 1:
+            database.close()
+    finally:
+        db_ref_count -= 1
+
+    if db_ref_count < 0:
+        raise Exception("Database closed when not connected.")
 
 class UnknownField(object):
     pass

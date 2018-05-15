@@ -429,7 +429,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site
             $("#sites").append(`<div class="site" id="${site}"><p>${siteName}</p></div>`);
             config.circuits[site].connections.forEach(function(connection){
-                $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + buildingName + "-" + connection +'"></div>');
+                $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + (buildingNum || buildingName) + "-" + connection +'"></div>');
             });
         }
 
@@ -456,7 +456,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         		links.forEach(function(circuit) {
         		    if (circuit == 'timestamp') return;
 
-        		    var e = d3.select('div.circuit[data-circuit=' + circuit + ']');
+        		    var e = d3.select('div.circuit[data-circuit="' + circuit + '"]');
         		    if (e.empty()) return;
 
         		    var clone = document.importNode(document.querySelector('#arrow').content, true);
