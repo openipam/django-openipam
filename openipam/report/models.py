@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from peewee import *
+from peewee import MySQLDatabase, Model, IntegerField, CharField, BigIntegerField,PrimaryKeyField, DateTimeField
 
 database = MySQLDatabase(
     'librenms', **{
@@ -13,6 +13,7 @@ database = MySQLDatabase(
 db_ref_count = 0
 
 def database_connect():
+    global db_ref_count
     try:
         if db_ref_count == 0:
             database.connect()
@@ -20,6 +21,7 @@ def database_connect():
         db_ref_count += 1
 
 def database_close():
+    global db_ref_count
     try:
         if db_ref_count == 1:
             database.close()
