@@ -426,8 +426,15 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             const site = sites[i];
             const buildingName = config.circuits[site].abbrevName;
             const buildingNum = config.circuits[site].buildingNum;
+
+            // Only show tooltip on buildingmap
+            let tooltip = '';
+            if (config.circuits[site].buildingName) {
+                tooltip = ` data-toggle="tooltip" data-placement="bottom" title="${config.circuits[site].buildingName}"`
+            }
+
             const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site
-            $("#sites").append(`<div class="site" id="${site}"><p>${siteName}</p></div>`);
+            $("#sites").append(`<div class="site" id="${site}"><p${tooltip}>${siteName}</p></div>`);
             config.circuits[site].connections.forEach(function(connection){
                 $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + (buildingNum || buildingName) + "-" + connection +'"></div>');
             });
