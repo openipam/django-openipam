@@ -93,7 +93,7 @@ input {
 
 }
 
-@media screen and (max-width: 810px) {
+@media screen and (max-width: 930px) {
     .paginate_button:not(.first):not(.previous):not(.next):not(.last) {
         display: none;
     }
@@ -118,12 +118,7 @@ input {
     }
 }
 
-@media screen and (max-width: 900px) {
-    #result_list td:nth-child(9),
-    #result_list th:nth-child(9) {
-        display: none;
-    }
-}
+
 
 @media screen and (max-width: 980px) {
     #id_search {
@@ -131,5 +126,9 @@ input {
     }
     #host-action {
         width: 200px !important;
+    }
+    #result_list td:nth-child(9),
+    #result_list th:nth-child(9) {
+        display: none;
     }
 }
