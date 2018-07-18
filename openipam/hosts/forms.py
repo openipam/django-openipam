@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
 
-from openipam.network.models import Address, AddressType, Network, NetworkRange
+from openipam.network.models import Address, AddressType, Network, NetworkRange, DhcpGroup
 from openipam.hosts.validators import validate_hostname, validate_csv_file
 from openipam.hosts.models import Host, ExpirationType, Attribute, StructuredAttributeValue, \
     FreeformAttributeToHost, StructuredAttributeToHost, Disabled
@@ -637,3 +637,7 @@ class HostDisableForm(forms.ModelForm):
     class Meta:
         Model = Disabled
         fields = ('host_mac', 'reason',)
+
+
+class HostDhcpGroupForm(forms.Form):
+    dhcp_group = forms.ModelChoiceField(queryset=DhcpGroup.objects.all())

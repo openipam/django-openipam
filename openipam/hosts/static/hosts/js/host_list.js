@@ -519,6 +519,15 @@ $(function(){
 			else if (action == 'delete-attributes') {
 				$('#host-delete-attributes').modal();
 			}
+			else if (action == 'set-dhcpgroup') {
+				$('#host-set-dhcpgroup').modal();
+			}
+			else if (action == 'delete-dhcpgroup') {
+				var res = confirm("Are you sure you want delete the DCHP group on the selected hosts?")
+				if (res == true) {
+					return true;
+				}
+			}
 		}
 		else {
 			alert('Please select one or more hosts to perform this action.')
