@@ -69,6 +69,11 @@
 								<option value="">--ATTRIBUTES--</option>
 								<option value="add-attributes">Add Attribute on selected hosts</option>
 								<option value="delete-attributes">Delete Attribute on selected hosts</option>
+								{% if user.is_superuser %}
+								<option value="">--DHCP GROUP--</option>
+								<option value="set-dhcpgroup">Set DHCP Group on selected hosts</option>
+								<option value="delete-dhcpgroup">Delete DHCP Group on selected hosts</option>
+								{% endif %}
 							</select>
 							<button id="action-submit" type="submit" class="btn btn-default" title="{% trans "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
 								<span class="glyphicon glyphicon-play"></span>
@@ -333,6 +338,24 @@
 						</div>
 						<div class="modal-body">
 							{{ attribute_delete_from|crispy }}
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-primary" type="submit">Save</button>
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="host-set-dhcpgroup" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title" id="host-detail-label">DHCP Group for selected hosts </h3>
+						</div>
+						<div class="modal-body">
+							{{ dhcp_group_form|crispy }}
 						</div>
 						<div class="modal-footer">
 							<button class="btn btn-primary" type="submit">Save</button>

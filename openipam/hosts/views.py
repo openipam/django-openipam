@@ -27,11 +27,11 @@ from django.forms.utils import ErrorList, ErrorDict
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import HostForm, HostOwnerForm, HostRenewForm, HostBulkCreateForm, HostAttributesCreateForm, \
-    HostAttributesDeleteForm, HostRenameForm
+    HostAttributesDeleteForm, HostRenameForm, HostDhcpGroupForm
 from openipam.hosts.models import Host, Disabled
 from openipam.network.models import AddressType, Address, Network
 from openipam.hosts.actions import delete_hosts, renew_hosts, assign_owner_hosts, remove_owner_hosts, add_attribute_to_hosts, \
-    delete_attribute_from_host, populate_primary_dns, export_csv, rename_hosts
+    delete_attribute_from_host, populate_primary_dns, export_csv, rename_hosts, set_dhcp_group_on_host, delete_dhcp_group_on_host
 from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
@@ -482,6 +482,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context['renew_form'] = HostRenewForm(user=self.request.user)
         context['rename_form'] = HostRenameForm()
         context['attribute_add_from'] = HostAttributesCreateForm()
+        context['dhcp_group_form'] = HostDhcpGroupForm()
         context['attribute_delete_from'] = HostAttributesDeleteForm()
 
         return context
@@ -522,6 +523,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 add_attribute_to_hosts(request, selected_hosts)
             elif action == 'delete-attributes':
                 delete_attribute_from_host(request, selected_hosts)
+            elif action == 'set-dhcpgroup':
+                set_dhcp_group_on_host(request, selected_hosts)
+            elif action == 'delete-dhcpgroup':
+                delete_dhcp_group_on_host(request, selected_hosts)
 
         if response:
             return response

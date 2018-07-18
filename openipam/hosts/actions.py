@@ -10,7 +10,7 @@ from django.db.models import Q
 
 from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm, \
-    HostRenameForm
+    HostRenameForm, HostDhcpGroupForm
 
 import csv
 import re
@@ -277,6 +277,65 @@ def delete_attribute_from_host(request, selected_hosts):
                         attribute=attribute,
                     ).delete()
             messages.success(request, "Attributes for selected hosts have been deleted.")
+
+
+def set_dhcp_group_on_host(request, selected_hosts):
+    user = request.user
+
+    # Must super user access (for now)
+    if not user.is_superuser:
+        messages.error(request, "You do not have permissions to perform this action one or more of the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        dhcp_group_form = HostDhcpGroupForm(data=request.POST)
+
+        if dhcp_group_form.is_valid():
+            for host in selected_hosts:
+                host.dhcp_group = dhcp_group_form.cleaned_data['dhcp_group']
+                host.save(user=user)
+
+                LogEntry.objects.log_action(
+                    user_id=request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                    object_id=host.pk,
+                    object_repr=force_unicode(host),
+                    action_flag=CHANGE,
+                    change_message='DHCP Group set.'
+                )
+
+            messages.success(request, "DHCP Groups for selected hosts have been set.")
+
+        else:
+            error_list = []
+            for key, errors in dhcp_group_form.errors.items():
+                for error in errors:
+                    error_list.append(error)
+            messages.error(request, mark_safe("There was an error setting the DHCP group to the selected hosts. "
+                    "<br/>%s" % '<br />'.join(error_list)))
+
+
+def delete_dhcp_group_on_host(request, selected_hosts):
+    user = request.user
+
+    # Must super user access (for now)
+    if not user.is_superuser:
+        messages.error(request, "You do not have permissions to perform this action one or more of the selected hosts. "
+                       "Please contact an IPAM administrator.")
+    else:
+        for host in selected_hosts:
+            host.dhcp_group = None
+            host.save(user=user)
+
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(host).pk,
+                object_id=host.pk,
+                object_repr=force_unicode(host),
+                action_flag=CHANGE,
+                change_message='DHCP Group deleted.'
+            )
+
+        messages.success(request, "DHCP Groups for selected hosts have been deleted.")
 
 
 def populate_primary_dns(request, selected_hosts):
