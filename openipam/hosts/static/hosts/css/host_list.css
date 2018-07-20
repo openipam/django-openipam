@@ -74,6 +74,27 @@ input {
     padding: 5px;
 }
 
+@media screen and (max-width: 400px) {
+    #result_list {
+        table-layout: fixed;
+    }
+    #result_list>thead th:first-child {
+        width: 14%;
+    }
+    #result_list>thead th:last-child {
+        width: 12%;
+    }
+    div.dataTables_length select {
+        width: 65px;
+    }
+    .paginator.fixed div {
+        margin: 5px;
+    }
+    .pagination>li>a, .pagination>li>span {
+        padding: 5px 10px;
+    }
+}
+
 @media screen and (max-width: 600px) {
     #changelist-search {
         float: left !important;
