@@ -617,7 +617,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         return address
 
-    def delete_dns_records(self, user=None, delete_only_master_dsn=False, delete_dchpdns=True, addresses=[]):
+    def delete_dns_records(self, user=None, delete_only_master_dns=False, delete_dchpdns=True, addresses=[]):
         from openipam.dns.models import DnsType
         user = user or self._user
         if not user:
@@ -630,11 +630,12 @@ class Host(DirtyFieldsMixin, models.Model):
             if not addresses:
                 addresses = self.addresses.filter(address=self.master_ip_address)
 
-            if delete_only_master_dsn:
+            if delete_only_master_dns:
                 # Here we only delete the master DNS (A and PTR) record
                 # If modifying a host, this will get recreated later in the call.
                 self.dns_records.filter(
-                    host=self, dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    host=self,
+                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
@@ -646,14 +647,14 @@ class Host(DirtyFieldsMixin, models.Model):
                 # using the FK.
                 # Update Changed by Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-                    Q(ip_content__in=[address for address in addresses]),
+                    Q(name=self.original_hostname) |
+                    Q(text_content=self.original_hostname),
                     dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-                    Q(ip_content__in=[address for address in addresses]),
+                    Q(name=self.original_hostname) |
+                    Q(text_content=self.original_hostname),
                     dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).delete()
 
@@ -763,7 +764,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         self.hostname = hostname
         if self.original_hostname and self.hostname and self.hostname != self.original_hostname:
-            self.delete_dns_records(user=user, delete_only_master_dsn=True)
+            self.delete_dns_records(user=user, delete_only_master_dns=True)
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
