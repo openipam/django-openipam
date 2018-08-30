@@ -634,12 +634,15 @@ class Host(DirtyFieldsMixin, models.Model):
                 # Here we only delete the master DNS (A and PTR) record
                 # If modifying a host, this will get recreated later in the call.
                 self.dns_records.filter(
-                    host=self,
+                    Q(name=self.original_hostname) |
+                    Q(text_content=self.original_hostname),
                     dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    host=self, dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    Q(name=self.original_hostname) |
+                    Q(text_content=self.original_hostname),
+                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).delete()
             else:
                 # TODO: There is a foreign key for host on this table but we cant use it
@@ -647,14 +650,14 @@ class Host(DirtyFieldsMixin, models.Model):
                 # using the FK.
                 # Update Changed by Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name=self.original_hostname) |
-                    Q(text_content=self.original_hostname),
+                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+                    Q(ip_content__in=[address for address in addresses]),
                     dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name=self.original_hostname) |
-                    Q(text_content=self.original_hostname),
+                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
+                    Q(ip_content__in=[address for address in addresses]),
                     dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
                 ).delete()
 
