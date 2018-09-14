@@ -394,7 +394,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             $("#circuits-container").attr("transform", container.scale);
         }
 
-        $("#circuits-container").append('<div class="flex-grid" id="sites"></div>');
+        $("#circuits-container").append('<div class="" id="sites"></div>');
 
         let sites = [], remoteSites = [];
         Object.keys(config.circuits).forEach(function(site){
@@ -421,6 +421,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         sites.sort(compareSites);
         remoteSites.sort(compareSites);
         sites = sites.concat(remoteSites);
+        let sortOrder = JSON.parse(localStorage.getItem('customSortOrder'));
 
         for (let i = 0; i < sites.length; i++) {
             const site = sites[i];
@@ -430,15 +431,21 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             // Only show tooltip on buildingmap
             let tooltip = '';
             if (config.circuits[site].buildingName) {
-                tooltip = ` data-toggle="tooltip" data-placement="bottom" title="${config.circuits[site].buildingName}"`
+                tooltip = ` class="site-title" data-toggle="tooltip" data-placement="bottom" title="${config.circuits[site].buildingName}"`;
             }
 
-            const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site
-            $("#sites").append(`<div class="site" id="${site}"><p${tooltip}>${siteName}</p></div>`);
+            const sortIndex = sortOrder ? sortOrder.indexOf(site) : i;
+
+            const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site;
+            let remote = config.circuits[site].remote;
+            $("#sites").append(`<div class="site${remote? ' remote': ''}" id="${site}" data-sort="${sortIndex}"><p${tooltip}>${siteName}</p></div>`);
             config.circuits[site].connections.forEach(function(connection){
                 $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + (buildingNum || buildingName) + "-" + connection +'"></div>');
             });
         }
+
+        let sitesAddedEvent = new Event('sitesAdded');
+        document.dispatchEvent(sitesAddedEvent);
 
         // All lines are same width
         var bandwidths = { '-all': 1 };
