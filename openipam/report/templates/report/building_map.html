@@ -94,6 +94,7 @@
             $("li.sort_option").on("click", function () {
                 let sortType = $(this)[0].id;
                 let sortFunc;
+                $("#sites").sortable("disable");
                 if (sortType == "sort_by_name") {
                     $("#sort_type").html("Name");
                     sortFunc = nameSorting;
@@ -105,6 +106,7 @@
                     sortFunc = defaultSorting;
                 } else {
                     $("#sort_type").html("Custom");
+                    $("#sites").sortable("option", "disabled", false)
                     setSortAttributes();
                     sortFunc = customSorting;
                 }
@@ -118,6 +120,7 @@
                     handle: '.site-title'
                 });
                 $('#sites').on('sortstop', saveCustomSortOrder);
+                $('#sites').sortable("disable");
             });
         });
     </script>

@@ -45,6 +45,7 @@ div.site	{
 div.site.ui-sortable-helper {
 	background: #111;
 	border-radius: 10px;
+	border: 1px solid #333;
 }
 
 div.circuit .label {
