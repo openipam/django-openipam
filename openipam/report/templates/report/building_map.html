@@ -25,13 +25,14 @@
                         <li id="sort_by_default" class="active sort_option"><a href="#">Default</a></li>
                         <li id="sort_by_name" class="sort_option"><a href="#">Name</a></li>
                         <li id="sort_by_num" class="sort_option"><a href="#">Building Number</a></li>
-                        <li id="sort_by_label" class="sort_option"><a href="#">Custom</a></li>
+                        <li id="sort_by_custom" class="sort_option"><a href="#">Custom</a></li>
                     </ul>
                 </li>
             `);
-
+            const userSettings = JSON.parse(localStorage.getItem('buildingmap_userSettings')) || {};
+            userSettings.lastSortType = userSettings.lastSortType || 'sort_by_default';
             let setSortAttributes = () => {
-                let sortOrder = JSON.parse(localStorage.getItem('customSortOrder'));
+                let sortOrder = userSettings.sortOrder;
                 for (let i = 0; i < sortOrder.length; i++) {
                     let siteID = sortOrder[i];
                     $(`#${siteID}`).attr('data-sort', i);
@@ -52,7 +53,8 @@
 
             let saveCustomSortOrder = (e, ui) => {
                 let sortOrder = $('#sites').sortable('toArray');
-                localStorage.setItem('customSortOrder', JSON.stringify(sortOrder));
+                userSettings.sortOrder = sortOrder;
+                localStorage.setItem('buildingmap_userSettings', JSON.stringify(userSettings));
             };
 
             let compare = (valA, valB) => {
@@ -90,9 +92,7 @@
                 return compare(valA, valB);
             };
 
-            $('#searchbar').on('keyup', filterBySearchbox);
-            $("li.sort_option").on("click", function () {
-                let sortType = $(this)[0].id;
+            function sortBuildings(sortType) {
                 let sortFunc;
                 $("#sites").sortable("disable");
                 if (sortType == "sort_by_name") {
@@ -109,11 +109,20 @@
                     $("#sites").sortable("option", "disabled", false)
                     setSortAttributes();
                     sortFunc = customSorting;
+                    console.log(sortType);
                 }
+                userSettings.lastSortType = sortType;
+                localStorage.setItem("buildingmap_userSettings", JSON.stringify(userSettings));
                 let sortedSites = $('#sites .site').sort(sortFunc);
                 $('#sites').append(sortedSites);
                 $("li.sort_option").removeClass("active");
                 $(this).addClass("active");
+            }
+
+            $('#searchbar').on('keyup', filterBySearchbox);
+            $("li.sort_option").on("click", function () {
+                let sortType = $(this)[0].id;
+                sortBuildings(sortType);
             });
             document.addEventListener('sitesAdded', (e) => {
                 $('#sites').sortable({
@@ -121,6 +130,7 @@
                 });
                 $('#sites').on('sortstop', saveCustomSortOrder);
                 $('#sites').sortable("disable");
+                sortBuildings(userSettings.lastSortType);
             });
         });
     </script>

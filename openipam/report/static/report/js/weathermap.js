@@ -421,7 +421,8 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
         sites.sort(compareSites);
         remoteSites.sort(compareSites);
         sites = sites.concat(remoteSites);
-        let sortOrder = JSON.parse(localStorage.getItem('customSortOrder'));
+        const userSettings = JSON.parse(localStorage.getItem('buildingmap_userSettings')) || {};
+        let sortOrder = userSettings.sortOrder;
 
         for (let i = 0; i < sites.length; i++) {
             const site = sites[i];
@@ -444,6 +445,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             });
         }
 
+        $('#map foreignObject').attr('height', Math.ceil(sites.length/12) * 147);
         let sitesAddedEvent = new Event('sitesAdded');
         document.dispatchEvent(sitesAddedEvent);
 
