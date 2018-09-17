@@ -42,7 +42,8 @@
             let filterBySearchbox = function () {
                 let filter = $("#searchbar").val().toUpperCase();
                 $("div.site").each(function (index) {
-                    let addressText = this.firstElementChild.textContent.toUpperCase();
+                    let titleElement = $("p", this);
+                    let addressText = titleElement.text().toUpperCase() + " " + titleElement.attr('title').toUpperCase();
                     if (addressText.indexOf(filter) >= 0) {
                         this.style.display = '';
                     } else {
