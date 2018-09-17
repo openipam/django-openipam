@@ -32,7 +32,7 @@
             const userSettings = JSON.parse(localStorage.getItem('buildingmap_userSettings')) || {};
             userSettings.lastSortType = userSettings.lastSortType || 'sort_by_default';
             let setSortAttributes = () => {
-                let sortOrder = userSettings.sortOrder;
+                let sortOrder = userSettings.sortOrder || [];
                 for (let i = 0; i < sortOrder.length; i++) {
                     let siteID = sortOrder[i];
                     $(`#${siteID}`).attr('data-sort', i);
@@ -86,8 +86,8 @@
                 let valA = a.id;
                 let valB = b.id;
 
-                if (re.test(valA)) valA = valA.padStart(5, '0');
-                if (re.test(valB)) valB = valB.padStart(5, '0');
+                if (re.test(valA)) valA = '0' + valA;
+                if (re.test(valB)) valB = '0' + valB;
 
                 return compare(valA, valB);
             };
@@ -95,6 +95,7 @@
             function sortBuildings(sortType) {
                 let sortFunc;
                 $("#sites").sortable("disable");
+                $(".move-handle").hide();
                 if (sortType == "sort_by_name") {
                     $("#sort_type").html("Name");
                     sortFunc = nameSorting;
@@ -109,7 +110,7 @@
                     $("#sites").sortable("option", "disabled", false)
                     setSortAttributes();
                     sortFunc = customSorting;
-                    console.log(sortType);
+                    $(".move-handle").show();
                 }
                 userSettings.lastSortType = sortType;
                 localStorage.setItem("buildingmap_userSettings", JSON.stringify(userSettings));

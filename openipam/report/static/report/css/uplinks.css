@@ -59,6 +59,11 @@ div.circuit .name.label {
     font-family: HelveticaNeue-Light, consolas, courier;
 }
 
+span.move-handle {
+	margin: 0 -22px 0 9px;
+	float: left;
+}
+
 svg.uplink {
     height: 95px;
     width: 42px;
