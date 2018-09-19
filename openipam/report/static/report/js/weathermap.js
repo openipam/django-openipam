@@ -439,7 +439,7 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
 
             const siteName = buildingNum ? `${buildingName}-${buildingNum}` : site;
             let remote = config.circuits[site].remote;
-            $("#sites").append(`<div class="site${remote? ' remote': ''}" id="${site}" data-sort="${sortIndex}"><p${tooltip}><span class="glyphicon glyphicon-move move-handle"></span>${siteName}</p></div>`);
+            $("#sites").append(`<div class="site${remote? ' remote': ''}" id="${site}" data-sort="${sortIndex}"><p${tooltip}><span class="glyphicon glyphicon-move move-handle" style="display:none;"></span>${siteName}</p></div>`);
             config.circuits[site].connections.forEach(function(connection){
                 $("#"+site).append('<div class="circuit" data-name="' + connection + '" data-circuit="' + (buildingNum || buildingName) + "-" + connection +'"></div>');
             });
