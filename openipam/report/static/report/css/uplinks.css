@@ -35,12 +35,18 @@ div.circuit	{
 
 div.site	{
 	-webkit-border-horizontal-spacing: 5px;
-        //border-spacing: 5px;
+    border-spacing: 5px;
 	display: table-cell;
+	float: left;
 	min-width: 114px;
 	padding: 2px 4px;
-	}
+}
 
+div.site.ui-sortable-helper {
+	background: #111;
+	border-radius: 10px;
+	border: 1px solid #333;
+}
 
 div.circuit .label {
     font-size: 12px;
@@ -53,6 +59,11 @@ div.circuit .name.label {
     font-family: HelveticaNeue-Light, consolas, courier;
 }
 
+span.move-handle {
+	margin: 0 -22px 0 9px;
+	float: left;
+}
+
 svg.uplink {
     height: 95px;
     width: 42px;
@@ -61,3 +72,11 @@ svg.uplink {
 svg.uplink line {
     stroke-width: 6px;
 }
+
+#searchbar {
+	margin-top: 4px;
+}
+/* 
+#sites {
+	list-style: none;
+} */

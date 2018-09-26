@@ -12,11 +12,135 @@
         $(function(){
             $("#building_connections_link").addClass('active');
             $("#charts_graphs_dropdown").addClass('active');
+            $("#header .navbar-nav.pull-right").prepend(`
+                <li class="form-inline">
+                    <div class="form-group">
+                        <label class="sr-only" for="search">Search</label>
+                        <input type="text" class="form-control" placeholder="Search" id="searchbar">
+                    </div>
+                </li>
+                <li id="sort_dropdown" class="dropdown" role="menu">
+                    <a class="dropdown-toggle" href="#" data-toggle="dropdown">Sort by: <span id="sort_type">Default</span><span class="caret"></span></a>
+                    <ul id="sort_options" class="dropdown-menu">
+                        <li id="sort_by_default" class="active sort_option"><a href="#">Default</a></li>
+                        <li id="sort_by_name" class="sort_option"><a href="#">Name</a></li>
+                        <li id="sort_by_num" class="sort_option"><a href="#">Building Number</a></li>
+                        <li id="sort_by_custom" class="sort_option"><a href="#">Custom</a></li>
+                    </ul>
+                </li>
+            `);
+            const userSettings = JSON.parse(localStorage.getItem('buildingmap_userSettings')) || {};
+            userSettings.lastSortType = userSettings.lastSortType || 'sort_by_default';
+            let setSortAttributes = () => {
+                let sortOrder = userSettings.sortOrder || [];
+                for (let i = 0; i < sortOrder.length; i++) {
+                    let siteID = sortOrder[i];
+                    $(`#${siteID}`).attr('data-sort', i);
+                }
+            };
+
+            let filterBySearchbox = function () {
+                let filter = $("#searchbar").val().toUpperCase();
+                $("div.site").each(function (index) {
+                    let titleElement = $("p", this);
+                    let addressText = titleElement.text().toUpperCase() + " " + titleElement.attr('title').toUpperCase();
+                    if (addressText.indexOf(filter) >= 0) {
+                        this.style.display = '';
+                    } else {
+                        this.style.display = 'none';
+                    }
+                });
+            };
+
+            let saveCustomSortOrder = (e, ui) => {
+                let sortOrder = $('#sites').sortable('toArray');
+                userSettings.sortOrder = sortOrder;
+                localStorage.setItem('buildingmap_userSettings', JSON.stringify(userSettings));
+            };
+
+            let compare = (valA, valB) => {
+                return (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+            };
+
+            let defaultSorting = (a, b) => {
+                let valA = $('.site-title', a).text();
+                let valB = $('.site-title', b).text();
+                if ($(a).hasClass('remote')) valA = '~' + valA;
+                if ($(b).hasClass('remote')) valB = '~' + valB;
+                return compare(valA, valB);
+            };
+
+            let customSorting = (a, b) => {
+                let valA = parseInt($(a).attr('data-sort'));
+                let valB = parseInt($(b).attr('data-sort'));
+                return compare(valA, valB);
+            };
+
+            let nameSorting = (a, b) => {
+                let valA = $('.site-title', a).text();
+                let valB = $('.site-title', b).text();
+                return compare(valA, valB);
+            };
+
+            let numSorting = (a, b) => {
+                let re = /[a-z]$/
+                let valA = a.id;
+                let valB = b.id;
+
+                if (re.test(valA)) valA = '0' + valA;
+                if (re.test(valB)) valB = '0' + valB;
+
+                return compare(valA, valB);
+            };
+
+            function sortBuildings(sortType) {
+                let sortFunc;
+                $("#sites").sortable("disable");
+                $(".move-handle").hide();
+                if (sortType == "sort_by_name") {
+                    $("#sort_type").html("Name");
+                    sortFunc = nameSorting;
+                } else if (sortType == "sort_by_num") {
+                    $("#sort_type").html("Building Number");
+                    sortFunc = numSorting;
+                } else if (sortType == "sort_by_default") {
+                    $("#sort_type").html("Default");
+                    sortFunc = defaultSorting;
+                } else {
+                    $("#sort_type").html("Custom");
+                    $("#sites").sortable("option", "disabled", false)
+                    setSortAttributes();
+                    sortFunc = customSorting;
+                    $(".move-handle").show();
+                }
+                userSettings.lastSortType = sortType;
+                localStorage.setItem("buildingmap_userSettings", JSON.stringify(userSettings));
+                let sortedSites = $('#sites .site').sort(sortFunc);
+                $('#sites').append(sortedSites);
+                $("li.sort_option").removeClass("active");
+                $(this).addClass("active");
+            }
+
+            $('#searchbar').on('keyup', filterBySearchbox);
+            $("li.sort_option").on("click", function () {
+                let sortType = $(this)[0].id;
+                sortBuildings(sortType);
+            });
+            document.addEventListener('sitesAdded', (e) => {
+                $('#sites').sortable({
+                    handle: '.site-title'
+                });
+                $('#sites').on('sortstop', saveCustomSortOrder);
+                $('#sites').sortable("disable");
+                sortBuildings(userSettings.lastSortType);
+            });
         });
     </script>
+    <script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
     <style>
         div.site {
-            min-width: 160px;
+            width: 160px;
+            height: 147px;
         }
     </style>
 {% endblock %}
@@ -39,7 +163,6 @@
 
     <script src="{% static 'report/js/d3.v3.min.js' %}" type="text/javascript"></script>
     <script src="{% static 'report/js/weathermap.js' %}" type="text/javascript"></script>
-
 
     <script type="text/javascript">
       var site = (window.location.href.match(/site=([^;&]+)/) || [])[1] || '';
