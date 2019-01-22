@@ -56,7 +56,8 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
                     change_message='Owners assigned to host: \n\n %s' % data
                 )
 
-            messages.success(request, "Ownership for selected hosts has been updated.")
+            messages.success(
+                request, "Ownership for selected hosts has been updated.")
 
         else:
             error_list = []
@@ -64,7 +65,7 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error updating the ownership of the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def remove_owner_hosts(request, selected_hosts):
@@ -101,7 +102,8 @@ def remove_owner_hosts(request, selected_hosts):
                     change_message='Owners removed from host: \n\n %s' % data
                 )
 
-            messages.success(request, "Ownership for selected hosts has been updated.")
+            messages.success(
+                request, "Ownership for selected hosts has been updated.")
 
         else:
             error_list = []
@@ -109,7 +111,7 @@ def remove_owner_hosts(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error updating the ownership of the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def delete_hosts(request, selected_hosts):
@@ -166,7 +168,8 @@ def renew_hosts(request, selected_hosts):
                     change_message=data
                 )
 
-            messages.success(request, "Expiration for selected hosts have been updated.")
+            messages.success(
+                request, "Expiration for selected hosts have been updated.")
 
         else:
             error_list = []
@@ -174,7 +177,7 @@ def renew_hosts(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error renewing the expiration of the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def rename_hosts(request, selected_hosts):
@@ -197,7 +200,8 @@ def rename_hosts(request, selected_hosts):
                 host.set_hostname(hostname=new_hostname, user=user)
                 host.save(user=user)
 
-            messages.success(request, "Renaming for selected hosts have been applied.")
+            messages.success(
+                request, "Renaming for selected hosts have been applied.")
 
         else:
             error_list = []
@@ -205,7 +209,7 @@ def rename_hosts(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error renaming the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def change_addresses(request, selected_hosts):
@@ -240,7 +244,8 @@ def add_attribute_to_hosts(request, selected_hosts):
                         changed_by=user
                     )
 
-            messages.success(request, "Attributes for selected hosts have been added.")
+            messages.success(
+                request, "Attributes for selected hosts have been added.")
 
         else:
             error_list = []
@@ -248,7 +253,7 @@ def add_attribute_to_hosts(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error adding attributes to the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def delete_attribute_from_host(request, selected_hosts):
@@ -276,7 +281,8 @@ def delete_attribute_from_host(request, selected_hosts):
                         host=host,
                         attribute=attribute,
                     ).delete()
-            messages.success(request, "Attributes for selected hosts have been deleted.")
+            messages.success(
+                request, "Attributes for selected hosts have been deleted.")
 
 
 def set_dhcp_group_on_host(request, selected_hosts):
@@ -303,7 +309,8 @@ def set_dhcp_group_on_host(request, selected_hosts):
                     change_message='DHCP Group set.'
                 )
 
-            messages.success(request, "DHCP Groups for selected hosts have been set.")
+            messages.success(
+                request, "DHCP Groups for selected hosts have been set.")
 
         else:
             error_list = []
@@ -311,7 +318,7 @@ def set_dhcp_group_on_host(request, selected_hosts):
                 for error in errors:
                     error_list.append(error)
             messages.error(request, mark_safe("There was an error setting the DHCP group to the selected hosts. "
-                    "<br/>%s" % '<br />'.join(error_list)))
+                                              "<br/>%s" % '<br />'.join(error_list)))
 
 
 def delete_dhcp_group_on_host(request, selected_hosts):
@@ -335,7 +342,8 @@ def delete_dhcp_group_on_host(request, selected_hosts):
                 change_message='DHCP Group deleted.'
             )
 
-        messages.success(request, "DHCP Groups for selected hosts have been deleted.")
+        messages.success(
+            request, "DHCP Groups for selected hosts have been deleted.")
 
 
 def populate_primary_dns(request, selected_hosts):
@@ -360,7 +368,8 @@ def populate_primary_dns(request, selected_hosts):
                 change_message='Primary DNS Records populated.'
             )
 
-        messages.success(request, "DNS for selected hosts have been populated.")
+        messages.success(
+            request, "DNS for selected hosts have been populated.")
 
 
 def export_csv(request, selected_hosts):
@@ -370,11 +379,13 @@ def export_csv(request, selected_hosts):
 
     for host in selected_hosts:
         owners = host.get_owners(ids_only=True)
-        users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
+        users = User.objects.filter(
+            Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
         usernames = ','.join(set([user.username for user in users]))
         emails = ','.join(set([user.email or '' for user in users]))
 
-        writer.writerow([host.mac, host.hostname, usernames, emails])
+        writer.writerow([host.mac, host.hostname, usernames,
+                         emails, host.description])
 
     return response
 
@@ -388,10 +399,9 @@ def change_perms_check(user, selected_hosts):
         return False
 
     # Check onwership of hosts for users with only object level permissions.
-    host_perms_qs = Host.objects.filter(mac__in=selected_macs).by_change_perms(user)
+    host_perms_qs = Host.objects.filter(
+        mac__in=selected_macs).by_change_perms(user)
     for host in selected_hosts:
         if host not in host_perms_qs:
             return False
     return True
-
-
