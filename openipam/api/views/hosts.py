@@ -33,6 +33,7 @@ User = get_user_model()
 
 class HostCSVRenderer(CSVRenderer):
     header = ['hostname', 'mac', 'master_ip_address', 'expires']
+
     def render(self, data, media_type=None, renderer_context={}, writer_opts=None):
         data = data['results']
         return super(HostCSVRenderer, self).render(data, media_type, renderer_context, writer_opts)
@@ -47,11 +48,13 @@ class HostList(generics.ListAPIView):
         * `mac` -- MAC Address contains
         * `hostname` -- Hostname contains
         * `user` -- Username of a user
-        * `group` -- Group name of a group
+        * `user_with_groups` -- Username of a user.  This will display the users hosts as well as all hosts in the users groups.
+        * `group` -- Group name of a group.  To speficy multiple groups as a union, user a | between group names.
         * `is_expired` -- 1 or 0 to see expired hosts
         * `ip_address` -- IP Address to filter on
         * `attribute` -- Name:Value to filter on attributes
         * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
+        * `datetime` -- Date/Time of registered device.
 
         **Example**:
 
@@ -99,7 +102,8 @@ class HostMac(APIView):
                 return Response({'mac': str(lease.host_id)})
 
         elif registered_ip:
-            host = Host.objects.filter(addresses__address=registered_ip).first()
+            host = Host.objects.filter(
+                addresses__address=registered_ip).first()
 
         if host:
             return Response({'mac': str(host.mac)})
@@ -190,7 +194,7 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
         * `description` -- A text description of the host.
         * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
         * `user_owners` -- A string or list or usernames to assign as owner to the host.
-        * `group_owners` -- A string or list or group names to assign as owner to the host.a
+        * `group_owners` -- A string or list or group names to assign as owner to the host.
 
         **Example**:
 
@@ -211,7 +215,8 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         try:
             self.perform_update(serializer)
@@ -383,7 +388,8 @@ class HostAttributeList(APIView):
             'structured_attribute_value',
             'structured_attribute_value__attribute'
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related('attribute').filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related(
+            'attribute').filter(host=host)
 
         for attr in structured_attrs:
             attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
@@ -414,11 +420,13 @@ class HostAddAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.data)
+        serializer = host_serializers.HostUpdateAttributeSerializer(
+            data=request.data)
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
             # Get the DB attributes we are going to change
-            db_attributes = Attribute.objects.filter(name__in=attributes.keys())
+            db_attributes = Attribute.objects.filter(
+                name__in=attributes.keys())
             for attr in db_attributes:
                 # Add structured attributes
                 if attr.structured:
@@ -464,7 +472,8 @@ class HostDeleteAttribute(APIView):
 
     def post(self, request, format=None, **kwargs):
         host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.data)
+        serializer = host_serializers.HostDeleteAttributeSerializer(
+            data=request.data)
 
         if serializer.is_valid():
             attributes = serializer.data.get('attributes')
@@ -494,9 +503,9 @@ class DisabledHostList(generics.ListCreateAPIView):
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
     pagination_class = APIPagination
     queryset = (Disabled.objects.select_related('changed_by')
-        .extra(select={'hostname': 'SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac'})
-        .all()
-    )
+                .extra(select={'hostname': 'SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac'})
+                .all()
+                )
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('changed_by__username',)
 
@@ -514,4 +523,3 @@ class DisabledHostDelete(generics.DestroyAPIView):
 
     def post(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
