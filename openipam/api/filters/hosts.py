@@ -60,13 +60,15 @@ class GroupFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             if '|' in value:
-                group = Group.objects.filter(name__in=value.split('|')).first()
+                groups = Group.objects.filter(name__in=value.split('|'))
+                if groups:
+                    qs = qs.by_groups(groups)
             else:
                 group = Group.objects.filter(name=value).first()
-            if group:
-                qs = qs.by_group(group)
-            else:
-                qs = qs.none()
+                if group:
+                    qs = qs.by_group(group)
+        else:
+            qs = qs.none()
         return qs
 
 
