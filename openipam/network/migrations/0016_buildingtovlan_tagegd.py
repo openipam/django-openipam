@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0015_building_city'),
-    ]
+    dependencies = [("network", "0015_building_city")]
 
     operations = [
         migrations.AddField(
-            model_name='buildingtovlan',
-            name='tagegd',
+            model_name="buildingtovlan",
+            name="tagegd",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

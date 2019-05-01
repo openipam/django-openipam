@@ -18,10 +18,9 @@ User = get_user_model()
 class DisabledFlagFilter(NumberFilter):
     def filter(self, qs, value):
         if value == 1:
-            qs = qs.extra(where=['hosts.mac IN (SELECT mac from disabled)'])
+            qs = qs.extra(where=["hosts.mac IN (SELECT mac from disabled)"])
         elif value == 0:
-            qs = qs.extra(
-                where=['hosts.mac NOT IN (SELECT mac from disabled)'])
+            qs = qs.extra(where=["hosts.mac NOT IN (SELECT mac from disabled)"])
         return qs
 
 
@@ -59,8 +58,8 @@ class UserWithGroupsFilter(CharFilter):
 class GroupFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            if '|' in value:
-                groups = Group.objects.filter(name__in=value.split('|'))
+            if "|" in value:
+                groups = Group.objects.filter(name__in=value.split("|"))
                 if groups:
                     qs = qs.by_groups(groups)
             else:
@@ -75,18 +74,21 @@ class GroupFilter(CharFilter):
 class AttributeFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            attribute_name = value.split(':')[0]
-            if len(value.split(':')) == 2:
-                attribute_value = value.split(':')[1]
+            attribute_name = value.split(":")[0]
+            if len(value.split(":")) == 2:
+                attribute_value = value.split(":")[1]
             else:
                 attribute_value = None
 
             if attribute_name and attribute_value:
                 qs = qs.filter(
-                    Q(freeform_attributes__attribute__name=attribute_name, freeform_attributes__value=attribute_value) |
                     Q(
+                        freeform_attributes__attribute__name=attribute_name,
+                        freeform_attributes__value=attribute_value,
+                    )
+                    | Q(
                         structured_attributes__structured_attribute_value__attribute__name=attribute_name,
-                        structured_attributes__structured_attribute_value__value=attribute_value
+                        structured_attributes__structured_attribute_value__value=attribute_value,
                     )
                 )
         return qs
@@ -96,8 +98,9 @@ class IPFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
-                qs = qs.filter(Q(addresses__address=value) | Q(
-                    leases__address__address=value)).distinct()
+                qs = qs.filter(
+                    Q(addresses__address=value) | Q(leases__address__address=value)
+                ).distinct()
             except ValidationError:
                 qs = qs.none()
         return qs
@@ -106,12 +109,13 @@ class IPFilter(CharFilter):
 class HostCharFilter(CharFilter):
     def filter(self, qs, value):
         if value:
-            rgx = re.compile('[:,-. ]')
-            mac_str = rgx.sub('', value)
+            rgx = re.compile("[:,-. ]")
+            mac_str = rgx.sub("", value)
             # Split to list to put back togethor with :
             mac_str = iter(mac_str)
-            mac_str = ':'.join(
-                a + b for a, b in izip_longest(mac_str, mac_str, fillvalue=''))
+            mac_str = ":".join(
+                a + b for a, b in izip_longest(mac_str, mac_str, fillvalue="")
+            )
             qs = qs.filter(mac__startswith=mac_str.lower())
         return qs
 
@@ -129,7 +133,7 @@ class NetworkFilter(CharFilter):
 
 class HostFilter(FilterSet):
     mac = HostCharFilter()
-    hostname = CharFilter(lookup_expr='icontains')
+    hostname = CharFilter(lookup_expr="icontains")
     is_expired = IsExpiredFilter()
     group = GroupFilter()
     user = UserFilter()
@@ -138,9 +142,9 @@ class HostFilter(FilterSet):
     attribute = AttributeFilter()
     disabled = DisabledFlagFilter()
     network = NetworkFilter()
-    #time = HostDateTimeFilter()
+    # time = HostDateTimeFilter()
 
     class Meta:
         model = Host
         # TODO: This is dumb, django-filter 0.14 needs docs and bug fixes
-        fields = ['hostname']
+        fields = ["hostname"]

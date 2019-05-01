@@ -11,33 +11,81 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('network', '0006_auto_20170324_1644'),
+        ("network", "0006_auto_20170324_1644"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Building',
+            name="Building",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('building_number', models.CharField(max_length=255, unique=True)),
-                ('description', models.TextField()),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column=b'changed_by', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("building_number", models.CharField(max_length=255, unique=True)),
+                ("description", models.TextField()),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column=b"changed_by",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='BuildingToVlan',
+            name="BuildingToVlan",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('building', models.ForeignKey(db_column=b'building', on_delete=django.db.models.deletion.CASCADE, to='network.Building')),
-                ('changed_by', models.ForeignKey(db_column=b'changed_by', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('vlan', models.ForeignKey(db_column=b'vlan', on_delete=django.db.models.deletion.CASCADE, to='network.Vlan')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "building",
+                    models.ForeignKey(
+                        db_column=b"building",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="network.Building",
+                    ),
+                ),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column=b"changed_by",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "vlan",
+                    models.ForeignKey(
+                        db_column=b"vlan",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="network.Vlan",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='vlan',
-            name='buildings',
-            field=models.ManyToManyField(related_name='building_vlans', through='network.BuildingToVlan', to='network.Building'),
+            model_name="vlan",
+            name="buildings",
+            field=models.ManyToManyField(
+                related_name="building_vlans",
+                through="network.BuildingToVlan",
+                to="network.Building",
+            ),
         ),
     ]

@@ -10,7 +10,11 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import GuestTicket, Host
 from openipam.network.models import AddressType, Pool
 from openipam.api.views.base import APIPagination, APIMaxPagination
-from openipam.api.serializers.guests import GuestDeleteSerializer, GuestTicketListCreateSerializer, GuestRegisterSerializer
+from openipam.api.serializers.guests import (
+    GuestDeleteSerializer,
+    GuestTicketListCreateSerializer,
+    GuestRegisterSerializer,
+)
 from openipam.api.filters.guests import GuestTicketFilter
 from openipam.api.permissions import IPAMGuestEnablePermission
 from rest_framework.response import Response
@@ -35,7 +39,7 @@ class GuestTicketList(generics.ListAPIView):
 
     def get_paginate_by(self, queryset=None):
         param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
-        if param and param == '0':
+        if param and param == "0":
             return self.max_paginate_by
         else:
             return super(GuestTicketList, self).get_paginate_by()
@@ -52,7 +56,7 @@ class GuestTicketDelete(generics.RetrieveDestroyAPIView):
     permission_classes = (IsAuthenticated, IPAMGuestEnablePermission)
     queryset = GuestTicket.objects.all()
     serializer_class = GuestDeleteSerializer
-    lookup_field = 'ticket'
+    lookup_field = "ticket"
 
     def post(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
@@ -65,29 +69,45 @@ class GuestRegister(APIView):
         serializer = GuestRegisterSerializer(data=request.data)
 
         if serializer.is_valid():
-            lock_id = 'ipam-guest-register'
+            lock_id = "ipam-guest-register"
 
             with advisory_lock(lock_id):
-                hostname_prefix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[0]
-                hostname_suffix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[1]
-                last_hostname = (Host.objects.filter(hostname__istartswith=hostname_prefix, hostname__iendswith=hostname_suffix)
-                    .extra(select={'hostname_length': 'length(hostname)'})
-                    .order_by('-hostname_length', '-hostname')
+                hostname_prefix = CONFIG.get("GUEST_HOSTNAME_FORMAT")[0]
+                hostname_suffix = CONFIG.get("GUEST_HOSTNAME_FORMAT")[1]
+                last_hostname = (
+                    Host.objects.filter(
+                        hostname__istartswith=hostname_prefix,
+                        hostname__iendswith=hostname_suffix,
+                    )
+                    .extra(select={"hostname_length": "length(hostname)"})
+                    .order_by("-hostname_length", "-hostname")
                     .first()
                 )
-                hostname_index = int(last_hostname.hostname[len(hostname_prefix):last_hostname.hostname.find(hostname_suffix)])
-                guest_user = User.objects.get(username__iexact=CONFIG.get('GUEST_USER'))
+                hostname_index = int(
+                    last_hostname.hostname[
+                        len(hostname_prefix) : last_hostname.hostname.find(
+                            hostname_suffix
+                        )
+                    ]
+                )
+                guest_user = User.objects.get(username__iexact=CONFIG.get("GUEST_USER"))
                 user_owner = serializer.valid_ticket.user
-                description = serializer.data.get('description')
-                name = serializer.data.get('name')
-                ticket = serializer.data.get('ticket')
-                mac_address = serializer.data.get('mac_address')
+                description = serializer.data.get("description")
+                name = serializer.data.get("name")
+                ticket = serializer.data.get("ticket")
+                mac_address = serializer.data.get("mac_address")
 
                 try:
-                    hostname = '%s%s%s' % (hostname_prefix, hostname_index + 1, hostname_suffix)
+                    hostname = "%s%s%s" % (
+                        hostname_prefix,
+                        hostname_index + 1,
+                        hostname_suffix,
+                    )
 
                     # Check if instance already created.  Bug in DHCP thats registering it twice??
-                    instance = Host.objects.filter(hostname=hostname, mac=mac_address).first()
+                    instance = Host.objects.filter(
+                        hostname=hostname, mac=mac_address
+                    ).first()
 
                     # Add or update host
                     Host.objects.add_or_update_host(
@@ -95,25 +115,30 @@ class GuestRegister(APIView):
                         hostname=hostname,
                         mac=mac_address,
                         expires=serializer.valid_ticket.ends,
-                        description=description if description else 'Name: %s; Ticket used: %s' % (name, ticket),
-                        pool=Pool.objects.get(name=CONFIG.get('GUEST_POOL')),
+                        description=description
+                        if description
+                        else "Name: %s; Ticket used: %s" % (name, ticket),
+                        pool=Pool.objects.get(name=CONFIG.get("GUEST_POOL")),
                         user_owners=[user_owner],
-                        group_owners=[CONFIG.get('GUEST_GROUP')],
-                        instance=instance or None
+                        group_owners=[CONFIG.get("GUEST_GROUP")],
+                        instance=instance or None,
                     )
                 except ValidationError as e:
                     error_list = []
-                    if hasattr(e, 'error_dict'):
+                    if hasattr(e, "error_dict"):
                         for key, errors in e.message_dict.items():
                             for error in errors:
                                 error_list.append(error)
                     else:
                         error_list.append(e.message)
-                    return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"non_field_errors": error_list},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             data = {
-                'starts': serializer.valid_ticket.starts,
-                'ends': serializer.valid_ticket.ends
+                "starts": serializer.valid_ticket.starts,
+                "ends": serializer.valid_ticket.ends,
             }
             data.update(serializer.data)
 

@@ -2,7 +2,20 @@ import binascii
 
 from rest_framework import serializers
 
-from openipam.network.models import Network, Address, DhcpGroup, DhcpOption, DhcpOptionToDhcpGroup, Pool, SharedNetwork, DefaultPool, Vlan, NetworkRange, NetworkToVlan, Lease
+from openipam.network.models import (
+    Network,
+    Address,
+    DhcpGroup,
+    DhcpOption,
+    DhcpOptionToDhcpGroup,
+    Pool,
+    SharedNetwork,
+    DefaultPool,
+    Vlan,
+    NetworkRange,
+    NetworkToVlan,
+    Lease,
+)
 from openipam.user.models import User
 from openipam.hosts.models import Host
 
@@ -17,7 +30,8 @@ class NetworkListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Network
-        fields = ('network', 'name', 'description')
+        fields = ("network", "name", "description")
+
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
     network = CidrAddressField()
@@ -29,7 +43,9 @@ class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
         if value:
             dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
             if not dhcp_group_exists:
-                raise serializers.ValidationError('The dhcp group entered does not exist.')
+                raise serializers.ValidationError(
+                    "The dhcp group entered does not exist."
+                )
             return dhcp_group_exists
         return None
 
@@ -37,12 +53,14 @@ class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
         if value:
             shared_network_exists = SharedNetwork.objects.filter(name=value).first()
             if not shared_network_exists:
-                raise serializers.ValidationError('The shared network entered does not exist.')
+                raise serializers.ValidationError(
+                    "The shared network entered does not exist."
+                )
             return shared_network_exists
         return None
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(NetworkCreateUpdateSerializer, self).create(validated_data)
 
         network = Network.objects.filter(network=instance.network).first()
@@ -51,9 +69,17 @@ class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
             addresses = []
             for address in network.network:
                 reserved = False
-                if address in (network.gateway, network.network[0], network.network[-1]):
+                if address in (
+                    network.gateway,
+                    network.network[0],
+                    network.network[-1],
+                ):
                     reserved = True
-                pool = DefaultPool.objects.get_pool_default(address) if not reserved else None
+                pool = (
+                    DefaultPool.objects.get_pool_default(address)
+                    if not reserved
+                    else None
+                )
                 addresses.append(
                     # TODO: Need to set pool eventually.
                     Address(
@@ -61,7 +87,7 @@ class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
                         network=network,
                         reserved=reserved,
                         pool=pool,
-                        changed_by=self.context['request'].user,
+                        changed_by=self.context["request"].user,
                     )
                 )
             if addresses:
@@ -70,31 +96,37 @@ class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
-        return super(NetworkCreateUpdateSerializer, self).update(instance, validated_data)
+        validated_data["changed_by"] = self.context["request"].user
+        return super(NetworkCreateUpdateSerializer, self).update(
+            instance, validated_data
+        )
 
     class Meta:
         model = Network
-        exclude = ('changed_by',)
+        exclude = ("changed_by",)
+
 
 class NetworkDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Network
-        fields = ('network',)
-        read_only_fields = ('network',)
+        fields = ("network",)
+        read_only_fields = ("network",)
+
 
 class NetworkRangeSerializer(serializers.ModelSerializer):
     range = CidrAddressField()
 
     class Meta:
         model = NetworkRange
-        fields = ('id', 'range',)
+        fields = ("id", "range")
+
 
 class NetworkRangeDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = NetworkRange
-        fields = ('range',)
-        read_only_fields = ('range',)
+        fields = ("range",)
+        read_only_fields = ("range",)
+
 
 class NetworkToVlanSerializer(serializers.ModelSerializer):
     network = CidrAddressField()
@@ -104,7 +136,7 @@ class NetworkToVlanSerializer(serializers.ModelSerializer):
         if value:
             vlan_exists = Vlan.objects.filter(name=value).first()
             if not vlan_exists:
-                raise serializers.ValidationError('The vlan entered does not exist.')
+                raise serializers.ValidationError("The vlan entered does not exist.")
             return vlan_exists
         return None
 
@@ -112,28 +144,30 @@ class NetworkToVlanSerializer(serializers.ModelSerializer):
         if value:
             network_exists = Network.objects.filter(network=value).first()
             if not network_exists:
-                raise serializers.ValidationError('The network entered does not exist.')
+                raise serializers.ValidationError("The network entered does not exist.")
             return network_exists
         return None
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(NetworkToVlanSerializer, self).create(validated_data)
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         return super(NetworkToVlanSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = NetworkToVlan
-        fields = ('network', 'vlan')
+        fields = ("network", "vlan")
+
 
 class NetworkToVlanDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = NetworkToVlan
-        fields = ('network', 'vlan')
-        read_only_fields = ('network', 'vlan')
+        fields = ("network", "vlan")
+        read_only_fields = ("network", "vlan")
+
 
 class AddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(read_only=True)
@@ -141,7 +175,7 @@ class AddressSerializer(serializers.ModelSerializer):
     pool = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     host = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     gateway = serializers.SerializerMethodField()
-    changed_by = serializers.ReadOnlyField(source='changed_by.username')
+    changed_by = serializers.ReadOnlyField(source="changed_by.username")
     changed = serializers.ReadOnlyField()
 
     def get_gateway(self, obj):
@@ -158,16 +192,22 @@ class AddressSerializer(serializers.ModelSerializer):
             except (AddrFormatError, TypeError):
                 host = Host.objects.filter(hostname=value.lower()).first()
             if not host:
-                raise serializers.ValidationError('The hostname enetered does not exist.  Please first create the host.')
+                raise serializers.ValidationError(
+                    "The hostname enetered does not exist.  Please first create the host."
+                )
             return host
         return None
 
     def validate_network(self, value):
         network = Network.objects.filter(network=value).first()
         if not network:
-            raise serializers.ValidationError('The network enetered does not exist.  Please first create the network.')
+            raise serializers.ValidationError(
+                "The network enetered does not exist.  Please first create the network."
+            )
         elif self.instance.address not in network.network:
-            raise serializers.ValidationError('The address is not a part of the network entered.  Please enter a network that contains this address.')
+            raise serializers.ValidationError(
+                "The address is not a part of the network entered.  Please enter a network that contains this address."
+            )
         return network
 
     def validate_pool(self, value):
@@ -177,42 +217,51 @@ class AddressSerializer(serializers.ModelSerializer):
             else:
                 pool = Pool.objects.filter(name=value.lower()).first()
             if not pool:
-                raise serializers.ValidationError('The pool enetered does not exist.')
+                raise serializers.ValidationError("The pool enetered does not exist.")
             return pool
         return None
 
     def update(self, instance, validated_data):
-        instance.host = validated_data.get('host', instance.host)
-        instance.reserved = validated_data.get('reserved', instance.reserved)
-        instance.pool = validated_data.get('pool', instance.pool)
-        instance.network = validated_data.get('network', instance.network)
-        instance.changed_by = self.context['request'].user
+        instance.host = validated_data.get("host", instance.host)
+        instance.reserved = validated_data.get("reserved", instance.reserved)
+        instance.pool = validated_data.get("pool", instance.pool)
+        instance.network = validated_data.get("network", instance.network)
+        instance.changed_by = self.context["request"].user
         instance.save()
         return instance
 
-    # def save(self):
-    #     assert False, self.validated_data
-    #     assert False, self.instance.__dict__
-    #     # is_new = True if self.instance is None else False
-    #     # data = self.validated_data.copy()
-    #     # data['instance'] = self.instance
-    #     # data['user'] = self.context['request'].user
-    #     # self.instance = Host.objects.add_or_update_host(**data)
+        # def save(self):
+        #     assert False, self.validated_data
+        #     assert False, self.instance.__dict__
+        #     # is_new = True if self.instance is None else False
+        #     # data = self.validated_data.copy()
+        #     # data['instance'] = self.instance
+        #     # data['user'] = self.context['request'].user
+        #     # self.instance = Host.objects.add_or_update_host(**data)
 
-    #     # LogEntry.objects.log_action(
-    #     #     user_id=self.instance.user.pk,
-    #     #     content_type_id=ContentType.objects.get_for_model(self.instance).pk,
-    #     #     object_id=self.instance.pk,
-    #     #     object_repr=force_unicode(self.instance),
-    #     #     action_flag=ADDITION if is_new else CHANGE,
-    #     #     change_message='API call.'
-    #     # )
+        #     # LogEntry.objects.log_action(
+        #     #     user_id=self.instance.user.pk,
+        #     #     content_type_id=ContentType.objects.get_for_model(self.instance).pk,
+        #     #     object_id=self.instance.pk,
+        #     #     object_repr=force_unicode(self.instance),
+        #     #     action_flag=ADDITION if is_new else CHANGE,
+        #     #     change_message='API call.'
+        #     # )
 
         return self.instance
 
     class Meta:
         model = Address
-        fields = ('address', 'gateway', 'host', 'pool', 'reserved', 'network', 'changed_by', 'changed',)
+        fields = (
+            "address",
+            "gateway",
+            "host",
+            "pool",
+            "reserved",
+            "network",
+            "changed_by",
+            "changed",
+        )
 
 
 class DhcpGroupSerializer(serializers.ModelSerializer):
@@ -222,33 +271,38 @@ class DhcpGroupSerializer(serializers.ModelSerializer):
         return obj.changed_by.username
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(DhcpGroupSerializer, self).create(validated_data)
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         return super(DhcpGroupSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = DhcpGroup
-        fields = '__all__'
+        fields = "__all__"
+
 
 class DhcpGroupDeleteSerializer(serializers.ModelSerializer):
     class Meta:
-        model=DhcpGroup
-        fields = ('name',)
-        read_only_fields = ('name',)
+        model = DhcpGroup
+        fields = ("name",)
+        read_only_fields = ("name",)
+
 
 class DhcpOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DhcpOption
-        fields = '__all__'
+        fields = "__all__"
+
 
 class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
     group = serializers.CharField(allow_blank=True, allow_null=True)
     option = serializers.CharField(allow_blank=True, allow_null=True)
-    readable_value = serializers.CharField(source='get_readable_value', read_only=True, label='value')
+    readable_value = serializers.CharField(
+        source="get_readable_value", read_only=True, label="value"
+    )
     value = serializers.CharField(write_only=True, allow_blank=True, allow_null=True)
     changed_by = serializers.StringRelatedField()
 
@@ -256,7 +310,9 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
         if value:
             dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
             if not dhcp_group_exists:
-                raise serializers.ValidationError('The dhcp group entered does not exist.')
+                raise serializers.ValidationError(
+                    "The dhcp group entered does not exist."
+                )
             return dhcp_group_exists
         return None
 
@@ -264,7 +320,9 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
         if value:
             dhcp_option_exists = DhcpOption.objects.filter(name=value).first()
             if not dhcp_option_exists:
-                raise serializers.ValidationError('The dhcp option entered does not exist.')
+                raise serializers.ValidationError(
+                    "The dhcp option entered does not exist."
+                )
             return dhcp_option_exists
         return None
 
@@ -273,28 +331,34 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
             try:
                 int(value, 16)
             except ValueError as e:
-                raise serializers.ValidationError('Value entered was not in hexidecimal.')
+                raise serializers.ValidationError(
+                    "Value entered was not in hexidecimal."
+                )
             return binascii.unhexlify(value)
         return None
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(DhcpOptionToDhcpGroupSerializer, self).create(validated_data)
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
-        return super(DhcpOptionToDhcpGroupSerializer, self).update(instance, validated_data)
+        validated_data["changed_by"] = self.context["request"].user
+        return super(DhcpOptionToDhcpGroupSerializer, self).update(
+            instance, validated_data
+        )
 
     class Meta:
         model = DhcpOptionToDhcpGroup
-        fields = ('id', 'group', 'option', 'readable_value', 'value', 'changed_by',)
+        fields = ("id", "group", "option", "readable_value", "value", "changed_by")
+
 
 class DhcpOptionToDhcpGroupDeleteSerializer(serializers.ModelSerializer):
     class Meta:
-        model=DhcpOptionToDhcpGroup
-        fields = ('group', 'option', 'value',)
-        read_only_fields = ('group', 'option', 'value',)
+        model = DhcpOptionToDhcpGroup
+        fields = ("group", "option", "value")
+        read_only_fields = ("group", "option", "value")
+
 
 class SharedNetworkSerializer(serializers.ModelSerializer):
     changed_by = serializers.SerializerMethodField()
@@ -303,23 +367,25 @@ class SharedNetworkSerializer(serializers.ModelSerializer):
         return obj.changed_by.username
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(SharedNetworkSerializer, self).create(validated_data)
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         return super(SharedNetworkSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = SharedNetwork
-        fields = '__all__'
+        fields = "__all__"
+
 
 class SharedNetworkDeleteSerializer(serializers.ModelSerializer):
     class Meta:
-        model=SharedNetwork
-        fields = ('name',)
-        read_only_fields = ('name',)
+        model = SharedNetwork
+        fields = ("name",)
+        read_only_fields = ("name",)
+
 
 class VlanSerializer(serializers.ModelSerializer):
     changed_by = serializers.SerializerMethodField()
@@ -328,23 +394,25 @@ class VlanSerializer(serializers.ModelSerializer):
         return obj.changed_by.username
 
     def create(self, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         instance = super(VlanSerializer, self).create(validated_data)
         return instance
 
     def update(self, instance, validated_data):
-        validated_data['changed_by'] = self.context['request'].user
+        validated_data["changed_by"] = self.context["request"].user
         return super(VlanSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = Vlan
-        exclude = ('changed',)
+        exclude = ("changed",)
+
 
 class VlanDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vlan
-        fields = ('name',)
-        read_only_fields = ('name',)
+        fields = ("name",)
+        read_only_fields = ("name",)
+
 
 class PoolSerializer(serializers.ModelSerializer):
     name = serializers.SlugField()
@@ -354,19 +422,23 @@ class PoolSerializer(serializers.ModelSerializer):
         if value:
             dhcp_group_exists = DhcpGroup.objects.filter(name=value).first()
             if not dhcp_group_exists:
-                raise serializers.ValidationError('The dhcp group entered does not exist.')
+                raise serializers.ValidationError(
+                    "The dhcp group entered does not exist."
+                )
             return dhcp_group_exists
         return None
 
     class Meta:
         model = Pool
-        fields = '__all__'
+        fields = "__all__"
+
 
 class PoolDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pool
-        fields = ('name',)
-        read_only_fields = ('name',)
+        fields = ("name",)
+        read_only_fields = ("name",)
+
 
 class DefaultPoolSerializer(serializers.ModelSerializer):
     pool = serializers.CharField(allow_blank=True, allow_null=True)
@@ -376,16 +448,17 @@ class DefaultPoolSerializer(serializers.ModelSerializer):
         if value:
             pool_exists = Pool.objects.filter(cidr=value).first()
             if not pool_exists:
-                raise serializers.ValidationError('The pool entered does not exist.')
+                raise serializers.ValidationError("The pool entered does not exist.")
             return pool_exists
         return None
 
     class Meta:
         model = DefaultPool
-        fields = '__all__'
+        fields = "__all__"
+
 
 class DefaultPoolDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefaultPool
-        fields = ('cidr', 'pool',)
-        read_only_fields = ('cidr', 'pool',)
+        fields = ("cidr", "pool")
+        read_only_fields = ("cidr", "pool")

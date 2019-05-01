@@ -7,20 +7,32 @@ from openipam.conf.ipam_settings import CONFIG
 User = get_user_model()
 UserGroup = User.groups.through
 
+
 class Command(BaseCommand):
-    args = ''
-    help = 'Convert User Permissions'
+    args = ""
+    help = "Convert User Permissions"
 
     def handle(self, *args, **options):
 
-        self.stdout.write('Adding ipam groups to users...')
+        self.stdout.write("Adding ipam groups to users...")
 
-        ipam_user_group, u_created = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))
-        ipam_admin_group, a_created = Group.objects.get_or_create(name=CONFIG.get('ADMIN_GROUP'))
+        ipam_user_group, u_created = Group.objects.get_or_create(
+            name=CONFIG.get("USER_GROUP")
+        )
+        ipam_admin_group, a_created = Group.objects.get_or_create(
+            name=CONFIG.get("ADMIN_GROUP")
+        )
 
         # Add Ipam Users
-        all_users = User.objects.exclude(groups=ipam_user_group).exclude(pk=-1).distinct()
-        super_users = User.objects.exclude(groups=ipam_admin_group).exclude(pk=-1).filter(is_superuser=True).distinct()
+        all_users = (
+            User.objects.exclude(groups=ipam_user_group).exclude(pk=-1).distinct()
+        )
+        super_users = (
+            User.objects.exclude(groups=ipam_admin_group)
+            .exclude(pk=-1)
+            .filter(is_superuser=True)
+            .distinct()
+        )
         add_user_list = []
 
         for user in all_users:
@@ -31,4 +43,4 @@ class Command(BaseCommand):
 
         UserGroup.objects.bulk_create(add_user_list)
 
-        self.stdout.write('IPAM Groups added.')
+        self.stdout.write("IPAM Groups added.")

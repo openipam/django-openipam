@@ -9,19 +9,27 @@ from django.core.exceptions import ValidationError
 from openipam.network.models import DhcpGroup, Pool, Network
 from openipam.conf.ipam_settings import CONFIG
 
-from guardian.shortcuts import get_objects_for_user, get_objects_for_group, get_users_with_perms
+from guardian.shortcuts import (
+    get_objects_for_user,
+    get_objects_for_group,
+    get_users_with_perms,
+)
 
-#from netfields import NetManager
+# from netfields import NetManager
 
 import operator
 
 
 class HostQuerySet(QuerySet):
     def with_oui(self):
-        return self.extra(select={'vendor': '''
+        return self.extra(
+            select={
+                "vendor": """
             SELECT ouis.shortname from ouis
                 WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop
-                ORDER BY ouis.id DESC LIMIT 1'''})
+                ORDER BY ouis.id DESC LIMIT 1"""
+            }
+        )
 
     def by_owner(self, user, use_groups=False, ids_only=False):
         User = get_user_model()
@@ -31,9 +39,9 @@ class HostQuerySet(QuerySet):
 
         hosts = get_objects_for_user(
             perm_user,
-            'hosts.is_owner_host',
+            "hosts.is_owner_host",
             use_groups=use_groups,
-            with_superuser=False
+            with_superuser=False,
         )
 
         if ids_only:
@@ -42,19 +50,20 @@ class HostQuerySet(QuerySet):
             return self.filter(pk__in=[host.pk for host in hosts])
 
     def by_group(self, group):
-        hosts = get_objects_for_group(group, 'hosts.is_owner_host')
+        hosts = get_objects_for_group(group, "hosts.is_owner_host")
         return self.filter(pk__in=[host.pk for host in hosts])
 
     def by_groups(self, groups):
         hosts = []
         for group in groups:
-            hosts.append(obj.pk for obj in get_objects_for_group(
-                group, 'hosts.is_owner_host'))
+            hosts.append(
+                obj.pk for obj in get_objects_for_group(group, "hosts.is_owner_host")
+            )
         return self.filter(pk__in=hosts)
 
     def by_change_perms(self, user, pk=None, ids_only=False):
         # If global permission set, then return all.
-        if user.has_perm('hosts.change_host') or user.has_perm('hosts.is_owner_host'):
+        if user.has_perm("hosts.change_host") or user.has_perm("hosts.is_owner_host"):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
@@ -62,23 +71,18 @@ class HostQuerySet(QuerySet):
                 return self.all()
         else:
             host_perms = get_objects_for_user(
-                user,
-                ['hosts.is_owner_host', 'hosts.change_host'],
-                any_perm=True
-            ).values_list('mac', flat=True)
+                user, ["hosts.is_owner_host", "hosts.change_host"], any_perm=True
+            ).values_list("mac", flat=True)
             domain_perms = get_objects_for_user(
-                user,
-                ['dns.is_owner_domain', 'dns.change_domain'],
-                any_perm=True
-            ).values_list('name', flat=True)
+                user, ["dns.is_owner_domain", "dns.change_domain"], any_perm=True
+            ).values_list("name", flat=True)
             network_perms = get_objects_for_user(
                 user,
-                ['network.is_owner_network', 'network.change_network'],
-                any_perm=True
-            ).values_list('network', flat=True)
+                ["network.is_owner_network", "network.change_network"],
+                any_perm=True,
+            ).values_list("network", flat=True)
 
-            perms_q_list = [Q(hostname__endswith=name)
-                            for name in domain_perms]
+            perms_q_list = [Q(hostname__endswith=name) for name in domain_perms]
             perms_q_list.append(Q(mac__in=host_perms))
             perms_q_list.append(Q(addresses__network__in=network_perms))
 
@@ -96,7 +100,8 @@ class HostQuerySet(QuerySet):
 
         cursor = connection.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT DISTINCT h.mac from hosts h
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
@@ -104,18 +109,19 @@ class HostQuerySet(QuerySet):
                         AND (h.expires - n.notification) < now()
                         AND UPPER(h.hostname::text) NOT LIKE UPPER('g-%%')
                         AND UPPER(h.hostname::text) NOT LIKE UPPER('%%.guests.usu.edu')
-            """)
+            """
+            )
             hosts = [host[0] for host in cursor.fetchall()]
         finally:
             cursor.close()
 
         if omit_guests is True:
-            guest_hostname_prefix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[0]
-            guest_hostname_suffix = CONFIG.get('GUEST_HOSTNAME_FORMAT')[1]
+            guest_hostname_prefix = CONFIG.get("GUEST_HOSTNAME_FORMAT")[0]
+            guest_hostname_suffix = CONFIG.get("GUEST_HOSTNAME_FORMAT")[1]
 
             hosts = self.filter(mac__in=hosts).exclude(
                 hostname__istartswith=guest_hostname_prefix,
-                hostname__iendswith=guest_hostname_suffix
+                hostname__iendswith=guest_hostname_suffix,
             )
 
         if ids_only is False:
@@ -124,21 +130,24 @@ class HostQuerySet(QuerySet):
         return hosts
 
     def find_next_mac(self, vendor):
-        if vendor.lower() == 'vmware':
-            oui = '00:50:56:00:00:00'
+        if vendor.lower() == "vmware":
+            oui = "00:50:56:00:00:00"
         else:
             raise ValidationError("Don't know how to handle OUI: %s" % vendor)
 
         cursor = connection.cursor()
         try:
-            cursor.execute('''
+            cursor.execute(
+                """
                 SELECT hosts.mac + 1 AS next FROM hosts
                     WHERE NOT EXISTS (
                             SELECT mac from hosts as next WHERE hosts.mac + 1 = next.mac
                         )
                         AND trunc(hosts.mac + 1) = %s
                     ORDER BY hosts.mac LIMIT 1
-            ''', [oui])
+            """,
+                [oui],
+            )
             next = cursor.fetchone()
         finally:
             cursor.close()
@@ -153,8 +162,9 @@ class HostQuerySet(QuerySet):
 
     def delete(self, user=None, **kwargs):
         from openipam.network.models import Address
+
         if not user:
-            raise Exception('A User must be given to delete hosts.')
+            raise Exception("A User must be given to delete hosts.")
 
         # Release all addresses for host in queryset
         Address.objects.filter(host__in=self.all()).release(user=user)
@@ -164,24 +174,39 @@ class HostQuerySet(QuerySet):
 
 
 class HostManager(Manager):
-
     def get_queryset(self):
         qs = super(HostManager, self).get_queryset()
-        qs = (qs
-              .extra(select={'is_disabled': 'EXISTS (SELECT 1 FROM disabled WHERE hosts.mac = disabled.mac)'})
-              )
+        qs = qs.extra(
+            select={
+                "is_disabled": "EXISTS (SELECT 1 FROM disabled WHERE hosts.mac = disabled.mac)"
+            }
+        )
         return qs
 
     def get_owners(self, mac):
         host = self.get(mac=mac)
-        owners = get_users_with_perms(
-            host, attach_perms=True, with_group_users=False)
-        owners = [k for k, v in owners.items() if 'is_owner_host' in v]
+        owners = get_users_with_perms(host, attach_perms=True, with_group_users=False)
+        owners = [k for k, v in owners.items() if "is_owner_host" in v]
         return owners
 
     # TODO!  Finish this and use it for everthing except the web form
-    def add_or_update_host(self, user, hostname=None, mac=None, expire_days=None, expires=None, description=None, dhcp_group=False,
-                           pool=False, ip_address=None, network=None, user_owners=None, group_owners=None, instance=None, full_clean=True):
+    def add_or_update_host(
+        self,
+        user,
+        hostname=None,
+        mac=None,
+        expire_days=None,
+        expires=None,
+        description=None,
+        dhcp_group=False,
+        pool=False,
+        ip_address=None,
+        network=None,
+        user_owners=None,
+        group_owners=None,
+        instance=None,
+        full_clean=True,
+    ):
         User = get_user_model()
         force_update = False
 
@@ -197,11 +222,10 @@ class HostManager(Manager):
             instance = self.model()
             if mac:
                 # Delete existing expired host is it exists.
-                self.filter(mac=mac, expires__lt=timezone.now()
-                            ).delete(user=user)
+                self.filter(mac=mac, expires__lt=timezone.now()).delete(user=user)
                 instance.set_mac_address(mac)
             else:
-                raise ValidationError('Mac address is required for new Hosts.')
+                raise ValidationError("Mac address is required for new Hosts.")
 
         instance.user = instance.changed_by = user
 
@@ -216,7 +240,8 @@ class HostManager(Manager):
         elif expire_days:
             if not expire_days.isdigit():
                 raise ValidationError(
-                    'Expire Days needs to be a number not %s.' % expire_days)
+                    "Expire Days needs to be a number not %s." % expire_days
+                )
             instance.set_expiration(expire_days)
 
         if dhcp_group:
@@ -228,7 +253,7 @@ class HostManager(Manager):
         elif dhcp_group is None:
             instance.dhcp_group = None
 
-        address_type_pool = getattr(instance.address_type, 'pool', None)
+        address_type_pool = getattr(instance.address_type, "pool", None)
         if pool:
             if isinstance(pool, int):
                 pool = Pool.objects.get(pk=pool)
@@ -269,7 +294,8 @@ class HostManager(Manager):
                     # u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
                     # users_to_add = User.objects.filter(reduce(operator.or_, u_list))
                     users_to_add = User.objects.filter(
-                        username__in=[user_owner for user_owner in user_owners])
+                        username__in=[user_owner for user_owner in user_owners]
+                    )
                 else:
                     # users_to_add = User.objects.filter(username__iexact=user_owners)
                     users_to_add = User.objects.filter(username=user_owners)
@@ -283,7 +309,8 @@ class HostManager(Manager):
                     # g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
                     # groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
                     groups_to_add = Group.objects.filter(
-                        name__in=[group_owner for group_owner in group_owners])
+                        name__in=[group_owner for group_owner in group_owners]
+                    )
                 else:
                     # groups_to_add = Group.objects.filter(name__iexact=group_owners)
                     groups_to_add = Group.objects.filter(name=group_owners)

@@ -13,7 +13,7 @@ from guardian.shortcuts import get_objects_for_user
 class DomainNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Domain
-        fields = ('name',)
+        fields = ("name",)
 
 
 class DomainSerializer(serializers.ModelSerializer):
@@ -24,15 +24,14 @@ class DomainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Domain
-        fields = '__all__'
+        fields = "__all__"
 
 
 class DnsDeleteSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DnsRecord
-        fields = ('id',)
-        read_only_fields = ('id',)
+        fields = ("id",)
+        read_only_fields = ("id",)
 
 
 class DnsListDetailSerializer(serializers.ModelSerializer):
@@ -41,20 +40,18 @@ class DnsListDetailSerializer(serializers.ModelSerializer):
     host = serializers.SerializerMethodField()
 
     def get_content(self, obj):
-        return '%s' % obj.content
+        return "%s" % obj.content
 
     def get_dns_type(self, obj):
-        return '%s' % obj.dns_type.name
+        return "%s" % obj.dns_type.name
 
     def get_host(self, obj):
-        return '%s' % obj.host
+        return "%s" % obj.host
 
     class Meta:
         model = DnsRecord
-        fields = ('url', 'id', 'name', 'content', 'dns_type', 'ttl', 'host',)
-        extra_kwargs = {
-            'url': {'view_name': 'api_dns_view', 'lookup_field': 'pk'},
-        }
+        fields = ("url", "id", "name", "content", "dns_type", "ttl", "host")
+        extra_kwargs = {"url": {"view_name": "api_dns_view", "lookup_field": "pk"}}
 
 
 class DnsCreateSerializer(serializers.ModelSerializer):
@@ -64,36 +61,35 @@ class DnsCreateSerializer(serializers.ModelSerializer):
         super(DnsCreateSerializer, self).__init__(*args, **kwargs)
 
         # THIS IS STUPID!
-        user = self.context['request'].user
-        blank_choice = [('', '-------------')]
+        user = self.context["request"].user
+        blank_choice = [("", "-------------")]
         dns_type_choices = get_objects_for_user(
             user,
-            ['dns.add_records_to_dnstype', 'dns.change_dnstype'],
+            ["dns.add_records_to_dnstype", "dns.change_dnstype"],
             any_perm=True,
             use_groups=True,
-            with_superuser=True
+            with_superuser=True,
         )
-        self.fields['dns_type'] = serializers.ChoiceField(
+        self.fields["dns_type"] = serializers.ChoiceField(
             required=True,
-            choices=blank_choice + [
-                (dns_type.name, dns_type.name) for dns_type in dns_type_choices
-            ]
+            choices=blank_choice
+            + [(dns_type.name, dns_type.name) for dns_type in dns_type_choices],
         )
 
     def save(self):
         is_new = True if self.instance is None else False
         data = self.validated_data.copy()
-        data['record'] = self.instance
-        data['user'] = self.context['request'].user
+        data["record"] = self.instance
+        data["user"] = self.context["request"].user
         self.instance, create = DnsRecord.objects.add_or_update_record(**data)
 
         LogEntry.objects.log_action(
-            user_id=self.context['request'].user.pk,
+            user_id=self.context["request"].user.pk,
             content_type_id=ContentType.objects.get_for_model(self.instance).pk,
             object_id=self.instance.pk,
             object_repr=force_unicode(self.instance),
             action_flag=ADDITION if is_new else CHANGE,
-            change_message='API call.'
+            change_message="API call.",
         )
         return self.instance
 
@@ -103,11 +99,11 @@ class DnsCreateSerializer(serializers.ModelSerializer):
 
             if not dns_type:
                 raise serializers.ValidationError(
-                    'The Dns Type selected is not valid.  Please enter a valid type (https://en.wikipedia.org/wiki/List_of_DNS_record_types)'
+                    "The Dns Type selected is not valid.  Please enter a valid type (https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
 
         return dns_type
 
     class Meta:
         model = DnsRecord
-        fields = ('name', 'dns_type', 'content', 'ttl')
+        fields = ("name", "dns_type", "content", "ttl")

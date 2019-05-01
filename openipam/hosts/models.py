@@ -40,17 +40,17 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
     def __unicode__(self):
         return self.name
 
     class Meta:
-        db_table = 'attributes'
+        db_table = "attributes"
 
 
 class AttributeToHost(models.Model):
-    attribute = models.IntegerField(null=True, blank=True, db_column='aid')
+    attribute = models.IntegerField(null=True, blank=True, db_column="aid")
     name = models.CharField(max_length=255, blank=True, null=True)
     structured = models.BooleanField(default=None)
     required = models.BooleanField(default=False)
@@ -61,19 +61,19 @@ class AttributeToHost(models.Model):
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s %s' % (self.attribute.name, self.name)
+        return "%s %s" % (self.attribute.name, self.name)
 
     class Meta:
         managed = False
-        db_table = 'attributes_to_hosts'
+        db_table = "attributes_to_hosts"
 
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
     # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
-    changed = models.DateTimeField(auto_now=True, db_column='disabled')
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='disabled_by')
+    changed = models.DateTimeField(auto_now=True, db_column="disabled")
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="disabled_by")
 
     def __init__(self, *args, **kwargs):
         # Initialize setters
@@ -82,7 +82,7 @@ class Disabled(models.Model):
         super(Disabled, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return '%s' % self.pk
+        return "%s" % self.pk
 
     @property
     def host(self):
@@ -97,42 +97,42 @@ class Disabled(models.Model):
         self._host = host
 
     class Meta:
-        db_table = 'disabled'
-        verbose_name = 'Disabled Host'
-        ordering = ('-changed',)
+        db_table = "disabled"
+        verbose_name = "Disabled Host"
+        ordering = ("-changed",)
 
 
 class ExpirationType(models.Model):
     expiration = models.DateTimeField()
-    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
 
     def __unicode__(self):
-        return '%s days' % self.expiration.days
+        return "%s days" % self.expiration.days
 
     class Meta:
-        db_table = 'expiration_types'
-        ordering = ('expiration',)
-        permissions = (
-            ('is_owner_expiration_type', 'Is owner'),
-        )
+        db_table = "expiration_types"
+        ordering = ("expiration",)
+        permissions = (("is_owner_expiration_type", "Is owner"),)
 
 
 class FreeformAttributeToHost(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='freeform_attributes')
-    attribute = models.ForeignKey('Attribute', db_column='aid')
+    host = models.ForeignKey(
+        "Host", db_column="mac", related_name="freeform_attributes"
+    )
+    attribute = models.ForeignKey("Attribute", db_column="aid")
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
     def __unicode__(self):
-        return '%s %s %s' % (self.pk, self.attribute.name, self.value)
+        return "%s %s %s" % (self.pk, self.attribute.name, self.value)
 
     class Meta:
-        db_table = 'freeform_attributes_to_hosts'
+        db_table = "freeform_attributes_to_hosts"
 
 
 class GuestTicket(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="uid")
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -163,14 +163,49 @@ class GuestTicket(models.Model):
                 group.append(groups[random.randint(0, num_groups)])
 
             structure = []
-            structure.append('%s%s%s%s%s%s%s%s' % (cons[0], vowel[0], cons[1], cons[2], vowel[1], cons[3], vowel[2], group[0]))
-            structure.append('%s%s%s%s%s%s' % (group[0], vowel[0], cons[0], cons[1], vowel[1], group[1]))
-            structure.append('%s%s%s%s%s' % (group[0], vowel[0], cons[0], vowel[1], "s"))
-            structure.append('%s%s%s%s%s' % (vowel[0], group[0], vowel[1], cons[0], vowel[2]))
-            structure.append('%s%s%s%s%s' % (group[0], vowel[0], cons[0], vowel[1], group[1]))
-            structure.append('%s%s%s%s' % (vowel[0], group[0], vowel[1], group[1]))
-            structure.append('%s%s%s%s%s%s%s%s' % (cons[0], vowel[0], cons[1], vowel[1], cons[2], vowel[2], cons[3], vowel[2]))
-            structure.append('%s%s%s%s%s' % (group[0], vowel[1], group[1], vowel[1], cons[0]))
+            structure.append(
+                "%s%s%s%s%s%s%s%s"
+                % (
+                    cons[0],
+                    vowel[0],
+                    cons[1],
+                    cons[2],
+                    vowel[1],
+                    cons[3],
+                    vowel[2],
+                    group[0],
+                )
+            )
+            structure.append(
+                "%s%s%s%s%s%s"
+                % (group[0], vowel[0], cons[0], cons[1], vowel[1], group[1])
+            )
+            structure.append(
+                "%s%s%s%s%s" % (group[0], vowel[0], cons[0], vowel[1], "s")
+            )
+            structure.append(
+                "%s%s%s%s%s" % (vowel[0], group[0], vowel[1], cons[0], vowel[2])
+            )
+            structure.append(
+                "%s%s%s%s%s" % (group[0], vowel[0], cons[0], vowel[1], group[1])
+            )
+            structure.append("%s%s%s%s" % (vowel[0], group[0], vowel[1], group[1]))
+            structure.append(
+                "%s%s%s%s%s%s%s%s"
+                % (
+                    cons[0],
+                    vowel[0],
+                    cons[1],
+                    vowel[1],
+                    cons[2],
+                    vowel[2],
+                    cons[3],
+                    vowel[2],
+                )
+            )
+            structure.append(
+                "%s%s%s%s%s" % (group[0], vowel[1], group[1], vowel[1], cons[0])
+            )
 
             return structure[random.randint(0, len(structure) - 1)]
 
@@ -181,63 +216,100 @@ class GuestTicket(models.Model):
         self.ticket = ticket
 
     class Meta:
-        db_table = 'guest_tickets'
+        db_table = "guest_tickets"
 
 
 class GulRecentArpByaddress(models.Model):
-    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='ip_history', primary_key=True)
-    address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='ip_history')
+    host = models.OneToOneField(
+        "Host",
+        db_column="mac",
+        db_constraint=False,
+        related_name="ip_history",
+        primary_key=True,
+    )
+    address = models.ForeignKey(
+        "network.Address",
+        db_column="address",
+        db_constraint=False,
+        related_name="ip_history",
+    )
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s - %s' % (self.pk, self.address_id)
+        return "%s - %s" % (self.pk, self.address_id)
 
     class Meta:
-        db_table = 'gul_recent_arp_byaddress'
+        db_table = "gul_recent_arp_byaddress"
 
 
 class GulRecentArpBymac(models.Model):
-    host = models.OneToOneField('Host', db_column='mac', db_constraint=False, related_name='mac_history', primary_key=True)
-    address = models.ForeignKey('network.Address', db_column='address', db_constraint=False, related_name='mac_history')
+    host = models.OneToOneField(
+        "Host",
+        db_column="mac",
+        db_constraint=False,
+        related_name="mac_history",
+        primary_key=True,
+    )
+    address = models.ForeignKey(
+        "network.Address",
+        db_column="address",
+        db_constraint=False,
+        related_name="mac_history",
+    )
     stopstamp = models.DateTimeField()
 
     objects = NetManager()
 
     def __unicode__(self):
-        return '%s - %s' % (self.pk, self.address)
+        return "%s - %s" % (self.pk, self.address)
 
     class Meta:
-        db_table = 'gul_recent_arp_bymac'
+        db_table = "gul_recent_arp_bymac"
 
 
 class Host(DirtyFieldsMixin, models.Model):
-    mac = MACAddressField('Mac Address', primary_key=True)
-    hostname = models.CharField(max_length=255, unique=True, validators=[validate_hostname], db_index=True)
+    mac = MACAddressField("Mac Address", primary_key=True)
+    hostname = models.CharField(
+        max_length=255, unique=True, validators=[validate_hostname], db_index=True
+    )
     description = models.TextField(blank=True, null=True)
-    address_type_id = models.ForeignKey('network.AddressType', blank=True, null=True, db_column='address_type_id',
-                                        on_delete=models.SET_NULL)
-    pools = models.ManyToManyField('network.Pool', through='network.HostToPool', related_name='pool_hosts')
+    address_type_id = models.ForeignKey(
+        "network.AddressType",
+        blank=True,
+        null=True,
+        db_column="address_type_id",
+        on_delete=models.SET_NULL,
+    )
+    pools = models.ManyToManyField(
+        "network.Pool", through="network.HostToPool", related_name="pool_hosts"
+    )
     # freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
     #                                             related_name='freeform_hosts',  blank=True, null=True)
     # structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
     #                                               related_name='structured_hosts',  blank=True, null=True)
-    dhcp_group = models.ForeignKey('network.DhcpGroup', db_column='dhcp_group',
-                                   verbose_name='DHCP Group', blank=True, null=True, on_delete=models.SET_NULL)
+    dhcp_group = models.ForeignKey(
+        "network.DhcpGroup",
+        db_column="dhcp_group",
+        verbose_name="DHCP Group",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
     last_notified = models.DateTimeField(blank=True, null=True)
 
     objects = HostManager.from_queryset(HostQuerySet)()
 
     search_index = VectorField()
     searcher = SearchManager(
-        fields=('hostname', 'description'),
-        config='pg_catalog.english',  # this is default
-        search_field='search_index',  # this is default
-        auto_update_search_field=True
+        fields=("hostname", "description"),
+        config="pg_catalog.english",  # this is default
+        search_field="search_index",  # this is default
+        auto_update_search_field=True,
     )
 
     def __init__(self, *args, **kwargs):
@@ -260,12 +332,17 @@ class Host(DirtyFieldsMixin, models.Model):
 
     # Overload getattr for get original values
     def __getattr__(self, name):
-        if name.startswith('original_') and name.split('_', 1)[1] in self._original_state.keys():
+        if (
+            name.startswith("original_")
+            and name.split("_", 1)[1] in self._original_state.keys()
+        ):
+
             def _original(fieldname):
                 fieldvalue = self._original_state.get(fieldname, None)
                 if fieldvalue is not None:
                     return fieldvalue
-            return _original(name.split('_', 1)[1])
+
+            return _original(name.split("_", 1)[1])
         else:
             return self.__getattribute__(name)
 
@@ -312,27 +389,47 @@ class Host(DirtyFieldsMixin, models.Model):
     def owners(self):
         return self.get_owners()
 
-    def get_owners(self, ids_only=False, name_only=False, owner_detail=False, users_only=False, user_perms_prefetch=None, group_perms_prefetch=None):
+    def get_owners(
+        self,
+        ids_only=False,
+        name_only=False,
+        owner_detail=False,
+        users_only=False,
+        user_perms_prefetch=None,
+        group_perms_prefetch=None,
+    ):
         # users_dict = get_users_with_perms(self, attach_perms=True, with_group_users=False)
         # groups_dict = get_groups_with_perms(self, attach_perms=True)
         content_type = ContentType.objects.get_for_model(self)
 
         users = []
         if user_perms_prefetch:
-            user_perms = filter(lambda x: x.object_pk == str(self.mac) and x.permission.codename == 'is_owner_host', user_perms_prefetch)
+            user_perms = filter(
+                lambda x: x.object_pk == str(self.mac)
+                and x.permission.codename == "is_owner_host",
+                user_perms_prefetch,
+            )
         else:
             user_perms = UserObjectPermission.objects.filter(
-                content_type=content_type, object_pk=str(self.mac), permission__codename='is_owner_host'
+                content_type=content_type,
+                object_pk=str(self.mac),
+                permission__codename="is_owner_host",
             )
         for perm in user_perms:
             users.append(perm.user)
 
         groups = []
         if group_perms_prefetch:
-            group_perms = filter(lambda x: x.object_pk == str(self.mac) and x.permission.codename == 'is_owner_host', group_perms_prefetch)
+            group_perms = filter(
+                lambda x: x.object_pk == str(self.mac)
+                and x.permission.codename == "is_owner_host",
+                group_perms_prefetch,
+            )
         else:
             group_perms = GroupObjectPermission.objects.filter(
-                content_type=content_type, object_pk=str(self.mac), permission__codename='is_owner_host'
+                content_type=content_type,
+                object_pk=str(self.mac),
+                permission__codename="is_owner_host",
             )
         for perm in group_perms:
             groups.append(perm.group)
@@ -348,12 +445,17 @@ class Host(DirtyFieldsMixin, models.Model):
 
         if users_only:
             User = get_user_model()
-            users_from_groups = [user for user in User.objects.filter(groups__in=groups)]
+            users_from_groups = [
+                user for user in User.objects.filter(groups__in=groups)
+            ]
             users = list(set(users + users_from_groups))
             return users
 
         if owner_detail:
-            users = [(user.pk, user.username, user.get_full_name(), user.email) for user in users]
+            users = [
+                (user.pk, user.username, user.get_full_name(), user.email)
+                for user in users
+            ]
             groups = [(group.pk, group.name) for group in groups]
 
         elif ids_only:
@@ -453,9 +555,13 @@ class Host(DirtyFieldsMixin, models.Model):
                 # elif addresses:
                 if addresses:
                     try:
-                        ranges = NetworkRange.objects.filter(range__net_contains_or_equals=addresses[0].address)
+                        ranges = NetworkRange.objects.filter(
+                            range__net_contains_or_equals=addresses[0].address
+                        )
                         if ranges:
-                            self.address_type_id = AddressType.objects.get(ranges__in=ranges)
+                            self.address_type_id = AddressType.objects.get(
+                                ranges__in=ranges
+                            )
                         else:
                             raise AddressType.DoesNotExist
                     except AddressType.DoesNotExist:
@@ -475,11 +581,11 @@ class Host(DirtyFieldsMixin, models.Model):
     def mac_stripped(self):
         mac = str(self.mac)
         mac = [c for c in mac if c.isdigit() or c.isalpha()]
-        return ''.join(mac)
+        return "".join(mac)
 
     @property
     def mac_last_seen(self):
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by('-stopstamp')
+        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by("-stopstamp")
 
         if gul_mac:
             return gul_mac[0].stopstamp
@@ -525,31 +631,39 @@ class Host(DirtyFieldsMixin, models.Model):
 
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to add ip addresses.')
+            raise Exception("A User must be given to add ip addresses.")
 
         if not hostname:
-            raise ValidationError('A hostname is required.')
+            raise ValidationError("A hostname is required.")
 
         address = None
 
         # Check to see if hostname already taken for any hosts other then the current one if being updated.
-        used_hostname = DnsRecord.objects.filter(
-            dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-            name=hostname
-        ).exclude(ip_content__address=self.master_ip_address).first()
+        used_hostname = (
+            DnsRecord.objects.filter(
+                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA], name=hostname
+            )
+            .exclude(ip_content__address=self.master_ip_address)
+            .first()
+        )
         if used_hostname:
-            raise ValidationError('Hostname %s is already assigned to DNS A Record: %s.' % (hostname, used_hostname.ip_content))
+            raise ValidationError(
+                "Hostname %s is already assigned to DNS A Record: %s."
+                % (hostname, used_hostname.ip_content)
+            )
 
         user_pools = get_objects_for_user(
-            user,
-            ['network.add_records_to_pool', 'network.change_pool'],
-            any_perm=True
+            user, ["network.add_records_to_pool", "network.change_pool"], any_perm=True
         )
 
         user_nets = get_objects_for_user(
             user,
-            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-            any_perm=True
+            [
+                "network.add_records_to_network",
+                "network.is_owner_network",
+                "network.change_network",
+            ],
+            any_perm=True,
         )
 
         if network:
@@ -563,13 +677,20 @@ class Host(DirtyFieldsMixin, models.Model):
                 )
 
             try:
-                network_address = Address.objects.filter(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
-                    network=network,
-                    host__isnull=True,
-                    reserved=False,
-                ).order_by('address').first()
+                network_address = (
+                    Address.objects.filter(
+                        Q(pool__in=user_pools) | Q(pool__isnull=True),
+                        Q(leases__isnull=True)
+                        | Q(leases__abandoned=True)
+                        | Q(leases__ends__lte=timezone.now())
+                        | Q(leases__host=self),
+                        network=network,
+                        host__isnull=True,
+                        reserved=False,
+                    )
+                    .order_by("address")
+                    .first()
+                )
 
                 if not network_address:
                     raise Address.DoesNotExist
@@ -579,32 +700,52 @@ class Host(DirtyFieldsMixin, models.Model):
             except ValidationError:
                 raise ValidationError("The network '%s' is invalid." % network)
             except Address.DoesNotExist:
-                raise ValidationError('There are no avaiable addresses for the network entered: %s' % network)
+                raise ValidationError(
+                    "There are no avaiable addresses for the network entered: %s"
+                    % network
+                )
 
         elif ip_address:
             # Validate IP Address
             try:
                 validate_ipv46_address(ip_address)
             except ValidationError:
-                raise ValidationError('IP Address %s is invalid.  Enter a valid IPv4 or IPv6 address.' % ip_address)
+                raise ValidationError(
+                    "IP Address %s is invalid.  Enter a valid IPv4 or IPv6 address."
+                    % ip_address
+                )
 
             if ip_address in self.ip_addresses:
-                raise ValidationError('IP address %s is already assigned to this host.' % ip_address)
+                raise ValidationError(
+                    "IP address %s is already assigned to this host." % ip_address
+                )
 
             try:
                 address = Address.objects.get(
-                    Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                    Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
+                    Q(pool__in=user_pools)
+                    | Q(pool__isnull=True)
+                    | Q(network__in=user_nets),
+                    Q(leases__isnull=True)
+                    | Q(leases__abandoned=True)
+                    | Q(leases__ends__lte=timezone.now())
+                    | Q(leases__host=self),
                     Q(host__isnull=True) | Q(host=self),
                     address=ip_address,
                     reserved=False,
                 )
             except ValidationError:
-                raise ValidationError('There IP Address %s is not available.' % ip_address)
+                raise ValidationError(
+                    "There IP Address %s is not available." % ip_address
+                )
             except Address.DoesNotExist:
-                raise ValidationError('There are no avaiable addresses for the IP entered: %s' % ip_address)
+                raise ValidationError(
+                    "There are no avaiable addresses for the IP entered: %s"
+                    % ip_address
+                )
         else:
-            raise ValidationError('A Network or IP Address must be given to assign this host an address.')
+            raise ValidationError(
+                "A Network or IP Address must be given to assign this host an address."
+            )
 
         # Make sure pool is clear on addresses we are assigning.
         address.pool_id = None
@@ -617,11 +758,14 @@ class Host(DirtyFieldsMixin, models.Model):
 
         return address
 
-    def delete_dns_records(self, user=None, delete_only_master_dns=False, delete_dchpdns=True, addresses=[]):
+    def delete_dns_records(
+        self, user=None, delete_only_master_dns=False, delete_dchpdns=True, addresses=[]
+    ):
         from openipam.dns.models import DnsType
+
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to delete dns records for host.')
+            raise Exception("A User must be given to delete dns records for host.")
 
         if self.master_dns_deleted is False:
 
@@ -634,15 +778,23 @@ class Host(DirtyFieldsMixin, models.Model):
                 # Here we only delete the master DNS (A and PTR) record
                 # If modifying a host, this will get recreated later in the call.
                 self.dns_records.filter(
-                    Q(name=self.original_hostname) |
-                    Q(text_content=self.original_hostname),
-                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    Q(name=self.original_hostname)
+                    | Q(text_content=self.original_hostname),
+                    dns_type__in=[
+                        DnsType.objects.PTR,
+                        DnsType.objects.A,
+                        DnsType.objects.AAAA,
+                    ],
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name=self.original_hostname) |
-                    Q(text_content=self.original_hostname),
-                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    Q(name=self.original_hostname)
+                    | Q(text_content=self.original_hostname),
+                    dns_type__in=[
+                        DnsType.objects.PTR,
+                        DnsType.objects.A,
+                        DnsType.objects.AAAA,
+                    ],
                 ).delete()
             else:
                 # TODO: There is a foreign key for host on this table but we cant use it
@@ -650,15 +802,31 @@ class Host(DirtyFieldsMixin, models.Model):
                 # using the FK.
                 # Update Changed by Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-                    Q(ip_content__in=[address for address in addresses]),
-                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    Q(
+                        name__in=[
+                            address.address.reverse_pointer for address in addresses
+                        ]
+                    )
+                    | Q(ip_content__in=[address for address in addresses]),
+                    dns_type__in=[
+                        DnsType.objects.PTR,
+                        DnsType.objects.A,
+                        DnsType.objects.AAAA,
+                    ],
                 ).update(changed=timezone.now(), changed_by=user)
                 # Delete Assocatiated PTR and A or AAAA records.
                 self.dns_records.filter(
-                    Q(name__in=[address.address.reverse_pointer for address in addresses]) |
-                    Q(ip_content__in=[address for address in addresses]),
-                    dns_type__in=[DnsType.objects.PTR, DnsType.objects.A, DnsType.objects.AAAA]
+                    Q(
+                        name__in=[
+                            address.address.reverse_pointer for address in addresses
+                        ]
+                    )
+                    | Q(ip_content__in=[address for address in addresses]),
+                    dns_type__in=[
+                        DnsType.objects.PTR,
+                        DnsType.objects.A,
+                        DnsType.objects.AAAA,
+                    ],
                 ).delete()
 
             if delete_dchpdns:
@@ -668,7 +836,9 @@ class Host(DirtyFieldsMixin, models.Model):
                 except ObjectDoesNotExist:
                     pass
 
-            if not addresses or self.master_ip_address in [str(address.address) for address in addresses]:
+            if not addresses or self.master_ip_address in [
+                str(address.address) for address in addresses
+            ]:
                 self.master_dns_deleted = True
 
     def add_dns_records(self, user=None, hostname=None, address=None):
@@ -677,7 +847,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to add dns records for host.')
+            raise Exception("A User must be given to add dns records for host.")
 
         # Only do this on static hosts.
         if self.is_static:
@@ -703,15 +873,17 @@ class Host(DirtyFieldsMixin, models.Model):
             arecord = DnsRecord.objects.filter(
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
                 host=self,
-                name=hostname
+                name=hostname,
             ).first()
             DnsRecord.objects.add_or_update_record(
                 user=user,
                 name=hostname,
                 content=address.address,
-                dns_type=DnsType.objects.A if address.address.version == 4 else DnsType.objects.AAAA,
+                dns_type=DnsType.objects.A
+                if address.address.version == 4
+                else DnsType.objects.AAAA,
                 host=self,
-                record=arecord if arecord else None
+                record=arecord if arecord else None,
             )
 
         # Reset dns deleted flag if this is the master hostname
@@ -722,17 +894,21 @@ class Host(DirtyFieldsMixin, models.Model):
         from openipam.dns.models import DnsRecord
 
         addresses = self.addresses.all()
-        a_record_names = (DnsRecord.objects
-            .select_related('ip_content', 'host', 'dns_type')
+        a_record_names = (
+            DnsRecord.objects.select_related("ip_content", "host", "dns_type")
             .filter(ip_content__in=addresses)
-            .values_list('name')
+            .values_list("name")
         )
-        dns_records = DnsRecord.objects.select_related('ip_content', 'host', 'dns_type').filter(
-            Q(text_content__in=a_record_names) |
-            Q(name__in=a_record_names) |
-            Q(ip_content__in=addresses) |
-            Q(host=self)
-        ).order_by('dns_type__name')
+        dns_records = (
+            DnsRecord.objects.select_related("ip_content", "host", "dns_type")
+            .filter(
+                Q(text_content__in=a_record_names)
+                | Q(name__in=a_record_names)
+                | Q(ip_content__in=addresses)
+                | Q(host=self)
+            )
+            .order_by("dns_type__name")
+        )
 
         return dns_records
 
@@ -744,18 +920,27 @@ class Host(DirtyFieldsMixin, models.Model):
             return None
 
     def set_expiration(self, expire_days):
-        if isinstance(expire_days, int) or isinstance(expire_days, unicode) or isinstance(expire_days, str):
+        if (
+            isinstance(expire_days, int)
+            or isinstance(expire_days, unicode)
+            or isinstance(expire_days, str)
+        ):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
-        self.expires = datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
+        self.expires = (
+            datetime(now.year, now.month, now.day) + timedelta(1) + expire_days
+        )
         self.expires = self.expires.replace(tzinfo=utc)
 
     def set_mac_address(self, new_mac_address):
         if self.mac and str(self.mac).lower() != str(new_mac_address).lower():
             cursor = connection.cursor()
-            cursor.execute('''
+            cursor.execute(
+                """
                 UPDATE hosts SET mac = %s WHERE mac = %s
-            ''', [str(new_mac_address), str(self.mac)])
+            """,
+                [str(new_mac_address), str(self.mac)],
+            )
             self.mac = str(new_mac_address).lower()
         elif not self.pk:
             self.mac = str(new_mac_address).lower()
@@ -763,17 +948,21 @@ class Host(DirtyFieldsMixin, models.Model):
     def set_hostname(self, hostname, user=None):
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to save hosts.')
+            raise Exception("A User must be given to save hosts.")
 
         self.hostname = hostname
-        if self.original_hostname and self.hostname and self.hostname != self.original_hostname:
+        if (
+            self.original_hostname
+            and self.hostname
+            and self.hostname != self.original_hostname
+        ):
             self.delete_dns_records(user=user, delete_only_master_dns=True)
 
     # TODO: Clean this up, I dont like where this is at.
     def set_network_ip_or_pool(self, user=None, delete=False):
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to save hosts.')
+            raise Exception("A User must be given to save hosts.")
 
         # Set the pool if attached to model otherwise find it by address type
         pool = self.pool
@@ -811,13 +1000,13 @@ class Host(DirtyFieldsMixin, models.Model):
                 self.pools.clear()
                 # Assign new pool if it doesn't already exist
                 self.host_pools.create(
-                    host=self,
-                    pool=Pool.objects.get(name=pool),
-                    changed_by=user
+                    host=self, pool=Pool.objects.get(name=pool), changed_by=user
                 )
 
         # If we have a Network or IP address, then assign that address to host
-        elif self.network or (self.ip_address and self.ip_address not in self.ip_addresses):
+        elif self.network or (
+            self.ip_address and self.ip_address not in self.ip_addresses
+        ):
 
             # Remove all pools
             self.pools.clear()
@@ -836,25 +1025,26 @@ class Host(DirtyFieldsMixin, models.Model):
                 user=user,
                 ip_address=self.ip_address,
                 network=self.network,
-                hostname=self.hostname)
+                hostname=self.hostname,
+            )
 
     def remove_owners(self):
         users, groups = self.get_owners()
         for user in users:
-            remove_perm('is_owner_host', user, self)
+            remove_perm("is_owner_host", user, self)
         for group in groups:
-            remove_perm('is_owner_host', group, self)
+            remove_perm("is_owner_host", group, self)
 
     def remove_owner(self, user_or_group):
-        return remove_perm('is_owner_host', user_or_group, self)
+        return remove_perm("is_owner_host", user_or_group, self)
 
     def assign_owner(self, user_or_group):
-        return assign_perm('is_owner_host', user_or_group, self)
+        return assign_perm("is_owner_host", user_or_group, self)
 
     def save(self, user=None, add_dns=True, *args, **kwargs):
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to save hosts.')
+            raise Exception("A User must be given to save hosts.")
 
         # Make sure hostname is lowercase
         self.hostname = self.hostname.lower()
@@ -874,7 +1064,7 @@ class Host(DirtyFieldsMixin, models.Model):
     def delete(self, user=None, *args, **kwargs):
         user = user or self._user
         if not user:
-            raise Exception('A User must be given to save hosts.')
+            raise Exception("A User must be given to save hosts.")
 
         # Delete primary DNS (PTR, A, and AAAA, updating changed and changed by)
         self.delete_dns_records(user=user, addresses=self.addresses.all())
@@ -898,53 +1088,80 @@ class Host(DirtyFieldsMixin, models.Model):
         if self.hostname and self.hostname != self.original_hostname:
             existing_hostname = Host.objects.filter(hostname=self.hostname).first()
             if existing_hostname:
-                raise ValidationError("The hostname '%s' already exists." % (self.hostname))
+                raise ValidationError(
+                    "The hostname '%s' already exists." % (self.hostname)
+                )
 
-            existing_dns_hostname = DnsRecord.objects.filter(
-                dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
-                name=self.hostname,
-            ).exclude(host=self).first()
+            existing_dns_hostname = (
+                DnsRecord.objects.filter(
+                    dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA],
+                    name=self.hostname,
+                )
+                .exclude(host=self)
+                .first()
+            )
             if existing_dns_hostname:
-                raise ValidationError('DNS Records already exist for this hostname: %s. '
-                    ' Please contact an IPAM Administrator.' % (self.hostname))
+                raise ValidationError(
+                    "DNS Records already exist for this hostname: %s. "
+                    " Please contact an IPAM Administrator." % (self.hostname)
+                )
 
         # Perform permission checks if user is attached to this instance
         # Domain permission checks if hostname has changed
         if self.hostname and self.hostname != self.original_hostname:
-            domain_from_host = self.hostname.split('.')[1:]
-            domain_from_host = '.'.join(domain_from_host)
+            domain_from_host = self.hostname.split(".")[1:]
+            domain_from_host = ".".join(domain_from_host)
 
             valid_domain = get_objects_for_user(
                 self.user,
-                ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
-                any_perm=True
+                [
+                    "dns.add_records_to_domain",
+                    "dns.is_owner_domain",
+                    "dns.change_domain",
+                ],
+                any_perm=True,
             ).filter(name=domain_from_host)
             if not valid_domain:
-                raise ValidationError('Insufficient permissions to add hosts '
-                                      'for domain: %s. Please contact an IPAM Administrator.' % domain_from_host)
+                raise ValidationError(
+                    "Insufficient permissions to add hosts "
+                    "for domain: %s. Please contact an IPAM Administrator."
+                    % domain_from_host
+                )
 
         # Pool and Network permission checks
         # Check for pool assignment and perms
         if self.address_type and self.address_type.pool:
             valid_pools = get_objects_for_user(
                 self.user,
-                ['network.add_records_to_pool', 'network.change_pool'],
-                any_perm=True
+                ["network.add_records_to_pool", "network.change_pool"],
+                any_perm=True,
             )
             if self.address_type.pool not in valid_pools:
-                raise ValidationError('Insufficient permissions to add hosts to '
-                                      'the assigned pool: %s. Please contact an IPAM Administrator.' % self.address_type.pool)
+                raise ValidationError(
+                    "Insufficient permissions to add hosts to "
+                    "the assigned pool: %s. Please contact an IPAM Administrator."
+                    % self.address_type.pool
+                )
 
         # If network defined check for address assignment and perms
         if self.network:
             valid_network = get_objects_for_user(
                 self.user,
-                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True
+                [
+                    "network.add_records_to_network",
+                    "network.is_owner_network",
+                    "network.change_network",
+                ],
+                any_perm=True,
             )
-            if self.network.network not in [network.network for network in valid_network]:
-                raise ValidationError('Insufficient permissions to add hosts to '
-                  'the assigned network: %s. Please contact an IPAM Administrator.' % self.network.network)
+            if self.network.network not in [
+                network.network for network in valid_network
+            ]:
+                raise ValidationError(
+                    "Insufficient permissions to add hosts to "
+                    "the assigned network: %s. Please contact an IPAM Administrator."
+                    % self.network.network
+                )
 
         # If IP Address defined, check validity and perms
         if self.ip_address:
@@ -952,35 +1169,44 @@ class Host(DirtyFieldsMixin, models.Model):
 
             user_pools = get_objects_for_user(
                 self.user,
-                ['network.add_records_to_pool', 'network.change_pool'],
-                any_perm=True
+                ["network.add_records_to_pool", "network.change_pool"],
+                any_perm=True,
             )
             user_nets = get_objects_for_user(
                 self.user,
-                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True
+                [
+                    "network.add_records_to_network",
+                    "network.is_owner_network",
+                    "network.change_network",
+                ],
+                any_perm=True,
             )
 
             # Make sure this is valid.
             validate_ipv46_address(ip_address)
             address = Address.objects.filter(
-                Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__host=self),
+                Q(pool__in=user_pools)
+                | Q(pool__isnull=True)
+                | Q(network__in=user_nets),
+                Q(leases__isnull=True)
+                | Q(leases__abandoned=True)
+                | Q(leases__ends__lte=timezone.now())
+                | Q(leases__host=self),
                 Q(host__isnull=True) | Q(host=self),
                 address=ip_address,
-                reserved=False
+                reserved=False,
             )
             if not address:
-                raise ValidationError('The IP Address is reserved, in use, or not allowed. '
-                                      'Please contact an IPAM Administrator.')
+                raise ValidationError(
+                    "The IP Address is reserved, in use, or not allowed. "
+                    "Please contact an IPAM Administrator."
+                )
 
     class Meta:
-        db_table = 'hosts'
-        permissions = (
-            ('is_owner_host', 'Is owner'),
-        )
-        default_permissions = ('add', 'change', 'delete', 'view',)
-        ordering = ('hostname',)
+        db_table = "hosts"
+        permissions = (("is_owner_host", "Is owner"),)
+        default_permissions = ("add", "change", "delete", "view")
+        ordering = ("hostname",)
 
 
 # TODO:  What is this?
@@ -1002,61 +1228,65 @@ class MacOui(models.Model):
         return self.oui
 
     class Meta:
-        db_table = 'mac_oui'
+        db_table = "mac_oui"
 
 
 class Notification(models.Model):
     notification = models.DateField()
-    min_permissions = models.ForeignKey('user.Permission', db_column='min_permissions')
+    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
 
     def __unicode__(self):
-        return '%s' % self.notification
+        return "%s" % self.notification
 
     class Meta:
-        db_table = 'notifications'
+        db_table = "notifications"
 
 
 class StructuredAttributeValue(models.Model):
-    attribute = models.ForeignKey('Attribute', db_column='aid', related_name='choices')
+    attribute = models.ForeignKey("Attribute", db_column="aid", related_name="choices")
     value = models.TextField()
     is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
     def __unicode__(self):
         return self.value
 
     class Meta:
-        db_table = 'structured_attribute_values'
-        ordering = ('attribute__name', 'value',)
+        db_table = "structured_attribute_values"
+        ordering = ("attribute__name", "value")
 
 
 class StructuredAttributeToHost(models.Model):
-    host = models.ForeignKey('Host', db_column='mac', related_name='structured_attributes')
-    structured_attribute_value = models.ForeignKey('StructuredAttributeValue', db_column='avid')
+    host = models.ForeignKey(
+        "Host", db_column="mac", related_name="structured_attributes"
+    )
+    structured_attribute_value = models.ForeignKey(
+        "StructuredAttributeValue", db_column="avid"
+    )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
     def __unicode__(self):
-        return '%s %s' % (self.host.hostname, self.structured_attribute_value)
+        return "%s %s" % (self.host.hostname, self.structured_attribute_value)
 
     class Meta:
-        db_table = 'structured_attributes_to_hosts'
+        db_table = "structured_attributes_to_hosts"
 
 
 class OUI(models.Model):
-    #oui = MACAddressField()
-    #mask = MACAddressField()
+    # oui = MACAddressField()
+    # mask = MACAddressField()
     start = MACAddressField()
     stop = MACAddressField()
     shortname = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
 
     def __unicode__(self):
-        return '%s: %s' % (self.pk, self.shortname)
+        return "%s: %s" % (self.pk, self.shortname)
 
     class Meta:
-        db_table = 'ouis'
+        db_table = "ouis"
 
 
 # Host signals

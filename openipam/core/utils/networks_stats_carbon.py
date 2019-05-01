@@ -24,9 +24,20 @@ GROUP BY addresses.network;
 
 query = query.format(available=available)
 
-query_colnames = ['network', 'epoch', 'available', 'static', 'dynamic',
-                  'leased', 'reserved', 'abandoned', 'expired', 'total',
-                  'unleased', 'available_ratio']
+query_colnames = [
+    "network",
+    "epoch",
+    "available",
+    "static",
+    "dynamic",
+    "leased",
+    "reserved",
+    "abandoned",
+    "expired",
+    "total",
+    "unleased",
+    "available_ratio",
+]
 
 
 def push_data(carbon_server, carbon_port):
@@ -38,12 +49,17 @@ def push_data(carbon_server, carbon_port):
     graphite_data = []
     for count in counts:
         net = count[0]
-        net_key = net.replace('.', '-').replace('/', '_')
+        net_key = net.replace(".", "-").replace("/", "_")
         timestamp = count[1]
         for i in range(2, len(query_colnames)):
             item_name = query_colnames[i]
             item_value = count[i]
-            line = 'ipam.leases.%s.%s %s %s' % (net_key, item_name, item_value, timestamp)
+            line = "ipam.leases.%s.%s %s %s" % (
+                net_key,
+                item_name,
+                item_value,
+                timestamp,
+            )
             graphite_data.append(line)
     carbon_s.sendall("\n".join(graphite_data))
     carbon_s.sendall("\n")

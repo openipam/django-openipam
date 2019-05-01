@@ -8,25 +8,30 @@ import openipam.user.managers
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('user', '0004_populate_authsource'),
-    ]
+    dependencies = [("user", "0004_populate_authsource")]
 
     operations = [
         migrations.AlterModelManagers(
-            name='user',
-            managers=[
-                ('objects', openipam.user.managers.IPAMUserManager()),
-            ],
+            name="user",
+            managers=[("objects", openipam.user.managers.IPAMUserManager())],
         ),
         migrations.AlterField(
-            model_name='user',
-            name='groups',
-            field=models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups'),
+            model_name="user",
+            name="groups",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                related_name="user_set",
+                related_query_name="user",
+                to="auth.Group",
+                verbose_name="groups",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_login',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='last login'),
+            model_name="user",
+            name="last_login",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="last login"
+            ),
         ),
     ]

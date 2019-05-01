@@ -20,10 +20,7 @@ class DomainQuerySet(QuerySet):
         perm_user = User.objects.get(pk=user.pk)
 
         domains = get_objects_for_user(
-            perm_user,
-            'dns.view_domain',
-            use_groups=use_groups,
-            with_superuser=False
+            perm_user, "dns.view_domain", use_groups=use_groups, with_superuser=False
         )
 
         if names_only:
@@ -43,9 +40,9 @@ class DomainQuerySet(QuerySet):
 
         domains = get_objects_for_user(
             perm_user,
-            'dns.is_owner_domain',
+            "dns.is_owner_domain",
             use_groups=use_groups,
-            with_superuser=False
+            with_superuser=False,
         )
 
         if names_only:
@@ -61,8 +58,10 @@ class DomainQuerySet(QuerySet):
     def by_change_perms(self, user_or_group, pk=None, ids_only=False, names_only=False):
         User = get_user_model()
 
-        if (isinstance(user_or_group, User) and
-                (user_or_group.has_perm('dns.change_domain') or user_or_group.has_perm('dns.is_owner_domain'))):
+        if isinstance(user_or_group, User) and (
+            user_or_group.has_perm("dns.change_domain")
+            or user_or_group.has_perm("dns.is_owner_domain")
+        ):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
@@ -74,13 +73,13 @@ class DomainQuerySet(QuerySet):
             elif isinstance(user_or_group, Group):
                 get_objects_for_user_or_group = get_objects_for_group
             else:
-                raise Exception('A valid user or goup must is required.')
+                raise Exception("A valid user or goup must is required.")
 
             domain_perms = get_objects_for_user_or_group(
                 user_or_group,
-                ['dns.is_owner_domain', 'dns.change_domain'],
-                any_perm=True
-            ).values_list('name', flat=True)
+                ["dns.is_owner_domain", "dns.change_domain"],
+                any_perm=True,
+            ).values_list("name", flat=True)
 
             qs = self.filter(name__in=list(domain_perms))
 
@@ -96,7 +95,7 @@ class DomainQuerySet(QuerySet):
                 return qs
 
     def by_dns_change_perms(self, user, pk=None):
-        if user.has_perm('dns.change_domain') or user.has_perm('dns.is_owner_domain'):
+        if user.has_perm("dns.change_domain") or user.has_perm("dns.is_owner_domain"):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
@@ -105,9 +104,13 @@ class DomainQuerySet(QuerySet):
         else:
             domain_perms = get_objects_for_user(
                 user,
-                ['dns.is_owner_domain', 'dns.add_records_to_domain', 'dns.change_domain'],
-                any_perm=True
-            ).values_list('name', flat=True)
+                [
+                    "dns.is_owner_domain",
+                    "dns.add_records_to_domain",
+                    "dns.change_domain",
+                ],
+                any_perm=True,
+            ).values_list("name", flat=True)
 
             qs = self.filter(name__in=list(domain_perms))
 
@@ -121,7 +124,9 @@ class DNSQuerySet(QuerySet):
     def by_change_perms(self, user_or_group, pk=None, ids_only=False):
         User = get_user_model()
 
-        if isinstance(user_or_group, User) and user_or_group.has_perm('dns.change_dnsrecord'):
+        if isinstance(user_or_group, User) and user_or_group.has_perm(
+            "dns.change_dnsrecord"
+        ):
             if pk:
                 qs = self.filter(pk=pk)
                 return qs[0] if qs else None
@@ -133,30 +138,30 @@ class DNSQuerySet(QuerySet):
             elif isinstance(user_or_group, Group):
                 get_objects_for_user_or_group = get_objects_for_group
             else:
-                raise Exception('A valid user or goup must is required.')
+                raise Exception("A valid user or goup must is required.")
 
             host_perms = get_objects_for_user_or_group(
                 user_or_group,
-                ['hosts.is_owner_host', 'hosts.change_host'],
-                any_perm=True
+                ["hosts.is_owner_host", "hosts.change_host"],
+                any_perm=True,
             )
             host_perms_mac_list = [host.mac for host in host_perms]
             host_perms_name_list = [host.hostname for host in host_perms]
             domain_perms = get_objects_for_user_or_group(
                 user_or_group,
-                ['dns.is_owner_domain', 'dns.change_domain'],
-                any_perm=True
-            ).values_list('name', flat=True)
+                ["dns.is_owner_domain", "dns.change_domain"],
+                any_perm=True,
+            ).values_list("name", flat=True)
             network_perms = get_objects_for_user_or_group(
                 user_or_group,
-                ['network.is_owner_network', 'network.change_network'],
-                any_perm=True
-            ).values_list('network', flat=True)
+                ["network.is_owner_network", "network.change_network"],
+                any_perm=True,
+            ).values_list("network", flat=True)
 
             qs = self.filter(
-                Q(ip_content__host__in=host_perms_mac_list) |
-                Q(text_content__in=host_perms_name_list) |
-                Q(ip_content__network__in=network_perms)
+                Q(ip_content__host__in=host_perms_mac_list)
+                | Q(text_content__in=host_perms_name_list)
+                | Q(ip_content__network__in=network_perms)
             )
 
             domain_q_list = [Q(domain__name=domain) for domain in domain_perms]
@@ -174,8 +179,9 @@ class DNSQuerySet(QuerySet):
 
 
 class DnsManager(Manager):
-
-    def add_or_update_record(self, user, name, content, dns_type, host=None, ttl=None, record=None):
+    def add_or_update_record(
+        self, user, name, content, dns_type, host=None, ttl=None, record=None
+    ):
         from openipam.network.models import Address
         from openipam.hosts.models import Host
 
@@ -202,19 +208,24 @@ class DnsManager(Manager):
                 raise ValidationError("Content is required to create a DNS record.")
 
             if dns_record.dns_type.is_a_record:
-                address = Address.objects.select_related('host').get(address=content)
+                address = Address.objects.select_related("host").get(address=content)
                 dns_record.ip_content = address
                 dns_record.host = dns_record.ip_content.host
             else:
                 dns_record.text_content = content
 
-            if dns_record.dns_type.name in ['PTR', 'HINFO', 'SSHFP']:
+            if dns_record.dns_type.name in ["PTR", "HINFO", "SSHFP"]:
                 if host:
                     dns_record.host = host
                 else:
-                    host = Host.objects.filter(addresses__arecords__name=content).first()
+                    host = Host.objects.filter(
+                        addresses__arecords__name=content
+                    ).first()
                     if not host:
-                        raise ValidationError("An 'A' Record for '%s' needs to exists to create '%s' records." % (content, dns_record.dns_type.name))
+                        raise ValidationError(
+                            "An 'A' Record for '%s' needs to exists to create '%s' records."
+                            % (content, dns_record.dns_type.name)
+                        )
                     dns_record.host = host
 
             if ttl:
@@ -233,7 +244,7 @@ class DnsManager(Manager):
                 content_type_id=ContentType.objects.get_for_model(self.model).pk,
                 object_id=dns_record.pk,
                 object_repr=force_unicode(dns_record),
-                action_flag=ADDITION if created else CHANGE
+                action_flag=ADDITION if created else CHANGE,
             )
 
             return dns_record, created
@@ -243,35 +254,34 @@ class DnsManager(Manager):
         #     raise ValidationError('Invalid IP for content: %s' % content)
 
         except Address.DoesNotExist:
-            raise ValidationError('Static IP does not exist for content: %s' % content)
+            raise ValidationError("Static IP does not exist for content: %s" % content)
 
 
 class DnsTypeManager(Manager):
-
     @property
     def _cached_queryset(self):
-        queryset = cache.get('ipam_dns_types')
+        queryset = cache.get("ipam_dns_types")
         if not queryset:
             queryset = list(super(DnsTypeManager, self).get_queryset().all())
-            cache.set('ipam_dns_types', queryset)
+            cache.set("ipam_dns_types", queryset)
         return queryset
 
     @property
     def A(self):
-        filtered = [record for record in self._cached_queryset if record.name == 'A']
+        filtered = [record for record in self._cached_queryset if record.name == "A"]
         return filtered[0] if filtered else None
 
     @property
     def AAAA(self):
-        filtered = [record for record in self._cached_queryset if record.name == 'AAAA']
+        filtered = [record for record in self._cached_queryset if record.name == "AAAA"]
         return filtered[0] if filtered else None
 
     @property
     def PTR(self):
-        filtered = [record for record in self._cached_queryset if record.name == 'PTR']
+        filtered = [record for record in self._cached_queryset if record.name == "PTR"]
         return filtered[0] if filtered else None
 
     @property
     def MX(self):
-        filtered = [record for record in self._cached_queryset if record.name == 'MX']
+        filtered = [record for record in self._cached_queryset if record.name == "MX"]
         return filtered[0] if filtered else None

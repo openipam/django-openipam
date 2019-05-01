@@ -13,9 +13,7 @@ class UsernameFilter(CharFilter):
             user = User.objects.filter(username__iexact=value).first()
             if user:
                 user_hosts = get_objects_for_user(
-                    user,
-                    ['hosts.is_owner_host'],
-                    with_superuser=False
+                    user, ["hosts.is_owner_host"], with_superuser=False
                 )
                 qs = qs.filter(pk__in=[host.pk for host in user_hosts])
             else:

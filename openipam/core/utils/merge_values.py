@@ -2,7 +2,7 @@ import itertools
 
 
 def merge_values(values):
-    grouped_results = itertools.groupby(values, key=lambda value: value['mac'])
+    grouped_results = itertools.groupby(values, key=lambda value: value["mac"])
 
     merged_values = []
     for k, g in grouped_results:

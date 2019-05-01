@@ -14,15 +14,21 @@ from rest_framework.response import Response
 from openipam.dns.models import Domain, DnsRecord
 from openipam.api.views.base import APIPagination
 from openipam.api.filters.dns import DomainFilter, DnsFilter
-from openipam.api.serializers.dns import DomainNameSerializer, DomainSerializer, DnsListDetailSerializer, DnsCreateSerializer, DnsDeleteSerializer
+from openipam.api.serializers.dns import (
+    DomainNameSerializer,
+    DomainSerializer,
+    DnsListDetailSerializer,
+    DnsCreateSerializer,
+    DnsDeleteSerializer,
+)
 
 
 class DomainNameList(generics.ListAPIView):
     queryset = Domain.objects.select_related().all()
     permission_classes = (AllowAny,)
     serializer_class = DomainNameSerializer
-    fields = ('name',)
-    filter_fields = ('name', 'username')
+    fields = ("name",)
+    filter_fields = ("name", "username")
     filter_class = DomainFilter
     pagination_class = APIPagination
 
@@ -30,15 +36,15 @@ class DomainNameList(generics.ListAPIView):
 class DomainList(generics.ListAPIView):
     queryset = Domain.objects.select_related().all()
     serializer_class = DomainSerializer
-    filter_fields = ('name', 'username')
+    filter_fields = ("name", "username")
     filter_class = DomainFilter
     pagination_class = APIPagination
 
 
 class DnsList(generics.ListAPIView):
-    queryset = DnsRecord.objects.select_related('ip_content', 'dns_type', 'host').all()
+    queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DnsListDetailSerializer
-    filter_fields = ('name', 'ip_content', 'text_content', 'dns_type')
+    filter_fields = ("name", "ip_content", "text_content", "dns_type")
     filter_class = DnsFilter
     pagination_class = APIPagination
 
@@ -47,7 +53,8 @@ class DnsDetail(generics.RetrieveAPIView):
     """
         Gets details for a Dns Record.
     """
-    queryset = DnsRecord.objects.select_related('ip_content', 'dns_type', 'host').all()
+
+    queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DnsListDetailSerializer
 
 
@@ -74,6 +81,7 @@ class DnsCreate(generics.CreateAPIView):
                 "ttl": "14440"
             }
     """
+
     serializer_class = DnsCreateSerializer
     model = DnsRecord
 
@@ -83,13 +91,15 @@ class DnsCreate(generics.CreateAPIView):
             return response
         except (ValidationError, DataError) as e:
             error_list = []
-            if hasattr(e, 'error_dict'):
+            if hasattr(e, "error_dict"):
                 for key, errors in e.message_dict.items():
                     for error in errors:
-                        error_list.append('%s: %s' % (key.capitalize(), error))
+                        error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class DnsDelete(generics.DestroyAPIView):
@@ -98,6 +108,7 @@ class DnsDelete(generics.DestroyAPIView):
 
         All that is required for this to execute is calling it via a POST or DELETE request.
     """
+
     serializer_class = DnsDeleteSerializer
     queryset = DnsRecord.objects.all()
 
@@ -114,5 +125,5 @@ class DnsDelete(generics.DestroyAPIView):
             object_id=obj.pk,
             object_repr=force_unicode(obj),
             action_flag=DELETION,
-            change_message='API Delete call.'
+            change_message="API Delete call.",
         )

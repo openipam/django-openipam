@@ -9,6 +9,7 @@ def permission_change_host(view_func):
     Decorator for views that checks that the User has owner permission
     on a host.
     """
+
     def _wrapped_view(request, pk, *args, **kwargs):
         permited_host = Host.objects.by_change_perms(request.user, pk=pk)
         if permited_host and not permited_host.is_disabled:
@@ -19,6 +20,9 @@ def permission_change_host(view_func):
             host_view = HostDetailView.as_view()
             response = host_view(request, pk=pk, read_only=True, *args, **kwargs)
             return response
+
     return wraps(view_func)(_wrapped_view)
+
+
 # TODO:  Temp function until perms changes.
 permission_owner_required = permission_change_host

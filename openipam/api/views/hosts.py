@@ -16,13 +16,23 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from rest_framework_csv.renderers import CSVRenderer
 
-from openipam.hosts.models import Host, StructuredAttributeToHost, FreeformAttributeToHost, Attribute, \
-    StructuredAttributeValue, Disabled
+from openipam.hosts.models import (
+    Host,
+    StructuredAttributeToHost,
+    FreeformAttributeToHost,
+    Attribute,
+    StructuredAttributeValue,
+    Disabled,
+)
 from openipam.network.models import Lease
 from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
-from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission, IPAMAPIPermission
+from openipam.api.permissions import (
+    IPAMChangeHostPermission,
+    IPAMAPIAdminPermission,
+    IPAMAPIPermission,
+)
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -32,11 +42,13 @@ User = get_user_model()
 
 
 class HostCSVRenderer(CSVRenderer):
-    header = ['hostname', 'mac', 'master_ip_address', 'expires']
+    header = ["hostname", "mac", "master_ip_address", "expires"]
 
     def render(self, data, media_type=None, renderer_context={}, writer_opts=None):
-        data = data['results']
-        return super(HostCSVRenderer, self).render(data, media_type, renderer_context, writer_opts)
+        data = data["results"]
+        return super(HostCSVRenderer, self).render(
+            data, media_type, renderer_context, writer_opts
+        )
 
 
 class HostList(generics.ListAPIView):
@@ -62,16 +74,14 @@ class HostList(generics.ListAPIView):
     """
 
     permission_classes = (IsAuthenticated,)
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer,)
-    queryset = (
-        Host.objects.prefetch_related('addresses', 'leases', 'pools').all()
-    )
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer)
+    queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
     serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
-    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filter_class = HostFilter
-    ordering_fields = ('expires', 'changed')
-    ordering = ('expires',)
+    ordering_fields = ("expires", "changed")
+    ordering = ("expires",)
 
     # def get_paginate_by(self, queryset=None):
     #     param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
@@ -85,28 +95,27 @@ class HostMac(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None, **kwargs):
-        ip_address = request.GET.get('ip_address')
-        leased_ip = request.GET.get('leased_ip')
-        registered_ip = request.GET.get('registered_ip')
+        ip_address = request.GET.get("ip_address")
+        leased_ip = request.GET.get("leased_ip")
+        registered_ip = request.GET.get("registered_ip")
         host = None
 
         if ip_address:
             host = Host.objects.filter(
-                Q(leases__address__address=ip_address) |
-                Q(addresses__address=ip_address)
+                Q(leases__address__address=ip_address)
+                | Q(addresses__address=ip_address)
             ).first()
 
         elif leased_ip:
             lease = Lease.objects.filter(address=leased_ip).first()
             if lease:
-                return Response({'mac': str(lease.host_id)})
+                return Response({"mac": str(lease.host_id)})
 
         elif registered_ip:
-            host = Host.objects.filter(
-                addresses__address=registered_ip).first()
+            host = Host.objects.filter(addresses__address=registered_ip).first()
 
         if host:
-            return Response({'mac': str(host.mac)})
+            return Response({"mac": str(host.mac)})
 
         return Response({})
 
@@ -115,20 +124,21 @@ class HostNextMac(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None, **kwargs):
-        vendor = request.GET.get('vendor')
+        vendor = request.GET.get("vendor")
 
         if vendor:
             next_mac = Host.objects.find_next_mac(vendor)
             return Response(next_mac)
 
-        return Response('')
+        return Response("")
 
 
 class HostDetail(generics.RetrieveAPIView):
     """
         Gets details for a host.
     """
-    queryset = Host.objects.prefetch_related('addresses', 'leases').all()
+
+    queryset = Host.objects.prefetch_related("addresses", "leases").all()
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostDetailSerializer
 
@@ -158,6 +168,7 @@ class HostCreate(generics.CreateAPIView):
                 "expire_days": "30"
             }
     """
+
     permission_classes = (IsAuthenticated,)
     serializer_class = host_serializers.HostCreateUpdateSerializer
     model = Host
@@ -168,13 +179,15 @@ class HostCreate(generics.CreateAPIView):
             return response
         except (ValidationError, DataError) as e:
             error_list = []
-            if hasattr(e, 'error_dict'):
+            if hasattr(e, "error_dict"):
                 for key, errors in e.message_dict.items():
                     for error in errors:
-                        error_list.append('%s: %s' % (key.capitalize(), error))
+                        error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class HostUpdate(generics.RetrieveUpdateAPIView):
@@ -205,6 +218,7 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
                 "expire_days": "30"
             }
     """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostCreateUpdateSerializer
     queryset = Host.objects.all()
@@ -213,22 +227,23 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         try:
             self.perform_update(serializer)
         except ValidationError as e:
             error_list = []
-            if hasattr(e, 'error_dict'):
+            if hasattr(e, "error_dict"):
                 for key, errors in e.message_dict.items():
                     for error in errors:
                         error_list.append(error)
             else:
                 error_list.append(e.message)
-            return Response({'non_field_errors': error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(serializer.data)
 
 
@@ -247,6 +262,7 @@ class HostDelete(generics.DestroyAPIView):
 
         All that is required for this to execute is calling it via a POST or DELETE request.
     """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostMacSerializer
     queryset = Host.objects.all()
@@ -285,15 +301,16 @@ class HostOwnerAdd(APIView):
                 "groups": ["group1", "group2"]
             }
     """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
-        host = get_object_or_404(Host, pk=kwargs['pk'])
+        host = get_object_or_404(Host, pk=kwargs["pk"])
         serializer = host_serializers.HostOwnerSerializer(data=request.data)
 
         if serializer.is_valid():
-            user_list = serializer.data.get('users')
-            group_list = serializer.data.get('groups')
+            user_list = serializer.data.get("users")
+            group_list = serializer.data.get("groups")
 
             if user_list:
                 users = User.objects.none()
@@ -301,7 +318,7 @@ class HostOwnerAdd(APIView):
                     users |= User.objects.filter(username__iexact=username)
 
                 for user in users:
-                    assign_perm('hosts.is_owner_host', user, host)
+                    assign_perm("hosts.is_owner_host", user, host)
 
             if group_list:
                 groups = Group.objects.none()
@@ -309,7 +326,7 @@ class HostOwnerAdd(APIView):
                     groups |= Group.objects.filter(name__iexact=groupname)
 
                 for group in groups:
-                    assign_perm('hosts.is_owner_host', group, host)
+                    assign_perm("hosts.is_owner_host", group, host)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -335,11 +352,11 @@ class HostOwnerDelete(APIView):
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
-        host = get_object_or_404(Host, pk=kwargs['pk'])
+        host = get_object_or_404(Host, pk=kwargs["pk"])
         serializer = host_serializers.HostOwnerSerializer(data=request.data)
         if serializer.is_valid():
-            user_list = serializer.data.get('users')
-            group_list = serializer.data.get('groups')
+            user_list = serializer.data.get("users")
+            group_list = serializer.data.get("groups")
 
             if user_list:
                 users = User.objects.none()
@@ -347,7 +364,7 @@ class HostOwnerDelete(APIView):
                     users |= User.objects.filter(username__iexact=username)
 
                 for user in users:
-                    remove_perm('hosts.is_owner_host', user, host)
+                    remove_perm("hosts.is_owner_host", user, host)
 
             if group_list:
                 groups = Group.objects.none()
@@ -355,7 +372,7 @@ class HostOwnerDelete(APIView):
                     groups |= Group.objects.filter(name__iexact=groupname)
 
                 for group in groups:
-                    remove_perm('hosts.is_owner_host', group, host)
+                    remove_perm("hosts.is_owner_host", group, host)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -373,7 +390,7 @@ class StructuredAttributeValueList(generics.ListAPIView):
     serializer_class = host_serializers.StructuredAttributeValueListSerializer
     queryset = StructuredAttributeValue.objects.select_related().all()
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('attribute__name', 'value', 'attribute')
+    filter_fields = ("attribute__name", "value", "attribute")
 
 
 class HostAttributeList(APIView):
@@ -383,16 +400,18 @@ class HostAttributeList(APIView):
 
     def get(self, request, format=None, **kwargs):
         attributes = {}
-        host = get_object_or_404(Host, pk=kwargs['pk'])
+        host = get_object_or_404(Host, pk=kwargs["pk"])
         structured_attrs = StructuredAttributeToHost.objects.select_related(
-            'structured_attribute_value',
-            'structured_attribute_value__attribute'
+            "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
         freeform_attrs = FreeformAttributeToHost.objects.select_related(
-            'attribute').filter(host=host)
+            "attribute"
+        ).filter(host=host)
 
         for attr in structured_attrs:
-            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
+            attributes[
+                attr.structured_attribute_value.attribute.name
+            ] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
 
@@ -416,35 +435,32 @@ class HostAddAttribute(APIView):
                 }
             }
     """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
-        host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostUpdateAttributeSerializer(
-            data=request.data)
+        host = get_object_or_404(Host, pk=kwargs["pk"])
+        serializer = host_serializers.HostUpdateAttributeSerializer(data=request.data)
         if serializer.is_valid():
-            attributes = serializer.data.get('attributes')
+            attributes = serializer.data.get("attributes")
             # Get the DB attributes we are going to change
-            db_attributes = Attribute.objects.filter(
-                name__in=attributes.keys())
+            db_attributes = Attribute.objects.filter(name__in=attributes.keys())
             for attr in db_attributes:
                 # Add structured attributes
                 if attr.structured:
                     existing_atts = StructuredAttributeToHost.objects.filter(
-                        host=host,
-                        structured_attribute_value__attribute=attr
+                        host=host, structured_attribute_value__attribute=attr
                     ).delete()
                     value = attr.choices.get(value=attributes[attr.name])
                     structured_attr = StructuredAttributeToHost.objects.create(
                         host=host,
                         structured_attribute_value=value,
-                        changed_by=request.user
+                        changed_by=request.user,
                     )
                 # Add freeform attributes
                 else:
                     freeform_attr, created = FreeformAttributeToHost.objects.get_or_create(
-                        host=host,
-                        attribute=attr,
+                        host=host, attribute=attr
                     )
                     freeform_attr.value = attributes[attr.name]
                     freeform_attr.changed_by = request.user
@@ -468,15 +484,15 @@ class HostDeleteAttribute(APIView):
                 "attributes": ["border-profile", "location"]
             }
     """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
 
     def post(self, request, format=None, **kwargs):
-        host = get_object_or_404(Host, pk=kwargs['pk'])
-        serializer = host_serializers.HostDeleteAttributeSerializer(
-            data=request.data)
+        host = get_object_or_404(Host, pk=kwargs["pk"])
+        serializer = host_serializers.HostDeleteAttributeSerializer(data=request.data)
 
         if serializer.is_valid():
-            attributes = serializer.data.get('attributes')
+            attributes = serializer.data.get("attributes")
             # Get the DB attributes we are going to change
             db_attributes = Attribute.objects.filter(name__in=attributes)
 
@@ -484,14 +500,12 @@ class HostDeleteAttribute(APIView):
                 # Add structured attributes
                 if attr.structured:
                     StructuredAttributeToHost.objects.filter(
-                        host=host,
-                        structured_attribute_value__attribute=attr
+                        host=host, structured_attribute_value__attribute=attr
                     ).delete()
                 # Add freeform AttributeListSerializer
                 else:
                     FreeformAttributeToHost.objects.filter(
-                        host=host,
-                        attribute=attr,
+                        host=host, attribute=attr
                     ).delete()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -502,17 +516,22 @@ class DisabledHostList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
     pagination_class = APIPagination
-    queryset = (Disabled.objects.select_related('changed_by')
-                .extra(select={'hostname': 'SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac'})
-                .all()
-                )
+    queryset = (
+        Disabled.objects.select_related("changed_by")
+        .extra(
+            select={
+                "hostname": "SELECT hosts.hostname FROM hosts WHERE hosts.mac = disabled.mac"
+            }
+        )
+        .all()
+    )
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('changed_by__username',)
+    filter_fields = ("changed_by__username",)
 
 
 class DisabledHostCreate(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    queryset = Disabled.objects.select_related('changed_by').all()
+    queryset = Disabled.objects.select_related("changed_by").all()
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
 
 

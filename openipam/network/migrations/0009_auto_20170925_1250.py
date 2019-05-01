@@ -7,25 +7,29 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0008_auto_20170918_1347'),
-    ]
+    dependencies = [("network", "0008_auto_20170918_1347")]
 
     operations = [
         migrations.AlterField(
-            model_name='vlan',
-            name='id',
-            field=models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="vlan",
+            name="id",
+            field=models.AutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
         migrations.RunSQL(
             [
                 ("ALTER TABLE vlans DROP CONSTRAINT vlans_id_check"),
-                ("ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (vlan_id > 0 AND vlan_id < 4096)"),
+                (
+                    "ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (vlan_id > 0 AND vlan_id < 4096)"
+                ),
                 ("ALTER SEQUENCE vlans_id_seq RESTART WITH 5000"),
             ],
             [
                 ("ALTER TABLE vlans DROP CONSTRAINT vlans_id_check"),
-                ("ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (id > 0 AND id < 4096)"),
+                (
+                    "ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (id > 0 AND id < 4096)"
+                ),
                 ("ALTER TABLE vlans ALTER COLUMN id DROP DEFAULT"),
                 ("DROP SEQUENCE vlans_id_seq"),
             ],

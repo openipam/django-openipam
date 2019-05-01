@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0014_auto_20171002_1602'),
-    ]
+    dependencies = [("network", "0014_auto_20171002_1602")]
 
     operations = [
         migrations.AddField(
-            model_name='building',
-            name='city',
+            model_name="building",
+            name="city",
             field=models.CharField(blank=True, max_length=255),
-        ),
+        )
     ]

@@ -25,8 +25,8 @@ User = get_user_model()
 #     attrs={'placeholder': 'Search Users',},
 # )
 
-class BugAutocompleteFix(object):
 
+class BugAutocompleteFix(object):
     def order_choices(self, choices):
         """
         Order choices using :py:attr:`order_by` option if it is set.
@@ -43,17 +43,19 @@ class BugAutocompleteFix(object):
                 pass
 
             # Order in the user selection order when self.values is set.
-            clauses = ' '.join(["WHEN %s='%s' THEN %s" % (pk_name, pk, i)
-                for i, pk in enumerate(self.values)])
-            ordering = 'CASE %s END' % clauses
+            clauses = " ".join(
+                [
+                    "WHEN %s='%s' THEN %s" % (pk_name, pk, i)
+                    for i, pk in enumerate(self.values)
+                ]
+            )
+            ordering = "CASE %s END" % clauses
 
-            _order_by = ('ordering',)
+            _order_by = ("ordering",)
             if self.order_by:
                 _order_by += self.order_by
 
-            return choices.extra(
-                select={'ordering': ordering},
-                order_by=_order_by)
+            return choices.extra(select={"ordering": ordering}, order_by=_order_by)
 
         if self.order_by is None:
             return choices
@@ -70,18 +72,9 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
         Network.objects.all(),
     )
 
-    search_fields = (
-        ('^name',),
-        ('name',),
-        ('name',),
-        ('^hostname',),
-        ('^network',),
-    )
+    search_fields = (("^name",), ("name",), ("name",), ("^hostname",), ("^network",))
 
-    attrs = {
-        'minimum_characters': 1,
-        'placeholder': 'Search Objects',
-    }
+    attrs = {"minimum_characters": 1, "placeholder": "Search Objects"}
 
     # Override this function until it is fixed for 1.8
     def choices_for_values(self):
@@ -92,8 +85,11 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
 
             try:
 
-                ids = [x.split('-')[1] for x in self.values
-                    if x is not None and int(x.split('-')[0]) == ctype]
+                ids = [
+                    x.split("-")[1]
+                    for x in self.values
+                    if x is not None and int(x.split("-")[0]) == ctype
+                ]
             except ValueError:
                 continue
 
@@ -104,14 +100,14 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
 
         return values_choices
 
-    #WTF?
+    # WTF?
     def choices_for_request(self):
         """
         Return a list of choices from every queryset in :py:attr:`choices`.
         """
-        assert self.choices, 'autocomplete.choices should be a queryset list'
+        assert self.choices, "autocomplete.choices should be a queryset list"
 
-        q = self.request.GET.get('q', '')
+        q = self.request.GET.get("q", "")
 
         request_choices = []
         querysets_left = len(self.choices)
@@ -121,7 +117,7 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
         for queryset in self.choices:
             conditions = self._choices_for_request_conditions(q, self.search_fields[i])
 
-            for choice in queryset.filter(conditions)[:self.limit_choices]:
+            for choice in queryset.filter(conditions)[: self.limit_choices]:
                 request_choices.append(choice)
 
             querysets_left -= 1
@@ -130,29 +126,24 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
         return request_choices
 
     def choice_label(self, choice):
-        return '%s | %s' % (choice.__class__.__name__, choice)
+        return "%s | %s" % (choice.__class__.__name__, choice)
+
+
 al.register(IPAMObjectsAutoComplete)
 
 
 class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
     split_words = True
 
-    choices = (
-        Network.objects.all(),
-        User.objects.all(),
-        Group.objects.all(),
-    )
+    choices = (Network.objects.all(), User.objects.all(), Group.objects.all())
 
     search_fields = (
-        ('network', 'description'),
-        ('username', '^first_name', '^last_name'),
-        ('name',),
+        ("network", "description"),
+        ("username", "^first_name", "^last_name"),
+        ("name",),
     )
 
-    attrs = {
-        'minimum_characters': 2,
-        'placeholder': 'Advanced Search',
-    }
+    attrs = {"minimum_characters": 2, "placeholder": "Advanced Search"}
 
     # def choices_for_request(self):
     #     """
@@ -194,18 +185,24 @@ class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
     #     return request_choices
 
     def choice_label(self, choice):
-        if choice.__class__.__name__ == 'User':
-            return '%s | %s | %s' % (choice.__class__.__name__, choice, choice.get_full_name())
+        if choice.__class__.__name__ == "User":
+            return "%s | %s | %s" % (
+                choice.__class__.__name__,
+                choice,
+                choice.get_full_name(),
+            )
         else:
-            return '%s | %s' % (choice.__class__.__name__, choice)
+            return "%s | %s" % (choice.__class__.__name__, choice)
 
     def choice_value(self, choice):
-        if choice.__class__.__name__ == 'User':
-            return 'user:%s' % choice.username
-        elif choice.__class__.__name__ == 'Group':
-            return 'group:%s' % choice.name
-        elif choice.__class__.__name__ == 'Network':
-            return 'net:%s' % choice.network
+        if choice.__class__.__name__ == "User":
+            return "user:%s" % choice.username
+        elif choice.__class__.__name__ == "Group":
+            return "group:%s" % choice.name
+        elif choice.__class__.__name__ == "Network":
+            return "net:%s" % choice.network
+
+
 al.register(IPAMSearchAutoComplete)
 
 
@@ -220,67 +217,134 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
     )
 
     search_fields = (
-        ('username', '^first_name', '^last_name', 'email'),
-        ('name',),
-        ('object_pk', 'permission__name', 'permission__codename'),
-        ('object_pk', 'permission__name', 'permission__codename'),
+        ("username", "^first_name", "^last_name", "email"),
+        ("name",),
+        ("object_pk", "permission__name", "permission__codename"),
+        ("object_pk", "permission__name", "permission__codename"),
     )
 
-    attrs = {
-        'minimum_characters': 2,
-        'placeholder': 'Advanced Search',
-    }
+    attrs = {"minimum_characters": 2, "placeholder": "Advanced Search"}
 
     def choices_for_request(self):
         """
         Propose local results and fill the autocomplete with remote
         suggestions.
         """
-        assert self.choices, 'autocomplete.choices should be a queryset list'
+        assert self.choices, "autocomplete.choices should be a queryset list"
 
-        q = self.request.GET.get('q', '').split(',')[-1]
-        choice_q = q.split(':')[0]
-        q = ''.join(q.split(':')[1:])
+        q = self.request.GET.get("q", "").split(",")[-1]
+        choice_q = q.split(":")[0]
+        q = "".join(q.split(":")[1:])
 
         self.choices = []
         self.search_fields = []
 
         if q:
-            if choice_q == 'user':
+            if choice_q == "user":
                 self.choices = (User.objects.all(),)
-                self.search_fields = (('username', '^first_name', '^last_name', 'email'),)
-            elif choice_q == 'group':
+                self.search_fields = (
+                    ("username", "^first_name", "^last_name", "email"),
+                )
+            elif choice_q == "group":
                 self.choices = (Group.objects.all(),)
-                self.search_fields = (('name',),)
-            elif choice_q == 'perm':
+                self.search_fields = (("name",),)
+            elif choice_q == "perm":
                 self.choices = (
                     GroupObjectPermission.objects.filter(
-                        Q(object_pk__in=[host.pk for host in Host.objects.filter(hostname__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[network.pk for network in Network.objects.filter(network__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[domain.pk for domain in Domain.objects.filter(name__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[pool.pk for pool in Pool.objects.filter(name__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[dnstype.pk for dnstype in DnsType.objects.filter(name__istartswith=q)[:10]])
+                        Q(
+                            object_pk__in=[
+                                host.pk
+                                for host in Host.objects.filter(
+                                    hostname__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                network.pk
+                                for network in Network.objects.filter(
+                                    network__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                domain.pk
+                                for domain in Domain.objects.filter(
+                                    name__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                pool.pk
+                                for pool in Pool.objects.filter(name__istartswith=q)[
+                                    :10
+                                ]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                dnstype.pk
+                                for dnstype in DnsType.objects.filter(
+                                    name__istartswith=q
+                                )[:10]
+                            ]
+                        )
                     ),
                     UserObjectPermission.objects.filter(
-                        Q(object_pk__in=[host.pk for host in Host.objects.filter(hostname__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[network.pk for network in Network.objects.filter(network__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[domain.pk for domain in Domain.objects.filter(name__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[pool.pk for pool in Pool.objects.filter(name__istartswith=q)[:10]]) |
-                        Q(object_pk__in=[dnstype.pk for dnstype in DnsType.objects.filter(name__istartswith=q)[:10]])
+                        Q(
+                            object_pk__in=[
+                                host.pk
+                                for host in Host.objects.filter(
+                                    hostname__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                network.pk
+                                for network in Network.objects.filter(
+                                    network__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                domain.pk
+                                for domain in Domain.objects.filter(
+                                    name__istartswith=q
+                                )[:10]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                pool.pk
+                                for pool in Pool.objects.filter(name__istartswith=q)[
+                                    :10
+                                ]
+                            ]
+                        )
+                        | Q(
+                            object_pk__in=[
+                                dnstype.pk
+                                for dnstype in DnsType.objects.filter(
+                                    name__istartswith=q
+                                )[:10]
+                            ]
+                        )
                     ),
                 )
-                self.search_fields = ([],[],)
+                self.search_fields = ([], [])
 
         request_choices = []
         querysets_left = len(self.choices)
 
         i = 0
         for queryset in self.choices:
-            conditions = self._choices_for_request_conditions(q,
-                    self.search_fields[i])
+            conditions = self._choices_for_request_conditions(q, self.search_fields[i])
 
-            limit = ((self.limit_choices - len(request_choices)) /
-                querysets_left)
+            limit = (self.limit_choices - len(request_choices)) / querysets_left
             for choice in queryset.filter(conditions)[:limit]:
                 request_choices.append(choice)
 
@@ -290,165 +354,205 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
         return request_choices
 
     def choice_label(self, choice):
-        if choice.__class__.__name__ == 'User':
-            return '%s | %s | %s' % (choice.__class__.__name__, choice, choice.get_full_name())
+        if choice.__class__.__name__ == "User":
+            return "%s | %s | %s" % (
+                choice.__class__.__name__,
+                choice,
+                choice.get_full_name(),
+            )
         else:
-            return '%s | %s' % (choice.__class__.__name__, choice)
+            return "%s | %s" % (choice.__class__.__name__, choice)
 
     def choice_value(self, choice):
-        if choice.__class__.__name__ == 'User':
-            return 'user:%s' % choice.username
-        elif choice.__class__.__name__ == 'Group':
-            return 'group:%s' % choice.name
-        elif choice.__class__.__name__ == 'GroupObjectPermission':
-            return 'gperm:%s' % choice.pk
-        elif choice.__class__.__name__ == 'UserObjectPermission':
-            return 'uperm:%s' % choice.pk
+        if choice.__class__.__name__ == "User":
+            return "user:%s" % choice.username
+        elif choice.__class__.__name__ == "Group":
+            return "group:%s" % choice.name
+        elif choice.__class__.__name__ == "GroupObjectPermission":
+            return "gperm:%s" % choice.pk
+        elif choice.__class__.__name__ == "UserObjectPermission":
+            return "uperm:%s" % choice.pk
+
+
 al.register(IPAMUserSearchAutoComplete)
 
 
 class UserAutocomplete(al.AutocompleteModelBase):
-    search_fields = ['^username', '^first_name', '^last_name', 'email']
-    attrs = {'placeholder': 'Search Users'}
+    search_fields = ["^username", "^first_name", "^last_name", "email"]
+    attrs = {"placeholder": "Search Users"}
     split_words = True
 
     def choice_label(self, choice):
         if choice.get_full_name():
-            return '%s | %s' % (choice.username, choice.get_full_name())
+            return "%s | %s" % (choice.username, choice.get_full_name())
         else:
             return unicode(choice)
+
+
 al.register(User, UserAutocomplete)
 
 
 class UsernameAutocomplete(UserAutocomplete):
     def choice_value(self, choice):
         return choice.username
+
+
 al.register(User, UsernameAutocomplete)
 
 
 class UserFilterAutocomplete(UserAutocomplete):
-    attrs = {'placeholder': 'Filter Users'}
+    attrs = {"placeholder": "Filter Users"}
+
+
 al.register(User, UserFilterAutocomplete)
 
 
 class GroupnameAutocomplete(al.AutocompleteModelBase):
-    search_fields = ['name']
+    search_fields = ["name"]
 
     def choice_value(self, choice):
         return choice.name
+
+
 al.register(Group, GroupnameAutocomplete)
 
 
 class DomainAutocomplete(al.AutocompleteModelBase):
-    search_fields = ['^name']
-    attrs = {'placeholder': 'Search Domains'}
+    search_fields = ["^name"]
+    attrs = {"placeholder": "Search Domains"}
     limit_choices = 10
 
     def choices_for_request(self):
         if not self.request.user.is_ipamadmin:
             self.choices = get_objects_for_user(
                 self.request.user,
-                ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
+                [
+                    "dns.add_records_to_domain",
+                    "dns.is_owner_domain",
+                    "dns.change_domain",
+                ],
                 klass=Domain,
                 any_perm=True,
             )
         return super(DomainAutocomplete, self).choices_for_request()
+
+
 al.register(Domain, DomainAutocomplete)
 
 
 class NetworkAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
-    search_fields = ['network', 'name', 'tags__name']
-    attrs = {'placeholder': 'Search Networks'}
+    search_fields = ["network", "name", "tags__name"]
+    attrs = {"placeholder": "Search Networks"}
 
     def choices_for_request(self):
-        atype = self.request.GET.get('atype')
+        atype = self.request.GET.get("atype")
         if atype:
             address_type = AddressType.objects.filter(id=atype).first()
             if address_type:
                 self.choices = self.choices.by_address_type(address_type)
 
         return super(NetworkAutocomplete, self).choices_for_request()
+
+
 al.register(Network, NetworkAutocomplete)
 
 
-al.register(DhcpGroup,
-    search_fields=['name'],
-    attrs={'placeholder': 'Search DHCP Groups'},
+al.register(
+    DhcpGroup,
+    search_fields=["name"],
+    attrs={"placeholder": "Search DHCP Groups"},
     limit_choices=100,
 )
 
 
-al.register(Group,
-    search_fields=['name'],
-    attrs={'placeholder': 'Search Groups'},
-)
+al.register(Group, search_fields=["name"], attrs={"placeholder": "Search Groups"})
 
 
 class GroupFilterAutocomplete(al.AutocompleteModelBase):
-    search_fields = ['name']
-    attrs = {'placeholder': 'Filter Groups'}
+    search_fields = ["name"]
+    attrs = {"placeholder": "Filter Groups"}
+
+
 al.register(Group, GroupFilterAutocomplete)
 
 
-al.register(Permission,
+al.register(
+    Permission,
     split_words=True,
-    search_fields=['name', 'content_type__app_label', 'codename'],
-    attrs={'placeholder': 'Search Permissions'},
-    choices=Permission.objects.select_related().filter(content_type__app_label__in=CONFIG['APPS'])
+    search_fields=["name", "content_type__app_label", "codename"],
+    attrs={"placeholder": "Search Permissions"},
+    choices=Permission.objects.select_related().filter(
+        content_type__app_label__in=CONFIG["APPS"]
+    ),
 )
 
+
 class AddressAvailableAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
-    search_fields = ['^address']
-    attrs = {'placeholder': 'Search Addresses'}
+    search_fields = ["^address"]
+    attrs = {"placeholder": "Search Addresses"}
 
     def choices_for_request(self):
         user_pools = get_objects_for_user(
             self.request.user,
-            ['network.add_records_to_pool', 'network.change_pool'],
-            any_perm=True
+            ["network.add_records_to_pool", "network.change_pool"],
+            any_perm=True,
         )
         user_nets = get_objects_for_user(
             self.request.user,
-            ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-            any_perm=True
+            [
+                "network.add_records_to_network",
+                "network.is_owner_network",
+                "network.change_network",
+            ],
+            any_perm=True,
         )
         self.choices = Address.objects.filter(
             Q(pool__in=user_pools) | Q(pool__isnull=True),
-            Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
+            Q(leases__isnull=True)
+            | Q(leases__abandoned=True)
+            | Q(leases__ends__lte=timezone.now()),
             network__in=user_nets,
             host__isnull=True,
-            reserved=False
+            reserved=False,
         )
         return super(AddressAvailableAutocomplete, self).choices_for_request()
+
+
 al.register(Address, AddressAvailableAutocomplete)
 
 
 class AddressAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
-    search_fields = ['address']
-    attrs = {'placeholder': 'Search Addresses'}
+    search_fields = ["address"]
+    attrs = {"placeholder": "Search Addresses"}
+
+
 al.register(Address, AddressAutocomplete)
 
 
-al.register(Permission,
-    search_fields=['name', 'codename', 'content_type__app_label'],
-    attrs={'placeholder': 'Search Permissions'},
+al.register(
+    Permission,
+    search_fields=["name", "codename", "content_type__app_label"],
+    attrs={"placeholder": "Search Permissions"},
 )
 
-al.register(ContentType,
-    search_fields=['model'],
-    attrs={'placeholder': 'Search Content Types'},
+al.register(
+    ContentType, search_fields=["model"], attrs={"placeholder": "Search Content Types"}
 )
 
 
 class HostAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
-    search_fields = ['mac', 'hostname']
-    attrs = {'placeholder': 'Search Hosts'}
+    search_fields = ["mac", "hostname"]
+    attrs = {"placeholder": "Search Hosts"}
+
+
 al.register(Host, HostAutocomplete)
 
 
 class HostFilterAutocomplete(BugAutocompleteFix, al.AutocompleteModelBase):
-    search_fields = ['^hostname']
-    attrs = {'placeholder': 'Filter Hosts'}
+    search_fields = ["^hostname"]
+    attrs = {"placeholder": "Filter Hosts"}
+
+
 al.register(Host, HostFilterAutocomplete)
 
 
@@ -457,6 +561,4 @@ al.register(Host, HostFilterAutocomplete)
 #     attrs={'placeholder': 'Search Domains'},
 # )
 
-al.register(Tag,
-    attrs = {'placeholder': 'Search Tags'}
-)
+al.register(Tag, attrs={"placeholder": "Search Tags"})

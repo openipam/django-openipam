@@ -11,15 +11,14 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Populate building vlan data.'
+    args = ""
+    help = "Populate building vlan data."
 
     def add_arguments(self, parser):
 
-        parser.add_argument('file',
-                            nargs='+',
-                            type=str,
-                            help='Specify json file to pull buildings.')
+        parser.add_argument(
+            "file", nargs="+", type=str, help="Specify json file to pull buildings."
+        )
 
         # parser.add_argument('-t', '--test',
         #                     action='store_true',
@@ -28,26 +27,27 @@ class Command(BaseCommand):
         #                     help='Send as test only.')
 
     def handle(self, *args, **options):
-        file = options['file'][0]
-        #test = options['test']
+        file = options["file"][0]
+        # test = options['test']
 
-        self.stdout.write('Populating Buildings...')
+        self.stdout.write("Populating Buildings...")
 
         with open(file) as buildings_json:
             data = json.load(buildings_json)
 
-        admin = User.objects.filter(username='admin').first()
+        admin = User.objects.filter(username="admin").first()
         for row in data:
-            if row['fields']['u_type'] == 'Building':
+            if row["fields"]["u_type"] == "Building":
                 Building.objects.get_or_create(
-                    name=row['fields']['u_display_name'],
-                    abbreviation=row['fields']['u_abbreviation'] or None,
-                    number=row['fields']['u_code'],
-                    city=row['fields']['city'],
+                    name=row["fields"]["u_display_name"],
+                    abbreviation=row["fields"]["u_abbreviation"] or None,
+                    number=row["fields"]["u_code"],
+                    city=row["fields"]["city"],
                     changed_by=admin,
                 )
 
-        cursor = database.execute_sql(r"""
+        cursor = database.execute_sql(
+            r"""
             SELECT DISTINCT
             regexp_replace(ports.ifAlias, '^[^/]+/[^/]+/([0-9a-z]+).*', '\\1') AS building_code,
             ports.ifVlan AS vlan_id,
@@ -68,7 +68,8 @@ class Command(BaseCommand):
                 AND ports.ifAlias not LIKE 'ethernet%%' AND ports_vlans.vlan not in (1, 4094, 4095);
 
 
-        """)
+        """
+        )
 
         vlan_data = cursor.fetchall()
         building_vlans = {}
@@ -87,10 +88,10 @@ class Command(BaseCommand):
                         building=building,
                         vlan=vlan,
                         tagged=True if item[1] else False,
-                        changed_by=admin
+                        changed_by=admin,
                     )
                 else:
                     if not building:
-                        self.stdout.write('Building %s does not exist in IPAM' % code)
+                        self.stdout.write("Building %s does not exist in IPAM" % code)
                     if not vlan:
-                        self.stdout.write('Vlan %s does not exist in IPAM' % item[0])
+                        self.stdout.write("Vlan %s does not exist in IPAM" % item[0])

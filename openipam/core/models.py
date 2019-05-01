@@ -8,46 +8,46 @@ from django.core.mail import mail_admins
 
 from admin_tools.menu import items
 
-TYPE_CHOICES = (
-    ('feature', 'Feature',),
-    ('bug', 'Bug',),
-    ('comment', 'Comment',),
-)
+TYPE_CHOICES = (("feature", "Feature"), ("bug", "Bug"), ("comment", "Comment"))
 
 
 class FeatureRequest(models.Model):
-    type = models.CharField('Request Type', max_length=255, choices=TYPE_CHOICES)
-    comment = models.TextField('Comment Details')
+    type = models.CharField("Request Type", max_length=255, choices=TYPE_CHOICES)
+    comment = models.TextField("Comment Details")
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    submitted = models.DateTimeField('Date Submitted', auto_now_add=True)
+    submitted = models.DateTimeField("Date Submitted", auto_now_add=True)
     is_complete = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return '%s - %s' % (self.type, self.comment)
+        return "%s - %s" % (self.type, self.comment)
 
     @classmethod
     def email_request(self, sender, instance, created, *args, **kwargs):
         if created:
             mail_admins(
-                subject='openIPAM Bug/Feature Request',
-                message='''
+                subject="openIPAM Bug/Feature Request",
+                message="""
                 Type: %s
 
                 %s
-                ''' % (instance.type.capitalize(), instance.comment)
+                """
+                % (instance.type.capitalize(), instance.comment),
             )
 
     class Meta:
-        db_table = 'feature_requests'
-        ordering = ('-submitted',)
+        db_table = "feature_requests"
+        ordering = ("-submitted",)
 
 
 class FilteredSelectMultiple(forms.SelectMultiple):
     """
         removing 2 select fields widget
     """
+
     def __init__(self, verbose_name, is_stacked, attrs=None, choices=[]):
         super(FilteredSelectMultiple, self).__init__(attrs, choices)
+
+
 widgets.FilteredSelectMultiple = FilteredSelectMultiple
 
 # patching admintools menu item
@@ -58,10 +58,11 @@ items.MenuItem.icon = None
 # pathing AdminDateInput
 class ATBAdminDateWidget(forms.DateInput):
     def __init__(self, attrs=None, format=None):
-        final_attrs = {'class': 'vDateField', 'size': '10'}
+        final_attrs = {"class": "vDateField", "size": "10"}
         if attrs is not None:
             final_attrs.update(attrs)
         super(ATBAdminDateWidget, self).__init__(attrs=final_attrs, format=format)
+
 
 widgets.AdminDateWidget.media = forms.Media()
 

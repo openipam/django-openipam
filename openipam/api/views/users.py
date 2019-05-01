@@ -16,11 +16,11 @@ User = get_user_model()
 
 
 class UserList(generics.ListAPIView):
-    queryset = User.objects.prefetch_related('user_permissions').all()
+    queryset = User.objects.prefetch_related("user_permissions").all()
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('groups__name', 'username', 'email',)
+    filter_fields = ("groups__name", "username", "email")
 
 
 class GroupList(generics.ListAPIView):
@@ -28,17 +28,17 @@ class GroupList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = GroupSerializer
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('name',)
+    filter_fields = ("name",)
 
 
 class GroupOptionsList(APIView):
     permission_classes = (permissions.IsAuthenticated, IPAMAPIAdminPermission)
 
     def get(self, request, format=None):
-        name = request.GET.get('term',)
+        name = request.GET.get("term")
         if name:
             queryset = Group.objects.filter(name__istartswith=name)
         else:
             queryset = Group.objects.none()
-        groups = [{'text': group.name, 'value': group.name} for group in queryset]
+        groups = [{"text": group.name, "value": group.name} for group in queryset]
         return Response(groups)

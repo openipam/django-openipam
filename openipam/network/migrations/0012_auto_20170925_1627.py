@@ -7,17 +7,9 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0011_auto_20170925_1625'),
-    ]
+    dependencies = [("network", "0011_auto_20170925_1625")]
 
     operations = [
-        migrations.AlterModelTable(
-            name='building',
-            table='buildings',
-        ),
-        migrations.AlterModelTable(
-            name='buildingtovlan',
-            table='buildings_to_vlans',
-        ),
+        migrations.AlterModelTable(name="building", table="buildings"),
+        migrations.AlterModelTable(name="buildingtovlan", table="buildings_to_vlans"),
     ]

@@ -4,10 +4,10 @@ from admin_tools.dashboard.modules import DashboardModule
 
 
 class HTMLContentModule(DashboardModule):
-    title = 'HTML Content'
-    template = 'admin_tools/dashboard/modules/html_content.html'
-    layout = 'stacked'
-    html = 'This is some HTML!'
+    title = "HTML Content"
+    template = "admin_tools/dashboard/modules/html_content.html"
+    layout = "stacked"
+    html = "This is some HTML!"
 
     def init_with_context(self, context):
         if self._initialized:

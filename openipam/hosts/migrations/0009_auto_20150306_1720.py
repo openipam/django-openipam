@@ -6,15 +6,13 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('hosts', '0008_oui'),
-    ]
+    dependencies = [("hosts", "0008_oui")]
 
     operations = [
         migrations.AlterField(
-            model_name='oui',
-            name='shortname',
+            model_name="oui",
+            name="shortname",
             field=models.CharField(max_length=255, null=True, blank=True),
             preserve_default=True,
-        ),
+        )
     ]

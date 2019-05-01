@@ -7,20 +7,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0010_building_name'),
-    ]
+    dependencies = [("network", "0010_building_name")]
 
     operations = [
         migrations.RenameField(
-            model_name='building',
-            old_name='building_number',
-            new_name='number',
+            model_name="building", old_name="building_number", new_name="number"
         ),
         migrations.AddField(
-            model_name='building',
-            name='abbreviation',
-            field=models.CharField(default='1', max_length=255, unique=True),
+            model_name="building",
+            name="abbreviation",
+            field=models.CharField(default="1", max_length=255, unique=True),
             preserve_default=False,
         ),
     ]

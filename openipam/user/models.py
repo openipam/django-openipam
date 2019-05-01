@@ -10,32 +10,48 @@ from django.conf import settings
 from django.utils.functional import cached_property
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
-from openipam.user.signals import assign_ipam_groups, force_usernames_uppercase, \
-   remove_obj_perms_connected_with_user, add_group_souce
+from openipam.user.signals import (
+    assign_ipam_groups,
+    force_usernames_uppercase,
+    remove_obj_perms_connected_with_user,
+    add_group_souce,
+)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=50, unique=True)
-    first_name = models.CharField(_('first name'), max_length=255, blank=True)
-    last_name = models.CharField(_('last name'), max_length=255, blank=True)
-    email = models.EmailField(_('email address'), max_length=255, blank=True)
-    is_staff = models.BooleanField(_('staff status'), default=False,
-        help_text=_('Designates whether the user can log into this admin '
-                    'site.'))
-    is_active = models.BooleanField(_('active'), default=True,
-        help_text=_('Designates whether this user should be treated as '
-                    'active. Unselect this instead of deleting accounts.'))
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    first_name = models.CharField(_("first name"), max_length=255, blank=True)
+    last_name = models.CharField(_("last name"), max_length=255, blank=True)
+    email = models.EmailField(_("email address"), max_length=255, blank=True)
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin " "site."),
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Designates whether this user should be treated as "
+            "active. Unselect this instead of deleting accounts."
+        ),
+    )
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     # TODO: Remove later
-    min_permissions = models.ForeignKey('Permission', db_column='min_permissions', blank=True, null=True,
-                                        related_name='user_min_permissions')
-    source = models.ForeignKey('AuthSource', db_column='source', blank=True, null=True)
+    min_permissions = models.ForeignKey(
+        "Permission",
+        db_column="min_permissions",
+        blank=True,
+        null=True,
+        related_name="user_min_permissions",
+    )
+    source = models.ForeignKey("AuthSource", db_column="source", blank=True, null=True)
 
     objects = IPAMUserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     def __unicode__(self):
         return self.username
@@ -46,46 +62,51 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True
         else:
             groups = [group.name for group in self.groups.all()]
-            return True if 'ipam-admins' in groups else False
+            return True if "ipam-admins" in groups else False
 
     @cached_property
     def network_owner_perms(self):
-        if self.has_perm('network.is_owner_network'):
+        if self.has_perm("network.is_owner_network"):
             return True
         else:
             from openipam.network.models import Network
+
             return Network.objects.by_owner(self, use_groups=True, ids_only=True)
 
     @cached_property
     def domain_owner_perms(self):
-        if self.has_perm('dns.is_owner_domain'):
+        if self.has_perm("dns.is_owner_domain"):
             return True
         else:
             from openipam.dns.models import Domain
+
             return Domain.objects.by_owner(self, use_groups=True, names_only=True)
 
     @cached_property
     def host_owner_perms(self):
-        if self.has_perm('hosts.is_owner_host'):
+        if self.has_perm("hosts.is_owner_host"):
             return True
         else:
             from openipam.hosts.models import Host
+
             return Host.objects.by_owner(self, use_groups=True, ids_only=True)
 
     @cached_property
     def network_view_perms(self):
-        if self.is_ipamadmin or self.has_perm('network.view_network'):
+        if self.is_ipamadmin or self.has_perm("network.view_network"):
             return True
         else:
             from openipam.network.models import Network
+
             return Network.objects.by_owner(self, use_groups=True, ids_only=True)
 
     @cached_property
     def domain_view_perms(self):
-        if self.is_ipamadmin or self.has_perm('dns.view_domain'):
+        if self.is_ipamadmin or self.has_perm("dns.view_domain"):
             return True
         else:
             from openipam.dns.models import Domain
+
             return Domain.objects.by_owner(self, use_groups=True, names_only=True)
 
     # @cached_property
@@ -125,7 +146,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         Returns the first_name plus the last_name, with a space in between.
         """
-        full_name = '%s %s' % (self.first_name, self.last_name)
+        full_name = "%s %s" % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
@@ -142,14 +163,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email])
 
     class Meta:
-        db_table = 'users'
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        db_table = "users"
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
 
 
 class GroupSource(models.Model):
-    group = models.OneToOneField(AuthGroup, primary_key=True, related_name='source')
-    source = models.ForeignKey('AuthSource', db_column='source', default=1, related_name='group')
+    group = models.OneToOneField(AuthGroup, primary_key=True, related_name="source")
+    source = models.ForeignKey(
+        "AuthSource", db_column="source", default=1, related_name="group"
+    )
 
     def __unicode__(self):
         return self.source.name
@@ -162,19 +185,19 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'auth_sources'
+        db_table = "auth_sources"
 
 
 class Permission(models.Model):
-    permission = models.CharField(max_length=8, primary_key=True, db_column='id')
+    permission = models.CharField(max_length=8, primary_key=True, db_column="id")
     name = models.TextField(blank=True)
     description = models.TextField(blank=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.permission, self.name)
+        return "%s - %s" % (self.permission, self.name)
 
     class Meta:
-        db_table = 'permissions'
+        db_table = "permissions"
 
 
 # class UserToGroup(models.Model):
