@@ -45,6 +45,13 @@ class HostQuerySet(QuerySet):
         hosts = get_objects_for_group(group, 'hosts.is_owner_host')
         return self.filter(pk__in=[host.pk for host in hosts])
 
+    def by_groups(self, groups):
+        hosts = []
+        for group in groups:
+            hosts.append(obj.pk for obj in get_objects_for_group(
+                group, 'hosts.is_owner_host'))
+        return self.filter(pk__in=hosts)
+
     def by_change_perms(self, user, pk=None, ids_only=False):
         # If global permission set, then return all.
         if user.has_perm('hosts.change_host') or user.has_perm('hosts.is_owner_host'):
@@ -70,7 +77,8 @@ class HostQuerySet(QuerySet):
                 any_perm=True
             ).values_list('network', flat=True)
 
-            perms_q_list = [Q(hostname__endswith=name) for name in domain_perms]
+            perms_q_list = [Q(hostname__endswith=name)
+                            for name in domain_perms]
             perms_q_list.append(Q(mac__in=host_perms))
             perms_q_list.append(Q(addresses__network__in=network_perms))
 
@@ -160,14 +168,14 @@ class HostManager(Manager):
     def get_queryset(self):
         qs = super(HostManager, self).get_queryset()
         qs = (qs
-            .extra(select={'is_disabled': 'EXISTS (SELECT 1 FROM disabled WHERE hosts.mac = disabled.mac)'})
-        )
+              .extra(select={'is_disabled': 'EXISTS (SELECT 1 FROM disabled WHERE hosts.mac = disabled.mac)'})
+              )
         return qs
-
 
     def get_owners(self, mac):
         host = self.get(mac=mac)
-        owners = get_users_with_perms(host, attach_perms=True, with_group_users=False)
+        owners = get_users_with_perms(
+            host, attach_perms=True, with_group_users=False)
         owners = [k for k, v in owners.items() if 'is_owner_host' in v]
         return owners
 
@@ -189,7 +197,8 @@ class HostManager(Manager):
             instance = self.model()
             if mac:
                 # Delete existing expired host is it exists.
-                self.filter(mac=mac, expires__lt=timezone.now()).delete(user=user)
+                self.filter(mac=mac, expires__lt=timezone.now()
+                            ).delete(user=user)
                 instance.set_mac_address(mac)
             else:
                 raise ValidationError('Mac address is required for new Hosts.')
@@ -206,7 +215,8 @@ class HostManager(Manager):
             instance.expires = expires
         elif expire_days:
             if not expire_days.isdigit():
-                raise ValidationError('Expire Days needs to be a number not %s.' % expire_days)
+                raise ValidationError(
+                    'Expire Days needs to be a number not %s.' % expire_days)
             instance.set_expiration(expire_days)
 
         if dhcp_group:
@@ -258,7 +268,8 @@ class HostManager(Manager):
                 elif isinstance(user_owners, list):
                     # u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
                     # users_to_add = User.objects.filter(reduce(operator.or_, u_list))
-                    users_to_add = User.objects.filter(username__in=[user_owner for user_owner in user_owners])
+                    users_to_add = User.objects.filter(
+                        username__in=[user_owner for user_owner in user_owners])
                 else:
                     # users_to_add = User.objects.filter(username__iexact=user_owners)
                     users_to_add = User.objects.filter(username=user_owners)
@@ -271,7 +282,8 @@ class HostManager(Manager):
                 elif isinstance(group_owners, list):
                     # g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
                     # groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
-                    groups_to_add = Group.objects.filter(name__in=[group_owner for group_owner in group_owners])
+                    groups_to_add = Group.objects.filter(
+                        name__in=[group_owner for group_owner in group_owners])
                 else:
                     # groups_to_add = Group.objects.filter(name__iexact=group_owners)
                     groups_to_add = Group.objects.filter(name=group_owners)

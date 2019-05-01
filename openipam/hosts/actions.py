@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
-from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost
+from openipam.hosts.models import Host, Disabled, StructuredAttributeToHost, FreeformAttributeToHost, GulRecentArpByaddress, GulRecentArpBymac
 from openipam.hosts.forms import HostOwnerForm, HostRenewForm, HostAttributesCreateForm, HostAttributesDeleteForm, \
     HostRenameForm, HostDhcpGroupForm
 
@@ -377,6 +377,9 @@ def export_csv(request, selected_hosts):
     response['Content-Disposition'] = 'attachment; filename="hosts.csv"'
     writer = csv.writer(response)
 
+    writer.writerow(['Hostname', 'Mac', 'Expires', 'IP Address', 'Mac Last Seen',
+                     'IP Last Seen', 'Users', 'User Emails', 'Description'])
+
     for host in selected_hosts:
         owners = host.get_owners(ids_only=True)
         users = User.objects.filter(
@@ -384,8 +387,13 @@ def export_csv(request, selected_hosts):
         usernames = ','.join(set([user.username for user in users]))
         emails = ','.join(set([user.email or '' for user in users]))
 
-        writer.writerow([host.mac, host.hostname, usernames,
-                         emails, host.description])
+        ip_history = GulRecentArpByaddress.objects.filter(
+            host=host).first().stopstamp
+        mac_history = GulRecentArpBymac.objects.filter(
+            host=host).first().stopstamp
+
+        writer.writerow([host.hostname, host.mac, host.expires, host.master_ip_address, mac_history,
+                         ip_history, usernames, emails, host.description])
 
     return response
 
