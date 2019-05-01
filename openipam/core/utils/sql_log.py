@@ -56,14 +56,14 @@ class SQLLogToConsoleMiddleware(object):
                 if conn.queries:
                     qtime = sum([float(q['time']) for q in conn.queries])
                     header_t = Template("{{name}}: {{count}} quer{{count|pluralize:\"y,ies\"}} in {{time}} seconds")
-                    print header_t.render(Context({
+                    print(header_t.render(Context({
                                           'name': connection_name,
                                           'sqllog': conn.queries,
                                           'count': len(conn.queries),
                                           'time': qtime
-                                          }))
+                                          })))
                     t = Template("{% for sql in sqllog %}[{{forloop.counter}}] {{sql.time}}s: {{sql.sql|safe}}{% if not forloop.last %}\n\n{% endif %}{% endfor %}")
-                print t.render(Context({'sqllog': conn.queries}))
+                print(t.render(Context({'sqllog': conn.queries})))
         return response
 
 
@@ -196,7 +196,7 @@ class SQLLogToConsoleColorMiddleware:
         from django.conf import settings
         enable = getattr(settings, 'LOG_COLORSQL_ENABLE', True)
 
-        if False == enable:
+        if not enable:
             return response
 
         verbose = getattr(settings, 'LOG_COLORSQL_VERBOSE', False)
@@ -232,9 +232,9 @@ class SQLLogToConsoleColorMiddleware:
             verbose = True
 
         if verbose:
-            print "\033[0;30;1m"
-            print "-" * 70,
-            print "\033[0m"
+            print("\033[0;30;1m")
+            print("-" * 70,)
+            print("\033[0m")
 
         i = 0
         for q in connection.queries:
@@ -253,15 +253,15 @@ class SQLLogToConsoleColorMiddleware:
                     tcolor = "\033[30;1m"
                     ptime = ""
 
-                print "%s%s" % (tcolor, sql),
-                print "%s\033[1m%s\033[0m" % (tcolor, ptime)
+                print("%s%s" % (tcolor, sql),)
+                print("%s\033[1m%s\033[0m" % (tcolor, ptime))
                 i = i + 1
                 if i < len(connection.queries):
-                    print
+                    print()
 
         sys.stdout.write("\033[0;30;1m")
-        print "-" * 70,
-        print "\033[35;1m"
+        print("-" * 70,)
+        print("\033[35;1m")
 
         qtime = ttime
 
@@ -277,10 +277,10 @@ class SQLLogToConsoleColorMiddleware:
         if countwarn > count:
             ccolor = "\033[30;1m"
 
-        print "%s %.3fs \033[30;1m| %s%d queries\033[0m" % (tcolor, qtime, ccolor, count)
+        print("%s %.3fs \033[30;1m| %s%d queries\033[0m" % (tcolor, qtime, ccolor, count))
         sys.stdout.write("\033[0;30;1m")
-        print "-" * 70,
-        print "\033[0m"
+        print("-" * 70,)
+        print("\033[0m")
 
         return response
 

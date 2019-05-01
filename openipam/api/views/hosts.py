@@ -220,7 +220,7 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             self.perform_update(serializer)
-        except ValidationError, e:
+        except ValidationError as e:
             error_list = []
             if hasattr(e, 'error_dict'):
                 for key, errors in e.message_dict.items():
