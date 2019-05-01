@@ -20,4 +20,4 @@ class Command(BaseCommand):
                 codename=codename,
                 name="Can view %s" % content_type.name)
 
-            print "Added view permission for %s" % content_type.name
+            print("Added view permission for %s" % content_type.name)

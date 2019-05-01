@@ -44,18 +44,18 @@ def fix_ldap_groups(test=False):
     counter = 0
     internal_groups = AuthGroup.objects.filter(source__source__name='INTERNAL')
     if test is True:
-        print 'Testing...'
+        print('Testing...')
     for group in internal_groups:
         result = conn.search_s(settings.AUTH_LDAP_GROUP_SEARCH.base_dn, ldap.SCOPE_SUBTREE, 'cn=%s' % group.name, attrs)
         group_result = result[0][0]
         if group_result:
-            print group_result
+            print(group_result)
             if test is False:
                 group.source.source = ldap_source
                 group.source.save()
                 counter += 1
 
-    print '%s Groups changed.' % counter
+    print('%s Groups changed.' % counter)
 
 
 def convert_groups():
@@ -111,7 +111,7 @@ def convert_permissions(delete=False, groupname=None, user=None, username=None):
         if permissions:
             # Only owner permission is needed for hosts
             if 'OWNER' in permissions:
-                print 'Assigning owner permission on group %s for hosts \n' % auth_group
+                print('Assigning owner permission on group %s for hosts \n' % auth_group)
                 _assign_perms('is_owner', auth_group, hosts=hosts, domains=domains, networks=networks)
 
                 # Assign users to this group
@@ -121,7 +121,7 @@ def convert_permissions(delete=False, groupname=None, user=None, username=None):
             if 'ADD' in permissions:
                 # IF there is just ADD only then stick the permission on the group
                 if len(permissions) == 1:
-                    print 'Assigning add records permission on group %s for domains \n' % auth_group
+                    print('Assigning add records permission on group %s for domains \n' % auth_group)
                     _assign_perms('add_records_to', auth_group, domains=domains, networks=networks, pools=pools)
 
                     # Assign users to this group
@@ -134,7 +134,7 @@ def convert_permissions(delete=False, groupname=None, user=None, username=None):
                     for user in users:
                         # Force superuser to false to force insert
                         user.is_superuser = False
-                        print 'Assigning add records permission on user %s for domains, networks, and pools \n' % user.user
+                        print('Assigning add records permission on user %s for domains, networks, and pools \n' % user.user)
                         _assign_perms('add_records_to', user.user, domains=domains, networks=networks, pools=pools)
 
 
@@ -165,9 +165,9 @@ def _assign_perms(permission, user_or_group, hosts=[], domains=[], networks=[], 
         assign_perm('dns.%s_domain' % permission, user_or_group, domain)
     for network in networks:
         assign_perm('network.%s_network' % permission, user_or_group, network)
-    # print 'pools - %s' % len(pools)
+    # print('pools - %s' % len(pools))
     # for pool in pools:
-    #     print pool
+    #     print(pool)
     #     assign_perm('network.%s_pool' % permission, user_or_group, pool)
 
     return
@@ -223,7 +223,7 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
                         #     auth_user.active = False
                         #     auth_user.save()
                         if not auth_user.has_perm('is_owner_host', host_group.host):
-                            print 'Assigning owner permission to user %s for host %s \n' % (auth_user, host_group.host)
+                            print('Assigning owner permission to user %s for host %s \n' % (auth_user, host_group.host))
                             # UserObjectPermission.objects.get_or_create(
                             #     user=auth_user,
                             #     permission=owner_perm,
@@ -236,7 +236,7 @@ def convert_host_permissions(delete=False, username=None, host_pk=None, on_empty
             else:
                 auth_group, created = AuthGroup.objects.get_or_create(name=host_group.group.name)
                 # if not auth_group.has_perm('is_owner_host', host_group.host):
-                print 'Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host)
+                print('Assigning owner permission to group %s for host %s \n' % (auth_group, host_group.host))
                 # GroupObjectPermission.objects.get_or_create(
                 #     group=auth_group,
                 #     permission=owner_perm,
@@ -271,10 +271,10 @@ def populate_user_from_ldap(username=None, user=None, groups=[], force=False):
 
     for user in queryset_iterator(users):
         if not user.first_name or not user.last_name or not user.email or force is True:
-            print timezone.now(), 'Updating user: %s' % user.username
+            print(timezone.now(), 'Updating user: %s' % user.username)
             ldap_backend.populate_user(username=user.username)
         else:
-            print timezone.now(), 'NOT Updating user: %s' % user.username
+            print(timezone.now(), 'NOT Updating user: %s' % user.username)
 
 
 # Not needed anymore because we switched django user model

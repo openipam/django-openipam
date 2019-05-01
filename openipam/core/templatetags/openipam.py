@@ -171,7 +171,7 @@ class BreadcrumbsNode(template.Node):
                 soup = BeautifulSoup(data)
                 lines = [(a.get('href'), a.text) for a in soup.findAll('a')]
                 lines.append([soup.find('div').text.split('&rsaquo;')[-1].strip()])
-            except Exception, e:
+            except Exception as e:
                 lines = [["Cannot parse breadcrumbs: %s" % unicode(e)]]
 
         out = '<ul class="breadcrumb">'

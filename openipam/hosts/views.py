@@ -866,7 +866,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                             self.request.user,
                             **host
                         )
-                    except Exception, e:
+                    except Exception as e:
                         error_list.append('Error adding host from row %s' % (i + 1))
                         error_list.append(str(e))
                         raise ValidationError
