@@ -17,6 +17,6 @@ def set_default_pool(sender, instance, **kwargs):
 
 
 def validate_address_type(sender, instance, action, **kwargs):
-    if action == 'pre_add':
+    if action == "pre_add":
         if instance.pool:
-            raise ValidationError('Address Types cannot have both a pool and a range.')
+            raise ValidationError("Address Types cannot have both a pool and a range.")

@@ -38,18 +38,18 @@ class ChainPatternBase(models.Model):
 class ChainPattern(ChainPatternBase):
     class Meta:
         managed = False
-        db_table = 'chain_patterns'
+        db_table = "chain_patterns"
 
 
 class ChainPatternLog(LogBase, ChainPatternBase):
     class Meta:
         managed = False
-        db_table = 'chain_patterns_log'
+        db_table = "chain_patterns_log"
 
 
 class ChainBase(models.Model):
     name = models.CharField(max_length=24)
-    tbl = models.ForeignKey('Tables', db_column='tbl', blank=True, null=True)
+    tbl = models.ForeignKey("Tables", db_column="tbl", blank=True, null=True)
     builtin = models.BooleanField(default=False)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
@@ -65,14 +65,14 @@ class ChainBase(models.Model):
 class Chain(ChainBase):
     class Meta:
         managed = False
-        db_table = 'chains'
-        unique_together = (('name', 'tbl'),)
+        db_table = "chains"
+        unique_together = (("name", "tbl"),)
 
 
 class ChainLog(LogBase, ChainBase):
     class Meta:
         managed = False
-        db_table = 'chains_log'
+        db_table = "chains_log"
 
 
 class FirewallBase(models.Model):
@@ -88,18 +88,18 @@ class FirewallBase(models.Model):
 class Firewall(FirewallBase):
     class Meta:
         managed = False
-        db_table = 'firewalls'
+        db_table = "firewalls"
 
 
 class FirewallLog(LogBase, FirewallBase):
     class Meta:
         managed = False
-        db_table = 'firewalls_log'
+        db_table = "firewalls_log"
 
 
 class FirewallToChainPatternBase(models.Model):
-    fw = models.ForeignKey(Firewall, db_column='fw')
-    pat = models.ForeignKey(ChainPattern, db_column='pat')
+    fw = models.ForeignKey(Firewall, db_column="fw")
+    pat = models.ForeignKey(ChainPattern, db_column="pat")
 
     def __unicode__(self):
         return "%s(%s)" % (self.fw.name, self.pat.pattern)
@@ -111,20 +111,22 @@ class FirewallToChainPatternBase(models.Model):
 class FirewallToChainPattern(FirewallToChainPatternBase):
     class Meta:
         managed = False
-        db_table = 'firewalls_to_chain_patterns'
-        unique_together = (('fw', 'pat'),)
+        db_table = "firewalls_to_chain_patterns"
+        unique_together = (("fw", "pat"),)
 
 
 class FirewallToChainPatternLog(LogBase, FirewallToChainPatternBase):
     class Meta:
         managed = False
-        db_table = 'firewalls_to_chain_patterns_log'
+        db_table = "firewalls_to_chain_patterns_log"
 
 
 class HostBase(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True, null=True)
-    host = models.TextField(unique=True, blank=True, null=True)  # This field type is a guess.
-    owner = models.ForeignKey('Users', db_column='owner')
+    host = models.TextField(
+        unique=True, blank=True, null=True
+    )  # This field type is a guess.
+    owner = models.ForeignKey("Users", db_column="owner")
     description = models.CharField(max_length=2048, blank=True, null=True)
     host_end = models.TextField(blank=True, null=True)  # This field type is a guess.
     is_group = models.BooleanField(default=False)
@@ -140,19 +142,19 @@ class HostBase(models.Model):
 class Host(HostBase):
     class Meta:
         managed = False
-        db_table = 'hosts'
-        unique_together = (('host', 'host_end'),)
+        db_table = "hosts"
+        unique_together = (("host", "host_end"),)
 
 
 class HostLog(LogBase, HostBase):
     class Meta:
         managed = False
-        db_table = 'hosts_log'
+        db_table = "hosts_log"
 
 
 class HostToGroupBase(models.Model):
-    gid = models.ForeignKey(Host, db_column='gid', related_name="%(class)s_groups")
-    hid = models.ForeignKey(Host, db_column='hid', related_name="%(class)s_hosts")
+    gid = models.ForeignKey(Host, db_column="gid", related_name="%(class)s_groups")
+    hid = models.ForeignKey(Host, db_column="hid", related_name="%(class)s_hosts")
     expires = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
@@ -165,14 +167,14 @@ class HostToGroupBase(models.Model):
 class HostToGroup(HostToGroupBase):
     class Meta:
         managed = False
-        db_table = 'hosts_to_groups'
-        unique_together = (('hid', 'gid'),)
+        db_table = "hosts_to_groups"
+        unique_together = (("hid", "gid"),)
 
 
 class HostToGroupLog(LogBase, HostToGroupBase):
     class Meta:
         managed = False
-        db_table = 'hosts_to_groups_log'
+        db_table = "hosts_to_groups_log"
 
 
 class InterfaceBase(models.Model):
@@ -189,13 +191,13 @@ class InterfaceBase(models.Model):
 class Interface(InterfaceBase):
     class Meta:
         managed = False
-        db_table = 'interfaces'
+        db_table = "interfaces"
 
 
 class InterfaceLog(LogBase, InterfaceBase):
     class Meta:
         managed = False
-        db_table = 'interfaces_log'
+        db_table = "interfaces_log"
 
 
 class PortBase(models.Model):
@@ -211,13 +213,13 @@ class PortBase(models.Model):
 class Port(PortBase):
     class Meta:
         managed = False
-        db_table = 'ports'
+        db_table = "ports"
 
 
 class PortLog(LogBase, PortBase):
     class Meta:
         managed = False
-        db_table = 'ports_log'
+        db_table = "ports_log"
 
 
 class ProtosBase(models.Model):
@@ -231,18 +233,18 @@ class ProtosBase(models.Model):
 class Protos(ProtosBase):
     class Meta:
         managed = False
-        db_table = 'protos'
+        db_table = "protos"
 
 
 class ProtosLog(LogBase, ProtosBase):
     class Meta:
         managed = False
-        db_table = 'protos_log'
+        db_table = "protos_log"
 
 
 class RealInterfaceBase(models.Model):
     name = models.CharField(max_length=32)
-    pseudo = models.ForeignKey(Interface, db_column='pseudo')
+    pseudo = models.ForeignKey(Interface, db_column="pseudo")
     is_bridged = models.BooleanField(default=False)
     firewall = models.ForeignKey(Firewall)
 
@@ -253,45 +255,71 @@ class RealInterfaceBase(models.Model):
 class RealInterface(RealInterfaceBase):
     class Meta:
         managed = False
-        db_table = 'real_interfaces'
+        db_table = "real_interfaces"
 
 
 class RealInterfaceLog(LogBase, RealInterfaceBase):
     class Meta:
         managed = False
-        db_table = 'real_interfaces_log'
+        db_table = "real_interfaces_log"
 
 
 class RuleStats(models.Model):
     id = models.BigIntegerField(primary_key=True)
-    rule = models.ForeignKey('Rule', db_column='rule')
+    rule = models.ForeignKey("Rule", db_column="rule")
     packets = models.BigIntegerField()
     bytes = models.BigIntegerField()
     time = models.DateTimeField()
-    src = models.ForeignKey(Host, db_column='src', blank=True, null=True, related_name='%(class)s_src')
-    dst = models.ForeignKey(Host, db_column='dst', blank=True, null=True, related_name='%(class)s_dst')
+    src = models.ForeignKey(
+        Host, db_column="src", blank=True, null=True, related_name="%(class)s_src"
+    )
+    dst = models.ForeignKey(
+        Host, db_column="dst", blank=True, null=True, related_name="%(class)s_dst"
+    )
 
     class Meta:
         managed = False
-        db_table = 'rule_stats'
+        db_table = "rule_stats"
 
 
 class RuleBase(models.Model):
-    chain = models.ForeignKey(Chain, db_column='chain', related_name='%(class)s_chain')
-    if_in = models.ForeignKey(Interface, db_column='if_in', blank=True, null=True, related_name='%(class)s_if_in')
-    if_out = models.ForeignKey(Interface, db_column='if_out', blank=True, null=True, related_name='%(class)s_if_out')
-    proto = models.ForeignKey(Protos, db_column='proto', blank=True, null=True)
-    src = models.ForeignKey(Host, db_column='src', blank=True, null=True, related_name='%(class)s_src')
-    sport = models.ForeignKey(Port, db_column='sport', blank=True, null=True, related_name='%(class)s_sport')
-    dst = models.ForeignKey(Host, db_column='dst', blank=True, null=True, related_name='%(class)s_dst')
-    dport = models.ForeignKey(Port, db_column='dport', blank=True, null=True, related_name='%(class)s_dport')
-    target = models.ForeignKey(Chain, db_column='target', related_name='%(class)s_target')
+    chain = models.ForeignKey(Chain, db_column="chain", related_name="%(class)s_chain")
+    if_in = models.ForeignKey(
+        Interface,
+        db_column="if_in",
+        blank=True,
+        null=True,
+        related_name="%(class)s_if_in",
+    )
+    if_out = models.ForeignKey(
+        Interface,
+        db_column="if_out",
+        blank=True,
+        null=True,
+        related_name="%(class)s_if_out",
+    )
+    proto = models.ForeignKey(Protos, db_column="proto", blank=True, null=True)
+    src = models.ForeignKey(
+        Host, db_column="src", blank=True, null=True, related_name="%(class)s_src"
+    )
+    sport = models.ForeignKey(
+        Port, db_column="sport", blank=True, null=True, related_name="%(class)s_sport"
+    )
+    dst = models.ForeignKey(
+        Host, db_column="dst", blank=True, null=True, related_name="%(class)s_dst"
+    )
+    dport = models.ForeignKey(
+        Port, db_column="dport", blank=True, null=True, related_name="%(class)s_dport"
+    )
+    target = models.ForeignKey(
+        Chain, db_column="target", related_name="%(class)s_target"
+    )
     additional = models.CharField(max_length=2048, blank=True, null=True)
     ord = models.IntegerField()
     enabled = models.BooleanField(default=False)
     description = models.CharField(max_length=2048, blank=True, null=True)
     expires = models.DateTimeField(blank=True, null=True)
-    created_for = models.ForeignKey('Users', db_column='created_for')
+    created_for = models.ForeignKey("Users", db_column="created_for")
 
     class Meta:
         abstract = True
@@ -300,13 +328,13 @@ class RuleBase(models.Model):
 class Rule(RuleBase):
     class Meta:
         managed = False
-        db_table = 'rules'
+        db_table = "rules"
 
 
 class RuleLog(LogBase, RuleBase):
     class Meta:
         managed = False
-        db_table = 'rules_log'
+        db_table = "rules_log"
 
 
 class TablesBase(models.Model):
@@ -323,13 +351,13 @@ class TablesBase(models.Model):
 class Tables(TablesBase):
     class Meta:
         managed = False
-        db_table = 'tables'
+        db_table = "tables"
 
 
 class TablesLog(LogBase, TablesBase):
     class Meta:
         managed = False
-        db_table = 'tables_log'
+        db_table = "tables_log"
 
 
 class UsersBase(models.Model):
@@ -338,7 +366,7 @@ class UsersBase(models.Model):
     a_number = models.CharField(max_length=9, blank=True, null=True)
 
     def __unicode__(self):
-        return '%s (%s)' % (self.a_number, self.name)
+        return "%s (%s)" % (self.a_number, self.name)
 
     class Meta:
         abstract = True
@@ -347,10 +375,10 @@ class UsersBase(models.Model):
 class Users(UsersBase):
     class Meta:
         managed = False
-        db_table = 'users'
+        db_table = "users"
 
 
 class UsersLog(LogBase, UsersBase):
     class Meta:
         managed = False
-        db_table = 'users_log'
+        db_table = "users_log"

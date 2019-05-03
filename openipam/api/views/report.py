@@ -1,7 +1,11 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer
+from rest_framework.renderers import (
+    TemplateHTMLRenderer,
+    JSONRenderer,
+    BrowsableAPIRenderer,
+)
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
@@ -49,34 +53,49 @@ User = get_user_model()
 
 class LeaseUsageView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (BrowsableAPIRenderer, TemplateHTMLRenderer, JSONRenderer,)
+    renderer_classes = (BrowsableAPIRenderer, TemplateHTMLRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
-        network_blocks = request.GET.get('network_blocks')
-        network_tags = request.GET.get('network_tags')
-        by_router = request.GET.get('by_router')
-        exclude_free = request.GET.get('exclude_free')
+        network_blocks = request.GET.get("network_blocks")
+        network_tags = request.GET.get("network_tags")
+        by_router = request.GET.get("by_router")
+        exclude_free = request.GET.get("exclude_free")
 
         if network_blocks:
-            show_blocks = '&'.join(['show_blocks=%s' % n for n in network_blocks.split(',')])
-            url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
-            lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
+            show_blocks = "&".join(
+                ["show_blocks=%s" % n for n in network_blocks.split(",")]
+            )
+            url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
+            lease_data = requests.get(
+                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+            )
         elif network_tags:
-            network_tags = network_tags.split(',')
+            network_tags = network_tags.split(",")
             networks = Network.objects.filter(dhcp_group__name__in=network_tags)
-            show_blocks = '&'.join(['show_blocks=%s' % str(n.network) for n in networks])
-            url = 'https://gul.usu.edu/subnetparser.py?format=json&%s' % show_blocks
-            lease_data = requests.get(url, auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
+            show_blocks = "&".join(
+                ["show_blocks=%s" % str(n.network) for n in networks]
+            )
+            url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
+            lease_data = requests.get(
+                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+            )
         else:
-            lease_data = requests.get('https://gul.usu.edu/subnetparser.py?format=json',
-                                      auth=('django-openipam', 'ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt'))
+            lease_data = requests.get(
+                "https://gul.usu.edu/subnetparser.py?format=json",
+                auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt"),
+            )
 
         try:
             lease_data = lease_data.json()
         except ValueError:
-            return HttpResponse('Error parsing JSON from GUL', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return HttpResponse(
+                "Error parsing JSON from GUL",
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-        lease_data = sorted(lease_data, key=lambda k: (k['router'], IPNetwork(k['network'])))
+        lease_data = sorted(
+            lease_data, key=lambda k: (k["router"], IPNetwork(k["network"]))
+        )
 
         def get_ratio(available, total):
             ratio = 1
@@ -89,7 +108,7 @@ class LeaseUsageView(APIView):
         def color(ratio):
             # Convert a number in the range [0,1] to an HTML color code
             if ratio is None:
-                return '#77f'
+                return "#77f"
             if ratio < 0:
                 ratio = 0
             if ratio > 1:
@@ -109,74 +128,80 @@ class LeaseUsageView(APIView):
 
         if not by_router:
             for item in lease_data:
-                network = IPNetwork(item['network'])
+                network = IPNetwork(item["network"])
                 child = item
 
-                if 'usage' in item:
-                    child['ratio'] = get_ratio(item['usage']['available'], item['usage']['dynamic'])
-                    child['utilized'] = int((1 - child['ratio']) * 100) if child['ratio'] is not None else 0
+                if "usage" in item:
+                    child["ratio"] = get_ratio(
+                        item["usage"]["available"], item["usage"]["dynamic"]
+                    )
+                    child["utilized"] = (
+                        int((1 - child["ratio"]) * 100)
+                        if child["ratio"] is not None
+                        else 0
+                    )
                 else:
-                    child['ratio'] = 1
-                    child['utilized'] = 0
+                    child["ratio"] = 1
+                    child["utilized"] = 0
 
-                if 'ratio' in item:
-                    child['style'] = color(child['ratio'])
+                if "ratio" in item:
+                    child["style"] = color(child["ratio"])
                 else:
-                    child['style'] = '#77f'
+                    child["style"] = "#77f"
 
-                child['size'] = network.size
+                child["size"] = network.size
                 if network.prefixlen >= 28:
-                    child['size_width'] = 50
+                    child["size_width"] = 50
                 else:
-                    child['size_width'] = (32 - 4 - network.prefixlen) ** 1.5 * 20 + 50
+                    child["size_width"] = (32 - 4 - network.prefixlen) ** 1.5 * 20 + 50
 
-            lease_data = sorted(lease_data, key=lambda x: float(x['ratio']) if x['ratio'] is not None else 1.1)
+            lease_data = sorted(
+                lease_data,
+                key=lambda x: float(x["ratio"]) if x["ratio"] is not None else 1.1,
+            )
 
-            if request.accepted_renderer.format == 'html':
-                context = {
-                    'lease_data': lease_data,
-                    'excluded_keys': ['style']
-                }
-                return Response(context, template_name='api/web/lease_usage.html')
+            if request.accepted_renderer.format == "html":
+                context = {"lease_data": lease_data, "excluded_keys": ["style"]}
+                return Response(context, template_name="api/web/lease_usage.html")
             else:
-                return Response(lease_data, status=status.HTTP_200_OK, template_name='api/web/lease_usage.html')
+                return Response(
+                    lease_data,
+                    status=status.HTTP_200_OK,
+                    template_name="api/web/lease_usage.html",
+                )
 
-        grouped_lease_data = {
-            'name': 'routers',
-            'children': [],
-            'style': '#000033'
-        }
+        grouped_lease_data = {"name": "routers", "children": [], "style": "#000033"}
 
         routers_css = [
-            {'router': 'ser.gw.usu.edu', 'color': '#00A7C0', },
-            {'router': 'wireless.gw.usu.edu', 'color': '#507780', },
-            {'router': 'main.gw.usu.edu', 'color': '#E85649', },
-            {'router': 'ed.gw.usu.edu', 'color': '#E09A25', },
-            {'router': 'rpark.gw.usu.edu', 'color': '#FFE11A', },
-            {'router': 'spectrum.gw.usu.edu', 'color': '#9cf', },
-            {'router': 'hsg-av.gw.usu.edu', 'color': '#F22738', },
-            {'router': 'hsg-ser.gw.usu.edu', 'color': '#F22738', },
-            {'router': 'hsg-llc.gw.usu.edu', 'color': '#F22738', },
-            {'router': 'airport.gw.usu.edu', 'color': '#9f9', },
-            {'router': 'dmz-a.gw.usu.edu', 'color': '#70a7b0', },
-            {'router': 'dmz-b.gw.usu.edu', 'color': '#70a7b0', },
+            {"router": "ser.gw.usu.edu", "color": "#00A7C0"},
+            {"router": "wireless.gw.usu.edu", "color": "#507780"},
+            {"router": "main.gw.usu.edu", "color": "#E85649"},
+            {"router": "ed.gw.usu.edu", "color": "#E09A25"},
+            {"router": "rpark.gw.usu.edu", "color": "#FFE11A"},
+            {"router": "spectrum.gw.usu.edu", "color": "#9cf"},
+            {"router": "hsg-av.gw.usu.edu", "color": "#F22738"},
+            {"router": "hsg-ser.gw.usu.edu", "color": "#F22738"},
+            {"router": "hsg-llc.gw.usu.edu", "color": "#F22738"},
+            {"router": "airport.gw.usu.edu", "color": "#9f9"},
+            {"router": "dmz-a.gw.usu.edu", "color": "#70a7b0"},
+            {"router": "dmz-b.gw.usu.edu", "color": "#70a7b0"},
             # {'router': '.gw.usu.edu', 'color': '#9f9', },
-            {'router': 'aste.gw.usu.edu', 'color': '#f99', },
-            {'router': 'brigham.gw.usu.edu', 'color': '#9f9', },
-            {'router': 'ceu.gw.usu.edu', 'color': '#99f', },
-            {'router': 'blanding.gw.usu.edu', 'color': '#66d', },
-            {'router': 'UEN', 'color': '#f64', },
-            {'router': 'multiple', 'color': '#999', },
+            {"router": "aste.gw.usu.edu", "color": "#f99"},
+            {"router": "brigham.gw.usu.edu", "color": "#9f9"},
+            {"router": "ceu.gw.usu.edu", "color": "#99f"},
+            {"router": "blanding.gw.usu.edu", "color": "#66d"},
+            {"router": "UEN", "color": "#f64"},
+            {"router": "multiple", "color": "#999"},
         ]
 
-        for key, group in itertools.groupby(lease_data, lambda item: item['router']):
+        for key, group in itertools.groupby(lease_data, lambda item: item["router"]):
 
             if exclude_free and key is None:
                 continue
 
             router = {
-                'name': key.replace('.gw.usu.edu', '') if key is not None else 'FREE',
-                'children': [],
+                "name": key.replace(".gw.usu.edu", "") if key is not None else "FREE",
+                "children": [],
             }
 
             # if key is not None:
@@ -199,35 +224,37 @@ class LeaseUsageView(APIView):
             #     'ratio': 1
             # }
             for item in group:
-                network = IPNetwork(item['network'])
+                network = IPNetwork(item["network"])
                 child = item
 
                 # else:
                 #    child['style'] = '#00ff00'
 
-                if 'usage' in item:
-                    child['ratio'] = get_ratio(item['usage']['available'], item['usage']['dynamic'])
+                if "usage" in item:
+                    child["ratio"] = get_ratio(
+                        item["usage"]["available"], item["usage"]["dynamic"]
+                    )
                 else:
-                    child['ratio'] = 1
+                    child["ratio"] = 1
 
                 # if key is not None:
-                if 'ratio' in item:
-                    child['style'] = color(child['ratio'])
+                if "ratio" in item:
+                    child["style"] = color(child["ratio"])
                 else:
-                    child['style'] = '#77f'
+                    child["style"] = "#77f"
 
-                child['name'] = item['network']
-                child['desc'] = item['portdesc']
-                child['size'] = network.size
-                child['value'] = network.size if network.size > 256 else 256
-                del child['router']
+                child["name"] = item["network"]
+                child["desc"] = item["portdesc"]
+                child["size"] = network.size
+                child["value"] = network.size if network.size > 256 else 256
+                del child["router"]
 
                 # if network.prefixlen > 28:
                 #     third_child['children'].append(child)
                 # elif network.prefixlen > 24:
                 #     second_child['children'].append(child)
                 # else:
-                router['children'].append(child)
+                router["children"].append(child)
 
             # if third_child['children']:
             #     ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
@@ -244,9 +271,13 @@ class LeaseUsageView(APIView):
 
             #     router['children'].append(second_child)
 
-            grouped_lease_data['children'].append(router)
+            grouped_lease_data["children"].append(router)
 
-        return Response(grouped_lease_data, status=status.HTTP_200_OK, template_name='api/web/lease_usage.html')
+        return Response(
+            grouped_lease_data,
+            status=status.HTTP_200_OK,
+            template_name="api/web/lease_usage.html",
+        )
 
 
 class LeaseGraphView(APIView):
@@ -254,42 +285,44 @@ class LeaseGraphView(APIView):
     # renderer_classes = (TemplateHTMLRenderer,)
 
     def get(self, request, network, format=None, **kwargs):
-        parsed_network = network.replace('/', '_').replace('.', '-')
+        parsed_network = network.replace("/", "_").replace(".", "-")
         params = {
-            'width': '700',
-            'height': '350',
-            '_salt': '1414518442.099',
-            'areaMode': 'stacked',
-            'from': '-1weeks',
-            'bgcolor': '000000',
-            'fgcolor': 'FFFFFF',
-            'target': [
-                'color(aliasByMetric(ipam.leases.%s.reserved),"purple")' % parsed_network,
+            "width": "700",
+            "height": "350",
+            "_salt": "1414518442.099",
+            "areaMode": "stacked",
+            "from": "-1weeks",
+            "bgcolor": "000000",
+            "fgcolor": "FFFFFF",
+            "target": [
+                'color(aliasByMetric(ipam.leases.%s.reserved),"purple")'
+                % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.static),"orange")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.abandoned),"red")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.leased),"yellow")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.expired),"green")' % parsed_network,
                 'color(aliasByMetric(ipam.leases.%s.unleased),"blue")' % parsed_network,
-            ]
+            ],
         }
         req = requests.get(
-            'http://graphite.ser321.usu.edu:8190/render/',
-            params=params,
-            stream=True)
+            "http://graphite.ser321.usu.edu:8190/render/", params=params, stream=True
+        )
 
         if req.status_code == 200:
             with TemporaryFile() as f:
                 for chunk in req.iter_content():
                     f.write(chunk)
                 f.seek(0)
-                return HttpResponse(f, content_type='image/png')
+                return HttpResponse(f, content_type="image/png")
         else:
-            return HttpResponse(req.reason, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return HttpResponse(
+                req.reason, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class WeatherMapView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (BrowsableAPIRenderer, JSONRenderer,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
         # see http://peewee.readthedocs.org/en/latest/peewee/database.html#error-2006-mysql-server-has-gone-away
@@ -305,32 +338,34 @@ class WeatherMapView(APIView):
         return result
 
     def _get(self, request, format=None, **kwargs):
-        if request.query_params.get('buildings', False):
-            data = OrderedDict(copy.deepcopy(get_buildingmap_data().get('data')))
+        if request.query_params.get("buildings", False):
+            data = OrderedDict(copy.deepcopy(get_buildingmap_data().get("data")))
         else:
-            data = OrderedDict(copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('data')))
+            data = OrderedDict(copy.deepcopy(CONFIG.get("WEATHERMAP_DATA").get("data")))
 
         all_ports = []
         for k, v in data.items():
-            all_ports.extend(v['id'])
+            all_ports.extend(v["id"])
 
         ports = Ports.select(Ports).where(Ports.port << all_ports)
 
         for port in ports:
             for key, value in data.items():
-                for portid in value['id']:
+                for portid in value["id"]:
                     if port.port == portid:
-                        value['A'] = value.get('A', 0) + port.ifoutoctets_rate * 8
-                        value['Z'] = value.get('Z', 0) + port.ifinoctets_rate * 8
-                        value['speed'] = value.get('speed', 0) + port.ifspeed if port.ifspeed else 0
-                        value['timestamp'] = port.poll_time
-                        value['poll_frequency'] = 300
-                        value['isUp'] = bool(port.ifoperstatus == "up")
+                        value["A"] = value.get("A", 0) + port.ifoutoctets_rate * 8
+                        value["Z"] = value.get("Z", 0) + port.ifinoctets_rate * 8
+                        value["speed"] = (
+                            value.get("speed", 0) + port.ifspeed if port.ifspeed else 0
+                        )
+                        value["timestamp"] = port.poll_time
+                        value["poll_frequency"] = 300
+                        value["isUp"] = bool(port.ifoperstatus == "up")
 
         for key, value in data.items():
-            del value['id']
+            del value["id"]
 
-        data["timestamp"] = int(datetime.now().strftime('%s'))
+        data["timestamp"] = int(datetime.now().strftime("%s"))
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -340,64 +375,113 @@ class StatsAPIView(APIView):
     renderer_classes = (TemplateHTMLRenderer,)
 
     def get(self, request, format=None, **kwargs):
-        app = request.GET.get('app')
-        model = request.GET.get('model')
-        column = request.GET.get('column')
+        app = request.GET.get("app")
+        model = request.GET.get("model")
+        column = request.GET.get("column")
 
         model_klass = apps.get_model(app_label=app, model_name=model)
         queryset = model_klass.objects.all()
-        qs_stats = qsstats.QuerySetStats(queryset, column, aggregate=Count('pk'))
+        qs_stats = qsstats.QuerySetStats(queryset, column, aggregate=Count("pk"))
 
-        xdata = ['Today', 'This Week', 'This Month']
+        xdata = ["Today", "This Week", "This Month"]
         ydata = [qs_stats.this_day(), qs_stats.this_week(), qs_stats.this_month()]
 
-        extra_serie1 = {"tooltip": {"y_start": "", "y_end": " %s" % model_klass._meta.verbose_name_plural.title()}}
-        chartdata = {
-            'x': xdata, 'name1': 'Hosts', 'y1': ydata, 'extra1': extra_serie1,
-        }
-        charttype = "discreteBarChart"
-        chartcontainer = '%s_stats' % model.lower()
-        context = {
-            'charttype': charttype,
-            'chartdata': chartdata,
-            'chartcontainer': chartcontainer,
-            'extra': {
-                'x_is_date': False,
-                'x_axis_format': '',
-                'tag_script_js': True,
-                'jquery_on_ready': False,
+        extra_serie1 = {
+            "tooltip": {
+                "y_start": "",
+                "y_end": " %s" % model_klass._meta.verbose_name_plural.title(),
             }
         }
+        chartdata = {"x": xdata, "name1": "Hosts", "y1": ydata, "extra1": extra_serie1}
+        charttype = "discreteBarChart"
+        chartcontainer = "%s_stats" % model.lower()
+        context = {
+            "charttype": charttype,
+            "chartdata": chartdata,
+            "chartcontainer": chartcontainer,
+            "extra": {
+                "x_is_date": False,
+                "x_axis_format": "",
+                "tag_script_js": True,
+                "jquery_on_ready": False,
+            },
+        }
 
-        return Response(context, template_name='api/web/ipam_stats.html')
+        return Response(context, template_name="api/web/ipam_stats.html")
 
 
 class DashboardAPIView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (BrowsableAPIRenderer, JSONRenderer,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
-        wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
-        wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
-        wireless_addresses_total = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count()
-        wireless_addresses_avaiable = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count()
-        wireless_addresses_inuse = wireless_addresses_total - wireless_addresses_avaiable
+        wireless_networks = Network.objects.filter(
+            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
+        )
+        wireless_networks_available_qs = [
+            Q(address__net_contained=network.network) for network in wireless_networks
+        ]
+        wireless_addresses_total = Address.objects.filter(
+            reduce(operator.or_, wireless_networks_available_qs)
+        ).count()
+        wireless_addresses_avaiable = Address.objects.filter(
+            reduce(operator.or_, wireless_networks_available_qs),
+            leases__ends__lt=timezone.now(),
+        ).count()
+        wireless_addresses_inuse = (
+            wireless_addresses_total - wireless_addresses_avaiable
+        )
 
         data = (
-            ('Static Hosts', '%s' % Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count(),),
-            ('Dynamic Hosts', '%s' % Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count(),),
-            ('Active Leases', '%s' % Lease.objects.filter(ends__gte=timezone.now()).count(),),
-            ('Abandoned Leases', '%s' % Lease.objects.filter(abandoned=True).count(),),
-            ('Networks: (Total / Wireless)', '%s / %s' % (Network.objects.all().count(), wireless_networks.count()),),
+            (
+                "Static Hosts",
+                "%s"
+                % Host.objects.filter(
+                    addresses__isnull=False, expires__gte=timezone.now()
+                ).count(),
+            ),
+            (
+                "Dynamic Hosts",
+                "%s"
+                % Host.objects.filter(
+                    pools__isnull=False, expires__gte=timezone.now()
+                ).count(),
+            ),
+            (
+                "Active Leases",
+                "%s" % Lease.objects.filter(ends__gte=timezone.now()).count(),
+            ),
+            ("Abandoned Leases", "%s" % Lease.objects.filter(abandoned=True).count()),
+            (
+                "Networks: (Total / Wireless)",
+                "%s / %s" % (Network.objects.all().count(), wireless_networks.count()),
+            ),
             # ('Addresses: (Total / Available)', '%s / %s' % (
             #     Address.objects.all().count(),
             #     Address.objects.filter(host__isnull=True).count()),
             # ),
-            ('Available Wireless Addresses', Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count(),),
-            ('DNS A Records', DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count(),),
-            ('DNS CNAME Records', DnsRecord.objects.filter(dns_type__name='CNAME').count(),),
-            ('DNS MX Records', DnsRecord.objects.filter(dns_type__name='MX').count(),),
-            ('Active Users Within 1 Year', User.objects.filter(last_login__gte=(timezone.now() - timedelta(days=365))).count(),),
+            (
+                "Available Wireless Addresses",
+                Address.objects.filter(
+                    reduce(operator.or_, wireless_networks_available_qs),
+                    leases__ends__lt=timezone.now(),
+                ).count(),
+            ),
+            (
+                "DNS A Records",
+                DnsRecord.objects.filter(dns_type__name__in=["A", "AAAA"]).count(),
+            ),
+            (
+                "DNS CNAME Records",
+                DnsRecord.objects.filter(dns_type__name="CNAME").count(),
+            ),
+            ("DNS MX Records", DnsRecord.objects.filter(dns_type__name="MX").count()),
+            (
+                "Active Users Within 1 Year",
+                User.objects.filter(
+                    last_login__gte=(timezone.now() - timedelta(days=365))
+                ).count(),
+            ),
         )
 
         data = OrderedDict(data)
@@ -406,61 +490,80 @@ class DashboardAPIView(APIView):
 
 
 class ServerHostCSVRenderer(CSVRenderer):
-    header = ['hostname', 'mac', 'description', 'master_ip_address', 'user_owners', 'group_owners']
+    header = [
+        "hostname",
+        "mac",
+        "description",
+        "master_ip_address",
+        "user_owners",
+        "group_owners",
+    ]
 
 
 class ServerHostView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, ServerHostCSVRenderer,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, ServerHostCSVRenderer)
 
     def get(self, request, format=None, **kwargs):
-        hosts = (
-            Host.objects
-            .prefetch_related('addresses')
-            .filter(structured_attributes__structured_attribute_value__attribute__name='border-profile',
-                    structured_attributes__structured_attribute_value__value='server')
+        hosts = Host.objects.prefetch_related("addresses").filter(
+            structured_attributes__structured_attribute_value__attribute__name="border-profile",
+            structured_attributes__structured_attribute_value__value="server",
         )
 
-        user_perms_prefetch = UserObjectPermission.objects.select_related('permission', 'user').filter(
+        user_perms_prefetch = UserObjectPermission.objects.select_related(
+            "permission", "user"
+        ).filter(
             content_type=ContentType.objects.get_for_model(Host),
             object_pk__in=[str(host.mac) for host in hosts],
-            permission__codename='is_owner_host'
+            permission__codename="is_owner_host",
         )
-        group_perms_prefetch = GroupObjectPermission.objects.select_related('permission', 'group').filter(
+        group_perms_prefetch = GroupObjectPermission.objects.select_related(
+            "permission", "group"
+        ).filter(
             content_type=ContentType.objects.get_for_model(Host),
             object_pk__in=[str(host.mac) for host in hosts],
-            permission__codename='is_owner_host'
+            permission__codename="is_owner_host",
         )
 
         data = []
         for host in hosts:
-            owners = host.get_owners(name_only=True, user_perms_prefetch=user_perms_prefetch, group_perms_prefetch=group_perms_prefetch)
-            data.append({
-                'hostname': host.hostname,
-                'mac': str(host.mac),
-                'description': host.description,
-                'master_ip_address': host.ip_addresses[0] if host.ip_addresses else None,
-                'user_owners': ', '.join(owners[0]),
-                'group_owners': ', '.join(owners[1]),
-            })
+            owners = host.get_owners(
+                name_only=True,
+                user_perms_prefetch=user_perms_prefetch,
+                group_perms_prefetch=group_perms_prefetch,
+            )
+            data.append(
+                {
+                    "hostname": host.hostname,
+                    "mac": str(host.mac),
+                    "description": host.description,
+                    "master_ip_address": host.ip_addresses[0]
+                    if host.ip_addresses
+                    else None,
+                    "user_owners": ", ".join(owners[0]),
+                    "group_owners": ", ".join(owners[1]),
+                }
+            )
 
-        if request.accepted_renderer.format == 'json':
+        if request.accepted_renderer.format == "json":
             return Response({"data": data}, status=status.HTTP_200_OK)
         else:
             return Response(data, status=status.HTTP_200_OK)
 
-@api_view(('GET',))
+
+@api_view(("GET",))
 @permission_classes((AllowAny,))
 @renderer_classes((JSONRenderer,))
 def weathermap_config(request):
-    data = copy.deepcopy(CONFIG.get('WEATHERMAP_DATA').get('config'))
+    data = copy.deepcopy(CONFIG.get("WEATHERMAP_DATA").get("config"))
 
     return Response(data)
 
-@api_view(('GET',))
+
+@api_view(("GET",))
 @permission_classes((AllowAny,))
 @renderer_classes((JSONRenderer,))
 def buildingmap_config(request):
-    data = copy.deepcopy(get_buildingmap_data().get('config'))
+    data = copy.deepcopy(get_buildingmap_data().get("config"))
 
     return Response(data)

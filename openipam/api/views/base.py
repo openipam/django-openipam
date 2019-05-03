@@ -8,6 +8,7 @@ from rest_framework import pagination
 
 from rest_framework_jwt.views import ObtainJSONWebToken, jwt_response_payload_handler
 
+
 class UserAuthenticated(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -23,14 +24,14 @@ class UserAuthenticated(APIView):
 
 class APIPagination(pagination.LimitOffsetPagination):
     default_limit = 50
-    limit_query_param = 'limit'
+    limit_query_param = "limit"
     max_limit = None
 
     def get_limit(self, request):
         ret = pagination._positive_int(
             request.query_params.get(self.limit_query_param, self.default_limit),
             strict=False,
-            cutoff=self.max_limit
+            cutoff=self.max_limit,
         )
         if ret == 0:
             return self.max_limit
@@ -39,14 +40,14 @@ class APIPagination(pagination.LimitOffsetPagination):
 
 class APIMaxPagination(pagination.LimitOffsetPagination):
     default_limit = 50
-    limit_query_param = 'limit'
+    limit_query_param = "limit"
     max_limit = 10000
 
     def get_limit(self, request):
         ret = pagination._positive_int(
             request.query_params.get(self.limit_query_param, self.default_limit),
             strict=False,
-            cutoff=self.max_limit
+            cutoff=self.max_limit,
         )
         if ret == 0:
             return self.max_limit
@@ -60,9 +61,9 @@ class TokenAuthenticationView(ObtainJSONWebToken):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            user = serializer.object.get('user') or request.user
+            user = serializer.object.get("user") or request.user
             update_last_login(None, user)
-            token = serializer.object.get('token')
+            token = serializer.object.get("token")
             response_data = jwt_response_payload_handler(token, user, request)
 
             return Response(response_data)

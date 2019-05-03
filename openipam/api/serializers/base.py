@@ -11,13 +11,16 @@ class MultipleChoiceField(serializers.Field):
     """
     A field that behaves like multiple choice field of Django forms.
     """
+
     form_field_class = forms.MultipleChoiceField
 
     def from_native(self, data):
         if isinstance(data, list):
             for item in data:
                 if item not in self.choices:
-                    raise serializers.ValidationError("The item you entered is not in the allowed items list.")
+                    raise serializers.ValidationError(
+                        "The item you entered is not in the allowed items list."
+                    )
             return data
         else:
             raise serializers.ValidationError("Please provide a valid list.")
@@ -53,9 +56,7 @@ class ListOrItemField(serializers.Field):
 
 
 class MACAddressField(serializers.CharField):
-    default_error_messages = {
-        'invalid': 'Enter a valid mac address.',
-    }
+    default_error_messages = {"invalid": "Enter a valid mac address."}
 
     def validate(self, value):
         """
@@ -67,13 +68,11 @@ class MACAddressField(serializers.CharField):
                 value = EUI(str(value), dialect=mac_bare)
                 return
             except (ValueError, TypeError, ValidationError):
-                raise ValidationError(self.error_messages['invalid'] % {'value': value})
+                raise ValidationError(self.error_messages["invalid"] % {"value": value})
 
 
 class IPAddressField(serializers.CharField):
-    default_error_messages = {
-        'invalid': 'Enter a valid ip address.',
-    }
+    default_error_messages = {"invalid": "Enter a valid ip address."}
 
     def __init__(self, **kwargs):
         super(IPAddressField, self).__init__(**kwargs)

@@ -1,6 +1,10 @@
 from django.db.models import Q
 
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer
+from rest_framework.renderers import (
+    TemplateHTMLRenderer,
+    JSONRenderer,
+    BrowsableAPIRenderer,
+)
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +15,7 @@ from openipam.hosts.models import StructuredAttributeValue
 from guardian.shortcuts import get_objects_for_user
 
 
-@api_view(('GET',))
+@api_view(("GET",))
 @permission_classes((IsAuthenticated,))
 @renderer_classes((TemplateHTMLRenderer,))
 def network_selects(request, address_type_id, use_permissions=True):
@@ -24,22 +28,28 @@ def network_selects(request, address_type_id, use_permissions=True):
             # Networks user has permission to.
             user_nets = get_objects_for_user(
                 request.user,
-                ['network.add_records_to_network', 'network.is_owner_network', 'network.change_network'],
-                any_perm=True
+                [
+                    "network.add_records_to_network",
+                    "network.is_owner_network",
+                    "network.change_network",
+                ],
+                any_perm=True,
             )
             networks = networks.filter(network__in=user_nets)
-        data['networks'] = networks
+        data["networks"] = networks
 
-    return Response(data, template_name='api/web/network_selects.html')
+    return Response(data, template_name="api/web/network_selects.html")
 
 
-@api_view(('GET',))
+@api_view(("GET",))
 @permission_classes((IsAuthenticated,))
 @renderer_classes((TemplateHTMLRenderer,))
 def structured_attribute_selects(request, attribute_id, use_permissions=True):
     data = {}
 
-    structured_attribute_values = StructuredAttributeValue.objects.filter(attribute__pk=attribute_id)
-    data['structured_attribute_values'] = structured_attribute_values
+    structured_attribute_values = StructuredAttributeValue.objects.filter(
+        attribute__pk=attribute_id
+    )
+    data["structured_attribute_values"] = structured_attribute_values
 
-    return Response(data, template_name='api/web/structured_attribute_selects.html')
+    return Response(data, template_name="api/web/structured_attribute_selects.html")

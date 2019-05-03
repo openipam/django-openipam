@@ -54,16 +54,26 @@ class SQLLogToConsoleMiddleware(object):
             for connection_name in connections:
                 conn = connections[connection_name]
                 if conn.queries:
-                    qtime = sum([float(q['time']) for q in conn.queries])
-                    header_t = Template("{{name}}: {{count}} quer{{count|pluralize:\"y,ies\"}} in {{time}} seconds")
-                    print(header_t.render(Context({
-                                          'name': connection_name,
-                                          'sqllog': conn.queries,
-                                          'count': len(conn.queries),
-                                          'time': qtime
-                                          })))
-                    t = Template("{% for sql in sqllog %}[{{forloop.counter}}] {{sql.time}}s: {{sql.sql|safe}}{% if not forloop.last %}\n\n{% endif %}{% endfor %}")
-                print(t.render(Context({'sqllog': conn.queries})))
+                    qtime = sum([float(q["time"]) for q in conn.queries])
+                    header_t = Template(
+                        '{{name}}: {{count}} quer{{count|pluralize:"y,ies"}} in {{time}} seconds'
+                    )
+                    print(
+                        header_t.render(
+                            Context(
+                                {
+                                    "name": connection_name,
+                                    "sqllog": conn.queries,
+                                    "count": len(conn.queries),
+                                    "time": qtime,
+                                }
+                            )
+                        )
+                    )
+                    t = Template(
+                        "{% for sql in sqllog %}[{{forloop.counter}}] {{sql.time}}s: {{sql.sql|safe}}{% if not forloop.last %}\n\n{% endif %}{% endfor %}"
+                    )
+                print(t.render(Context({"sqllog": conn.queries})))
         return response
 
 
@@ -194,21 +204,22 @@ class SQLLogToConsoleColorMiddleware:
 
     def process_response(self, request, response):
         from django.conf import settings
-        enable = getattr(settings, 'LOG_COLORSQL_ENABLE', True)
+
+        enable = getattr(settings, "LOG_COLORSQL_ENABLE", True)
 
         if not enable:
             return response
 
-        verbose = getattr(settings, 'LOG_COLORSQL_VERBOSE', False)
+        verbose = getattr(settings, "LOG_COLORSQL_VERBOSE", False)
 
-        timewarn = getattr(settings, 'LOG_COLORSQL_WARN_TOTALTIME', 0.5)
-        timealert = getattr(settings, 'LOG_COLORSQL_ALERT_TOTALTIME', 1.0)
+        timewarn = getattr(settings, "LOG_COLORSQL_WARN_TOTALTIME", 0.5)
+        timealert = getattr(settings, "LOG_COLORSQL_ALERT_TOTALTIME", 1.0)
 
-        countwarn = getattr(settings, 'LOG_COLORSQL_WARN_TOTALCOUNT', 6)
-        countalert = getattr(settings, 'LOG_COLORSQL_ALERT_TOTALCOUNT', 10)
+        countwarn = getattr(settings, "LOG_COLORSQL_WARN_TOTALCOUNT", 6)
+        countalert = getattr(settings, "LOG_COLORSQL_ALERT_TOTALCOUNT", 10)
 
-        qtimewarn = getattr(settings, 'LOG_COLORSQL_WARN_TIME', 0.05)
-        qtimealert = getattr(settings, 'LOG_COLORSQL_ALERT_TIME', 0.20)
+        qtimewarn = getattr(settings, "LOG_COLORSQL_WARN_TIME", 0.05)
+        qtimealert = getattr(settings, "LOG_COLORSQL_ALERT_TIME", 0.20)
 
         # sanity checks...
         if qtimealert < qtimewarn:
@@ -222,7 +233,7 @@ class SQLLogToConsoleColorMiddleware:
 
         ttime = 0.0
         for q in connection.queries:
-            qtime = float(q['time'])
+            qtime = float(q["time"])
             ttime = ttime + qtime
             if qtimewarn < qtime:
                 verbose = True
@@ -233,17 +244,19 @@ class SQLLogToConsoleColorMiddleware:
 
         if verbose:
             print("\033[0;30;1m")
-            print("-" * 70,)
+            print("-" * 70)
             print("\033[0m")
 
         i = 0
         for q in connection.queries:
-            qtime = float(q['time'])
+            qtime = float(q["time"])
 
             if verbose or timewarn <= ttime or countwarn <= count:
-                sql = q['sql']
+                sql = q["sql"]
                 if sql:
-                    sql = sql.replace(' FROM ', '\nFROM ').replace(' WHERE ', '\nWHERE ')
+                    sql = sql.replace(" FROM ", "\nFROM ").replace(
+                        " WHERE ", "\nWHERE "
+                    )
 
                 tcolor = "\033[31m"
                 ptime = "\033[7m %ss \033[0m" % (qtime)
@@ -253,14 +266,14 @@ class SQLLogToConsoleColorMiddleware:
                     tcolor = "\033[30;1m"
                     ptime = ""
 
-                print("%s%s" % (tcolor, sql),)
+                print("%s%s" % (tcolor, sql))
                 print("%s\033[1m%s\033[0m" % (tcolor, ptime))
                 i = i + 1
                 if i < len(connection.queries):
                     print()
 
         sys.stdout.write("\033[0;30;1m")
-        print("-" * 70,)
+        print("-" * 70)
         print("\033[35;1m")
 
         qtime = ttime
@@ -277,9 +290,11 @@ class SQLLogToConsoleColorMiddleware:
         if countwarn > count:
             ccolor = "\033[30;1m"
 
-        print("%s %.3fs \033[30;1m| %s%d queries\033[0m" % (tcolor, qtime, ccolor, count))
+        print(
+            "%s %.3fs \033[30;1m| %s%d queries\033[0m" % (tcolor, qtime, ccolor, count)
+        )
         sys.stdout.write("\033[0;30;1m")
-        print("-" * 70,)
+        print("-" * 70)
         print("\033[0m")
 
         return response
@@ -289,9 +304,10 @@ class SQLLogMiddlewareSimple:
     def process_response(self, request, response):
         ttime = 0.0
         for q in connection.queries:
-            ttime += float(q['time'])
+            ttime += float(q["time"])
 
-        t = Template('''
+        t = Template(
+            """
             <div>
                 <p><em>Total query count:</em> {{ count }}<br/>
                 <em>Total execution time:</em> {{ time }}</p>
@@ -322,11 +338,20 @@ class SQLLogMiddlewareSimple:
             </script>
 
 
-        ''')
-        response.content = "%s%s" % (response.content, t.render(Context({
-                                     'sqllog': connection.queries,
-                                     'count': len(connection.queries),
-                                     'time': ttime})))
+        """
+        )
+        response.content = "%s%s" % (
+            response.content,
+            t.render(
+                Context(
+                    {
+                        "sqllog": connection.queries,
+                        "count": len(connection.queries),
+                        "time": ttime,
+                    }
+                )
+            ),
+        )
         return response
 
 
@@ -367,7 +392,7 @@ class SQLLogMiddleware:
             return response
         timesql = 0.0
         for q in connection.queries:
-            timesql += float(q['time'])
+            timesql += float(q["time"])
             seen = {}
             duplicate = 0
         for q in connection.queries:
@@ -377,7 +402,8 @@ class SQLLogMiddleware:
                 duplicate += 1
             q["seen"] = c
             seen[sql] = c + 1
-        t = Template('''
+        t = Template(
+            """
             <fieldset class="sqlinfo" style="float:left; color: black; margin: 10px; background: #ffffcc; padding: 10px;">
                 <h4>Django Query Execution</h4>
                 <p>
@@ -416,7 +442,8 @@ class SQLLogMiddleware:
                     </div>
                 </div>
             </fieldset>
-        ''')
+        """
+        )
         timerequest = round(time.time() - self.start, 3)
         queries = connection.queries
         html = str(t.render(Context(locals())))
@@ -424,8 +451,13 @@ class SQLLogMiddleware:
             response.content = "%s%s" % (response.content, html)
             return response
         assert os.path.isdir(debug_sql), debug_sql
-        outfile = os.path.join(debug_sql, "%s.html" % datetime.datetime.now().isoformat())
+        outfile = os.path.join(
+            debug_sql, "%s.html" % datetime.datetime.now().isoformat()
+        )
         fd = open(outfile, "wt")
-        fd.write('''<html><head><title>SQL Log %s</title></head><body>%s</body></html>''' % (request.path, html))
+        fd.write(
+            """<html><head><title>SQL Log %s</title></head><body>%s</body></html>"""
+            % (request.path, html)
+        )
         fd.close()
         return response

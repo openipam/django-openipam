@@ -3,16 +3,18 @@ from openipam.user.utils.user_utils import convert_min_permissions
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Convert User Permissions'
+    args = ""
+    help = "Convert User Permissions"
 
     def add_arguments(self, parser):
-        parser.add_argument('--username',
-                            dest='username',
-                            default=False,
-                            help='Specify a specific username to update')
+        parser.add_argument(
+            "--username",
+            dest="username",
+            default=False,
+            help="Specify a specific username to update",
+        )
 
     def handle(self, *args, **options):
-        username = options['username'] or None
-        self.stdout.write('Converting Admin Permissions...')
+        username = options["username"] or None
+        self.stdout.write("Converting Admin Permissions...")
         convert_min_permissions(username)

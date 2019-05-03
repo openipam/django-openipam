@@ -2,33 +2,34 @@ try:
     import psycopg2
 except:
     from psycopg2cffi import compat
+
     compat.register()
 
 # DEBUG = False
 # TEMPLATE_DEBUG = False
 # DEBUG_SQL = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        'ATOMIC_REQUESTS': True,
-        'CONN_MAX_AGE': 600
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        "NAME": "",  # Or path to database file if using sqlite3.
+        "USER": "",  # Not used with sqlite3.
+        "PASSWORD": "",  # Not used with sqlite3.
+        "HOST": "",  # Set to empty string for localhost. Not used with sqlite3.
+        "PORT": "",  # Set to empty string for default. Not used with sqlite3.
+        "ATOMIC_REQUESTS": True,
+        "CONN_MAX_AGE": 600,
     }
 }
 
-#EMAIL_HOST = 'mail.company.com'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'mail.company.com'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
-INTERNAL_IPS = ('127.0.0.1',)
+INTERNAL_IPS = ("127.0.0.1",)
 
 # SESSION_COOKIE_SECURE = True
 # SESSION_EXPIRE_BROWSER_CLOSE = True
@@ -42,12 +43,12 @@ INTERNAL_IPS = ('127.0.0.1',)
 #     'DUO_LOGIN': True,
 # }
 
-LOCAL_SECRET_KEY = '*sx4u+((&7dl1b^a@87bcdn+pwcms=4hy8+mr^z(1txh(tatv^'
+LOCAL_SECRET_KEY = "*sx4u+((&7dl1b^a@87bcdn+pwcms=4hy8+mr^z(1txh(tatv^"
 
 
 LOCAL_AUTHENTICATION_BACKENDS = (
     # 'django_auth_ldap.backend.LDAPBackend',
-    'openipam.core.backends.IPAMLDAPBackend',
+    "openipam.core.backends.IPAMLDAPBackend",
 )
 
 LOCAL_MIDDLEWARE_CLASSES = [

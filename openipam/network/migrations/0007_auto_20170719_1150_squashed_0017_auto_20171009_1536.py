@@ -9,105 +9,166 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'network', '0007_auto_20170719_1150'), (b'network', '0008_auto_20170918_1347'), (b'network', '0009_auto_20170925_1250'), (b'network', '0010_building_name'), (b'network', '0011_auto_20170925_1625'), (b'network', '0012_auto_20170925_1627'), (b'network', '0013_auto_20171002_1554'), (b'network', '0014_auto_20171002_1602'), (b'network', '0015_building_city'), (b'network', '0016_buildingtovlan_tagegd'), (b'network', '0017_auto_20171009_1536')]
+    replaces = [
+        (b"network", "0007_auto_20170719_1150"),
+        (b"network", "0008_auto_20170918_1347"),
+        (b"network", "0009_auto_20170925_1250"),
+        (b"network", "0010_building_name"),
+        (b"network", "0011_auto_20170925_1625"),
+        (b"network", "0012_auto_20170925_1627"),
+        (b"network", "0013_auto_20171002_1554"),
+        (b"network", "0014_auto_20171002_1602"),
+        (b"network", "0015_building_city"),
+        (b"network", "0016_buildingtovlan_tagegd"),
+        (b"network", "0017_auto_20171009_1536"),
+    ]
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('network', '0006_auto_20170324_1644'),
+        ("network", "0006_auto_20170324_1644"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Building',
+            name="Building",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('building_number', models.CharField(max_length=255, unique=True)),
-                ('description', models.TextField()),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column=b'changed_by', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("building_number", models.CharField(max_length=255, unique=True)),
+                ("description", models.TextField()),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column=b"changed_by",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='BuildingToVlan',
+            name="BuildingToVlan",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('building', models.ForeignKey(db_column=b'building', on_delete=django.db.models.deletion.CASCADE, to='network.Building')),
-                ('changed_by', models.ForeignKey(db_column=b'changed_by', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('vlan', models.ForeignKey(db_column=b'vlan', on_delete=django.db.models.deletion.CASCADE, to='network.Vlan')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "building",
+                    models.ForeignKey(
+                        db_column=b"building",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="network.Building",
+                    ),
+                ),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column=b"changed_by",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "vlan",
+                    models.ForeignKey(
+                        db_column=b"vlan",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="network.Vlan",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='vlan',
-            name='buildings',
-            field=models.ManyToManyField(related_name='building_vlans', through='network.BuildingToVlan', to=b'network.Building'),
+            model_name="vlan",
+            name="buildings",
+            field=models.ManyToManyField(
+                related_name="building_vlans",
+                through="network.BuildingToVlan",
+                to=b"network.Building",
+            ),
         ),
         migrations.AddField(
-            model_name='vlan',
-            name='vlan_id',
+            model_name="vlan",
+            name="vlan_id",
             field=models.SmallIntegerField(default=1),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='vlan',
-            name='changed',
-            field=models.DateTimeField(auto_now=True, default='1970-01-01'),
+            model_name="vlan",
+            name="changed",
+            field=models.DateTimeField(auto_now=True, default="1970-01-01"),
             preserve_default=False,
         ),
-        migrations.RunSQL(
-            sql=['UPDATE vlans SET vlan_id = id'],
-        ),
+        migrations.RunSQL(sql=["UPDATE vlans SET vlan_id = id"]),
         migrations.AlterField(
-            model_name='vlan',
-            name='id',
-            field=models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="vlan",
+            name="id",
+            field=models.AutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
         migrations.RunSQL(
-            sql=['ALTER TABLE vlans DROP CONSTRAINT vlans_id_check', 'ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (vlan_id > 0 AND vlan_id < 4096)', 'ALTER SEQUENCE vlans_id_seq RESTART WITH 5000'],
-            reverse_sql=['ALTER TABLE vlans DROP CONSTRAINT vlans_id_check', 'ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (id > 0 AND id < 4096)', 'ALTER TABLE vlans ALTER COLUMN id DROP DEFAULT', 'DROP SEQUENCE vlans_id_seq'],
+            sql=[
+                "ALTER TABLE vlans DROP CONSTRAINT vlans_id_check",
+                "ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (vlan_id > 0 AND vlan_id < 4096)",
+                "ALTER SEQUENCE vlans_id_seq RESTART WITH 5000",
+            ],
+            reverse_sql=[
+                "ALTER TABLE vlans DROP CONSTRAINT vlans_id_check",
+                "ALTER TABLE vlans ADD CONSTRAINT vlans_id_check CHECK (id > 0 AND id < 4096)",
+                "ALTER TABLE vlans ALTER COLUMN id DROP DEFAULT",
+                "DROP SEQUENCE vlans_id_seq",
+            ],
         ),
         migrations.AddField(
-            model_name='building',
-            name='name',
+            model_name="building",
+            name="name",
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.RenameField(
-            model_name='building',
-            old_name='building_number',
-            new_name='number',
+            model_name="building", old_name="building_number", new_name="number"
         ),
         migrations.AddField(
-            model_name='building',
-            name='abbreviation',
-            field=models.CharField(default='1', max_length=255, unique=True),
+            model_name="building",
+            name="abbreviation",
+            field=models.CharField(default="1", max_length=255, unique=True),
             preserve_default=False,
         ),
-        migrations.AlterModelTable(
-            name='building',
-            table='buildings',
-        ),
-        migrations.AlterModelTable(
-            name='buildingtovlan',
-            table='buildings_to_vlans',
-        ),
+        migrations.AlterModelTable(name="building", table="buildings"),
+        migrations.AlterModelTable(name="buildingtovlan", table="buildings_to_vlans"),
         migrations.AlterField(
-            model_name='building',
-            name='abbreviation',
+            model_name="building",
+            name="abbreviation",
             field=models.CharField(blank=True, max_length=255, null=True, unique=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='abbreviation',
+            model_name="building",
+            name="abbreviation",
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.AddField(
-            model_name='building',
-            name='city',
+            model_name="building",
+            name="city",
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.AddField(
-            model_name='buildingtovlan',
-            name='tagged',
+            model_name="buildingtovlan",
+            name="tagged",
             field=models.BooleanField(default=False),
         ),
     ]

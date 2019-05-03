@@ -28,11 +28,12 @@ def changed_delete_selected(modeladmin, request, queryset):
     # Populate deletable_objects, a data structure of all related objects that
     # will also be deleted.
     deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
-        queryset, opts, request.user, modeladmin.admin_site, using)
+        queryset, opts, request.user, modeladmin.admin_site, using
+    )
 
     # The user has already confirmed the deletion.
     # Do the deletion and return a None to display the change list view again.
-    if request.POST.get('post') and not protected:
+    if request.POST.get("post") and not protected:
         if perms_needed:
             raise PermissionDenied
         n = queryset.count()
@@ -42,9 +43,12 @@ def changed_delete_selected(modeladmin, request, queryset):
                 obj.changed_by = request.user
                 modeladmin.log_deletion(request, obj, obj_display)
             queryset.delete()
-            modeladmin.message_user(request, _("Successfully deleted %(count)d %(items)s.") % {
-                "count": n, "items": model_ngettext(modeladmin.opts, n)
-            }, messages.SUCCESS)
+            modeladmin.message_user(
+                request,
+                _("Successfully deleted %(count)d %(items)s.")
+                % {"count": n, "items": model_ngettext(modeladmin.opts, n)},
+                messages.SUCCESS,
+            )
         # Return None to display the change list page again.
         return None
 
@@ -75,10 +79,19 @@ def changed_delete_selected(modeladmin, request, queryset):
     request.current_app = modeladmin.admin_site.name
 
     # Display the confirmation page
-    return TemplateResponse(request, modeladmin.delete_selected_confirmation_template or [
-        "admin/%s/%s/delete_selected_confirmation.html" % (app_label, opts.model_name),
-        "admin/%s/delete_selected_confirmation.html" % app_label,
-        "admin/delete_selected_confirmation.html"
-    ], context)
+    return TemplateResponse(
+        request,
+        modeladmin.delete_selected_confirmation_template
+        or [
+            "admin/%s/%s/delete_selected_confirmation.html"
+            % (app_label, opts.model_name),
+            "admin/%s/delete_selected_confirmation.html" % app_label,
+            "admin/delete_selected_confirmation.html",
+        ],
+        context,
+    )
 
-changed_delete_selected.short_description = ugettext_lazy("Delete selected %(verbose_name_plural)s")
+
+changed_delete_selected.short_description = ugettext_lazy(
+    "Delete selected %(verbose_name_plural)s"
+)

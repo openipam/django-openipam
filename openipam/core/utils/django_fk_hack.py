@@ -12,20 +12,40 @@ WHERE contype = 'f'
     AND tbl.relname = '{table}';"""
 
 
-def update_fkey_sql(table, referenced_table, referenced_column, on_update='RESTRICT', on_delete='RESTRICT'):
+def update_fkey_sql(
+    table,
+    referenced_table,
+    referenced_column,
+    on_update="RESTRICT",
+    on_delete="RESTRICT",
+):
     return hack_sql.format(
         table=table,
         referenced_table=referenced_table,
         referenced_column=referenced_column,
-        onclause='ON UPDATE {} ON DELETE {}'.format(on_update, on_delete),
+        onclause="ON UPDATE {} ON DELETE {}".format(on_update, on_delete),
     )
 
 
-def get_sql(table, referenced_table, referenced_column, on_update='RESTRICT', on_delete='RESTRICT'):
+def get_sql(
+    table,
+    referenced_table,
+    referenced_column,
+    on_update="RESTRICT",
+    on_delete="RESTRICT",
+):
     curs = connection.cursor()
-    sql_gen_query = update_fkey_sql(table, referenced_table, referenced_column, on_update=on_update, on_delete=on_delete)
+    sql_gen_query = update_fkey_sql(
+        table,
+        referenced_table,
+        referenced_column,
+        on_update=on_update,
+        on_delete=on_delete,
+    )
     curs.execute(sql_gen_query)
-    sql = '\n'.join([i[0] for i in curs.fetchall()])
+    sql = "\n".join([i[0] for i in curs.fetchall()])
     if not sql:
-        raise Exception("Where did my constraint go? (sql_gen_query: {})".format(sql_gen_query))
+        raise Exception(
+            "Where did my constraint go? (sql_gen_query: {})".format(sql_gen_query)
+        )
     return sql

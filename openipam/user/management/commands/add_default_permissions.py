@@ -9,23 +9,26 @@ from openipam.conf.ipam_settings import CONFIG
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Add Default Permissions'
+    args = ""
+    help = "Add Default Permissions"
 
     def handle(self, *args, **options):
 
-        self.stdout.write('Adding default permissions to ipam-users group...')
+        self.stdout.write("Adding default permissions to ipam-users group...")
 
-        ipam_user_group, u_created = Group.objects.get_or_create(name=CONFIG.get('USER_GROUP'))
-        ipam_admin_group, a_created = Group.objects.get_or_create(name=CONFIG.get('ADMIN_GROUP'))
+        ipam_user_group, u_created = Group.objects.get_or_create(
+            name=CONFIG.get("USER_GROUP")
+        )
+        ipam_admin_group, a_created = Group.objects.get_or_create(
+            name=CONFIG.get("ADMIN_GROUP")
+        )
 
-        default_perms = CONFIG.get('DEFAULT_PERMISSIONS')
+        default_perms = CONFIG.get("DEFAULT_PERMISSIONS")
 
         for app, model in default_perms.items():
             for model, lst in model.items():
                 for pk in lst:
                     instance = get_model(app, model).objects.get(pk=pk)
-                    assign_perm('add_records_to_%s' % model, ipam_user_group, instance)
+                    assign_perm("add_records_to_%s" % model, ipam_user_group, instance)
 
-        self.stdout.write('Default Permissions added.')
-
+        self.stdout.write("Default Permissions added.")

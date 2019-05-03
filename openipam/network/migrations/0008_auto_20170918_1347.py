@@ -7,24 +7,20 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0007_auto_20170719_1150'),
-    ]
+    dependencies = [("network", "0007_auto_20170719_1150")]
 
     operations = [
         migrations.AddField(
-            model_name='vlan',
-            name='vlan_id',
+            model_name="vlan",
+            name="vlan_id",
             field=models.SmallIntegerField(default=1),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='vlan',
-            name='changed',
-            field=models.DateTimeField(auto_now=True, default='1970-01-01'),
+            model_name="vlan",
+            name="changed",
+            field=models.DateTimeField(auto_now=True, default="1970-01-01"),
             preserve_default=False,
         ),
-        migrations.RunSQL(
-            [("UPDATE vlans SET vlan_id = id")],
-        ),
+        migrations.RunSQL([("UPDATE vlans SET vlan_id = id")]),
     ]

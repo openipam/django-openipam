@@ -4,8 +4,8 @@ from django.contrib.auth.models import Permission
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Create View Permissions for models.'
+    args = ""
+    help = "Create View Permissions for models."
 
     def handle(self, *args, **options):
 
@@ -18,6 +18,7 @@ class Command(BaseCommand):
             Permission.objects.get_or_create(
                 content_type=content_type,
                 codename=codename,
-                name="Can view %s" % content_type.name)
+                name="Can view %s" % content_type.name,
+            )
 
             print("Added view permission for %s" % content_type.name)

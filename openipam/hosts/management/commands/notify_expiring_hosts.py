@@ -11,40 +11,53 @@ from openipam.user.utils.user_utils import populate_user_from_ldap
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Convert Dns Type Permissions'
+    args = ""
+    help = "Convert Dns Type Permissions"
 
     def add_arguments(self, parser):
-        parser.add_argument('-t', '--test',
-                            action='store_true',
-                            dest='test',
-                            default=False,
-                            help='Send as test only.  This will NOT send emails, but rather print them to the screen')
-        parser.add_argument('-c', '--count',
-                            action='store_true',
-                            dest='count',
-                            default=False,
-                            help='Display notifications counts to send but this will not send anything')
-        parser.add_argument('-n', '--noasync',
-                            action='store_true',
-                            dest='noasync',
-                            default=False,
-                            help='This flag will sent using send_mail instead of send_mass_mail')
+        parser.add_argument(
+            "-t",
+            "--test",
+            action="store_true",
+            dest="test",
+            default=False,
+            help="Send as test only.  This will NOT send emails, but rather print them to the screen",
+        )
+        parser.add_argument(
+            "-c",
+            "--count",
+            action="store_true",
+            dest="count",
+            default=False,
+            help="Display notifications counts to send but this will not send anything",
+        )
+        parser.add_argument(
+            "-n",
+            "--noasync",
+            action="store_true",
+            dest="noasync",
+            default=False,
+            help="This flag will sent using send_mail instead of send_mass_mail",
+        )
 
     def handle(self, *args, **options):
-        test = options['test']
-        count = options['count']
-        noasync = options['noasync']
+        test = options["test"]
+        count = options["count"]
+        noasync = options["noasync"]
         connection = None
         if test:
-            connection = get_connection(backend='django.core.mail.backends.console.EmailBackend')
+            connection = get_connection(
+                backend="django.core.mail.backends.console.EmailBackend"
+            )
 
-        self.stdout.write('Sending Notifications...')
+        self.stdout.write("Sending Notifications...")
 
-        from_address = CONFIG.get('NOTIFICATION_EMAIL_ADDRESS')
+        from_address = CONFIG.get("NOTIFICATION_EMAIL_ADDRESS")
 
-        dynamic_subject = '[USU:Important] Your USU device registrations are about to expire'
-        dynamic_msg = '''%(name)s (%(username)s),
+        dynamic_subject = (
+            "[USU:Important] Your USU device registrations are about to expire"
+        )
+        dynamic_msg = """%(name)s (%(username)s),
 
 The following device registrations are going to expire soon.
 
@@ -82,10 +95,10 @@ Email: servicedesk@usu.edu
 http://usu.service-now.com (Issue Tracking System)
 
 
-        '''
+        """
 
-        static_subject = '[USU:Important] openIPAM Host Renewal Notice'
-        static_msg = '''%(name)s (%(username)s),
+        static_subject = "[USU:Important] openIPAM Host Renewal Notice"
+        static_msg = """%(name)s (%(username)s),
 
 The following device registrations are going to expire soon.
 
@@ -126,13 +139,13 @@ Email: servicedesk@usu.edu
 http://usu.service-now.com (Issue Tracking System)
 
 
-        '''
+        """
 
         row_heading = "Hostname:                                MAC:                  Expiring in:   Description:"
         row_fmt = "%(hostname)-40s %(mac)-22s %(days)3s days      %(description)s"
 
         # Get list of people who need to be notified.
-        host_qs = Host.objects.prefetch_related('pools').by_expiring(omit_guests=True)
+        host_qs = Host.objects.prefetch_related("pools").by_expiring(omit_guests=True)
 
         users_to_notify = {}
         messages = []
@@ -143,14 +156,11 @@ http://usu.service-now.com (Issue Tracking System)
 
             for user in host_users:
                 if user not in users_to_notify:
-                    users_to_notify[user] = {
-                        'static': [],
-                        'dynamic': []
-                    }
+                    users_to_notify[user] = {"static": [], "dynamic": []}
                 if host.is_static:
-                    users_to_notify[user]['static'].append(host)
+                    users_to_notify[user]["static"].append(host)
                 else:
-                    users_to_notify[user]['dynamic'].append(host)
+                    users_to_notify[user]["dynamic"].append(host)
 
         for user, host_types in users_to_notify.items():
             if not user.email:
@@ -158,33 +168,39 @@ http://usu.service-now.com (Issue Tracking System)
             else:
                 e_user = user
             if e_user and e_user.email:
-                mesg_type = 'static' if host_types.get('static') else 'dynamic'
+                mesg_type = "static" if host_types.get("static") else "dynamic"
                 row_hosts = []
                 for host_type, hosts in host_types.items():
                     for host in hosts:
-                        row_hosts.append(row_fmt % {
-                            'hostname': host.hostname,
-                            'mac': host.mac,
-                            'days': host.expire_days,
-                            'description': host.description
-                        })
-                messages.append((
-                    locals()['%s_subject' % mesg_type],
-                    locals()['%s_msg' % mesg_type] % {
-                        'name': e_user.get_full_name(),
-                        'username': e_user.username,
-                        'rows': '%s\n%s' % (row_heading, '\n'.join(row_hosts))
-                    },
-                    from_address,
-                    [e_user.email]
-                ))
+                        row_hosts.append(
+                            row_fmt
+                            % {
+                                "hostname": host.hostname,
+                                "mac": host.mac,
+                                "days": host.expire_days,
+                                "description": host.description,
+                            }
+                        )
+                messages.append(
+                    (
+                        locals()["%s_subject" % mesg_type],
+                        locals()["%s_msg" % mesg_type]
+                        % {
+                            "name": e_user.get_full_name(),
+                            "username": e_user.username,
+                            "rows": "%s\n%s" % (row_heading, "\n".join(row_hosts)),
+                        },
+                        from_address,
+                        [e_user.email],
+                    )
+                )
             else:
                 bad_users.append(user.username)
 
         if not count:
             if noasync:
                 for message in messages:
-                    self.stdout.write('Sending email to %s...' % ','.join(message[3]))
+                    self.stdout.write("Sending email to %s..." % ",".join(message[3]))
                     send_mail(*message, fail_silently=False, connection=connection)
             else:
                 send_mass_mail(messages, fail_silently=False, connection=connection)
@@ -192,6 +208,9 @@ http://usu.service-now.com (Issue Tracking System)
             if not test:
                 host_qs.update(last_notified=timezone.now())
 
-        self.stdout.write('%s Notifications have been sent for %s hosts' % (len(messages), len(host_qs)))
-        self.stdout.write('%s users have no email address.' % len(bad_users))
-        self.stdout.write('\n'.join(bad_users))
+        self.stdout.write(
+            "%s Notifications have been sent for %s hosts"
+            % (len(messages), len(host_qs))
+        )
+        self.stdout.write("%s users have no email address." % len(bad_users))
+        self.stdout.write("\n".join(bad_users))

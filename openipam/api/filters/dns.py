@@ -22,9 +22,13 @@ class UserFilter(CharFilter):
                 else:
                     user_domains = get_objects_for_user(
                         user,
-                        ['dns.add_records_to_domain', 'dns.is_owner_domain', 'dns.change_domain'],
+                        [
+                            "dns.add_records_to_domain",
+                            "dns.is_owner_domain",
+                            "dns.change_domain",
+                        ],
                         klass=Domain,
-                        any_perm=True
+                        any_perm=True,
                     )
 
                     qs = qs.filter(pk__in=[domain.pk for domain in user_domains])
@@ -34,19 +38,22 @@ class UserFilter(CharFilter):
 
 
 class DomainFilter(FilterSet):
-    name = CharFilter(lookup_expr='icontains')
+    name = CharFilter(lookup_expr="icontains")
     username = UserFilter()
 
     class Meta:
         model = Domain
-        fields = ['name']
+        fields = ["name"]
 
 
 class ContentFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
-                qs = qs.filter(Q(ip_content__address__icontains=value) | Q(text_content__icontains=value)).distinct()
+                qs = qs.filter(
+                    Q(ip_content__address__icontains=value)
+                    | Q(text_content__icontains=value)
+                ).distinct()
             except ValidationError:
                 qs = qs.none()
         return qs
@@ -60,10 +67,10 @@ class TypeFilter(CharFilter):
 
 
 class DnsFilter(FilterSet):
-    name = CharFilter(lookup_expr='icontains')
+    name = CharFilter(lookup_expr="icontains")
     content = ContentFilter()
     type = TypeFilter()
 
     class Meta:
         model = DnsRecord
-        fields = ['name', 'content', 'dns_type']
+        fields = ["name", "content", "dns_type"]

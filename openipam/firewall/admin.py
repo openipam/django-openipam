@@ -5,7 +5,7 @@ from openipam.firewall.models import Rule
 
 from django.db.models import ForeignKey
 
-app = apps.get_app_config('firewall')
+app = apps.get_app_config("firewall")
 
 
 class DynamicColumnAdmin(admin.ModelAdmin):
@@ -31,17 +31,40 @@ class SelectRelatedAdmin(admin.ModelAdmin):
 
 
 class RuleAdmin(SelectRelatedAdmin):
-    search_fields = ('chain__name', 'target__name', 'src__host', 'src__name', 'dst__host', 'dst__name', 'description')
-    list_filter = ('chain__name', 'target__name')
-    list_filter_select_related = ('chain__tbl', 'target__tbl')
-    select_related_columns = ('chain__tbl', 'if_in', 'if_out', 'proto', 'src', 'sport', 'dst', 'dport', 'target__tbl', 'created_for')
+    search_fields = (
+        "chain__name",
+        "target__name",
+        "src__host",
+        "src__name",
+        "dst__host",
+        "dst__name",
+        "description",
+    )
+    list_filter = ("chain__name", "target__name")
+    list_filter_select_related = ("chain__tbl", "target__tbl")
+    select_related_columns = (
+        "chain__tbl",
+        "if_in",
+        "if_out",
+        "proto",
+        "src",
+        "sport",
+        "dst",
+        "dport",
+        "target__tbl",
+        "created_for",
+    )
 
     def get_list_display(self, request):
-        return ['id'] + self.get_fields(request)
+        return ["id"] + self.get_fields(request)
 
 
 for model_name, model in app.models.items():
-    if not model_name.endswith('base') and not model_name.endswith('log') and model_name not in ['rule']:
+    if (
+        not model_name.endswith("base")
+        and not model_name.endswith("log")
+        and model_name not in ["rule"]
+    ):
         admin.site.register(model, DynamicColumnAdmin)
 
 admin.site.register(Rule, RuleAdmin)

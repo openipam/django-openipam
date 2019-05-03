@@ -8,33 +8,60 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('network', '0005_auto_20150218_1143'),
-    ]
+    dependencies = [("network", "0005_auto_20150218_1143")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='network',
-            options={'default_permissions': ('add', 'change', 'delete', 'view'), 'ordering': ('network',), 'permissions': (('is_owner_network', 'Is owner'), ('add_records_to_network', 'Can add records to'))},
+            name="network",
+            options={
+                "default_permissions": ("add", "change", "delete", "view"),
+                "ordering": ("network",),
+                "permissions": (
+                    ("is_owner_network", "Is owner"),
+                    ("add_records_to_network", "Can add records to"),
+                ),
+            },
         ),
         migrations.AlterField(
-            model_name='addresstype',
-            name='ranges',
-            field=models.ManyToManyField(related_name='address_ranges', to='network.NetworkRange'),
+            model_name="addresstype",
+            name="ranges",
+            field=models.ManyToManyField(
+                related_name="address_ranges", to="network.NetworkRange"
+            ),
         ),
         migrations.AlterField(
-            model_name='lease',
-            name='address',
-            field=models.OneToOneField(db_column=b'address', on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='leases', serialize=False, to='network.Address'),
+            model_name="lease",
+            name="address",
+            field=models.OneToOneField(
+                db_column=b"address",
+                on_delete=django.db.models.deletion.CASCADE,
+                primary_key=True,
+                related_name="leases",
+                serialize=False,
+                to="network.Address",
+            ),
         ),
         migrations.AlterField(
-            model_name='lease',
-            name='host',
-            field=models.ForeignKey(db_column=b'mac', db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='leases', to='hosts.Host'),
+            model_name="lease",
+            name="host",
+            field=models.ForeignKey(
+                db_column=b"mac",
+                db_constraint=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="leases",
+                to="hosts.Host",
+            ),
         ),
         migrations.AlterField(
-            model_name='networktovlan',
-            name='network',
-            field=models.OneToOneField(db_column=b'network', on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='network.Network'),
+            model_name="networktovlan",
+            name="network",
+            field=models.OneToOneField(
+                db_column=b"network",
+                on_delete=django.db.models.deletion.CASCADE,
+                primary_key=True,
+                serialize=False,
+                to="network.Network",
+            ),
         ),
     ]

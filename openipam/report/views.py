@@ -26,98 +26,130 @@ User = get_user_model()
 
 
 class DashboardView(TemplateView):
-    template_name = 'report/dashboard.html'
+    template_name = "report/dashboard.html"
 
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
 
-        context['dynamic_hosts'] = Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count()
-        context['static_hosts'] = Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count()
-        context['active_leases'] = Lease.objects.filter(ends__gte=timezone.now()).count()
-        context['abandoned_leases'] = Lease.objects.filter(abandoned=True).count()
-        context['total_networks'] = Network.objects.all().count()
-        wireless_networks = Network.objects.filter(dhcp_group__name__in=['aruba_wireless', 'aruba_wireless_eastern'])
-        context['wireless_networks'] = wireless_networks.count()
-        wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
-        context['wireless_addresses_total'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs)).count()
-        context['wireless_addresses_available'] = Address.objects.filter(reduce(operator.or_, wireless_networks_available_qs), leases__ends__lt=timezone.now()).count()
-        context['dns_a_records'] = DnsRecord.objects.filter(dns_type__name__in=['A', 'AAAA']).count()
-        context['dns_cname_records'] = DnsRecord.objects.filter(dns_type__name='CNAME').count()
-        context['dns_mx_records'] = DnsRecord.objects.filter(dns_type__name='MX').count()
-        context['active_users'] = User.objects.filter(last_login__gte=(timezone.now() - timedelta(days=365))).count()
+        context["dynamic_hosts"] = Host.objects.filter(
+            pools__isnull=False, expires__gte=timezone.now()
+        ).count()
+        context["static_hosts"] = Host.objects.filter(
+            addresses__isnull=False, expires__gte=timezone.now()
+        ).count()
+        context["active_leases"] = Lease.objects.filter(
+            ends__gte=timezone.now()
+        ).count()
+        context["abandoned_leases"] = Lease.objects.filter(abandoned=True).count()
+        context["total_networks"] = Network.objects.all().count()
+        wireless_networks = Network.objects.filter(
+            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
+        )
+        context["wireless_networks"] = wireless_networks.count()
+        wireless_networks_available_qs = [
+            Q(address__net_contained=network.network) for network in wireless_networks
+        ]
+        context["wireless_addresses_total"] = Address.objects.filter(
+            reduce(operator.or_, wireless_networks_available_qs)
+        ).count()
+        context["wireless_addresses_available"] = Address.objects.filter(
+            reduce(operator.or_, wireless_networks_available_qs),
+            leases__ends__lt=timezone.now(),
+        ).count()
+        context["dns_a_records"] = DnsRecord.objects.filter(
+            dns_type__name__in=["A", "AAAA"]
+        ).count()
+        context["dns_cname_records"] = DnsRecord.objects.filter(
+            dns_type__name="CNAME"
+        ).count()
+        context["dns_mx_records"] = DnsRecord.objects.filter(
+            dns_type__name="MX"
+        ).count()
+        context["active_users"] = User.objects.filter(
+            last_login__gte=(timezone.now() - timedelta(days=365))
+        ).count()
 
         return context
 
 
 class LeaseUsageView(TemplateView):
-    template_name = 'report/lease_usage.html'
+    template_name = "report/lease_usage.html"
 
 
 class WeatherMapView(TemplateView):
-    template_name = 'report/weather_map.html'
+    template_name = "report/weather_map.html"
 
     def get_context_data(self, **kwargs):
         context = super(WeatherMapView, self).get_context_data(**kwargs)
-        popup = self.request.GET.get('_popup', None)
-        context['is_popup'] = True if popup else False
+        popup = self.request.GET.get("_popup", None)
+        context["is_popup"] = True if popup else False
         return context
 
+
 class BuildingMapView(TemplateView):
-    template_name = 'report/building_map.html'
+    template_name = "report/building_map.html"
 
     def get_context_data(self, **kwargs):
         context = super(BuildingMapView, self).get_context_data(**kwargs)
-        popup = self.request.GET.get('_popup', None)
-        context['is_popup'] = True if popup else False
+        popup = self.request.GET.get("_popup", None)
+        context["is_popup"] = True if popup else False
         return context
 
+
 class DisabledHostsView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
-    template_name = 'report/disabled.html'
+    group_required = "ipam_admins"
+    template_name = "report/disabled.html"
 
     def get_context_data(self, **kwargs):
         context = super(DisabledHostsView, self).get_context_data(**kwargs)
         hardcoded = (
-            GulRecentArpBymac.objects
-                .select_related('host')
-                .filter(
-                    #host__disabled_host__isnull=False,
-                    stopstamp__gt=timezone.now() - timedelta(minutes=10),
-                )
-                .exclude(host__leases__ends__lt=timezone.now())
-                .extra(where=[
+            GulRecentArpBymac.objects.select_related("host")
+            .filter(
+                # host__disabled_host__isnull=False,
+                stopstamp__gt=timezone.now()
+                - timedelta(minutes=10)
+            )
+            .exclude(host__leases__ends__lt=timezone.now())
+            .extra(
+                where=[
                     "NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')",
-                    "gul_recent_arp_bymac.mac IN (SELECT mac from disabled)"
-                ])
+                    "gul_recent_arp_bymac.mac IN (SELECT mac from disabled)",
+                ]
+            )
         )
-        context['hardcoded'] = hardcoded
+        context["hardcoded"] = hardcoded
         return context
 
 
 class ServerHostsView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
-    template_name = 'report/server_hosts.html'
+    group_required = "ipam_admins"
+    template_name = "report/server_hosts.html"
 
 
 class HostDNSView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
-    template_name = 'report/host_dns.html'
+    group_required = "ipam_admins"
+    template_name = "report/host_dns.html"
 
     def get_context_data(self, **kwargs):
         context = super(HostDNSView, self).get_context_data(**kwargs)
-        hosts = Host.objects.filter(dns_records__isnull=True, addresses__isnull=False, expires__gte=timezone.now())
-        context['hosts'] = hosts
+        hosts = Host.objects.filter(
+            dns_records__isnull=True,
+            addresses__isnull=False,
+            expires__gte=timezone.now(),
+        )
+        context["hosts"] = hosts
         return context
 
 
 class PTRDNSView(GroupRequiredMixin, TemplateView):
-    group_required = 'ipam_admins'
-    template_name = 'report/ptr_dns.html'
+    group_required = "ipam_admins"
+    template_name = "report/ptr_dns.html"
 
     def get_context_data(self, **kwargs):
         context = super(PTRDNSView, self).get_context_data(**kwargs)
 
-        rogue_ptrs = DnsRecord.objects.raw(r'''
+        rogue_ptrs = DnsRecord.objects.raw(
+            r"""
             SELECT d.*, a.address as address, d3.name as arecord, a.mac as arecord_host
             FROM dns_records AS d
                 LEFT JOIN addresses AS a ON (
@@ -135,7 +167,8 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
 
             ORDER BY d.changed DESC
                 --AND d.text_content != d2.name
-        ''')
+        """
+        )
 
-        context['rogue_ptrs'] = rogue_ptrs
+        context["rogue_ptrs"] = rogue_ptrs
         return context

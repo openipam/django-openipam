@@ -8,6 +8,7 @@ from openipam.hosts.models import Host
 from openipam.dns.models import DnsType
 from openipam.network.models import Pool
 
+
 class BaseLog(models.Model):
     trigger_mode = models.CharField(max_length=10)
     trigger_tuple = models.CharField(max_length=5)
@@ -20,21 +21,25 @@ class BaseLog(models.Model):
 
 
 class HostLog(BaseLog):
-    mac = models.TextField() # This field type is a guess.
+    mac = models.TextField()  # This field type is a guess.
     hostname = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    address_type = models.IntegerField(blank=True, null=True, db_column='address_type_id')
+    address_type = models.IntegerField(
+        blank=True, null=True, db_column="address_type_id"
+    )
     dhcp_group = models.IntegerField(null=True, blank=True)
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+    changed_by = models.ForeignKey(
+        "user.User", db_constraint=False, db_column="changed_by"
+    )
 
     def __unicode__(self):
         return unicode(self.hostname)
 
     class Meta:
         managed = False
-        db_table = 'hosts_log'
+        db_table = "hosts_log"
 
 
 class PoolLog(BaseLog):
@@ -48,16 +53,16 @@ class PoolLog(BaseLog):
 
     class Meta:
         managed = False
-        db_table = 'pools_log'
+        db_table = "pools_log"
 
 
 class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
-    source_id = models.IntegerField(db_column='source', blank=True, null=True)
+    source_id = models.IntegerField(db_column="source", blank=True, null=True)
     min_permissions = models.CharField(max_length=8)
 
-    password = models.CharField(max_length=128, default='!')
+    password = models.CharField(max_length=128, default="!")
     last_login = models.DateTimeField(blank=True, null=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -77,49 +82,53 @@ class UserLog(BaseLog):
         if self.is_superuser:
             return True
         else:
-            group = Group.objects.get(name='ipam-admins')
+            group = Group.objects.get(name="ipam-admins")
             users = [user.username for user in group.user_set.all()]
             # assert False, users
             return True if self.username in users else False
 
     @cached_property
-    def full_name (self):
-        full_name = '%s %s' % (self.first_name, self.last_name)
+    def full_name(self):
+        full_name = "%s %s" % (self.first_name, self.last_name)
         return full_name.strip()
 
     class Meta:
         managed = False
-        db_table = 'users_log'
+        db_table = "users_log"
 
 
 class EmailLog(models.Model):
     """
     Model to store all the outgoing emails.
     """
+
     when = models.DateTimeField(auto_now_add=True)
     to = models.EmailField(max_length=255)
     subject = models.CharField(max_length=255)
     body = models.TextField()
-    #ok = models.BooleanField(null=False, default=True)
+    # ok = models.BooleanField(null=False, default=True)
 
     def email_body(self):
-        return mark_safe('<pre>%s</pre>' % self.body)
+        return mark_safe("<pre>%s</pre>" % self.body)
 
     class Meta:
-        db_table = 'email_log'
+        db_table = "email_log"
+
 
 class DnsRecordsLog(BaseLog):
     id = models.IntegerField()
-    domain = models.IntegerField(db_column='did')
-    type_id = models.IntegerField(db_column='tid')
-    dns_view = models.IntegerField(db_column='vid')
+    domain = models.IntegerField(db_column="did")
+    type_id = models.IntegerField(db_column="tid")
+    dns_view = models.IntegerField(db_column="vid")
     name = models.CharField(max_length=255)
     text_content = models.CharField(max_length=255, blank=True, null=True)
     ip_content = models.TextField(null=True, blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+    changed_by = models.ForeignKey(
+        "user.User", db_constraint=False, db_column="changed_by"
+    )
 
     @cached_property
     def dns_type(self):
@@ -127,17 +136,19 @@ class DnsRecordsLog(BaseLog):
 
     class Meta:
         managed = False
-        db_table = 'dns_records_log'
+        db_table = "dns_records_log"
 
 
 class AddressLog(BaseLog):
     address = models.GenericIPAddressField()
-    mac = models.TextField(blank=True) # This field type is a guess.
+    mac = models.TextField(blank=True)  # This field type is a guess.
     pool = models.IntegerField()
     reserved = models.BooleanField()
-    network = models.TextField(blank=True) # This field type is a guess.
+    network = models.TextField(blank=True)  # This field type is a guess.
     changed = models.DateTimeField(null=True, blank=True)
-    changed_by = models.ForeignKey('user.User', db_constraint=False, db_column='changed_by')
+    changed_by = models.ForeignKey(
+        "user.User", db_constraint=False, db_column="changed_by"
+    )
 
     @cached_property
     def pool_name(self):
@@ -149,7 +160,9 @@ class AddressLog(BaseLog):
         try:
             host_obj = Host.objects.get(mac=self.mac)
         except ObjectDoesNotExist:
-            host_obj = HostLog.objects.filter(mac=self.mac).order_by('-trigger_id').first()
+            host_obj = (
+                HostLog.objects.filter(mac=self.mac).order_by("-trigger_id").first()
+            )
         return host_obj
 
     def __unicode__(self):
@@ -157,7 +170,7 @@ class AddressLog(BaseLog):
 
     class Meta:
         managed = False
-        db_table = 'addresses_log'
+        db_table = "addresses_log"
 
 
 # class DomainLog(BaseLog):
@@ -176,6 +189,7 @@ class AddressLog(BaseLog):
 #         managed = False
 #         db_table = 'domains_log'
 
+
 class AuthSource(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True)
 
@@ -183,4 +197,4 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'auth_sources'
+        db_table = "auth_sources"

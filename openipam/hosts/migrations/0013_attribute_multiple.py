@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('hosts', '0012_auto_20170324_1644'),
-    ]
+    dependencies = [("hosts", "0012_auto_20170324_1644")]
 
     operations = [
         migrations.AddField(
-            model_name='attribute',
-            name='multiple',
+            model_name="attribute",
+            name="multiple",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

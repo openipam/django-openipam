@@ -38,10 +38,9 @@ class CaseInsensitiveModelBackend(ModelBackend):
 # Modified django auth ldap backend to allow mirroring of groups and still
 # keep static groups that are django only.
 class IPAMLDAPBackend(LDAPBackend):
-
     def authenticate(self, username, password):
         if len(password) == 0 and not self.settings.PERMIT_EMPTY_PASSWORD:
-            logger.debug('Rejecting empty password for %s' % username)
+            logger.debug("Rejecting empty password for %s" % username)
             return None
 
         ldap_user = _IPAMLDAPUser(self, username=username.strip())
@@ -83,15 +82,19 @@ class _IPAMLDAPUser(_LDAPUser):
     #     self._user.groups = groups
 
     def _mirror_groups(self):
-        source = AuthSource.objects.get(name='LDAP')
+        source = AuthSource.objects.get(name="LDAP")
         source_id = source.pk
 
         target_group_names = frozenset(self._get_groups().get_group_names())
         # current_group_names = frozenset(self._user.groups.values_list('name', flat=True).iterator())
-        static_groups = list(self._user.groups.exclude(source__source=source).iterator())
+        static_groups = list(
+            self._user.groups.exclude(source__source=source).iterator()
+        )
 
         # if target_group_names != current_group_names:
-        existing_groups = list(Group.objects.filter(name__in=target_group_names).iterator())
+        existing_groups = list(
+            Group.objects.filter(name__in=target_group_names).iterator()
+        )
         existing_group_names = frozenset(group.name for group in existing_groups)
 
         new_groups = []
@@ -107,14 +110,14 @@ class _IPAMLDAPUser(_LDAPUser):
 
 
 class LoggingEmailBackend(EmailBackend):
-
     def send_messages(self, email_messages):
         message_len = super(LoggingEmailBackend, self).send_messages(email_messages)
         try:
             for email_message in email_messages:
                 EmailLog.objects.create(
-                    to='; '.join(email_message.recipients()),
-                    subject=email_message.subject, body=email_message.body,
+                    to="; ".join(email_message.recipients()),
+                    subject=email_message.subject,
+                    body=email_message.body,
                 )
         except:
             pass
@@ -122,14 +125,16 @@ class LoggingEmailBackend(EmailBackend):
 
 
 class ConsoleLoggingEmailBackend(ConsoleEmailBackend):
-
     def send_messages(self, email_messages):
-        message_len = super(ConsoleLoggingEmailBackend, self).send_messages(email_messages)
+        message_len = super(ConsoleLoggingEmailBackend, self).send_messages(
+            email_messages
+        )
         try:
             for email_message in email_messages:
                 EmailLog.objects.create(
-                    to='; '.join(email_message.recipients()),
-                    subject=email_message.subject, body=email_message.body,
+                    to="; ".join(email_message.recipients()),
+                    subject=email_message.subject,
+                    body=email_message.body,
                 )
         except:
             pass
@@ -157,15 +162,15 @@ class IPAMCASBackend(CASBackend):
 
     def _get_group_names(self):
         group_names = []
-        attributes = self.request.session.get('attributes', {})
-        if attributes.get('memberOf', None):
-            group_names_str = ''.join(attributes['memberOf'])
-            pattern = re.compile('CN=([^,]*)')
+        attributes = self.request.session.get("attributes", {})
+        if attributes.get("memberOf", None):
+            group_names_str = "".join(attributes["memberOf"])
+            pattern = re.compile("CN=([^,]*)")
             group_names = pattern.findall(group_names_str)
         return group_names
 
     def _mirror_groups(self):
-        source = AuthSource.objects.get(name='LDAP')
+        source = AuthSource.objects.get(name="LDAP")
         source_id = source.pk
 
         target_group_names = frozenset(self._get_group_names())
@@ -173,7 +178,9 @@ class IPAMCASBackend(CASBackend):
         static_groups = list(self.user.groups.exclude(source__source=source).iterator())
 
         # if target_group_names != current_group_names:
-        existing_groups = list(Group.objects.filter(name__in=target_group_names).iterator())
+        existing_groups = list(
+            Group.objects.filter(name__in=target_group_names).iterator()
+        )
         existing_group_names = frozenset(group.name for group in existing_groups)
 
         new_groups = []
