@@ -229,6 +229,7 @@ class GulRecentArpByaddress(models.Model):
     )
     address = models.ForeignKey(
         "network.Address",
+        on_delete=models.DO_NOTHING,
         db_column="address",
         db_constraint=False,
         related_name="ip_history",
@@ -254,6 +255,7 @@ class GulRecentArpBymac(models.Model):
     )
     address = models.ForeignKey(
         "network.Address",
+        on_delete=models.DO_NOTHING,
         db_column="address",
         db_constraint=False,
         related_name="mac_history",
