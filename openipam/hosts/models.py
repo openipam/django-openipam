@@ -222,6 +222,7 @@ class GuestTicket(models.Model):
 class GulRecentArpByaddress(models.Model):
     host = models.OneToOneField(
         "Host",
+        on_delete=models.DO_NOTHING,
         db_column="mac",
         db_constraint=False,
         related_name="ip_history",
@@ -248,6 +249,7 @@ class GulRecentArpByaddress(models.Model):
 class GulRecentArpBymac(models.Model):
     host = models.OneToOneField(
         "Host",
+        on_delete=models.DO_NOTHING,
         db_column="mac",
         db_constraint=False,
         related_name="mac_history",
