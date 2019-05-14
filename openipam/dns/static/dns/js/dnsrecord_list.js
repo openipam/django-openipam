@@ -314,7 +314,9 @@ $(function(){
         var row = $(this).parents('tr');
         row.addClass('info').find("input[type='text'], select").show();
         row.find('input.action-select').prop('checked', 'checked');
-        row.find("span").hide();
+        row.find("span[id!='dns_type']").hide();
+        // Disabling dns_type edits per ekoyle
+        //row.find("span").hide();
         $(this).hide();
         row.find('a.cancel-dns').show();
         $("#form-actions").show();

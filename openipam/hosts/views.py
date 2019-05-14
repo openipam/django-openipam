@@ -1002,7 +1002,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                     try:
                         Host.objects.add_or_update_host(self.request.user, **host)
-                    except Exception as e:
+                    except Exception, e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
                         raise ValidationError
