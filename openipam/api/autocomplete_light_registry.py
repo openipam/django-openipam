@@ -6,7 +6,11 @@ from django.utils import timezone
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.dns.models import Domain, DnsType
-from openipam.hosts.models import Host
+from openipam.hosts.models import (
+    Host,
+    StructuredAttributeValue,
+    FreeformAttributeToHost,
+)
 from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 
 from taggit.models import Tag
@@ -135,11 +139,21 @@ al.register(IPAMObjectsAutoComplete)
 class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
     split_words = True
 
-    choices = (Network.objects.all(), User.objects.all(), Group.objects.all())
+    choices = (
+        Network.objects.all(),
+        User.objects.all(),
+        Group.objects.all(),
+        StructuredAttributeValue.objects.all(),
+        FreeformAttributeToHost.objects.all(),
+        AddressType.objects.all(),
+    )
 
     search_fields = (
         ("network", "description"),
         ("username", "^first_name", "^last_name"),
+        ("name",),
+        ("attribute__name", "value"),
+        ("attribute__name", "value"),
         ("name",),
     )
 
@@ -191,16 +205,30 @@ class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
                 choice,
                 choice.get_full_name(),
             )
+        elif choice.__class__.__name__ in [
+            "StructuredAttributeValue",
+            "FreeformAttributeToHost",
+        ]:
+            return "%s | %s | %s" % ("Attribute", choice.attribute, choice.value)
+        elif choice.__class__.__name__ == "AddressType":
+            return "%s | %s" % ("Address Type", choice)
         else:
             return "%s | %s" % (choice.__class__.__name__, choice)
 
     def choice_value(self, choice):
         if choice.__class__.__name__ == "User":
-            return "user:%s" % choice.username
+            return "User:%s" % choice.username
         elif choice.__class__.__name__ == "Group":
-            return "group:%s" % choice.name
+            return "Group:%s" % choice.name
         elif choice.__class__.__name__ == "Network":
-            return "net:%s" % choice.network
+            return "Network:%s" % choice.network
+        elif choice.__class__.__name__ in [
+            "StructuredAttributeValue",
+            "FreeformAttributeToHost",
+        ]:
+            return "Attribute:%s" % choice.value
+        elif choice.__class__.__name__ == "AddressType":
+            return "Address Type:%s" % choice.name
 
 
 al.register(IPAMSearchAutoComplete)
