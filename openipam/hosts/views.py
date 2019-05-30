@@ -707,9 +707,9 @@ class HostUpdateCreateMixin(object):
 
 
 class HostUpdateView(HostUpdateCreateMixin, UpdateView):
-    # @method_decorator(permission_change_host)
-    # def dispatch(self, request, *args, **kwargs):
-    #     return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
+    @method_decorator(permission_change_host)
+    def dispatch(self, request, *args, **kwargs):
+        return super(HostUpdateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(HostUpdateView, self).get_context_data(**kwargs)
@@ -717,8 +717,8 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
         context["disabled_website"] = CONFIG.get("DISABLED_HOSTS_WEBSITE")
         return context
 
-    # def get(self, request, *args, **kwargs):
-    #     return super(HostUpdateView, self).get(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        return super(HostUpdateView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
         original_object = serializers.serialize("json", [self.object])
@@ -1002,7 +1002,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                     try:
                         Host.objects.add_or_update_host(self.request.user, **host)
-                    except Exception as e:
+                    except Exception, e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
                         raise ValidationError

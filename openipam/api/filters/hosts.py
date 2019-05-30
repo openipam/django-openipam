@@ -62,12 +62,14 @@ class GroupFilter(CharFilter):
                 groups = Group.objects.filter(name__in=value.split("|"))
                 if groups:
                     qs = qs.by_groups(groups)
+                else:
+                    qs = qs.none()
             else:
                 group = Group.objects.filter(name=value).first()
                 if group:
                     qs = qs.by_group(group)
-        else:
-            qs = qs.none()
+                else:
+                    qs = qs.none()
         return qs
 
 

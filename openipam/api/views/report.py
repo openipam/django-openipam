@@ -285,13 +285,14 @@ class LeaseGraphView(APIView):
     # renderer_classes = (TemplateHTMLRenderer,)
 
     def get(self, request, network, format=None, **kwargs):
+        time = request.GET.get("length_back", "-4weeks")
         parsed_network = network.replace("/", "_").replace(".", "-")
         params = {
             "width": "700",
             "height": "350",
             "_salt": "1414518442.099",
             "areaMode": "stacked",
-            "from": "-1weeks",
+            "from": time,
             "bgcolor": "000000",
             "fgcolor": "FFFFFF",
             "target": [

@@ -209,22 +209,16 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             )
 
         def get_type(dns_record, has_change_permission):
-            if not has_change_permission:
-                return "<span>%s</span>" % dns_record.dns_type.name
-            else:
-                return (
-                    """
-                    <span>%s</span>
-                    <select name="type-%s" class="form-control input-sm" style="display:none;">
-                        %s
-                    </select>
-                """
-                    % (
-                        dns_record.dns_type.name,
-                        dns_record.pk,
-                        get_dns_types(dns_record.dns_type),
-                    ),
-                )
+            # Disabling dns_type edits per ekoyle
+            # if not has_change_permission:
+            return '<span id="dns_type">%s</span>' % dns_record.dns_type.name
+            # else:
+            #     return '''
+            #         <span>%s</span>
+            #         <select name="type-%s" class="form-control input-sm" style="display:none;">
+            #             %s
+            #         </select>
+            #     ''' % (dns_record.dns_type.name, dns_record.pk, get_dns_types(dns_record.dns_type)),
 
         def get_content(dns_record, has_change_permission):
             if dns_record.dns_type.is_a_record:
@@ -427,7 +421,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                         ttl=new_ttls[index],
                     )
 
-                except ValidationError as e:
+                except ValidationError, e:
                     if hasattr(e, "error_dict"):
                         for key, errors in e.message_dict.items():
                             for error in errors:
@@ -452,7 +446,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                         record=record,
                     )
 
-                except ValidationError as e:
+                except ValidationError, e:
                     if hasattr(e, "error_dict"):
                         for key, errors in e.message_dict.items():
                             for error in errors:
@@ -522,7 +516,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     ttl=form.cleaned_data["ttl"],
                     record=self.record.pk if hasattr(self.record, "pk") else None,
                 )
-            except ValidationError as e:
+            except ValidationError, e:
                 if hasattr(e, "error_dict"):
                     for key, errors in e.message_dict.items():
                         for error in errors:
