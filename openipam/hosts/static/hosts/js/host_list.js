@@ -391,12 +391,6 @@ $(function(){
 
 		$.ajax({
 			url: href,
-			// beforeSend: function() {
-			// 	$("#result_list_processing").css('visibility', 'visible').show();
-			// },
-			// complete: function() {
-			// 	$("#result_list_processing").css('visibility', 'hidden	').hide();
-			// },
 			success: function(data) {
 				$("#host-show-users .modal-body").html(data);
 			}
