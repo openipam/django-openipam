@@ -23,7 +23,7 @@ User = get_user_model()
 
 
 class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
-    permission_required = "users.view_user"
+    permission_required = "user.view_user"
 
     order_columns = (
         "pk",
@@ -163,7 +163,7 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
 
 
 class UserManagerView(PermissionRequiredMixin, TemplateView):
-    permission_required = "users.view_user"
+    permission_required = "user.view_user"
     template_name = "admin/user/manager.html"
 
     def get_context_data(self, **kwargs):
@@ -194,7 +194,7 @@ class UserManagerView(PermissionRequiredMixin, TemplateView):
         return redirect("user_manager")
 
 
-@permission_required("users.view_user")
+@permission_required("user.view_user")
 def user_detail(request, pk):
     user = User.objects.get(pk=pk)
     groups = user.groups.all()
