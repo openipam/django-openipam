@@ -128,25 +128,27 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
             search_list = search.strip().split(",") if search else []
             for search_item in search_list:
-                search_str = "".join(search_item.split(":")[1:])
-                if search_item.startswith("desc:") and search_str:
-                    qs = qs.filter(description__icontains=search_item[5:])
+                search_str = ":".join(search_item.split(":")[1:])
+                if not search_str:
+                    continue
+                if search_item.startswith("desc:"):
+                    qs = qs.filter(description__icontains=search_str)
                 elif search_item.startswith("user:"):
-                    user = User.objects.filter(username__iexact=search_item[5:]).first()
+                    user = User.objects.filter(username__iexact=ssearch_str).first()
                     if user:
                         qs = qs.by_owner(user)
                     else:
                         qs = qs.none()
-                elif search_item.startswith("group:") and search_str:
-                    group = Group.objects.filter(name__iexact=search_item[6:]).first()
+                elif search_item.startswith("group:"):
+                    group = Group.objects.filter(name__iexact=search_str).first()
                     if group:
                         qs = qs.by_group(group)
                     else:
                         qs = qs.none()
-                elif search_item.startswith("name:") and search_str:
-                    qs = qs.filter(hostname__startswith=search_item[5:].lower())
-                elif search_item.startswith("mac:") and search_str:
-                    mac_str = search_item[4:]
+                elif search_item.startswith("name:"):
+                    qs = qs.filter(hostname__startswith=search_str.lower())
+                elif search_item.startswith("mac:"):
+                    mac_str = search_str
                     # Replace garbage
                     rgx = re.compile("[:,-. ]")
                     mac_str = rgx.sub("", mac_search)
@@ -154,8 +156,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     mac_str = re.findall("..", mac_str)
                     mac_str = ":".join(mac_str)
                     qs = qs.filter(mac__startswith=mac_str.lower())
-                elif search_item.startswith("ip:") and search_str:
-                    ip = search_item.split(":")[-1]
+                elif search_item.startswith("ip:"):
+                    ip = search_str
                     ip_blocks = filter(None, ip.split("."))
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
@@ -170,13 +172,17 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         qs = qs.filter(
                             Q(addresses__address=ip) | Q(leases__address__address=ip)
                         ).distinct()
-                elif search_item.startswith("net:") and search_str:
-                    if search_item.endswith("/"):
+                elif search_item.startswith("net:"):
+                    if search_str.endswith("/"):
                         qs = qs.none()
                     else:
                         qs = qs.filter(
-                            addresses__address__net_contained_or_equal=search_item[4:]
+                            addresses__address__net_contained_or_equal=search_str
                         ).distinct()
+                elif search_item.startswith("sattr:"):
+                    qs = qs.filter(freeform_attributes__value=search_str)
+                elif search_item.startswith("fattr:"):
+                    qs = qs.filter(structured_attributes__structured_attribute_value__value=search_str)
                 elif search_item:
                     like_search_term = search_item + "%"
                     cursor = connection.cursor()
@@ -645,6 +651,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context["user_owners"], context["group_owners"] = self.object.get_owners()
         context["disabled_info"] = Disabled.objects.filter(pk=self.object.pk).first()
         context["disabled_website"] = CONFIG.get("DISABLED_HOSTS_WEBSITE")
+        context["view_show_users"] = True if self.object.user.has_perm("user.view_user") else False
 
         return context
 

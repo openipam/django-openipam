@@ -111,7 +111,7 @@
             {% if group_owners %}
                 {% for group in group_owners %}
                     <tr>
-                        <td>{{ group.name }}</td>
+                        <td>{{ group.name }} {% if view_show_users %}(<a class="show-users" href="{% url 'api_show_users' group.id %}">Show Users</a>){{ view_show_users }}{% endif %}</td>
                         <td colspan="2">{{ group.description }}</td>
                     </tr>
                 {% endfor %}

@@ -137,7 +137,7 @@ $(function(){
 		"ajax": $.fn.dataTable.pipeline({
 			"url": "data/",
 			"pages": 5,
-			"data": function(d) {	
+			"data": function(d) {
 				if (!$.isEmptyObject($.urlVars)) {
 					$.each(d.columns, function(key, obj){
 						obj.search.value = (obj.name in $.urlVars) ? $.urlVars[obj.name] : '';
@@ -382,6 +382,29 @@ $(function(){
 		return false;
 	})
 
+
+	$("#result_list").on('click', '.show-users', function(){
+		$('#host-show-users').modal();
+
+		var a = $(this);
+		var href = $(this).prop("href");
+
+		$.ajax({
+			url: href,
+			// beforeSend: function() {
+			// 	$("#result_list_processing").css('visibility', 'visible').show();
+			// },
+			// complete: function() {
+			// 	$("#result_list_processing").css('visibility', 'hidden	').hide();
+			// },
+			success: function(data) {
+				$("#host-show-users .modal-body").html(data);
+			}
+		});
+
+		return false;
+	});
+
 	// JS Styling :/
 	$("div.header").append($("#actions"));
 	$("#actions").append($("#result_list_processing")).append('<div class="clear"><!-- --></div>');
@@ -478,7 +501,7 @@ $(function(){
 	$("#action-submit").on('click', function() {
 		var action = $("#host-action").val();
 		var hosts = $(".action-select:checked");
-		
+
 		//$("div.modal input").removeAttr('required');
 
 		if (hosts.length > 0) {
@@ -497,7 +520,7 @@ $(function(){
 				if (res == true) {
 					return true;
 				}
-			}			
+			}
 			else if (action == 'export') {
 				var res = confirm("Are you sure you want export selected hosts to a CSV?")
 				if (res == true) {
@@ -506,10 +529,10 @@ $(function(){
 			}
 			else if (action == 'renew') {
 				$('#host-renew').modal();
-			}			
+			}
 			else if (action == 'rename') {
 				$('#host-rename').modal();
-			}			
+			}
 			else if (action == 'address') {
 				//
 			}

@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from rest_framework.renderers import (
     TemplateHTMLRenderer,
@@ -13,6 +14,8 @@ from openipam.network.models import Network, AddressType, NetworkRange
 from openipam.hosts.models import StructuredAttributeValue
 
 from guardian.shortcuts import get_objects_for_user
+
+User = get_user_model()
 
 
 @api_view(("GET",))
@@ -53,3 +56,15 @@ def structured_attribute_selects(request, attribute_id, use_permissions=True):
     data["structured_attribute_values"] = structured_attribute_values
 
     return Response(data, template_name="api/web/structured_attribute_selects.html")
+
+
+@api_view(("GET",))
+@permission_classes((IsAuthenticated,))
+@renderer_classes((TemplateHTMLRenderer,))
+def show_users(request, group_id, use_permissions=True):
+    data = {}
+
+    users_from_group = User.objects.filter(groups__id=group_id)
+    data["users_from_group"] = users_from_group
+
+    return Response(data, template_name="api/web/show_users.html")

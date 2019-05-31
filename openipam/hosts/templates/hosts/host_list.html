@@ -103,7 +103,7 @@
 					{% else %}
 						<span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
 					{% endif %}
-					<!--<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>-->
+					<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
 
 					<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 						<label>
@@ -129,16 +129,12 @@
 					</div>
 					<a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
 				</div>
-				<!--<div id="search-help" class="help-content">
+				<div id="search-help" class="help-content">
 					<div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
-					<p>Search by Users, Groups, and Networks.</p>
-					<strong>For advanced searches...</strong>
-					<p>Multiple search terms may be included separated commas.</p>
-					<p>Try these special query types:</p>
-					<pre>user:<em>username</em></pre>
-					<pre>group:<em>groupname</em></pre>
-					<pre>net:<em>network (CIDR notation)</em></pre>
-				</div>-->
+					<p>Search by Users, Groups, Networks, Attributes, and Address Types.</p>
+					<p>Start typing in keywords for any of these search terms and autocomplete will help you.</p>
+					<p>You can do multiple searches as needed to filter down to a specific set of hosts.</p>
+				</div>
 			{% endspaceless %}
 		</div>
 
@@ -359,6 +355,23 @@
 						</div>
 						<div class="modal-footer">
 							<button class="btn btn-primary" type="submit">Save</button>
+							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="host-show-users" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label" aria-hidden="true" style="display: none;">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h3 class="modal-title" id="host-detail-label">Users for Group:  </h3>
+						</div>
+						<div class="modal-body">
+							Loading...
+						</div>
+						<div class="modal-footer">
 							<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
 						</div>
 					</div>
