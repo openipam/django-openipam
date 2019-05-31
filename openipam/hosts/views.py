@@ -182,7 +182,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 elif search_item.startswith("sattr:"):
                     qs = qs.filter(freeform_attributes__value=search_str)
                 elif search_item.startswith("fattr:"):
-                    qs = qs.filter(structured_attributes__structured_attribute_value__value=search_str)
+                    qs = qs.filter(
+                        structured_attributes__structured_attribute_value__value=search_str
+                    )
                 elif search_item:
                     like_search_term = search_item + "%"
                     cursor = connection.cursor()
@@ -651,7 +653,9 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context["user_owners"], context["group_owners"] = self.object.get_owners()
         context["disabled_info"] = Disabled.objects.filter(pk=self.object.pk).first()
         context["disabled_website"] = CONFIG.get("DISABLED_HOSTS_WEBSITE")
-        context["view_show_users"] = True if self.object.user.has_perm("user.view_user") else False
+        context["view_show_users"] = (
+            True if self.object.user.has_perm("user.view_user") else False
+        )
 
         return context
 
