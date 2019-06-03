@@ -75,8 +75,8 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We have provided a <a href="%(feature_request_link)s">feature and bug submission tool</a> to help aid us with features and bugs.
-                            Please use this tool whenever possible as it will give us great feedback.
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> to help aid us with features and bugs.
+                            Please make an issue on GitHub to give us feedback.
                         </p>
                         <p>Item to consider when using the new interface:</p>
                         <ul id="new-interface-list">
@@ -90,7 +90,7 @@ class IPAMIndexDashboard(Dashboard):
                 % {
                     "email": CONFIG.get("EMAIL_ADDRESS"),
                     "legacy_domain": CONFIG.get("LEGACY_DOMAIN"),
-                    "feature_request_link": reverse_lazy("feature_request"),
+                    "feature_request_link": "https://github.com/openipam/django-openipam/issues/",
                 },
             )
         )
