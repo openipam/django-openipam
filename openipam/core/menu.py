@@ -158,6 +158,11 @@ class IPAMMenu(Menu):
             )
             user_apps.init_with_context(context)
 
+            # if user.has_perm("user.view_user"):
+            #     self.children.append(
+            #         items.MenuItem("User Manager", url=reverse("user_manager"))
+            #     )
+
             if user_apps.children:
                 self.children.append(
                     items.MenuItem(

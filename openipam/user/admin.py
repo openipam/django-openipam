@@ -13,7 +13,7 @@ from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
 from django.conf.urls import url
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, reverse
 from django.contrib import messages
 
 from openipam.dns.models import Domain
@@ -176,17 +176,25 @@ class IPAMGroupHasPermissionsFilter(SimpleListFilter):
     parameter_name = "permissions"
 
     def lookups(self, request, model_admin):
-        return (("1", "Yes"), ("0", "No"))
+        return (("1", "Yes"), ("2", "No"))
 
     def queryset(self, request, queryset):
         if self.value() == "1":
-            queryset = queryset.extra(
-                where=[
-                    "auth_group.id IN (select group_id FROM guardian_groupobjectpermission)"
-                ]
+            queryset = queryset.filter(
+                Q(permissions__isnull=False) | Q(groupobjectpermission__isnull=False)
             )
 
         return queryset
+
+    def choices(self, changelist):
+        for lookup, title in self.lookup_choices:
+            yield {
+                "selected": self.value() == force_text(lookup),
+                "query_string": changelist.get_query_string(
+                    {self.parameter_name: lookup}, []
+                ),
+                "display": unicode(title),
+            }
 
 
 class IPAMObjUserFilter(IPAMUserFilter):
@@ -366,10 +374,22 @@ class AuthGroupAdmin(GroupAdmin):
     list_select_related = True
     inlines = [AuthGroupSourceInline]
     actions = ["change_source_internal", "change_source_ldap"]
+    ordering = ("source__source", "name")
 
     def get_queryset(self, request):
         qs = super(AuthGroupAdmin, self).get_queryset(request)
-        return qs.select_related("source__source")
+        return qs.select_related("source__source").distinct()
+
+    def changelist_view(self, request, extra_context=None):
+
+        permission_param = request.GET.get("permissions", "")
+        q = request.GET.get("q", "")
+        if not q and not permission_param:
+            return redirect(reverse("admin:auth_group_changelist") + "?permissions=1")
+
+        return super(AuthGroupAdmin, self).changelist_view(
+            request, extra_context=extra_context
+        )
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         # group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})

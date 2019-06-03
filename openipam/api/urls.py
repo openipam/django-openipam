@@ -60,6 +60,11 @@ router.register("vlans", views.network.VlanViewSet)
 urlpatterns = [
     url(r"^", include(router.urls)),
     url(
+        r"^web/show_users/(?P<group_id>\d+)$",
+        views.web.show_users,
+        name="api_show_users",
+    ),
+    url(
         r"^web/networkselects/(?P<address_type_id>\d+)$",
         views.web.network_selects,
         name="api_network_select",

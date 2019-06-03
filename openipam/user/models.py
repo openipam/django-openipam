@@ -1,13 +1,17 @@
-from django.db import models
-from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
+from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlquote
-from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
-from django.core.mail import send_mail
-from django.conf import settings
 from django.utils.functional import cached_property
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
+from django.db.models import Q
+from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Permission
+
+from operator import or_
+from functools import reduce
 
 from openipam.user.managers import UserToGroupManager, IPAMUserManager
 from openipam.user.signals import (
@@ -152,6 +156,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         "Returns the short name for the user."
         return self.first_name
+
+    def get_permissions(self):
+        user_permission_strings = self.get_all_permissions()
+        if len(user_permission_strings) > 0:
+            perm_comps = [
+                perm_string.split(".", 1) for perm_string in user_permission_strings
+            ]
+            q_query = reduce(
+                or_,
+                [
+                    Q(content_type__app_label=app_label) & Q(codename=codename)
+                    for app_label, codename in perm_comps
+                ],
+            )
+            return Permission.objects.filter(q_query)
+        else:
+            return Permission.objects.none()
 
     # def get_ipam_groups(self):
     #     return Group.objects.filter(group_users__user=self)

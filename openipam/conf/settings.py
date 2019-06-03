@@ -236,15 +236,15 @@ LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", ()
 AUTHENTICATION_BACKENDS = (
     # 'django.contrib.auth.backends.ModelBackend',
     "openipam.core.backends.CaseInsensitiveModelBackend",
-    "openipam.core.backends.IPAMCASBackend",
+    # "openipam.core.backends.IPAMCASBackend",
     # 'django_cas_ng.backends.CASBackend',
     "guardian.backends.ObjectPermissionBackend",
 ) + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
 
-CAS_SERVER_URL = locals().pop("CAS_SERVER_URL", "https://login.usu.edu/cas/p3/")
-CAS_VERSION = 3
+# CAS_SERVER_URL = locals().pop("CAS_SERVER_URL", "https://login.usu.edu/cas/p3/")
+# CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
@@ -253,7 +253,7 @@ LOGIN_EXEMPT_URLS = (
     "logout/",
     "api/?.*",
     "reports/?.*",
-    "cas/?.*",
+    # "cas/?.*",
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
 )
