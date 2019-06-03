@@ -40,7 +40,7 @@
                 </li>
                 {% endblock %}
                 {% block feature-request %}
-                    {% comment %} {% if not user.is_ipamadmin and not request.session.mimic_user %} {% endcomment %}
+                    {% if not user.is_ipamadmin and not request.session.mimic_user %}
                     <li id="feature-dropdown" class="dropdown">
                         <a id="feature-toggle" class="dropdown-toggle" href="#" data-toggle="dropdown">
                             Feature or Bug?
@@ -60,7 +60,7 @@
                             </li>
                         </ul>
                     </li>
-                    {% comment %} {% endif %} {% endcomment %}
+                    {% endif %}
                 {% endblock %}
                 {% block nav-user %}
                     <li class="dropdown">
