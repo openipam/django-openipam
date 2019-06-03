@@ -134,7 +134,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 if search_item.startswith("desc:"):
                     qs = qs.filter(description__icontains=search_str)
                 elif search_item.startswith("user:"):
-                    user = User.objects.filter(username__iexact=ssearch_str).first()
+                    user = User.objects.filter(username__iexact=search_str).first()
                     if user:
                         qs = qs.by_owner(user)
                     else:
