@@ -186,9 +186,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         structured_attributes__structured_attribute_value__value=search_str
                     )
                 elif search_item.startswith("atype:"):
-                    qs = qs.filter(
-                        address_type_id=search_str
-                    )
+                    qs = qs.filter(address_type_id=search_str)
                 elif search_item:
                     like_search_term = search_item + "%"
                     cursor = connection.cursor()
