@@ -229,7 +229,7 @@ class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
         elif choice.__class__.__name__ == "FreeformAttributeToHost":
             return "fattr:%s" % choice.value
         elif choice.__class__.__name__ == "AddressType":
-            return "atype:%s" % choice.name
+            return "atype:%s" % choice.pk
 
 
 al.register(IPAMSearchAutoComplete)
