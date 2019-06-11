@@ -4,7 +4,21 @@ from rest_framework_jwt.views import obtain_jwt_token
 
 from rest_framework.routers import SimpleRouter, Route
 
+from rest_framework import permissions
+
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
 from openipam.api import views
+
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="OpenIPAM API", default_version="v1", description="Test description"
+    ),
+    public=False,
+    permission_classes=(permissions.IsAuthenticated,),
+)
 
 
 class OPENIPAMAPIRouter(SimpleRouter):
@@ -276,5 +290,6 @@ urlpatterns = [
         r"^login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     url(r"^login/jwt_token/", views.base.obtain_jwt_token),
+    url(r"^docs", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     url(r"^", include("rest_framework.urls", namespace="rest_framework")),
 ]

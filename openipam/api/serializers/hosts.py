@@ -244,7 +244,10 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         self.fields["network"] = serializers.ChoiceField(
             required=False,
             choices=blank_choice
-            + [(network.network, network.network) for network in Network.objects.all()],
+            + [
+                (str(network.network), str(network.network))
+                for network in Network.objects.all()
+            ],
         )
         self.fields["pool"] = serializers.ChoiceField(
             required=False,
