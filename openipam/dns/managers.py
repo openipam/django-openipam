@@ -180,7 +180,7 @@ class DNSQuerySet(QuerySet):
 
 class DnsManager(Manager):
     def add_or_update_record(
-        self, user, name, content, dns_type, host=None, ttl=None, record=None
+        self, user, name, content, dns_type=None, host=None, ttl=None, record=None
     ):
         from openipam.network.models import Address
         from openipam.hosts.models import Host
@@ -199,10 +199,12 @@ class DnsManager(Manager):
             dns_record.changed_by = user
 
             # Clear content if we are changing dnstype
-            if created is False and dns_record.dns_type != dns_type:
+            if created is False and dns_type and dns_type != dns_record.dns_type:
                 dns_record.clear_content()
 
-            dns_record.dns_type = dns_type
+            # Change dns_type if not None
+            if dns_type:
+                dns_record.dns_type = dns_type
 
             if not content:
                 raise ValidationError("Content is required to create a DNS record.")
