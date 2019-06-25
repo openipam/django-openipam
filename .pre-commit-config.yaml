@@ -1,0 +1,16 @@
+repos:
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      language_version: python3.7
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v1.2.3
+    hooks:
+    #- id: flake8
+    #  args: ["--ignore=W503,E501", --max-line-length=88]
+    - id: check-json
+    - id: check-yaml
+    - id: detect-private-key
+    - id: check-added-large-files
+
