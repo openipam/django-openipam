@@ -9,7 +9,7 @@ from openipam.hosts.models import GulRecentArpBymac, Host
 from openipam.network.models import Address, Lease, Network
 from openipam.dns.models import DnsRecord
 
-from filtertools import reduce
+from functools import reduce
 
 
 from braces.views import GroupRequiredMixin

@@ -11,7 +11,7 @@ from openipam.conf.ipam_settings import CONFIG
 
 from six import string_types
 
-from filtertools import reduce
+from functools import reduce
 
 from guardian.shortcuts import (
     get_objects_for_user,

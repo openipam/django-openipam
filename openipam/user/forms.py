@@ -15,7 +15,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from autocomplete_light import shortcuts as al
 
-from filtertools import reduce
+from functools import reduce
 
 import operator
 

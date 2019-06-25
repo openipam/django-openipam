@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
 
-from filtertools import reduce
+from functools import reduce
 
 from openipam.network.models import (
     Address,

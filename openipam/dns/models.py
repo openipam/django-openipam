@@ -21,7 +21,7 @@ from guardian.shortcuts import get_objects_for_user
 
 import re
 import operator
-from filtertools import reduce
+from functools import reduce
 
 
 class Domain(models.Model):
