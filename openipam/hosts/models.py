@@ -910,6 +910,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 | Q(name__in=a_record_names)
                 | Q(ip_content__in=addresses)
                 | Q(host=self)
+                | Q(text_content=self.hostname)  # For dynamic hosts
             )
             .order_by("dns_type__name")
         )
