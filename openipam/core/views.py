@@ -21,9 +21,8 @@ from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
-from django.db.utils import DatabaseError, DataError
+from django.db.utils import DataError
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Count
 from django.views.decorators.http import require_http_methods
 from django.utils.six.moves import urllib_parse
 from django.core.urlresolvers import reverse
@@ -227,7 +226,6 @@ def page_error(request, template_name, extra_context=None):
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
         "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
-        "request_path": request.path,
         "error_type": error_type.__name__,
         "error_value": error_value,
         "traceback": traceback,
@@ -387,8 +385,6 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
             column_dir = item["dir"]
             sdir = "-" if column_dir == "desc" else ""
             sortcol = order_columns[column]
-            ann_kargs = {sortcol + "_foo": Count(sortcol)}
-            # qs = qs.annotate(**ann_kargs).order_by('-%s_foo' % sortcol, '%s%s' % (sdir, sortcol))
             order.append("%s%s" % (sdir, sortcol))
 
         if order:

@@ -1,9 +1,8 @@
 from django.contrib import messages
-from django.contrib.admin.models import LogEntry, CHANGE, DELETION
+from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
-from django.core import serializers
 
 from openipam.user.forms import GroupForm
 from openipam.user.utils.user_utils import populate_user_from_ldap

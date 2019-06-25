@@ -14,15 +14,13 @@ from openipam.network.models import (
     Vlan,
     NetworkRange,
     NetworkToVlan,
-    Lease,
 )
-from openipam.user.models import User
 from openipam.hosts.models import Host
 
 from netaddr import EUI, AddrFormatError
 
 from netfields.mac import mac_unix_common
-from netfields.rest_framework import InetAddressField, CidrAddressField, MACAddressField
+from netfields.rest_framework import InetAddressField, CidrAddressField
 
 
 class NetworkListSerializer(serializers.ModelSerializer):
@@ -330,7 +328,7 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
         if value:
             try:
                 int(value, 16)
-            except ValueError as e:
+            except ValueError:
                 raise serializers.ValidationError(
                     "Value entered was not in hexidecimal."
                 )

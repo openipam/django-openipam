@@ -21,6 +21,7 @@ from guardian.shortcuts import get_objects_for_user
 
 import re
 import operator
+from filtertools import reduce
 
 
 class Domain(models.Model):
@@ -438,9 +439,9 @@ class DnsRecord(models.Model):
         match = None
 
         if self.dns_type.is_mx_record:  # MX
-            match = re.compile("^([0-9]{1,3}) (.*)$").search(self.text_content)
+            match = re.compile(r"^([0-9]{1,3}) (.*)$").search(self.text_content)
         elif self.dns_type.is_srv_record:  # SRV
-            match = re.compile("^([0-9]{1,3}) (\d+ \d+ .*)$").search(self.text_content)
+            match = re.compile(r"^([0-9]{1,3}) (\d+ \d+ .*)$").search(self.text_content)
         if match:
             # We have priority in the content
             self.priority = match.group(1)

@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from django_filters import FilterSet, CharFilter, NumberFilter
+from django_filters import CharFilter
 
 from guardian.shortcuts import get_objects_for_user
 

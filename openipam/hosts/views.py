@@ -37,7 +37,7 @@ from openipam.hosts.forms import (
     HostDhcpGroupForm,
 )
 from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Address, Network
+from openipam.network.models import Address, AddressType
 from openipam.hosts.actions import (
     delete_hosts,
     renew_hosts,

@@ -277,7 +277,20 @@ class SharedNetworkAdmin(ChangedAdmin):
 
 
 class VlanAdmin(ChangedAdmin):
-    pass
+    list_display = ("vlan_id", "name", "changed_by", "changed")
+    search_fields = ("vlan_id", "name")
+    list_select_related = True
+    form = VlanForm
+
+    def save_model(self, request, obj, form, change):
+        super(VlanAdmin, self).save_model(request, obj, form, change)
+
+        obj.buildings.clear()
+        buildings = form.cleaned_data["building_ids"]
+        for building in buildings:
+            BuildingToVlan.objects.create(
+                building=building, vlan=obj, changed_by=request.user
+            )
 
 
 class NetworkToVlanAdmin(ChangedAdmin):
@@ -375,23 +388,6 @@ class BuildingAdmin(ChangedAdmin):
     def vlans(self, obj):
         building_vlans = [str(vlan.vlan_id) for vlan in obj.building_vlans.all()]
         return "%s" % " ".join(building_vlans)
-
-
-class VlanAdmin(ChangedAdmin):
-    list_display = ("vlan_id", "name", "changed_by", "changed")
-    search_fields = ("vlan_id", "name")
-    list_select_related = True
-    form = VlanForm
-
-    def save_model(self, request, obj, form, change):
-        super(VlanAdmin, self).save_model(request, obj, form, change)
-
-        obj.buildings.clear()
-        buildings = form.cleaned_data["building_ids"]
-        for building in buildings:
-            BuildingToVlan.objects.create(
-                building=building, vlan=obj, changed_by=request.user
-            )
 
 
 admin.site.register(DefaultPool, DefaultPoolAdmin)

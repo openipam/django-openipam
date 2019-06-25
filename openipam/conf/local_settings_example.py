@@ -1,10 +1,3 @@
-try:
-    import psycopg2
-except:
-    from psycopg2cffi import compat
-
-    compat.register()
-
 # DEBUG = False
 # TEMPLATE_DEBUG = False
 # DEBUG_SQL = False

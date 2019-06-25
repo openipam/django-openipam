@@ -23,7 +23,7 @@ class SetRemoteAddrMiddleware(object):
             try:
                 request.META["OLD_REMOTE_ADDR"] = request.META["REMOTE_ADDR"]
                 request.META["REMOTE_ADDR"] = request.META["HTTP_X_REAL_IP"]
-            except:
+            except Exception:
                 pass
 
 

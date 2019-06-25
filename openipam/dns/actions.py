@@ -1,8 +1,7 @@
 from django.contrib import messages
-from django.contrib.admin.models import LogEntry, CHANGE, DELETION
+from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from django.utils.safestring import mark_safe
 from django.core import serializers
 
 from openipam.dns.models import DnsRecord

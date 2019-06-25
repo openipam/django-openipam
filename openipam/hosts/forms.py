@@ -46,7 +46,6 @@ from guardian.shortcuts import get_objects_for_user
 from autocomplete_light import shortcuts as al
 
 import operator
-import string
 
 User = get_user_model()
 

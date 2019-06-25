@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django.utils.encoding import force_unicode
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
