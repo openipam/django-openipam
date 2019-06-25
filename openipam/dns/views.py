@@ -433,15 +433,10 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             # Updated records
             for record in selected_records:
                 try:
-                    #dns_type_pk = request.POST.get("type-%s" % record, "")
-                    #if not dns_type_pk:
-                    #    raise ValidationError("A Dns Type is required.")
-
                     dns_record, created = DnsRecord.objects.add_or_update_record(
                         user=request.user,
                         name=request.POST.get("name-%s" % record, ""),
                         content=request.POST.get("content-%s" % record, ""),
-                        #dns_type=DnsType.objects.get(pk=int(dns_type_pk)),
                         ttl=request.POST.get("ttl-%s" % record, ""),
                         record=record,
                     )
