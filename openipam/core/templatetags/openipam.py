@@ -10,6 +10,8 @@ from BeautifulSoup import BeautifulSoup
 
 from urllib import unquote
 
+from six import string_types
+
 import re
 
 register = template.Library()
@@ -188,7 +190,7 @@ class BreadcrumbsNode(template.Node):
                 lines = [(a.get("href"), a.text) for a in soup.findAll("a")]
                 lines.append([soup.find("div").text.split("&rsaquo;")[-1].strip()])
             except Exception as e:
-                lines = [["Cannot parse breadcrumbs: %s" % unicode(e)]]
+                lines = [["Cannot parse breadcrumbs: %s" % str(e)]]
 
         out = '<ul class="breadcrumb">'
         curr = 0
@@ -253,7 +255,7 @@ def admin_filter_selected(cl, spec):
 
     for index, choice in enumerate(spec.choices(cl)):
         if choice["selected"] is True and (
-            index > 0 or isinstance(choice["display"], unicode)
+            index > 0 or isinstance(choice["display"], string_types)
         ):
             value = choice["display"]
             if hasattr(spec, "parameter_name"):

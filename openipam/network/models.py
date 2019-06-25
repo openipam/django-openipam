@@ -359,7 +359,7 @@ class Address(models.Model):
     objects = AddressManager.from_queryset(AddressQuerySet)()
 
     def __unicode__(self):
-        return unicode(self.address)
+        return str(self.address)
 
     @property
     def last_mac_seen(self):

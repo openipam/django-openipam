@@ -8,6 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.cache import cache
 
+from filtertools import reduce
+
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
 import operator

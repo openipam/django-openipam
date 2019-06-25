@@ -9,6 +9,10 @@ from django.core.exceptions import ValidationError
 from openipam.network.models import DhcpGroup, Pool, Network
 from openipam.conf.ipam_settings import CONFIG
 
+from six import string_types
+
+from filtertools import reduce
+
 from guardian.shortcuts import (
     get_objects_for_user,
     get_objects_for_group,
@@ -247,7 +251,7 @@ class HostManager(Manager):
         if dhcp_group:
             if isinstance(dhcp_group, int):
                 dhcp_group = DhcpGroup.objects.get(pk=dhcp_group)
-            elif isinstance(dhcp_group, str) or isinstance(dhcp_group, unicode):
+            elif isinstance(dhcp_group, string_types):
                 dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
             instance.dhcp_group = dhcp_group
         elif dhcp_group is None:
@@ -257,7 +261,7 @@ class HostManager(Manager):
         if pool:
             if isinstance(pool, int):
                 pool = Pool.objects.get(pk=pool)
-            elif isinstance(pool, str) or isinstance(pool, unicode):
+            elif isinstance(pool, string_types):
                 pool = Pool.objects.get(name=pool)
             instance.pool = pool
         elif pool is None:
@@ -269,7 +273,7 @@ class HostManager(Manager):
             instance.ip_address = ip_address
 
         if network:
-            if isinstance(network, unicode) or isinstance(network, str):
+            if isinstance(network, string_types):
                 instance.network = Network.objects.get(network=network)
             else:
                 instance.network = network

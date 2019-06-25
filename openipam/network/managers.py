@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 
 from guardian.shortcuts import get_objects_for_user
 
+from filtertools import reduce
+
 # from netfields import NetManager
 
 import operator
