@@ -338,9 +338,8 @@ class Host(DirtyFieldsMixin, models.Model):
 
     # Overload getattr for get original values
     def __getattr__(self, name):
-        if (
-            name.startswith("original_")
-            and name.split("_", 1)[1] in self._original_state.keys()
+        if name.startswith("original_") and name.split("_", 1)[1] in list(
+            self._original_state.keys()
         ):
 
             def _original(fieldname):
@@ -410,10 +409,12 @@ class Host(DirtyFieldsMixin, models.Model):
 
         users = []
         if user_perms_prefetch:
-            user_perms = filter(
-                lambda x: x.object_pk == str(self.mac)
-                and x.permission.codename == "is_owner_host",
-                user_perms_prefetch,
+            user_perms = list(
+                filter(
+                    lambda x: x.object_pk == str(self.mac)
+                    and x.permission.codename == "is_owner_host",
+                    user_perms_prefetch,
+                )
             )
         else:
             user_perms = UserObjectPermission.objects.filter(
@@ -426,10 +427,12 @@ class Host(DirtyFieldsMixin, models.Model):
 
         groups = []
         if group_perms_prefetch:
-            group_perms = filter(
-                lambda x: x.object_pk == str(self.mac)
-                and x.permission.codename == "is_owner_host",
-                group_perms_prefetch,
+            group_perms = list(
+                filter(
+                    lambda x: x.object_pk == str(self.mac)
+                    and x.permission.codename == "is_owner_host",
+                    group_perms_prefetch,
+                )
             )
         else:
             group_perms = GroupObjectPermission.objects.filter(

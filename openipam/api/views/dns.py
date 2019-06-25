@@ -90,7 +90,7 @@ class DnsCreate(generics.CreateAPIView):
         except (ValidationError, DataError) as e:
             error_list = []
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:

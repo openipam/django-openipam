@@ -24,7 +24,7 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
 
     def sgroup_permissions(self, obj):
         perms_list = []
-        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.group_permissions)
+        perms = [x for x in self.group_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
                 '<span class="label label-info">%s: %s</span>'
@@ -37,7 +37,7 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
 
     def suser_permissions(self, obj):
         perms_list = []
-        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.user_permissions)
+        perms = [x for x in self.user_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
                 '<span class="label label-info">%s: %s</span>'

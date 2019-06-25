@@ -55,7 +55,7 @@ from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
-from itertools import izip_longest
+from itertools import zip_longest
 
 import json
 import re
@@ -133,7 +133,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     qs = qs.filter(mac__startswith=mac_str.lower())
                 elif search_item.startswith("ip:"):
                     ip = search_str
-                    ip_blocks = filter(None, ip.split("."))
+                    ip_blocks = [_f for _f in ip.split(".") if _f]
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(addresses__address__istartswith=".".join(ip_blocks))
@@ -225,7 +225,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 # Split to list to put back togethor with :
                 mac_str = iter(mac_str)
                 mac_str = ":".join(
-                    a + b for a, b in izip_longest(mac_str, mac_str, fillvalue="")
+                    a + b for a, b in zip_longest(mac_str, mac_str, fillvalue="")
                 )
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
@@ -257,7 +257,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 else:
                     ip = ip_search.split(":")[-1]
                     tail_dot = "." if ip[-1] == "." else ""
-                    ip_blocks = filter(None, ip.split("."))
+                    ip_blocks = [_f for _f in ip.split(".") if _f]
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(
@@ -336,7 +336,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 "Returns all rows from a cursor as a dict"
                 desc = cursor.description
                 return [
-                    dict(zip([col[0] for col in desc], row))
+                    dict(list(zip([col[0] for col in desc], row)))
                     for row in cursor.fetchall()
                 ]
 
@@ -684,7 +684,7 @@ class HostUpdateCreateMixin(object):
             error_list = form._errors.setdefault(NON_FIELD_ERRORS, ErrorList())
 
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(error)
             else:
@@ -845,7 +845,7 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(str(error))
             else:
@@ -997,14 +997,14 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(str(error))
             else:
                 error_list.append(str(e.message))
 
             pretty_print = []
-            for k, v in host.items():
+            for k, v in list(host.items()):
                 pretty_print.append("%s: %r" % (k, v))
 
             error_list.append("values: " + ", ".join(pretty_print))

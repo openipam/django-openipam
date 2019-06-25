@@ -269,7 +269,7 @@ class HostForm(forms.ModelForm):
                     )
             else:
                 self.fields[attribute_field_key] = forms.CharField(required=False)
-            initial = filter(lambda x: x[0] == attribute_field.id, attribute_initials)
+            initial = [x for x in attribute_initials if x[0] == attribute_field.id]
             if initial:
                 # assert False, initial
                 if attribute_field.multiple:
@@ -446,9 +446,9 @@ class HostForm(forms.ModelForm):
                 if attribute.structured:
                     if attribute.multiple:
                         for attribute in form_attribute:
-                            attribute_value = filter(
-                                lambda x: x == attribute, structured_attributes
-                            )
+                            attribute_value = [
+                                x for x in structured_attributes if x == attribute
+                            ]
                             if attribute_value:
                                 StructuredAttributeToHost.objects.create(
                                     host=instance,
@@ -456,9 +456,9 @@ class HostForm(forms.ModelForm):
                                     changed_by=self.user,
                                 )
                     else:
-                        attribute_value = filter(
-                            lambda x: x == form_attribute, structured_attributes
-                        )
+                        attribute_value = [
+                            x for x in structured_attributes if x == form_attribute
+                        ]
                         StructuredAttributeToHost.objects.create(
                             host=instance,
                             structured_attribute_value=attribute_value[0],

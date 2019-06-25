@@ -46,7 +46,7 @@ class HostListSerializer(serializers.ModelSerializer):
         addresses = {
             "leased": [
                 str(lease.address)
-                for lease in filter(lambda x: x.ends > timezone.now(), obj.leases.all())
+                for lease in [x for x in obj.leases.all() if x.ends > timezone.now()]
             ],
             "registered": [str(address.address) for address in obj.addresses.all()],
         }
@@ -59,7 +59,8 @@ class HostListSerializer(serializers.ModelSerializer):
         def dictfetchall(cursor):
             desc = cursor.description
             return [
-                dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
+                dict(list(zip([col[0] for col in desc], row)))
+                for row in cursor.fetchall()
             ]
 
         c = connection.cursor()
@@ -160,7 +161,8 @@ class HostDetailSerializer(serializers.ModelSerializer):
         def dictfetchall(cursor):
             desc = cursor.description
             return [
-                dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
+                dict(list(zip([col[0] for col in desc], row)))
+                for row in cursor.fetchall()
             ]
 
         c = connection.cursor()
@@ -300,7 +302,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 "An IP Address, Network, or Pool is required."
             )
         net_fields = set(["ip_address", "network", "pool"])
-        attr_fields = set([key if value else None for key, value in data.items()])
+        attr_fields = set([key if value else None for key, value in list(data.items())])
         if len(net_fields.intersection(attr_fields)) > 1:
             raise serializers.ValidationError(
                 "Only one of IP Address, Network, or Pool is required."
@@ -480,7 +482,7 @@ class HostUpdateAttributeSerializer(serializers.Serializer):
     def validate_attributes(self, value):
         attributes = value
 
-        for key, attr in attributes.items():
+        for key, attr in list(attributes.items()):
             attr_exists = Attribute.objects.filter(name=key)
             if not attr_exists:
                 raise serializers.ValidationError(

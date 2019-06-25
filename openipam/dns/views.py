@@ -423,7 +423,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
                 except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -443,7 +443,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
                 except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -513,7 +513,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                 )
             except ValidationError as e:
                 if hasattr(e, "error_dict"):
-                    for key, errors in e.message_dict.items():
+                    for key, errors in list(e.message_dict.items()):
                         for error in errors:
                             error_list.append(error)
                 else:

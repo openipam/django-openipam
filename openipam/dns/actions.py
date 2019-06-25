@@ -25,7 +25,7 @@ def delete_records(request, selected_records):
         # Log Deletion
         for record in selected_records:
             data = serializers.serialize(
-                "json", filter(lambda x: x.pk == int(record), dns_records)
+                "json", [x for x in dns_records if x.pk == int(record)]
             )
             LogEntry.objects.log_action(
                 user_id=request.user.pk,

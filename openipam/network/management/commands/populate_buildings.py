@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 building_vlans[row[0].upper()] = []
             building_vlans[row[0].upper()].append([row[1], row[2]])
 
-        for code, vlan in building_vlans.items():
+        for code, vlan in list(building_vlans.items()):
             for item in vlan:
                 building = Building.objects.filter(number=code).first()
                 vlan = Vlan.objects.filter(vlan_id=item[0]).first()

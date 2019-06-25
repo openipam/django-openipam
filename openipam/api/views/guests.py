@@ -125,7 +125,7 @@ class GuestRegister(APIView):
                 except ValidationError as e:
                     error_list = []
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(error)
                     else:

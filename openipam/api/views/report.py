@@ -281,13 +281,13 @@ class WeatherMapView(APIView):
             data = OrderedDict(copy.deepcopy(CONFIG.get("WEATHERMAP_DATA").get("data")))
 
         all_ports = []
-        for k, v in data.items():
+        for k, v in list(data.items()):
             all_ports.extend(v["id"])
 
         ports = Ports.select(Ports).where(Ports.port << all_ports)
 
         for port in ports:
-            for key, value in data.items():
+            for key, value in list(data.items()):
                 for portid in value["id"]:
                     if port.port == portid:
                         value["A"] = value.get("A", 0) + port.ifoutoctets_rate * 8
@@ -299,7 +299,7 @@ class WeatherMapView(APIView):
                         value["poll_frequency"] = 300
                         value["isUp"] = bool(port.ifoperstatus == "up")
 
-        for key, value in data.items():
+        for key, value in list(data.items()):
             del value["id"]
 
         data["timestamp"] = int(datetime.now().strftime("%s"))

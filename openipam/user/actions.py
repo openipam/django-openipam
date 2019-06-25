@@ -43,7 +43,7 @@ def action_assign_groups(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(
@@ -90,7 +90,7 @@ def action_remove_groups(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(
@@ -137,7 +137,7 @@ def action_assign_perms(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(
