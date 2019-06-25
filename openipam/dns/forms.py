@@ -45,7 +45,7 @@ class BaseDNSUpdateFormset(BaseModelFormSet):
 
         # DoS protection is included in total_form_count()
         forms = [
-            self._construct_form(i, **kwargs) for i in xrange(self.total_form_count())
+            self._construct_form(i, **kwargs) for i in range(self.total_form_count())
         ]
         return forms
 

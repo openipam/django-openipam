@@ -927,10 +927,7 @@ class Host(DirtyFieldsMixin, models.Model):
             return None
 
     def set_expiration(self, expire_days):
-        if (
-            isinstance(expire_days, int)
-            or isinstance(expire_days, string_types)
-        ):
+        if isinstance(expire_days, int) or isinstance(expire_days, string_types):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
         self.expires = (

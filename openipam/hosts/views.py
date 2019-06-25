@@ -62,31 +62,6 @@ import re
 import csv
 import collections
 
-# from django.db.models.sql.aggregates import Aggregate as SQLAggregate
-# from django.db.models import Aggregate
-# from django.db.models import DecimalField
-
-# class SQLArrayAgg(SQLAggregate):
-
-#     sql_function = 'array_agg'
-#     sql_template = '%(function)s(%(distinct)s%(field)s)'
-
-#     def __init__(self, col, distinct=False, **extra):
-#         super(SQLArrayAgg, self).__init__(col, distinct=(
-#                                                distinct and 'DISTINCT ' or ''),
-#                                           **extra)
-# class ArrayAgg(Aggregate):
-
-#     name = 'ArrayAgg'
-
-#     def add_to_query(self, query, alias, col, source, is_summary):
-#         klass = SQLArrayAgg
-#         aggregate = klass(
-#             col, source=source, is_summary=is_summary, **self.extra)
-#         aggregate.field = DecimalField() # vomit
-#         query.aggregates[alias] = aggregate
-
-
 User = get_user_model()
 
 
@@ -1015,7 +990,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                     try:
                         Host.objects.add_or_update_host(self.request.user, **host)
-                    except Exception, e:
+                    except Exception as e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
                         raise ValidationError
