@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
-from openipam.user.utils.user_utils import populate_user_from_ldap, sync_active_users
+from django.core.management.base import BaseCommand
+from openipam.user.utils.user_utils import sync_active_users
 
 
 class Command(BaseCommand):

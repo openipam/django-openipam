@@ -10,6 +10,8 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
 
+from functools import reduce
+
 from openipam.network.models import (
     Address,
     AddressType,
@@ -46,7 +48,6 @@ from guardian.shortcuts import get_objects_for_user
 from autocomplete_light import shortcuts as al
 
 import operator
-import string
 
 User = get_user_model()
 

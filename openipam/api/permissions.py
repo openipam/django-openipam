@@ -3,8 +3,6 @@ from rest_framework import permissions
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
 
-from guardian.shortcuts import get_objects_for_user
-
 
 class IPAMAPIAdminPermission(permissions.BasePermission):
     """

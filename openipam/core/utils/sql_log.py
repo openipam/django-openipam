@@ -42,7 +42,6 @@ from django.db import connections, connection
 from django.template import Template, Context
 from django.conf import settings
 import sys
-import re
 import os
 import time
 import datetime

@@ -421,7 +421,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                         ttl=new_ttls[index],
                     )
 
-                except ValidationError, e:
+                except ValidationError as e:
                     if hasattr(e, "error_dict"):
                         for key, errors in e.message_dict.items():
                             for error in errors:
@@ -441,7 +441,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                         record=record,
                     )
 
-                except ValidationError, e:
+                except ValidationError as e:
                     if hasattr(e, "error_dict"):
                         for key, errors in e.message_dict.items():
                             for error in errors:
@@ -511,7 +511,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     ttl=form.cleaned_data["ttl"],
                     record=self.record.pk if hasattr(self.record, "pk") else None,
                 )
-            except ValidationError, e:
+            except ValidationError as e:
                 if hasattr(e, "error_dict"):
                     for key, errors in e.message_dict.items():
                         for error in errors:

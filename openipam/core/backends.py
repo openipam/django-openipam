@@ -11,7 +11,7 @@ from openipam.user.models import AuthSource
 try:
     from django_auth_ldap.backend import LDAPBackend, _LDAPUser
     from django_cas_ng.backends import CASBackend
-except:
+except ImportError:
     pass
 
 import re
@@ -40,7 +40,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 class IPAMLDAPBackend(LDAPBackend):
     def authenticate(self, username, password):
         if len(password) == 0 and not self.settings.PERMIT_EMPTY_PASSWORD:
-            logger.debug("Rejecting empty password for %s" % username)
+            self.logger.debug("Rejecting empty password for %s" % username)
             return None
 
         ldap_user = _IPAMLDAPUser(self, username=username.strip())
@@ -95,7 +95,6 @@ class _IPAMLDAPUser(_LDAPUser):
         existing_groups = list(
             Group.objects.filter(name__in=target_group_names).iterator()
         )
-        existing_group_names = frozenset(group.name for group in existing_groups)
 
         new_groups = []
         for name in target_group_names:
@@ -119,7 +118,7 @@ class LoggingEmailBackend(EmailBackend):
                     subject=email_message.subject,
                     body=email_message.body,
                 )
-        except:
+        except Exception:
             pass
         return message_len
 
@@ -136,7 +135,7 @@ class ConsoleLoggingEmailBackend(ConsoleEmailBackend):
                     subject=email_message.subject,
                     body=email_message.body,
                 )
-        except:
+        except Exception:
             pass
         return message_len
 
@@ -181,7 +180,6 @@ class IPAMCASBackend(CASBackend):
         existing_groups = list(
             Group.objects.filter(name__in=target_group_names).iterator()
         )
-        existing_group_names = frozenset(group.name for group in existing_groups)
 
         new_groups = []
         for name in target_group_names:

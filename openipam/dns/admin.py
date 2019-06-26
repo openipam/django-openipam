@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.http import HttpResponseRedirect
 
 from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
 from openipam.dns.forms import DhcpDnsRecordForm

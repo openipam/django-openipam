@@ -1,5 +1,3 @@
-# import unittest
-# import ipaddr
 from django.test import TestCase
 
 from openipam.hosts.models import Host
@@ -18,6 +16,8 @@ from django.utils import timezone
 
 # from django.db import IntegrityError
 import datetime
+
+from six import string_types
 
 
 class IPAMTestCase(TestCase):
@@ -52,14 +52,14 @@ class IPAMTestCase(TestCase):
         return Address.objects.bulk_create(addresses)
 
     def _add_dns_record(self, record, user):
-        if type(record["dns_type"]) in (str, unicode):
+        if isinstance(record["dns_type"], string_types):
             record["dns_type"] = DnsType.objects.get(name=record["dns_type"])
         if "ip_content" in record and type(record["ip_content"]) == str:
             record["ip_content"] = Address.objects.get(address=record["ip_content"])
         if "did" not in record:
             parts = record["name"].split(".")
             possible_domains = []
-            for i in xrange(len(parts)):
+            for i in range(len(parts)):
                 possible_domains.append(".".join(parts[i:]))
             domain = (
                 Domain.objects.filter(name__in=possible_domains)

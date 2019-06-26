@@ -13,7 +13,7 @@ class ChangedAdmin(admin.ModelAdmin):
             # TODO: Save overrides for these models so we can not set changed_by here
             try:
                 obj.save(user=request.user)
-            except:
+            except Exception:
                 obj.save()
 
         super(ChangedAdmin, self).delete_model(request, obj)

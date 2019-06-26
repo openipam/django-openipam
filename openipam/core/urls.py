@@ -1,17 +1,8 @@
 from django.conf.urls import url, include
-from django.contrib.auth.views import (
-    password_reset,
-    password_reset_done,
-    password_reset_confirm,
-    password_reset_complete,
-    password_change,
-    password_change_done,
-)
+from django.contrib.auth.views import password_change_done
 from django.views.generic import TemplateView
 
 from openipam.core import views
-
-from django_cas_ng.views import login as cas_login, logout as cas_logout, callback
 
 
 urlpatterns = [

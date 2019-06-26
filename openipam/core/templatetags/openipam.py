@@ -1,16 +1,16 @@
 from django import template
-from django.contrib.admin.views.main import SEARCH_VAR
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.utils.translation import ugettext as _
 from django.contrib.admin.views.main import PAGE_VAR, ALL_VAR
 from django.conf import settings
-from django.template.context import Context
 from django.template.loader import get_template
 
 from BeautifulSoup import BeautifulSoup
 
 from urllib import unquote
+
+from six import string_types
 
 import re
 
@@ -190,7 +190,7 @@ class BreadcrumbsNode(template.Node):
                 lines = [(a.get("href"), a.text) for a in soup.findAll("a")]
                 lines.append([soup.find("div").text.split("&rsaquo;")[-1].strip()])
             except Exception as e:
-                lines = [["Cannot parse breadcrumbs: %s" % unicode(e)]]
+                lines = [["Cannot parse breadcrumbs: %s" % str(e)]]
 
         out = '<ul class="breadcrumb">'
         curr = 0
@@ -255,7 +255,7 @@ def admin_filter_selected(cl, spec):
 
     for index, choice in enumerate(spec.choices(cl)):
         if choice["selected"] is True and (
-            index > 0 or isinstance(choice["display"], unicode)
+            index > 0 or isinstance(choice["display"], string_types)
         ):
             value = choice["display"]
             if hasattr(spec, "parameter_name"):

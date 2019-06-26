@@ -1,12 +1,10 @@
 from django.db import DataError
 from django.core.exceptions import ValidationError
-from django.contrib.admin.models import LogEntry, CHANGE, DELETION
+from django.contrib.admin.models import DELETION, LogEntry
 from django.utils.encoding import force_unicode
 from django.contrib.contenttypes.models import ContentType
 
-from rest_framework.views import APIView
 from rest_framework import generics
-from rest_framework import filters
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
