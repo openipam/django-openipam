@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.core import serializers
 
 from openipam.dns.models import DnsRecord
@@ -31,7 +31,7 @@ def delete_records(request, selected_records):
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(DnsRecord).pk,
                 object_id=record,
-                object_repr=force_unicode(DnsRecord.objects.get(pk=record)),
+                object_repr=force_text(DnsRecord.objects.get(pk=record)),
                 action_flag=DELETION,
                 change_message=data,
             )

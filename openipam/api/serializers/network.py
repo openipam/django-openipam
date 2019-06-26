@@ -228,26 +228,6 @@ class AddressSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-        # def save(self):
-        #     assert False, self.validated_data
-        #     assert False, self.instance.__dict__
-        #     # is_new = True if self.instance is None else False
-        #     # data = self.validated_data.copy()
-        #     # data['instance'] = self.instance
-        #     # data['user'] = self.context['request'].user
-        #     # self.instance = Host.objects.add_or_update_host(**data)
-
-        #     # LogEntry.objects.log_action(
-        #     #     user_id=self.instance.user.pk,
-        #     #     content_type_id=ContentType.objects.get_for_model(self.instance).pk,
-        #     #     object_id=self.instance.pk,
-        #     #     object_repr=force_unicode(self.instance),
-        #     #     action_flag=ADDITION if is_new else CHANGE,
-        #     #     change_message='API call.'
-        #     # )
-
-        return self.instance
-
     class Meta:
         model = Address
         fields = (

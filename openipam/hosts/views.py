@@ -9,7 +9,7 @@ from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 from django.utils.http import urlunquote
 from django.utils import timezone
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.db import transaction
@@ -716,7 +716,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             user_id=self.object.user.pk,
             content_type_id=ContentType.objects.get_for_model(self.object).pk,
             object_id=self.object.pk,
-            object_repr=force_unicode(self.object),
+            object_repr=force_text(self.object),
             action_flag=CHANGE,
             change_message=original_object,
         )
@@ -749,7 +749,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             user_id=self.object.user.pk,
             content_type_id=ContentType.objects.get_for_model(self.object).pk,
             object_id=self.object.pk,
-            object_repr=force_unicode(self.object),
+            object_repr=force_text(self.object),
             action_flag=ADDITION,
         )
 

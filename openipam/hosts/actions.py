@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.core import serializers
 from django.http import HttpResponse
@@ -69,7 +69,7 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(host).pk,
                     object_id=host.pk,
-                    object_repr=force_unicode(host),
+                    object_repr=force_text(host),
                     action_flag=CHANGE,
                     change_message="Owners assigned to host: \n\n %s" % data,
                 )
@@ -124,7 +124,7 @@ def remove_owner_hosts(request, selected_hosts):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(host).pk,
                     object_id=host.pk,
-                    object_repr=force_unicode(host),
+                    object_repr=force_text(host),
                     action_flag=CHANGE,
                     change_message="Owners removed from host: \n\n %s" % data,
                 )
@@ -166,7 +166,7 @@ def delete_hosts(request, selected_hosts):
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
-                object_repr=force_unicode(host),
+                object_repr=force_text(host),
                 action_flag=DELETION,
                 change_message=data,
             )
@@ -204,7 +204,7 @@ def renew_hosts(request, selected_hosts):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(host).pk,
                     object_id=host.pk,
-                    object_repr=force_unicode(host),
+                    object_repr=force_text(host),
                     action_flag=CHANGE,
                     change_message=data,
                 )
@@ -376,7 +376,7 @@ def set_dhcp_group_on_host(request, selected_hosts):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(host).pk,
                     object_id=host.pk,
-                    object_repr=force_unicode(host),
+                    object_repr=force_text(host),
                     action_flag=CHANGE,
                     change_message="DHCP Group set.",
                 )
@@ -416,7 +416,7 @@ def delete_dhcp_group_on_host(request, selected_hosts):
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
-                object_repr=force_unicode(host),
+                object_repr=force_text(host),
                 action_flag=CHANGE,
                 change_message="DHCP Group deleted.",
             )
@@ -446,7 +446,7 @@ def populate_primary_dns(request, selected_hosts):
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
-                object_repr=force_unicode(host),
+                object_repr=force_text(host),
                 action_flag=CHANGE,
                 change_message="Primary DNS Records populated.",
             )
