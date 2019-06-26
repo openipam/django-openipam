@@ -106,7 +106,6 @@ class Disabled(models.Model):
 
 class ExpirationType(models.Model):
     expiration = models.DateTimeField()
-    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
 
     def __unicode__(self):
         return "%s days" % self.expiration.days
@@ -1215,15 +1214,6 @@ class Host(DirtyFieldsMixin, models.Model):
         ordering = ("hostname",)
 
 
-# TODO:  What is this?
-# class Kvp(models.Model):
-#     id = models.IntegerField()
-#     key = models.TextField()
-#     value = models.TextField()
-#     class Meta:
-#         db_table = 'kvp'
-
-
 class MacOui(models.Model):
     oui = MACAddressField(primary_key=True)
     vendor = models.TextField()
@@ -1239,7 +1229,6 @@ class MacOui(models.Model):
 
 class Notification(models.Model):
     notification = models.DateField()
-    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
 
     def __unicode__(self):
         return "%s" % self.notification

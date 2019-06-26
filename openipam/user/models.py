@@ -41,14 +41,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
-    # TODO: Remove later
-    min_permissions = models.ForeignKey(
-        "Permission",
-        db_column="min_permissions",
-        blank=True,
-        null=True,
-        related_name="user_min_permissions",
-    )
     source = models.ForeignKey("AuthSource", db_column="source", blank=True, null=True)
 
     objects = IPAMUserManager()

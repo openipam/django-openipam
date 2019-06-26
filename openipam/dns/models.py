@@ -495,7 +495,6 @@ class DhcpDnsRecord(models.Model):
 class DnsType(models.Model):
     name = models.CharField(max_length=16, blank=True, unique=True)
     description = models.TextField(blank=True, null=True)
-    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
 
     objects = DnsTypeManager()
 
