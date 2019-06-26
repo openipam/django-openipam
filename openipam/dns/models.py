@@ -495,6 +495,7 @@ class DhcpDnsRecord(models.Model):
 class DnsType(models.Model):
     name = models.CharField(max_length=16, blank=True, unique=True)
     description = models.TextField(blank=True, null=True)
+    min_permissions = models.CharField(max_length=8)  # FIXME
 
     objects = DnsTypeManager()
 
@@ -525,14 +526,6 @@ class DnsType(models.Model):
         permissions = (("add_records_to_dnstype", "Can add records to"),)
         ordering = ("name",)
         verbose_name = "DNS Type"
-
-
-# class DnsTypeUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('DnsType', related_name='user_permissions')
-
-
-# class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('DnsType', related_name='group_permissions')
 
 
 class DnsView(models.Model):

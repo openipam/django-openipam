@@ -60,7 +60,6 @@ class UserLog(BaseLog):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
     source_id = models.IntegerField(db_column="source", blank=True, null=True)
-    min_permissions = models.CharField(max_length=8)
 
     password = models.CharField(max_length=128, default="!")
     last_login = models.DateTimeField(blank=True, null=True)
@@ -171,23 +170,6 @@ class AddressLog(BaseLog):
     class Meta:
         managed = False
         db_table = "addresses_log"
-
-
-# class DomainLog(BaseLog):
-#     id = models.IntegerField()
-#     name = models.CharField(max_length=255)
-#     master = models.CharField(max_length=128, blank=True)
-#     last_check = models.IntegerField(null=True, blank=True)
-#     type = models.CharField(max_length=6)
-#     notified_serial = models.IntegerField(null=True, blank=True)
-#     account = models.CharField(max_length=40, blank=True)
-#     description = models.TextField(blank=True)
-#     changed = models.DateTimeField(null=True, blank=True)
-#     changed_by = models.IntegerField()
-
-#     class Meta:
-#         managed = False
-#         db_table = 'domains_log'
 
 
 class AuthSource(models.Model):

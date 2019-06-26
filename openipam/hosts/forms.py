@@ -118,6 +118,7 @@ class HostForm(forms.ModelForm):
 
         if not self.user.is_ipamadmin:
             # Remove 10950 days from expires as This is only for admins.
+            # FIXME
             self.fields["expire_days"].queryset = ExpirationType.objects.filter(
                 min_permissions="00000000"
             )
@@ -721,6 +722,7 @@ class HostRenewForm(forms.Form):
 
         # TODO: Change later
         if not user.is_ipamadmin:
+            # FIXME
             self.fields["expire_days"].queryset = ExpirationType.objects.filter(
                 min_permissions="00000000"
             )

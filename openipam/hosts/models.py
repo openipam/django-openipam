@@ -106,6 +106,7 @@ class Disabled(models.Model):
 
 class ExpirationType(models.Model):
     expiration = models.DateTimeField()
+    min_permissions = models.CharField(max_length=8)  # FIXME
 
     def __str__(self):
         return "%s days" % self.expiration.days

@@ -174,7 +174,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         )
 
         def get_dns_types(dtype):
-            # dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:
