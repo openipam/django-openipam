@@ -410,7 +410,9 @@ class Address(models.Model):
 class AddressType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    ranges = models.ManyToManyField("NetworkRange", related_name="address_ranges")
+    ranges = models.ManyToManyField(
+        "NetworkRange", related_name="address_ranges", blank=True
+    )
     pool = models.ForeignKey("Pool", blank=True, null=True)
     is_default = models.BooleanField(default=False)
 
@@ -420,12 +422,15 @@ class AddressType(models.Model):
         return self.description
 
     def clean(self):
-        default = AddressType.objects.filter(is_default=True)
-        if self.pk:
-            default = default.exclude(pk=self.pk)
-
-        if default:
-            raise ValidationError(_("There can only be one default Address Type"))
+        if self.is_default:
+            default_exists = (
+                AddressType.objects.filter(is_default=True).exclude(pk=self.pk).first()
+            )
+            if default_exists:
+                raise ValidationError(
+                    "Default already assined to '%s'. There can only be one default Address Type"
+                    % default_exists.name
+                )
 
     class Meta:
         db_table = "addresstypes"

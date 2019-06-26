@@ -48,9 +48,9 @@ class AddressTypeAdminForm(forms.ModelForm):
         pool = self.cleaned_data.get("pool", "")
 
         if pool and ranges:
-            raise ValidationError(
-                _("Address Types cannot have both a pool and a range.")
-            )
+            raise ValidationError("Address Types cannot have both a pool and a range.")
+        if not pool and not ranges:
+            raise ValidationError("Address Types must have atleast a pool or a range.")
 
         return self.cleaned_data
 
