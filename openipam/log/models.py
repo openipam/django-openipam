@@ -34,7 +34,7 @@ class HostLog(BaseLog):
         "user.User", db_constraint=False, db_column="changed_by"
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.hostname)
 
     class Meta:
@@ -165,7 +165,7 @@ class AddressLog(BaseLog):
             )
         return host_obj
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.address)
 
     class Meta:
@@ -193,7 +193,7 @@ class AddressLog(BaseLog):
 class AuthSource(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:

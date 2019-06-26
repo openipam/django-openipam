@@ -48,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email"]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.username
 
     @cached_property
@@ -159,14 +159,14 @@ class GroupSource(models.Model):
         "AuthSource", db_column="source", default=1, related_name="group"
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.source.name
 
 
 class AuthSource(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:

@@ -18,7 +18,7 @@ class FeatureRequest(models.Model):
     submitted = models.DateTimeField("Date Submitted", auto_now_add=True)
     is_complete = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.type, self.comment)
 
     @classmethod

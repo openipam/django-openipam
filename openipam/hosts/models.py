@@ -44,7 +44,7 @@ class Attribute(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -62,7 +62,7 @@ class AttributeToHost(models.Model):
 
     objects = NetManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.attribute.name, self.name)
 
     class Meta:
@@ -83,7 +83,7 @@ class Disabled(models.Model):
 
         super(Disabled, self).__init__(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.pk
 
     @property
@@ -107,7 +107,7 @@ class Disabled(models.Model):
 class ExpirationType(models.Model):
     expiration = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s days" % self.expiration.days
 
     class Meta:
@@ -125,7 +125,7 @@ class FreeformAttributeToHost(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s" % (self.pk, self.attribute.name, self.value)
 
     class Meta:
@@ -139,7 +139,7 @@ class GuestTicket(models.Model):
     ends = models.DateTimeField()
     description = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.ticket
 
     def set_ticket(self):
@@ -240,7 +240,7 @@ class GulRecentArpByaddress(models.Model):
 
     objects = NetManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.pk, self.address_id)
 
     class Meta:
@@ -267,7 +267,7 @@ class GulRecentArpBymac(models.Model):
 
     objects = NetManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.pk, self.address)
 
     class Meta:
@@ -332,7 +332,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         super(Host, self).__init__(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.hostname
 
     # Overload getattr for get original values
@@ -1220,7 +1220,7 @@ class MacOui(models.Model):
 
     objects = NetManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.oui
 
     class Meta:
@@ -1230,7 +1230,7 @@ class MacOui(models.Model):
 class Notification(models.Model):
     notification = models.DateField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.notification
 
     class Meta:
@@ -1244,7 +1244,7 @@ class StructuredAttributeValue(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
     class Meta:
@@ -1262,7 +1262,7 @@ class StructuredAttributeToHost(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.host.hostname, self.structured_attribute_value)
 
     class Meta:
@@ -1277,7 +1277,7 @@ class OUI(models.Model):
     shortname = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.pk, self.shortname)
 
     class Meta:

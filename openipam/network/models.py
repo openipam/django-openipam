@@ -52,7 +52,7 @@ class Lease(models.Model):
 
     objects = LeaseManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.pk
 
     @property
@@ -100,7 +100,7 @@ class Pool(models.Model):
 
     objects = PoolManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -116,7 +116,7 @@ class DefaultPool(models.Model):
 
     objects = DefaultPoolManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.pool, self.cidr)
 
     class Meta:
@@ -132,7 +132,7 @@ class DhcpGroup(models.Model):
 
     objects = DhcpGroupManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.name
 
     class Meta:
@@ -146,7 +146,7 @@ class DhcpOption(models.Model):
     option = models.CharField(max_length=255, unique=True, blank=True, null=True)
     comment = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s_%s" % (self.id, self.name)
 
     class Meta:
@@ -173,7 +173,7 @@ class DhcpOptionToDhcpGroup(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s:%s=%r" % (self.group.name, self.option.name, str(self.value))
 
     def get_readable_value(self):
@@ -193,7 +193,7 @@ class HostToPool(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.host.hostname, self.pool.name)
 
     class Meta:
@@ -206,7 +206,7 @@ class SharedNetwork(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -253,7 +253,7 @@ class Network(models.Model):
     def pk(self):
         return str(self.network)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.network
 
     class Meta:
@@ -269,7 +269,7 @@ class Network(models.Model):
 class NetworkRange(models.Model):
     range = CidrAddressField(unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.range
 
     class Meta:
@@ -286,7 +286,7 @@ class Vlan(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.vlan_id, self.name)
 
     class Meta:
@@ -299,7 +299,7 @@ class NetworkToVlan(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.network, self.vlan)
 
     class Meta:
@@ -315,7 +315,7 @@ class Building(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.number, self.name)
 
     class Meta:
@@ -358,7 +358,7 @@ class Address(models.Model):
     # objects = AddressQuerySet.as_manager()
     objects = AddressManager.from_queryset(AddressQuerySet)()
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.address)
 
     @property
@@ -415,7 +415,7 @@ class AddressType(models.Model):
 
     objects = AddressTypeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
     def clean(self):
