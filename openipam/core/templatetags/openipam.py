@@ -6,7 +6,10 @@ from django.contrib.admin.views.main import PAGE_VAR, ALL_VAR
 from django.conf import settings
 from django.template.loader import get_template
 
-from BeautifulSoup import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    from BeautifulSoup import BeautifulSoup
 
 from django.utils.http import urlunquote
 
