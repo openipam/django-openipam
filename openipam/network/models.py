@@ -173,8 +173,43 @@ class DhcpOptionToDhcpGroup(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
+    @staticmethod
+    def is_displayable_byte(byte):
+        # include normal printables, exclude DEL
+        if byte >= 32 and byte < 127:
+            return True
+        return False
+
+    @classmethod
+    def is_displayable(self, value):
+        return all(self.is_displayable_byte(b) for b in value)
+
+    def displayable_value(self, repr_ascii=False):
+        value = self.value
+        if hasattr(value, "tobytes"):
+            value = value.tobytes()
+        elif isinstance(value, str):
+            value = value.encode()
+
+        use_ascii = self.is_displayable(value)
+
+        if use_ascii:
+            displayable = value.decode(encoding="ascii")
+            if repr_ascii:
+                return repr(displayable)
+            return displayable
+        return "0x" + value.hex()
+
+    @property
+    def value_fordisplay(self):
+        return self.displayable_value(repr_ascii=True)
+
+    @property
+    def value_foredit(self):
+        return self.displayable_value(repr_ascii=False)
+
     def __str__(self):
-        return "%s:%s=%r" % (self.group.name, self.option.name, str(self.value))
+        return "%s:%s=%s" % (self.group.name, self.option.name, self.value_fordisplay)
 
     def get_readable_value(self):
         if self.value:

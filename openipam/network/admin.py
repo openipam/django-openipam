@@ -247,7 +247,7 @@ class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
     list_select_related = True
 
     def combined_value(self, obj):
-        return "%s:%s=%r" % (obj.group.name, obj.option.name, str(obj.value))
+        return str(obj)
 
     combined_value.short_description = "Group:Option=Value"
 
