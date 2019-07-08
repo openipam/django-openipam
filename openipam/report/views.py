@@ -1,22 +1,16 @@
-from django.shortcuts import render
-from django.db.models.aggregates import Count
-from django.conf import settings
-from django.views.decorators.cache import cache_page
-from django.contrib.auth.decorators import permission_required
 from django.utils import timezone
 from django.db.models import Q
-from django.core.urlresolvers import reverse
-from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model
 
 from datetime import timedelta
 
-from openipam.hosts.models import Host, GulRecentArpBymac, GulRecentArpByaddress
-from openipam.network.models import Network, NetworkRange, AddressType, Lease, Address
-from openipam.dns.models import DnsRecord, DnsType
+from openipam.hosts.models import GulRecentArpBymac, Host
+from openipam.network.models import Address, Lease, Network
+from openipam.dns.models import DnsRecord
 
-from guardian.models import UserObjectPermission, GroupObjectPermission
+from functools import reduce
+
 
 from braces.views import GroupRequiredMixin
 

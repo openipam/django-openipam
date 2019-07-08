@@ -15,7 +15,7 @@ from openipam.network.models import Network, Address, AddressType, Pool, DhcpGro
 
 from taggit.models import Tag
 
-from guardian.shortcuts import get_objects_for_user, assign_perm
+from guardian.shortcuts import get_objects_for_user
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
 from autocomplete_light import shortcuts as al
@@ -43,7 +43,7 @@ class BugAutocompleteFix(object):
             try:
                 if len(choices) > 0:
                     pk_name = choices[0]._meta.pk.name
-            except:
+            except Exception:
                 pass
 
             # Order in the user selection order when self.values is set.
@@ -415,7 +415,7 @@ class UserAutocomplete(al.AutocompleteModelBase):
         if choice.get_full_name():
             return "%s | %s" % (choice.username, choice.get_full_name())
         else:
-            return unicode(choice)
+            return str(choice)
 
 
 al.register(User, UserAutocomplete)

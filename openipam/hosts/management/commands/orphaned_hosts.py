@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 
-from openipam.hosts.management.oui_import import import_ouis
 from openipam.hosts.models import Host
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
@@ -18,6 +17,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         delete = options.get("delete", None)
+        if delete:
+            raise NotImplementedError("FIXME: Delete Hosts has not been implemented")
 
         ct = ContentType.objects.get(app_label="hosts", model="host")
         user_hosts_with_perms = [

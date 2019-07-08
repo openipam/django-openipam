@@ -21,16 +21,11 @@ from openipam.network.models import (
     NetworkToVlan,
     Pool,
     DefaultPool,
-    Lease,
 )
 from openipam.api.views.base import APIPagination
 from openipam.api.serializers import network as network_serializers
 from openipam.api.filters.network import NetworkFilter
-from openipam.api.permissions import (
-    IPAMChangeHostPermission,
-    IPAMAPIAdminPermission,
-    IPAMAPIPermission,
-)
+from openipam.api.permissions import IPAMAPIAdminPermission
 
 
 class NetworkList(generics.ListAPIView):

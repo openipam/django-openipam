@@ -15,6 +15,8 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from autocomplete_light import shortcuts as al
 
+from functools import reduce
+
 import operator
 
 User = get_user_model()

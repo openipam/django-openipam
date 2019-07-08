@@ -48,17 +48,15 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
                             <li>
-                                <form id="feedback-form" method="post">
+                                <div id="feedback-form">
                                     <h4>
-                                        Please provide any feedback related to bugs and feature requests.
+                                        Please provide any feedback related to bugs and feature requests as an issue on GitHub.
                                     </h4>
-                                    {% csrf_token %}
-                                    {{ feature_form | crispy }}
                                     <div class="form-actions">
-                                        <input type="submit" value="Submit" class="btn btn-primary" />
-                                        <input type="button" value="Cancel" class="btn btn-default feedback-cancel" />
+                                        <a type="button" class="btn btn-primary" href="https://github.com/openipam/django-openipam/issues/" target="_blank">Create Issue</a>
+                                        <a type="button" class="btn btn-default feedback-cancel">Cancel</a>
                                     </div>
-                                </form>
+                                </div>
                             </li>
                         </ul>
                     </li>

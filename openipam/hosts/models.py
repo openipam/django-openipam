@@ -31,6 +31,8 @@ from datetime import datetime, timedelta
 import string
 import random
 
+from six import string_types
+
 
 class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -620,7 +622,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
     def delete_ip_address(self, user, address):
 
-        if isinstance(address, unicode) or isinstance(address, str):
+        if isinstance(address, string_types):
             address = self.addresses.filter(address=address)
 
         # Delete DNS PTR and A Records
@@ -671,7 +673,7 @@ class Host(DirtyFieldsMixin, models.Model):
         )
 
         if network:
-            if isinstance(network, unicode) or isinstance(network, str):
+            if isinstance(network, string_types):
                 network = Network.objects.get(network=network)
 
             if not user_nets.filter(network=network.network):
@@ -859,7 +861,7 @@ class Host(DirtyFieldsMixin, models.Model):
             if not hostname:
                 hostname = self.hostname
 
-            if isinstance(address, str) or isinstance(address, unicode):
+            if isinstance(address, string_types):
                 address = Address.objects.filter(address=address).first()
             elif not address:
                 address = Address.objects.filter(address=self.master_ip_address).first()
@@ -925,11 +927,7 @@ class Host(DirtyFieldsMixin, models.Model):
             return None
 
     def set_expiration(self, expire_days):
-        if (
-            isinstance(expire_days, int)
-            or isinstance(expire_days, unicode)
-            or isinstance(expire_days, str)
-        ):
+        if isinstance(expire_days, int) or isinstance(expire_days, string_types):
             expire_days = timedelta(int(expire_days))
         now = timezone.now()
         self.expires = (

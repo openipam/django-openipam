@@ -1,12 +1,11 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.db.models import Q, Prefetch
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import DataError
 
 from rest_framework.views import APIView
-from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
@@ -28,11 +27,7 @@ from openipam.network.models import Lease
 from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers import hosts as host_serializers
 from openipam.api.filters.hosts import HostFilter
-from openipam.api.permissions import (
-    IPAMChangeHostPermission,
-    IPAMAPIAdminPermission,
-    IPAMAPIPermission,
-)
+from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -274,7 +269,6 @@ class HostDelete(generics.DestroyAPIView):
         """
         Placeholder method for calling after deleting an object.
         """
-        pass
 
     def perform_destroy(self, instance):
         instance.delete(user=self.request.user)
@@ -448,11 +442,14 @@ class HostAddAttribute(APIView):
             for attr in db_attributes:
                 # Add structured attributes
                 if attr.structured:
-                    existing_atts = StructuredAttributeToHost.objects.filter(
+                    # delete existing attribute values
+                    StructuredAttributeToHost.objects.filter(
                         host=host, structured_attribute_value__attribute=attr
                     ).delete()
                     value = attr.choices.get(value=attributes[attr.name])
-                    structured_attr = StructuredAttributeToHost.objects.create(
+
+                    # create selected attribute values
+                    StructuredAttributeToHost.objects.create(
                         host=host,
                         structured_attribute_value=value,
                         changed_by=request.user,

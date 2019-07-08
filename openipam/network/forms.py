@@ -1,12 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.models import Group
 from django import forms
 
 from openipam.network.models import (
     AddressType,
     DhcpOptionToDhcpGroup,
-    DhcpGroup,
     Address,
     Vlan,
     Building,

@@ -158,7 +158,7 @@ class DisabledLog(models.Model):
 class DjangoAdminLog(models.Model):
     id = models.IntegerField(primary_key=True)
     action_time = models.DateTimeField()
-    user = models.ForeignKey(AuthUser)
+    user = models.ForeignKey("AuthUser")
     content_type = models.ForeignKey("DjangoContentType", null=True, blank=True)
     object_id = models.TextField(blank=True)
     object_repr = models.CharField(max_length=200)

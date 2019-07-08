@@ -35,7 +35,7 @@ class HostLog(BaseLog):
     )
 
     def __unicode__(self):
-        return unicode(self.hostname)
+        return str(self.hostname)
 
     class Meta:
         managed = False
@@ -166,7 +166,7 @@ class AddressLog(BaseLog):
         return host_obj
 
     def __unicode__(self):
-        return unicode(self.address)
+        return str(self.address)
 
     class Meta:
         managed = False

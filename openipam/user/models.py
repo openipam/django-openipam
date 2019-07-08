@@ -1,11 +1,10 @@
-from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
+from django.db.models.signals import post_save, pre_save, pre_delete
 from django.db.models import Q
 from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Permission
@@ -13,7 +12,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Permi
 from operator import or_
 from functools import reduce
 
-from openipam.user.managers import UserToGroupManager, IPAMUserManager
+from openipam.user.managers import IPAMUserManager
 from openipam.user.signals import (
     assign_ipam_groups,
     force_usernames_uppercase,
@@ -113,30 +112,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
             return Domain.objects.by_owner(self, use_groups=True, names_only=True)
 
-    # @cached_property
-    # def network_change_perms(self):
-    #     if self.has_perm('network.change_network') or self.has_perm('network.is_owner_network'):
-    #         return True
-    #     else:
-    #         from openipam.network.models import Network
-    #         return Network.objects.by_change_perms(self, ids_only=True)
-
-    # @cached_property
-    # def domain_change_perms(self):
-    #     if self.has_perm('dns.change_domain') or self.has_perm('dns.is_owner_domain'):
-    #         return True
-    #     else:
-    #         from openipam.dns.models import Domain
-    #         return Domain.objects.by_change_perms(self, names_only=True)
-
-    # @cached_property
-    # def host_change_perms(self):
-    #     if self.has_perm('hosts.change_host') or self.has_perm('dns.is_owner_host'):
-    #         return True
-    #     else:
-    #         from openipam.hosts.models import Host
-    #         return Host.objects.by_change_perms(self, ids_only=True)
-
     def get_auth_user(self):
         try:
             return AuthUser.objects.get(username=self.username)
@@ -174,9 +149,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         else:
             return Permission.objects.none()
 
-    # def get_ipam_groups(self):
-    #     return Group.objects.filter(group_users__user=self)
-
     def email_user(self, subject, message, from_email=None):
         """
         Sends an email to this User.
@@ -207,110 +179,6 @@ class AuthSource(models.Model):
 
     class Meta:
         db_table = "auth_sources"
-
-
-class Permission(models.Model):
-    permission = models.CharField(max_length=8, primary_key=True, db_column="id")
-    name = models.TextField(blank=True)
-    description = models.TextField(blank=True)
-
-    def __unicode__(self):
-        return "%s - %s" % (self.permission, self.name)
-
-    class Meta:
-        db_table = "permissions"
-
-
-# class UserToGroup(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='uid', related_name='user_groups')
-#     group = models.ForeignKey('Group', db_column='gid', related_name='user_groups')
-#     permissions = models.ForeignKey('Permission', db_column='permissions', related_name='user_groups_permissions')
-#     host_permissions = models.ForeignKey('Permission', db_column='host_permissions', related_name='user_groups_host_permissions')
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     objects = UserToGroupManager()
-
-#     def __unicode__(self):
-#         return '%s - %s' % (self.group.name, self.user.username)
-
-#     class Meta:
-#         db_table = 'users_to_groups'
-#         managed = False
-
-
-# class Group(models.Model):
-#     name = models.TextField(unique=True, blank=True)
-#     description = models.TextField(blank=True)
-#     domains = models.ManyToManyField('dns.Domain', through='DomainToGroup', related_name='domain_groups')
-#     hosts = models.ManyToManyField('hosts.Host', through='HostToGroup', related_name='host_groups')
-#     networks = models.ManyToManyField('network.Network', through='NetworkToGroup', related_name='network_groups')
-#     pools = models.ManyToManyField('network.Pool', through='PoolToGroup', related_name='pool_groups')
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     def __unicode__(self):
-#         return self.name
-
-#     class Meta:
-#         db_table = 'groups'
-#         managed = False
-
-
-# class DomainToGroup(models.Model):
-#     domain = models.ForeignKey('dns.Domain', db_column='did')
-#     group = models.ForeignKey('Group', db_column='gid')
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     class Meta:
-#         db_table = 'domains_to_groups'
-#         managed = False
-
-
-# class HostToGroup(models.Model):
-#     host = models.ForeignKey('hosts.Host', db_column='mac')
-#     group = models.ForeignKey('Group', db_column='gid')
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     class Meta:
-#         db_table = 'hosts_to_groups'
-#         managed = False
-
-
-# class NetworkToGroup(models.Model):
-#     network = models.ForeignKey('network.Network', db_column='nid')
-#     group = models.ForeignKey('Group', db_column='gid')
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     class Meta:
-#         db_table = 'networks_to_groups'
-#         managed = False
-
-
-# class PoolToGroup(models.Model):
-#     pool = models.ForeignKey('network.Pool', db_column='pool')
-#     group = models.ForeignKey('Group', db_column='gid')
-
-#     class Meta:
-#         db_table = 'pools_to_groups'
-#         managed = False
-
-
-# class InternalAuth(models.Model):
-#     id = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True,
-#                            db_column='id', related_name='internal_user')
-#     password = models.CharField(max_length=128, db_column='hash')
-#     name = models.CharField(max_length=255, blank=True)
-#     email = models.CharField(max_length=255, blank=True)
-#     changed = models.DateTimeField(auto_now=True)
-#     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column='changed_by')
-
-#     class Meta:
-#         db_table = 'internal_auth'
-#         managed = False
 
 
 # Connect signals

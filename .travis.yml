@@ -1,11 +1,12 @@
+dist: xenial
 language: python
 python:
-  - "3.6"
+  - "3.7"
 
 os: linux
 
 install:
-  - pip install black
+  - pip install pre-commit
 
 script:
-  - black --check openipam
+  - pre-commit run --all-files

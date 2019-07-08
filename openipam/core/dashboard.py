@@ -12,16 +12,12 @@ And to activate the app index dashboard::
 
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse_lazy
-from django.utils.text import capfirst
-from django.contrib import admin
 from django.db.models.aggregates import Count
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
-from admin_tools.menu import items, Menu
-from admin_tools.menu.items import MenuItem
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
@@ -43,30 +39,8 @@ class IPAMIndexDashboard(Dashboard):
 
     def init_with_context(self, context):
 
-        site_name = get_admin_site_name(context)
+        self.site_name = get_admin_site_name(context)
         request = context["request"]
-
-        # append an app list module for "IPAM"
-        # self.children.append(modules.ModelList(
-        #     _('Hosts'),
-        #     models=(
-        #         'openipam.hosts.*',
-        #     ),
-        # ))
-
-        # self.children.append(modules.ModelList(
-        #    _('Network'),
-        #     models=(
-        #         'openipam.network.*',
-        #     ),
-        # ))
-
-        # self.children.append(modules.ModelList(
-        #     _('Domains & DNS'),
-        #     models=(
-        #         'openipam.dns.*',
-        #     ),
-        # ))
 
         # append intro module
         self.children.append(
@@ -75,8 +49,8 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We have provided a <a href="%(feature_request_link)s">feature and bug submission tool</a> to help aid us with features and bugs.
-                            Please use this tool whenever possible as it will give us great feedback.
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> to help aid us with features and bugs.
+                            Please make an issue on GitHub to give us feedback.
                         </p>
                         <p>Item to consider when using the new interface:</p>
                         <ul id="new-interface-list">
@@ -90,7 +64,7 @@ class IPAMIndexDashboard(Dashboard):
                 % {
                     "email": CONFIG.get("EMAIL_ADDRESS"),
                     "legacy_domain": CONFIG.get("LEGACY_DOMAIN"),
-                    "feature_request_link": reverse_lazy("feature_request"),
+                    "feature_request_link": "https://github.com/openipam/django-openipam/issues/",
                 },
             )
         )
@@ -124,21 +98,6 @@ class IPAMIndexDashboard(Dashboard):
         if request.user.is_staff or request.user.is_superuser:
             # append an app list module for "Administration"
             self.children.append(IPAMAppList(_("Administration"), models=()))
-
-        # if request.user.is_superuser:
-        #     # append crap to delete.
-        #     self.children.append(modules.AppList(
-        #         _('TO BE DELETED'),
-        #         models=(
-        #             'openipam.user.models.Permission',
-        #             'openipam.user.models.Group',
-        #             'openipam.user.models.UserToGroup',
-        #             'openipam.user.models.HostToGroup',
-        #             'openipam.user.models.DomainToGroup',
-        #             'openipam.user.models.NetworkToGroup',
-        #             'openipam.user.models.PoolToGroup',
-        #         ),
-        #     ))
 
         # append recent stats module
         hosts = Host.objects.all()
