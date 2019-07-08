@@ -9,11 +9,11 @@ from guardian.models import GroupObjectPermission, UserObjectPermission
 from autocomplete_light import shortcuts as al
 
 
-class OpjectPermissionAdmin(admin.ModelAdmin):
+class ObjectPermissionAdmin(admin.ModelAdmin):
     list_select_related = True
 
     def get_queryset(self, request):
-        qs = super(OpjectPermissionAdmin, self).get_queryset(request)
+        qs = super(ObjectPermissionAdmin, self).get_queryset(request)
         self.group_permissions = GroupObjectPermission.objects.select_related(
             "group", "permission"
         ).filter(content_type__model=self.model._meta.model_name)
@@ -24,7 +24,7 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
 
     def sgroup_permissions(self, obj):
         perms_list = []
-        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.group_permissions)
+        perms = [x for x in self.group_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
                 '<span class="label label-info">%s: %s</span>'
@@ -37,7 +37,7 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
 
     def suser_permissions(self, obj):
         perms_list = []
-        perms = filter(lambda x: int(x.object_pk) == obj.pk, self.user_permissions)
+        perms = [x for x in self.user_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
                 '<span class="label label-info">%s: %s</span>'
@@ -49,7 +49,7 @@ class OpjectPermissionAdmin(admin.ModelAdmin):
     suser_permissions.allow_tags = True
 
 
-class DomainAdmin(OpjectPermissionAdmin, ChangedAdmin):
+class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
     list_display = (
         "name",
         "sgroup_permissions",
@@ -111,18 +111,8 @@ class DhcpDnsRecordAdmin(admin.ModelAdmin):
     form = DhcpDnsRecordForm
 
 
-class DnsTypeAdmin(OpjectPermissionAdmin):
-    list_display = (
-        "name",
-        "description",
-        "min_permission",
-        "sgroup_permissions",
-        "suser_permissions",
-    )
-    list_filter = ("min_permissions__name",)
-
-    def min_permission(self, obj):
-        return "%s" % obj.min_permissions.name
+class DnsTypeAdmin(ObjectPermissionAdmin):
+    list_display = ("name", "description", "sgroup_permissions", "suser_permissions")
 
 
 admin.site.register(DnsView)

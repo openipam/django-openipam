@@ -162,7 +162,7 @@ http://usu.service-now.com (Issue Tracking System)
                 else:
                     users_to_notify[user]["dynamic"].append(host)
 
-        for user, host_types in users_to_notify.items():
+        for user, host_types in list(users_to_notify.items()):
             if not user.email:
                 e_user = populate_user_from_ldap(user=user)
             else:
@@ -170,7 +170,7 @@ http://usu.service-now.com (Issue Tracking System)
             if e_user and e_user.email:
                 mesg_type = "static" if host_types.get("static") else "dynamic"
                 row_hosts = []
-                for host_type, hosts in host_types.items():
+                for host_type, hosts in list(host_types.items()):
                     for host in hosts:
                         row_hosts.append(
                             row_fmt

@@ -58,7 +58,7 @@ class RuleAdmin(SelectRelatedAdmin):
         return ["id"] + self.get_fields(request)
 
 
-for model_name, model in app.models.items():
+for model_name, model in list(app.models.items()):
     if (
         not model_name.endswith("base")
         and not model_name.endswith("log")

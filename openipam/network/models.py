@@ -52,7 +52,7 @@ class Lease(models.Model):
 
     objects = LeaseManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.pk
 
     @property
@@ -100,7 +100,7 @@ class Pool(models.Model):
 
     objects = PoolManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -116,7 +116,7 @@ class DefaultPool(models.Model):
 
     objects = DefaultPoolManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.pool, self.cidr)
 
     class Meta:
@@ -132,7 +132,7 @@ class DhcpGroup(models.Model):
 
     objects = DhcpGroupManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.name
 
     class Meta:
@@ -146,7 +146,7 @@ class DhcpOption(models.Model):
     option = models.CharField(max_length=255, unique=True, blank=True, null=True)
     comment = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s_%s" % (self.id, self.name)
 
     class Meta:
@@ -173,8 +173,43 @@ class DhcpOptionToDhcpGroup(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
-        return "%s:%s=%r" % (self.group.name, self.option.name, str(self.value))
+    @staticmethod
+    def is_displayable_byte(byte):
+        # include normal printables, exclude DEL
+        if byte >= 32 and byte < 127:
+            return True
+        return False
+
+    @classmethod
+    def is_displayable(self, value):
+        return all(self.is_displayable_byte(b) for b in value)
+
+    def displayable_value(self, repr_ascii=False):
+        value = self.value
+        if hasattr(value, "tobytes"):
+            value = value.tobytes()
+        elif isinstance(value, str):
+            value = value.encode()
+
+        use_ascii = self.is_displayable(value)
+
+        if use_ascii:
+            displayable = value.decode(encoding="ascii")
+            if repr_ascii:
+                return repr(displayable)
+            return displayable
+        return "0x" + value.hex()
+
+    @property
+    def value_fordisplay(self):
+        return self.displayable_value(repr_ascii=True)
+
+    @property
+    def value_foredit(self):
+        return self.displayable_value(repr_ascii=False)
+
+    def __str__(self):
+        return "%s:%s=%s" % (self.group.name, self.option.name, self.value_fordisplay)
 
     def get_readable_value(self):
         if self.value:
@@ -193,7 +228,7 @@ class HostToPool(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.host.hostname, self.pool.name)
 
     class Meta:
@@ -206,7 +241,7 @@ class SharedNetwork(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -253,7 +288,7 @@ class Network(models.Model):
     def pk(self):
         return str(self.network)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.network
 
     class Meta:
@@ -269,7 +304,7 @@ class Network(models.Model):
 class NetworkRange(models.Model):
     range = CidrAddressField(unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.range
 
     class Meta:
@@ -286,7 +321,7 @@ class Vlan(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.vlan_id, self.name)
 
     class Meta:
@@ -299,7 +334,7 @@ class NetworkToVlan(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.network, self.vlan)
 
     class Meta:
@@ -315,7 +350,7 @@ class Building(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.number, self.name)
 
     class Meta:
@@ -358,7 +393,7 @@ class Address(models.Model):
     # objects = AddressQuerySet.as_manager()
     objects = AddressManager.from_queryset(AddressQuerySet)()
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.address)
 
     @property
@@ -415,7 +450,7 @@ class AddressType(models.Model):
 
     objects = AddressTypeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
     def clean(self):
