@@ -175,7 +175,7 @@ class HostCreate(generics.CreateAPIView):
         except (ValidationError, DataError) as e:
             error_list = []
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
@@ -231,7 +231,7 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
         except ValidationError as e:
             error_list = []
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(error)
             else:
@@ -438,7 +438,7 @@ class HostAddAttribute(APIView):
         if serializer.is_valid():
             attributes = serializer.data.get("attributes")
             # Get the DB attributes we are going to change
-            db_attributes = Attribute.objects.filter(name__in=attributes.keys())
+            db_attributes = Attribute.objects.filter(name__in=list(attributes.keys()))
             for attr in db_attributes:
                 # Add structured attributes
                 if attr.structured:

@@ -22,8 +22,8 @@ MANAGERS = ADMINS
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 try:
-    from local_settings import *  # noqa: F403,F401
-    from local_settings import OPENIPAM
+    from .local_settings import *  # noqa: F403,F401
+    from .local_settings import OPENIPAM
 except ImportError:
     pass
 

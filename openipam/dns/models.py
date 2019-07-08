@@ -37,7 +37,7 @@ class Domain(models.Model):
 
     objects = DomainQuerySet.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -83,7 +83,7 @@ class DnsRecord(models.Model):
 
     objects = DnsManager.from_queryset(DNSQuerySet)()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @property
@@ -468,7 +468,7 @@ class DnsRecordMunged(models.Model):
     change_date = models.IntegerField(null=True, blank=True)
     view_id = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -485,7 +485,7 @@ class DhcpDnsRecord(models.Model):
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.host_id
 
     class Meta:
@@ -495,11 +495,11 @@ class DhcpDnsRecord(models.Model):
 class DnsType(models.Model):
     name = models.CharField(max_length=16, blank=True, unique=True)
     description = models.TextField(blank=True, null=True)
-    min_permissions = models.ForeignKey("user.Permission", db_column="min_permissions")
+    min_permissions = models.CharField(max_length=8)  # FIXME
 
     objects = DnsTypeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.name
 
     def __getattr__(self, name):
@@ -528,19 +528,11 @@ class DnsType(models.Model):
         verbose_name = "DNS Type"
 
 
-# class DnsTypeUserObjectPermission(UserObjectPermissionBase):
-#     content_object = models.ForeignKey('DnsType', related_name='user_permissions')
-
-
-# class DnsTypeGroupObjectPermission(GroupObjectPermissionBase):
-#     content_object = models.ForeignKey('DnsType', related_name='group_permissions')
-
-
 class DnsView(models.Model):
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.name
 
     class Meta:
@@ -554,7 +546,7 @@ class Supermaster(models.Model):
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey("user.User", db_column="changed_by")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.ip
 
     class Meta:
@@ -570,7 +562,7 @@ class PdnsZoneXfer(models.Model):
     priority = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -588,7 +580,7 @@ class Record(models.Model):
     change_date = models.IntegerField(null=True, blank=True)
     view_id = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.domain_id, self.name)
 
     class Meta:
@@ -606,7 +598,7 @@ class RecordMunged(models.Model):
     change_date = models.IntegerField(null=True, blank=True)
     view_id = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.domain_id, self.name)
 
     class Meta:

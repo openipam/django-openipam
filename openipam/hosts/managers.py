@@ -190,7 +190,7 @@ class HostManager(Manager):
     def get_owners(self, mac):
         host = self.get(mac=mac)
         owners = get_users_with_perms(host, attach_perms=True, with_group_users=False)
-        owners = [k for k, v in owners.items() if "is_owner_host" in v]
+        owners = [k for k, v in list(owners.items()) if "is_owner_host" in v]
         return owners
 
     # TODO!  Finish this and use it for everthing except the web form

@@ -9,7 +9,7 @@ def merge_values(values):
         groups = list(g)
         merged_value = {}
         for group in groups:
-            for key, val in group.iteritems():
+            for key, val in list(group.items()):
                 if not merged_value.get(key):
                     merged_value[key] = val
                 elif val != merged_value[key]:

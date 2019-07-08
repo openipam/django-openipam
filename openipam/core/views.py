@@ -10,7 +10,7 @@ from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import (
     login as auth_login_view,
@@ -258,7 +258,7 @@ class LazyEncoder(DjangoJSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, Promise):
-            return force_unicode(obj)
+            return force_text(obj)
         return super(LazyEncoder, self).default(obj)
 
 

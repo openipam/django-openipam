@@ -24,8 +24,8 @@ class Command(BaseCommand):
 
         default_perms = CONFIG.get("DEFAULT_PERMISSIONS")
 
-        for app, model in default_perms.items():
-            for model, lst in model.items():
+        for app, model in list(default_perms.items()):
+            for model, lst in list(model.items()):
                 for pk in lst:
                     instance = get_model(app, model).objects.get(pk=pk)
                     assign_perm("add_records_to_%s" % model, ipam_user_group, instance)

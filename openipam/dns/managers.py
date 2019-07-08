@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.core.cache import cache
 
 from functools import reduce
@@ -247,7 +247,7 @@ class DnsManager(Manager):
                 user_id=user.pk,
                 content_type_id=ContentType.objects.get_for_model(self.model).pk,
                 object_id=dns_record.pk,
-                object_repr=force_unicode(dns_record),
+                object_repr=force_text(dns_record),
                 action_flag=ADDITION if created else CHANGE,
             )
 

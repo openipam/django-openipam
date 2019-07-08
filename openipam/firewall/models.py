@@ -28,7 +28,7 @@ class ChainPatternBase(models.Model):
     pattern = models.CharField(unique=True, max_length=64)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.pattern
 
     class Meta:
@@ -53,7 +53,7 @@ class ChainBase(models.Model):
     builtin = models.BooleanField(default=False)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.tbl:
             return "%s|%s" % (self.tbl, self.name)
         return self.name
@@ -78,7 +78,7 @@ class ChainLog(LogBase, ChainBase):
 class FirewallBase(models.Model):
     name = models.CharField(unique=True, max_length=255)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -101,7 +101,7 @@ class FirewallToChainPatternBase(models.Model):
     fw = models.ForeignKey(Firewall, db_column="fw")
     pat = models.ForeignKey(ChainPattern, db_column="pat")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s(%s)" % (self.fw.name, self.pat.pattern)
 
     class Meta:
@@ -132,7 +132,7 @@ class HostBase(models.Model):
     is_group = models.BooleanField(default=False)
     last_check = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -157,7 +157,7 @@ class HostToGroupBase(models.Model):
     hid = models.ForeignKey(Host, db_column="hid", related_name="%(class)s_hosts")
     expires = models.DateTimeField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s(%s)" % (self.gid.name, self.hid.name)
 
     class Meta:
@@ -181,7 +181,7 @@ class InterfaceBase(models.Model):
     name = models.CharField(unique=True, max_length=32)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -341,7 +341,7 @@ class TablesBase(models.Model):
     name = models.CharField(unique=True, max_length=32)
     description = models.CharField(max_length=2048, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -365,7 +365,7 @@ class UsersBase(models.Model):
     email = models.CharField(max_length=512, blank=True, null=True)
     a_number = models.CharField(max_length=9, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.a_number, self.name)
 
     class Meta:

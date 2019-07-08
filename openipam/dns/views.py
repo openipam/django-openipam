@@ -174,7 +174,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         )
 
         def get_dns_types(dtype):
-            # dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:
@@ -423,7 +422,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
                 except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -443,7 +442,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
                 except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -513,7 +512,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                 )
             except ValidationError as e:
                 if hasattr(e, "error_dict"):
-                    for key, errors in e.message_dict.items():
+                    for key, errors in list(e.message_dict.items()):
                         for error in errors:
                             error_list.append(error)
                 else:
