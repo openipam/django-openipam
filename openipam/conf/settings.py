@@ -280,6 +280,8 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {"JWT_LEEWAY": 60, "JWT_EXPIRATION_DELTA": datetime.timedelta(hours=4)}
 
+SWAGGER_SETTINGS = {"DOC_EXPANSION": "none"}
+
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"

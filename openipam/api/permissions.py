@@ -41,6 +41,9 @@ class IPAMAPIPermission(permissions.BasePermission):
 class IPAMChangeHostPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)
+        # Hack for API Docs
+        if not pk:
+            return True
         permited_host = Host.objects.by_change_perms(request.user, pk=pk)
         return True if permited_host else False
 

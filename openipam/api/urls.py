@@ -290,6 +290,10 @@ urlpatterns = [
         r"^login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     url(r"^login/jwt_token/", views.base.obtain_jwt_token),
-    url(r"^docs", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    url(
+        r"^docs",
+        schema_view.with_ui("swagger", cache_timeout=None),
+        name="schema-swagger",
+    ),
     url(r"^", include("rest_framework.urls", namespace="rest_framework")),
 ]
