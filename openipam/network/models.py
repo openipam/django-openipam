@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 from django.utils import timezone
 
