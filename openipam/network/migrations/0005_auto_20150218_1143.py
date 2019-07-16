@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.db.models.deletion
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             model_name="network",
             name="search_index",
             field=djorm_pgfulltext.fields.VectorField(
-                default=b"", serialize=False, null=True, editable=False, db_index=True
+                default="", serialize=False, null=True, editable=False, db_index=True
             ),
             preserve_default=True,
         ),
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="addresses",
                 on_delete=django.db.models.deletion.SET_NULL,
-                db_column=b"mac",
+                db_column="mac",
                 blank=True,
                 to="hosts.Host",
                 null=True,
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
             model_name="address",
             name="network",
             field=models.ForeignKey(
-                related_name="net_addresses", db_column=b"network", to="network.Network"
+                related_name="net_addresses", db_column="network", to="network.Network"
             ),
             preserve_default=True,
         ),
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
             name="group",
             field=models.ForeignKey(
                 related_name="option_values",
-                db_column=b"gid",
+                db_column="gid",
                 blank=True,
                 to="network.DhcpGroup",
                 null=True,
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
             name="option",
             field=models.ForeignKey(
                 related_name="group_values",
-                db_column=b"oid",
+                db_column="oid",
                 blank=True,
                 to="network.DhcpOption",
                 null=True,
@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             model_name="hosttopool",
             name="host",
             field=models.ForeignKey(
-                related_name="host_pools", db_column=b"mac", to="hosts.Host"
+                related_name="host_pools", db_column="mac", to="hosts.Host"
             ),
             preserve_default=True,
         ),
@@ -116,7 +116,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="leases",
                 primary_key=True,
-                db_column=b"address",
+                db_column="address",
                 serialize=False,
                 to="network.Address",
             ),
@@ -128,7 +128,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="leases",
                 null=True,
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 to="hosts.Host",
                 unique=True,

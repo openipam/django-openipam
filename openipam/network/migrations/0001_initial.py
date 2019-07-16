@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import netfields.fields
@@ -29,21 +29,21 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
                 (
                     "host",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.SET_NULL,
-                        db_column=b"mac",
+                        db_column="mac",
                         blank=True,
                         to="hosts.Host",
                         null=True,
                     ),
                 ),
             ],
-            options={"db_table": b"addresses", "verbose_name_plural": b"addresses"},
+            options={"db_table": "addresses", "verbose_name_plural": "addresses"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                 ("description", models.TextField(blank=True)),
                 ("is_default", models.BooleanField(default=False)),
             ],
-            options={"ordering": (b"name",), "db_table": b"addresstypes"},
+            options={"ordering": ("name",), "db_table": "addresstypes"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
                 ),
                 ("cidr", netfields.fields.CidrAddressField(unique=True, max_length=43)),
             ],
-            options={"db_table": b"default_pools"},
+            options={"db_table": "default_pools"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -100,11 +100,11 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"dhcp_groups", "verbose_name": b"DHCP group"},
+            options={"db_table": "dhcp_groups", "verbose_name": "DHCP group"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -134,7 +134,7 @@ class Migration(migrations.Migration):
                 ),
                 ("comment", models.TextField(null=True, blank=True)),
             ],
-            options={"db_table": b"dhcp_options", "verbose_name": b"DHCP option"},
+            options={"db_table": "dhcp_options", "verbose_name": "DHCP option"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -154,11 +154,11 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"dhcp_options_to_dhcp_groups"},
+            options={"db_table": "dhcp_options_to_dhcp_groups"},
             bases=(models.Model,),
         ),
         migrations.AddField(
@@ -173,7 +173,7 @@ class Migration(migrations.Migration):
             model_name="dhcpoptiontodhcpgroup",
             name="group",
             field=models.ForeignKey(
-                db_column=b"gid", blank=True, to="network.DhcpGroup", null=True
+                db_column="gid", blank=True, to="network.DhcpGroup", null=True
             ),
             preserve_default=True,
         ),
@@ -181,7 +181,7 @@ class Migration(migrations.Migration):
             model_name="dhcpoptiontodhcpgroup",
             name="option",
             field=models.ForeignKey(
-                db_column=b"oid", blank=True, to="network.DhcpOption", null=True
+                db_column="oid", blank=True, to="network.DhcpOption", null=True
             ),
             preserve_default=True,
         ),
@@ -201,12 +201,12 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
-                ("host", models.ForeignKey(to="hosts.Host", db_column=b"mac")),
+                ("host", models.ForeignKey(to="hosts.Host", db_column="mac")),
             ],
-            options={"db_table": b"hosts_to_pools"},
+            options={"db_table": "hosts_to_pools"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -216,7 +216,7 @@ class Migration(migrations.Migration):
                     "address",
                     models.ForeignKey(
                         primary_key=True,
-                        db_column=b"address",
+                        db_column="address",
                         serialize=False,
                         to="network.Address",
                     ),
@@ -228,11 +228,11 @@ class Migration(migrations.Migration):
                 (
                     "host",
                     models.ForeignKey(
-                        null=True, db_column=b"mac", to="hosts.Host", unique=True
+                        null=True, db_column="mac", to="hosts.Host", unique=True
                     ),
                 ),
             ],
-            options={"db_table": b"leases"},
+            options={"db_table": "leases"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -256,13 +256,13 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
                 (
                     "dhcp_group",
                     models.ForeignKey(
-                        db_column=b"dhcp_group",
+                        db_column="dhcp_group",
                         blank=True,
                         to="network.DhcpGroup",
                         null=True,
@@ -270,11 +270,11 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": (b"network",),
-                "db_table": b"networks",
+                "ordering": ("network",),
+                "db_table": "networks",
                 "permissions": (
-                    (b"is_owner_network", b"Is owner"),
-                    (b"add_records_to_network", b"Can add records to"),
+                    ("is_owner_network", "Is owner"),
+                    ("add_records_to_network", "Can add records to"),
                 ),
             },
             bases=(models.Model,),
@@ -282,7 +282,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="address",
             name="network",
-            field=models.ForeignKey(to="network.Network", db_column=b"network"),
+            field=models.ForeignKey(to="network.Network", db_column="network"),
             preserve_default=True,
         ),
         migrations.CreateModel(
@@ -302,7 +302,7 @@ class Migration(migrations.Migration):
                     netfields.fields.CidrAddressField(unique=True, max_length=43),
                 ),
             ],
-            options={"db_table": b"network_ranges"},
+            options={"db_table": "network_ranges"},
             bases=(models.Model,),
         ),
         migrations.AddField(
@@ -320,7 +320,7 @@ class Migration(migrations.Migration):
                     "network",
                     models.ForeignKey(
                         primary_key=True,
-                        db_column=b"network",
+                        db_column="network",
                         serialize=False,
                         to="network.Network",
                     ),
@@ -329,11 +329,11 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"networks_to_vlans"},
+            options={"db_table": "networks_to_vlans"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -356,7 +356,7 @@ class Migration(migrations.Migration):
                 (
                     "dhcp_group",
                     models.ForeignKey(
-                        db_column=b"dhcp_group",
+                        db_column="dhcp_group",
                         blank=True,
                         to="network.DhcpGroup",
                         null=True,
@@ -364,8 +364,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "db_table": b"pools",
-                "permissions": ((b"add_records_to_pool", b"Can add records to"),),
+                "db_table": "pools",
+                "permissions": (("add_records_to_pool", "Can add records to"),),
             },
             bases=(models.Model,),
         ),
@@ -392,7 +392,7 @@ class Migration(migrations.Migration):
             name="pool",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.SET_NULL,
-                db_column=b"pool",
+                db_column="pool",
                 blank=True,
                 to="network.Pool",
                 null=True,
@@ -417,18 +417,18 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"shared_networks"},
+            options={"db_table": "shared_networks"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="network",
             name="shared_network",
             field=models.ForeignKey(
-                db_column=b"shared_network",
+                db_column="shared_network",
                 blank=True,
                 to="network.SharedNetwork",
                 null=True,
@@ -445,17 +445,17 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"vlans"},
+            options={"db_table": "vlans"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="networktovlan",
             name="vlan",
-            field=models.ForeignKey(to="network.Vlan", db_column=b"vlan"),
+            field=models.ForeignKey(to="network.Vlan", db_column="vlan"),
             preserve_default=True,
         ),
         migrations.AddField(
