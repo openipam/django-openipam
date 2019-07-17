@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "attribute",
-                    models.IntegerField(null=True, db_column=b"aid", blank=True),
+                    models.IntegerField(null=True, db_column="aid", blank=True),
                 ),
                 ("name", models.CharField(max_length=255, null=True, blank=True)),
                 ("structured", models.BooleanField(default=None)),
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="disabled_host",
                 primary_key=True,
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 serialize=False,
                 to="hosts.Host",
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
             model_name="freeformattributetohost",
             name="host",
             field=models.ForeignKey(
-                related_name="freeform_attributes", db_column=b"mac", to="hosts.Host"
+                related_name="freeform_attributes", db_column="mac", to="hosts.Host"
             ),
             preserve_default=True,
         ),
@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="ip_history",
                 primary_key=True,
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 serialize=False,
                 to="hosts.Host",
@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 related_name="mac_history",
                 primary_key=True,
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 serialize=False,
                 to="hosts.Host",
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
             model_name="host",
             name="mac",
             field=netfields.fields.MACAddressField(
-                serialize=False, verbose_name=b"Mac Address", primary_key=True
+                serialize=False, verbose_name="Mac Address", primary_key=True
             ),
             preserve_default=True,
         ),
@@ -125,7 +125,7 @@ class Migration(migrations.Migration):
             model_name="structuredattributetohost",
             name="host",
             field=models.ForeignKey(
-                related_name="structured_attributes", db_column=b"mac", to="hosts.Host"
+                related_name="structured_attributes", db_column="mac", to="hosts.Host"
             ),
             preserve_default=True,
         ),
@@ -133,7 +133,7 @@ class Migration(migrations.Migration):
             model_name="structuredattributevalue",
             name="attribute",
             field=models.ForeignKey(
-                related_name="choices", db_column=b"aid", to="hosts.Attribute"
+                related_name="choices", db_column="aid", to="hosts.Attribute"
             ),
             preserve_default=True,
         ),
