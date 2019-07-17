@@ -226,7 +226,7 @@ class VlanViewSet(viewsets.ModelViewSet):
 
 
 class BuildingViewSet(viewsets.ModelViewSet):
-    queryset = Building.objects.all()
+    queryset = Building.objects.select_related("changed_by").all()
     filter_backends = (filters.SearchFilter,)
     filter_fields = ("name", "number")
     lookup_field = "number"
@@ -239,7 +239,9 @@ class BuildingViewSet(viewsets.ModelViewSet):
 
 
 class BuildingToVlanViewSet(viewsets.ModelViewSet):
-    queryset = BuildingToVlan.objects.all()
+    queryset = BuildingToVlan.objects.select_related(
+        "building", "vlan", "changed_by"
+    ).all()
     lookup_field = "bulding__number"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
