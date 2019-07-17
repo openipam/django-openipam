@@ -128,7 +128,7 @@ class NetworkRangeDeleteSerializer(serializers.ModelSerializer):
 
 class NetworkToVlanSerializer(serializers.ModelSerializer):
     network = CidrAddressField()
-    vlan = serializers.CharField()
+    vlan = serializers.SerializerMethodField()
 
     def validate_vlan(self, value):
         if value:
@@ -154,6 +154,9 @@ class NetworkToVlanSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data["changed_by"] = self.context["request"].user
         return super(NetworkToVlanSerializer, self).update(instance, validated_data)
+
+    def get_vlan(self, obj):
+        return obj.vlan_id
 
     class Meta:
         model = NetworkToVlan
