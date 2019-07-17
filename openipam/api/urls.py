@@ -56,7 +56,7 @@ router.register(r"pools?", views.network.PoolViewSet)
 router.register(r"defaultpools?", views.network.DefaultPoolViewSet)
 router.register(r"vlans?", views.network.VlanViewSet)
 router.register(r"buildings?", views.network.BuildingViewSet)
-router.register(r"buildings?tovlans?", views.network.BuildingViewSet)
+router.register(r"buildings?tovlans?", views.network.BuildingToVlanViewSet)
 
 urlpatterns = [
     url(r"^", include(router.urls)),
