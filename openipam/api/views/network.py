@@ -21,6 +21,8 @@ from openipam.network.models import (
     NetworkToVlan,
     Pool,
     DefaultPool,
+    Building,
+    BuildingToVlan,
 )
 from openipam.api.views.base import APIPagination
 from openipam.api.serializers import network as network_serializers
@@ -221,6 +223,30 @@ class VlanViewSet(viewsets.ModelViewSet):
         if self.action == "destroy":
             return network_serializers.VlanDeleteSerializer
         return network_serializers.VlanSerializer
+
+
+class BuildingViewSet(viewsets.ModelViewSet):
+    queryset = Building.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    filter_fields = ("name", "number")
+    lookup_field = "number"
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def get_serializer_class(self):
+        if self.action == "destroy":
+            return network_serializers.BuildingDeleteSerializer
+        return network_serializers.BuildingSerializer
+
+
+class BuildingToVlanViewSet(viewsets.ModelViewSet):
+    queryset = BuildingToVlan.objects.all()
+    lookup_field = "bulding__number"
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def get_serializer_class(self):
+        if self.action == "destroy":
+            return network_serializers.BuildingToVlanDeleteSerializer
+        return network_serializers.BuildingToVlanSerializer
 
 
 class PoolViewSet(viewsets.ModelViewSet):
