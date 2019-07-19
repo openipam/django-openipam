@@ -202,8 +202,8 @@ class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
 class SharedNetworkViewSet(viewsets.ModelViewSet):
     queryset = SharedNetwork.objects.all()
     filter_backends = (filters.SearchFilter,)
-    filter_fields = ("name",)
-    lookup_field = "name"
+    filter_fields = ("id",)
+    lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
