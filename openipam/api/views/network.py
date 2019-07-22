@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 
 from rest_framework import generics
-from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
