@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 
 from rest_framework import generics
-from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
@@ -123,7 +122,6 @@ class AddressList(generics.ListAPIView):
     queryset = Address.objects.select_related().all()
     serializer_class = network_serializers.AddressSerializer
     pagination_class = APIPagination
-    filter_backends = (filters.SearchFilter,)
     filter_fields = ("address", "mac")
 
 
@@ -167,7 +165,6 @@ class AddressUpdate(generics.RetrieveUpdateAPIView):
 
 class DhcpGroupViewSet(viewsets.ModelViewSet):
     queryset = DhcpGroup.objects.select_related().prefetch_related("dhcp_options").all()
-    filter_backends = (filters.SearchFilter,)
     filter_fields = ("name",)
     lookup_field = "name"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
@@ -180,7 +177,6 @@ class DhcpGroupViewSet(viewsets.ModelViewSet):
 
 class DhcpOptionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DhcpOption.objects.all()
-    filter_backends = (filters.SearchFilter,)
     filter_fields = ("option",)
     lookup_field = "option"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
@@ -189,8 +185,7 @@ class DhcpOptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
     queryset = DhcpOptionToDhcpGroup.objects.all()
-    filter_backends = (filters.SearchFilter,)
-    filter_fields = ("name",)
+    filter_fields = ("group__name", "option__name")
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
@@ -201,9 +196,8 @@ class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
 
 class SharedNetworkViewSet(viewsets.ModelViewSet):
     queryset = SharedNetwork.objects.all()
-    filter_backends = (filters.SearchFilter,)
-    filter_fields = ("name",)
-    lookup_field = "name"
+    filter_fields = ("id", "name")
+    lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
@@ -214,9 +208,8 @@ class SharedNetworkViewSet(viewsets.ModelViewSet):
 
 class VlanViewSet(viewsets.ModelViewSet):
     queryset = Vlan.objects.all()
-    filter_backends = (filters.SearchFilter,)
-    filter_fields = ("name",)
-    lookup_field = "name"
+    filter_fields = ("name", "vlan_id", "id")
+    lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
@@ -227,8 +220,7 @@ class VlanViewSet(viewsets.ModelViewSet):
 
 class BuildingViewSet(viewsets.ModelViewSet):
     queryset = Building.objects.select_related("changed_by").all()
-    filter_backends = (filters.SearchFilter,)
-    filter_fields = ("name", "number")
+    filter_fields = ("number", "abbreviation")
     lookup_field = "number"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -242,6 +234,7 @@ class BuildingToVlanViewSet(viewsets.ModelViewSet):
     queryset = BuildingToVlan.objects.select_related(
         "building", "vlan", "changed_by"
     ).all()
+    filter_fields = ("vlan__id", "vlan__vlan_id", "building__number")
     lookup_field = "bulding__number"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -253,7 +246,6 @@ class BuildingToVlanViewSet(viewsets.ModelViewSet):
 
 class PoolViewSet(viewsets.ModelViewSet):
     queryset = Pool.objects.all()
-    filter_backends = (filters.SearchFilter,)
     filter_fields = ("name",)
     lookup_field = "name"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)

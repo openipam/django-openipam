@@ -31,7 +31,7 @@ class NetworkListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Network
-        fields = ("network", "name", "description")
+        fields = "__all__"
 
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
