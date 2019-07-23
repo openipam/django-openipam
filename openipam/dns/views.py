@@ -174,7 +174,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         )
 
         def get_dns_types(dtype):
-            # dns_types = DnsType.objects.exclude(min_permissions__name='NONE')
             types_html = []
             for dns_type in dns_types:
                 if dns_type == dtype:
@@ -421,9 +420,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                         ttl=new_ttls[index],
                     )
 
-                except ValidationError, e:
+                except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -433,22 +432,17 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             # Updated records
             for record in selected_records:
                 try:
-                    dns_type_pk = request.POST.get("type-%s" % record, "")
-                    if not dns_type_pk:
-                        raise ValidationError("A Dns Type is required.")
-
                     dns_record, created = DnsRecord.objects.add_or_update_record(
                         user=request.user,
                         name=request.POST.get("name-%s" % record, ""),
                         content=request.POST.get("content-%s" % record, ""),
-                        dns_type=DnsType.objects.get(pk=int(dns_type_pk)),
                         ttl=request.POST.get("ttl-%s" % record, ""),
                         record=record,
                     )
 
-                except ValidationError, e:
+                except ValidationError as e:
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(str(error).capitalize())
                     else:
@@ -516,9 +510,9 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     ttl=form.cleaned_data["ttl"],
                     record=self.record.pk if hasattr(self.record, "pk") else None,
                 )
-            except ValidationError, e:
+            except ValidationError as e:
                 if hasattr(e, "error_dict"):
-                    for key, errors in e.message_dict.items():
+                    for key, errors in list(e.message_dict.items()):
                         for error in errors:
                             error_list.append(error)
                 else:

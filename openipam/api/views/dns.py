@@ -1,12 +1,10 @@
 from django.db import DataError
 from django.core.exceptions import ValidationError
-from django.contrib.admin.models import LogEntry, CHANGE, DELETION
-from django.utils.encoding import force_unicode
+from django.contrib.admin.models import DELETION, LogEntry
+from django.utils.encoding import force_text
 from django.contrib.contenttypes.models import ContentType
 
-from rest_framework.views import APIView
 from rest_framework import generics
-from rest_framework import filters
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -92,7 +90,7 @@ class DnsCreate(generics.CreateAPIView):
         except (ValidationError, DataError) as e:
             error_list = []
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
@@ -123,7 +121,7 @@ class DnsDelete(generics.DestroyAPIView):
             user_id=self.request.user.pk,
             content_type_id=ContentType.objects.get_for_model(obj).pk,
             object_id=obj.pk,
-            object_repr=force_unicode(obj),
+            object_repr=force_text(obj),
             action_flag=DELETION,
             change_message="API Delete call.",
         )

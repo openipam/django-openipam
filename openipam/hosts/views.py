@@ -9,7 +9,7 @@ from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 from django.utils.http import urlunquote
 from django.utils import timezone
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.db import transaction
@@ -37,7 +37,7 @@ from openipam.hosts.forms import (
     HostDhcpGroupForm,
 )
 from openipam.hosts.models import Host, Disabled
-from openipam.network.models import AddressType, Address, Network
+from openipam.network.models import Address, AddressType
 from openipam.hosts.actions import (
     delete_hosts,
     renew_hosts,
@@ -55,37 +55,12 @@ from openipam.conf.ipam_settings import CONFIG
 
 from braces.views import PermissionRequiredMixin, SuperuserRequiredMixin
 
-from itertools import izip_longest
+from itertools import zip_longest
 
 import json
 import re
 import csv
 import collections
-
-# from django.db.models.sql.aggregates import Aggregate as SQLAggregate
-# from django.db.models import Aggregate
-# from django.db.models import DecimalField
-
-# class SQLArrayAgg(SQLAggregate):
-
-#     sql_function = 'array_agg'
-#     sql_template = '%(function)s(%(distinct)s%(field)s)'
-
-#     def __init__(self, col, distinct=False, **extra):
-#         super(SQLArrayAgg, self).__init__(col, distinct=(
-#                                                distinct and 'DISTINCT ' or ''),
-#                                           **extra)
-# class ArrayAgg(Aggregate):
-
-#     name = 'ArrayAgg'
-
-#     def add_to_query(self, query, alias, col, source, is_summary):
-#         klass = SQLArrayAgg
-#         aggregate = klass(
-#             col, source=source, is_summary=is_summary, **self.extra)
-#         aggregate.field = DecimalField() # vomit
-#         query.aggregates[alias] = aggregate
-
 
 User = get_user_model()
 
@@ -158,7 +133,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     qs = qs.filter(mac__startswith=mac_str.lower())
                 elif search_item.startswith("ip:"):
                     ip = search_str
-                    ip_blocks = filter(None, ip.split("."))
+                    ip_blocks = [_f for _f in ip.split(".") if _f]
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(addresses__address__istartswith=".".join(ip_blocks))
@@ -179,12 +154,14 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                         qs = qs.filter(
                             addresses__address__net_contained_or_equal=search_str
                         ).distinct()
-                elif search_item.startswith("sattr:"):
-                    qs = qs.filter(freeform_attributes__value=search_str)
                 elif search_item.startswith("fattr:"):
+                    qs = qs.filter(freeform_attributes__value=search_str)
+                elif search_item.startswith("sattr:"):
                     qs = qs.filter(
                         structured_attributes__structured_attribute_value__value=search_str
                     )
+                elif search_item.startswith("atype:"):
+                    qs = qs.filter(address_type_id=search_str)
                 elif search_item:
                     like_search_term = search_item + "%"
                     cursor = connection.cursor()
@@ -248,7 +225,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 # Split to list to put back togethor with :
                 mac_str = iter(mac_str)
                 mac_str = ":".join(
-                    a + b for a, b in izip_longest(mac_str, mac_str, fillvalue="")
+                    a + b for a, b in zip_longest(mac_str, mac_str, fillvalue="")
                 )
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
@@ -280,7 +257,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 else:
                     ip = ip_search.split(":")[-1]
                     tail_dot = "." if ip[-1] == "." else ""
-                    ip_blocks = filter(None, ip.split("."))
+                    ip_blocks = [_f for _f in ip.split(".") if _f]
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(
@@ -359,7 +336,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 "Returns all rows from a cursor as a dict"
                 desc = cursor.description
                 return [
-                    dict(zip([col[0] for col in desc], row))
+                    dict(list(zip([col[0] for col in desc], row)))
                     for row in cursor.fetchall()
                 ]
 
@@ -707,7 +684,7 @@ class HostUpdateCreateMixin(object):
             error_list = form._errors.setdefault(NON_FIELD_ERRORS, ErrorList())
 
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(error)
             else:
@@ -739,7 +716,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             user_id=self.object.user.pk,
             content_type_id=ContentType.objects.get_for_model(self.object).pk,
             object_id=self.object.pk,
-            object_repr=force_unicode(self.object),
+            object_repr=force_text(self.object),
             action_flag=CHANGE,
             change_message=original_object,
         )
@@ -772,7 +749,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             user_id=self.object.user.pk,
             content_type_id=ContentType.objects.get_for_model(self.object).pk,
             object_id=self.object.pk,
-            object_repr=force_unicode(self.object),
+            object_repr=force_text(self.object),
             action_flag=ADDITION,
         )
 
@@ -868,7 +845,7 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(str(error))
             else:
@@ -1013,21 +990,21 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                     try:
                         Host.objects.add_or_update_host(self.request.user, **host)
-                    except Exception, e:
+                    except Exception as e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
                         raise ValidationError
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
-                for key, errors in e.message_dict.items():
+                for key, errors in list(e.message_dict.items()):
                     for error in errors:
                         error_list.append(str(error))
             else:
                 error_list.append(str(e.message))
 
             pretty_print = []
-            for k, v in host.items():
+            for k, v in list(host.items()):
                 pretty_print.append("%s: %r" % (k, v))
 
             error_list.append("values: " + ", ".join(pretty_print))

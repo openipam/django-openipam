@@ -1,5 +1,4 @@
-from django.db.models import Q
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 
@@ -87,7 +86,7 @@ class DnsCreateSerializer(serializers.ModelSerializer):
             user_id=self.context["request"].user.pk,
             content_type_id=ContentType.objects.get_for_model(self.instance).pk,
             object_id=self.instance.pk,
-            object_repr=force_unicode(self.instance),
+            object_repr=force_text(self.instance),
             action_flag=ADDITION if is_new else CHANGE,
             change_message="API call.",
         )

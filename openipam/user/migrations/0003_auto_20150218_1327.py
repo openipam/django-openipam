@@ -71,12 +71,12 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         related_name="internal_user",
                         primary_key=True,
-                        db_column=b"id",
+                        db_column="id",
                         serialize=False,
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
-                ("password", models.CharField(max_length=128, db_column=b"hash")),
+                ("password", models.CharField(max_length=128, db_column="hash")),
                 ("name", models.CharField(max_length=255, blank=True)),
                 ("email", models.CharField(max_length=255, blank=True)),
                 ("changed", models.DateTimeField(auto_now=True)),
@@ -150,7 +150,7 @@ class Migration(migrations.Migration):
             name="source",
             field=models.ForeignKey(
                 related_name="group",
-                db_column=b"source",
+                db_column="source",
                 default=1,
                 to="user.AuthSource",
             ),
@@ -174,7 +174,7 @@ class Migration(migrations.Migration):
             name="min_permissions",
             field=models.ForeignKey(
                 related_name="user_min_permissions",
-                db_column=b"min_permissions",
+                db_column="min_permissions",
                 blank=True,
                 to="user.Permission",
                 null=True,
@@ -185,7 +185,7 @@ class Migration(migrations.Migration):
             model_name="user",
             name="source",
             field=models.ForeignKey(
-                db_column=b"source", blank=True, to="user.AuthSource", null=True
+                db_column="source", blank=True, to="user.AuthSource", null=True
             ),
             preserve_default=True,
         ),

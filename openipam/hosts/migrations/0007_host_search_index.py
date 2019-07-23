@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations
 import djorm_pgfulltext.fields
 
 
@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             model_name="host",
             name="search_index",
             field=djorm_pgfulltext.fields.VectorField(
-                default=b"", serialize=False, null=True, editable=False, db_index=True
+                default="", serialize=False, null=True, editable=False, db_index=True
             ),
             preserve_default=True,
         )

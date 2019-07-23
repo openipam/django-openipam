@@ -25,6 +25,8 @@ env/local
 env/src
 env/share
 env/include
+.venv/*
+!.venv/.gitkeep
 
 # Installer logs
 pip-log.txt

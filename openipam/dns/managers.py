@@ -5,8 +5,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.core.cache import cache
+
+from functools import reduce
 
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 
@@ -180,7 +182,7 @@ class DNSQuerySet(QuerySet):
 
 class DnsManager(Manager):
     def add_or_update_record(
-        self, user, name, content, dns_type, host=None, ttl=None, record=None
+        self, user, name, content, dns_type=None, host=None, ttl=None, record=None
     ):
         from openipam.network.models import Address
         from openipam.hosts.models import Host
@@ -199,10 +201,12 @@ class DnsManager(Manager):
             dns_record.changed_by = user
 
             # Clear content if we are changing dnstype
-            if created is False and dns_record.dns_type != dns_type:
+            if created is False and dns_type and dns_type != dns_record.dns_type:
                 dns_record.clear_content()
 
-            dns_record.dns_type = dns_type
+            # Change dns_type if not None
+            if dns_type:
+                dns_record.dns_type = dns_type
 
             if not content:
                 raise ValidationError("Content is required to create a DNS record.")
@@ -243,7 +247,7 @@ class DnsManager(Manager):
                 user_id=user.pk,
                 content_type_id=ContentType.objects.get_for_model(self.model).pk,
                 object_id=dns_record.pk,
-                object_repr=force_unicode(dns_record),
+                object_repr=force_text(dns_record),
                 action_flag=ADDITION if created else CHANGE,
             )
 

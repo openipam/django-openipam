@@ -67,7 +67,7 @@ def changed_delete_selected(modeladmin, request, queryset):
         title=title,
         objects_name=objects_name,
         deletable_objects=[deletable_objects],
-        model_count=dict(model_count).items(),
+        model_count=list(dict(model_count).items()),
         queryset=queryset,
         perms_lacking=perms_needed,
         protected=protected,

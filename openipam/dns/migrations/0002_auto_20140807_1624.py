@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             model_name="dhcpdnsrecord",
             name="ip_content",
             field=models.ForeignKey(
-                db_column=b"ip_content", blank=True, to="network.Address", null=True
+                db_column="ip_content", blank=True, to="network.Address", null=True
             ),
             preserve_default=True,
         ),
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             model_name="dhcpdnsrecord",
             name="name",
             field=models.ForeignKey(
-                db_column=b"name", to_field=b"hostname", to="hosts.Host", unique=True
+                db_column="name", to_field="hostname", to="hosts.Host", unique=True
             ),
             preserve_default=True,
         ),
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         max_length=255,
                         error_messages={
-                            b"blank": b"Name fields for DNS records cannot be blank."
+                            "blank": "Name fields for DNS records cannot be blank."
                         },
                     ),
                 ),
@@ -60,38 +60,36 @@ class Migration(migrations.Migration):
                 ("ttl", models.IntegerField(default=86400, null=True, blank=True)),
                 (
                     "priority",
-                    models.IntegerField(
-                        null=True, verbose_name=b"Priority", blank=True
-                    ),
+                    models.IntegerField(null=True, verbose_name="Priority", blank=True),
                 ),
                 ("changed", models.DateTimeField(auto_now=True)),
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
                 (
                     "host",
                     models.ForeignKey(
-                        db_column=b"mac", blank=True, to="hosts.Host", null=True
+                        db_column="mac", blank=True, to="hosts.Host", null=True
                     ),
                 ),
                 (
                     "ip_content",
                     models.ForeignKey(
-                        db_column=b"ip_content",
+                        db_column="ip_content",
                         blank=True,
                         to="network.Address",
                         null=True,
-                        verbose_name=b"IP Content",
+                        verbose_name="IP Content",
                     ),
                 ),
             ],
             options={
-                "ordering": (b"dns_type", b"name"),
-                "db_table": b"dns_records",
-                "verbose_name": b"DNS Record",
+                "ordering": ("dns_type", "name"),
+                "db_table": "dns_records",
+                "verbose_name": "DNS Record",
             },
             bases=(models.Model,),
         ),
@@ -112,15 +110,15 @@ class Migration(migrations.Migration):
                 (
                     "min_permissions",
                     models.ForeignKey(
-                        to="user.Permission", db_column=b"min_permissions"
+                        to="user.Permission", db_column="min_permissions"
                     ),
                 ),
             ],
             options={
-                "ordering": (b"name",),
-                "db_table": b"dns_types",
-                "verbose_name": b"DNS Type",
-                "permissions": ((b"add_records_to_dnstype", b"Can add records to"),),
+                "ordering": ("name",),
+                "db_table": "dns_types",
+                "verbose_name": "DNS Type",
+                "permissions": (("add_records_to_dnstype", "Can add records to"),),
             },
             bases=(models.Model,),
         ),
@@ -128,10 +126,10 @@ class Migration(migrations.Migration):
             model_name="dnsrecord",
             name="dns_type",
             field=models.ForeignKey(
-                db_column=b"tid",
-                verbose_name=b"Type",
+                db_column="tid",
+                verbose_name="Type",
                 error_messages={
-                    b"blank": b"Type fields for DNS records cannot be blank."
+                    "blank": "Type fields for DNS records cannot be blank."
                 },
                 to="dns.DnsType",
             ),
@@ -152,18 +150,18 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(unique=True, max_length=128)),
                 ("description", models.TextField(null=True, blank=True)),
             ],
-            options={"db_table": b"dns_views"},
+            options={"db_table": "dns_views"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="dnsrecord",
             name="dns_view",
             field=models.ForeignKey(
-                db_column=b"vid",
+                db_column="vid",
                 blank=True,
                 to="dns.DnsView",
                 null=True,
-                verbose_name=b"View",
+                verbose_name="View",
             ),
             preserve_default=True,
         ),
@@ -200,15 +198,15 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
             options={
-                "db_table": b"domains",
+                "db_table": "domains",
                 "permissions": (
-                    (b"is_owner_domain", b"Is owner"),
-                    (b"add_records_to_domain", b"Can add records to"),
+                    ("is_owner_domain", "Is owner"),
+                    ("add_records_to_domain", "Can add records to"),
                 ),
             },
             bases=(models.Model,),
@@ -217,14 +215,14 @@ class Migration(migrations.Migration):
             model_name="dnsrecord",
             name="domain",
             field=models.ForeignKey(
-                db_column=b"did", verbose_name=b"Domain", to="dns.Domain"
+                db_column="did", verbose_name="Domain", to="dns.Domain"
             ),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name="dhcpdnsrecord",
             name="did",
-            field=models.ForeignKey(to="dns.Domain", db_column=b"did"),
+            field=models.ForeignKey(to="dns.Domain", db_column="did"),
             preserve_default=True,
         ),
         migrations.CreateModel(
@@ -251,11 +249,11 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"supermasters"},
+            options={"db_table": "supermasters"},
             bases=(models.Model,),
         ),
     ]

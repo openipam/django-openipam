@@ -6,7 +6,6 @@ from rest_framework.renderers import (
     JSONRenderer,
     BrowsableAPIRenderer,
 )
-from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 
@@ -21,12 +20,14 @@ from django.db.models import Q
 from django.utils import timezone
 
 from openipam.hosts.models import Host
-from openipam.report.models import Ports, database as observium_db
+from openipam.report.models import Ports
 from openipam.report.models import database_connect, database_close
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
 from openipam.conf.settings import get_buildingmap_data
+
+from functools import reduce
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
@@ -172,28 +173,6 @@ class LeaseUsageView(APIView):
 
         grouped_lease_data = {"name": "routers", "children": [], "style": "#000033"}
 
-        routers_css = [
-            {"router": "ser.gw.usu.edu", "color": "#00A7C0"},
-            {"router": "wireless.gw.usu.edu", "color": "#507780"},
-            {"router": "main.gw.usu.edu", "color": "#E85649"},
-            {"router": "ed.gw.usu.edu", "color": "#E09A25"},
-            {"router": "rpark.gw.usu.edu", "color": "#FFE11A"},
-            {"router": "spectrum.gw.usu.edu", "color": "#9cf"},
-            {"router": "hsg-av.gw.usu.edu", "color": "#F22738"},
-            {"router": "hsg-ser.gw.usu.edu", "color": "#F22738"},
-            {"router": "hsg-llc.gw.usu.edu", "color": "#F22738"},
-            {"router": "airport.gw.usu.edu", "color": "#9f9"},
-            {"router": "dmz-a.gw.usu.edu", "color": "#70a7b0"},
-            {"router": "dmz-b.gw.usu.edu", "color": "#70a7b0"},
-            # {'router': '.gw.usu.edu', 'color': '#9f9', },
-            {"router": "aste.gw.usu.edu", "color": "#f99"},
-            {"router": "brigham.gw.usu.edu", "color": "#9f9"},
-            {"router": "ceu.gw.usu.edu", "color": "#99f"},
-            {"router": "blanding.gw.usu.edu", "color": "#66d"},
-            {"router": "UEN", "color": "#f64"},
-            {"router": "multiple", "color": "#999"},
-        ]
-
         for key, group in itertools.groupby(lease_data, lambda item: item["router"]):
 
             if exclude_free and key is None:
@@ -204,31 +183,9 @@ class LeaseUsageView(APIView):
                 "children": [],
             }
 
-            # if key is not None:
-            #     _color = filter(lambda x: x['router'] == key, routers_css)
-            #     if _color:
-            #         router['style'] = _color[0]['color']
-            # else:
-            #     router['style'] = '#00ff00'
-
-            # second_child = {
-            #     'name': 'smaller',
-            #     'children': [],
-            #     'style': '#77f',
-            #     'ratio': 1
-            # }
-            # third_child = {
-            #     'name': 'smaller',
-            #     'children': [],
-            #     'style': '#77f',
-            #     'ratio': 1
-            # }
             for item in group:
                 network = IPNetwork(item["network"])
                 child = item
-
-                # else:
-                #    child['style'] = '#00ff00'
 
                 if "usage" in item:
                     child["ratio"] = get_ratio(
@@ -249,27 +206,7 @@ class LeaseUsageView(APIView):
                 child["value"] = network.size if network.size > 256 else 256
                 del child["router"]
 
-                # if network.prefixlen > 28:
-                #     third_child['children'].append(child)
-                # elif network.prefixlen > 24:
-                #     second_child['children'].append(child)
-                # else:
                 router["children"].append(child)
-
-            # if third_child['children']:
-            #     ratio_min = min([child['ratio'] for child in third_child['children'] if child['ratio'] is not None])
-            #     third_child['style'] = color(ratio_min)
-            #     second_child['children'].append(third_child)
-
-            # if second_child['children']:
-            #     ratio_min = min([child['ratio'] for child in second_child['children'] if child['ratio'] is not None])
-            #     # if router['name'] == 'FREE':
-            #     #     for child in second_child['children']:
-            #     #         if child['ratio'] < 1:
-            #     #             print child
-            #     second_child['style'] = color(ratio_min)
-
-            #     router['children'].append(second_child)
 
             grouped_lease_data["children"].append(router)
 
@@ -282,7 +219,6 @@ class LeaseUsageView(APIView):
 
 class LeaseGraphView(APIView):
     permission_classes = (AllowAny,)
-    # renderer_classes = (TemplateHTMLRenderer,)
 
     def get(self, request, network, format=None, **kwargs):
         time = request.GET.get("length_back", "-4weeks")
@@ -345,13 +281,13 @@ class WeatherMapView(APIView):
             data = OrderedDict(copy.deepcopy(CONFIG.get("WEATHERMAP_DATA").get("data")))
 
         all_ports = []
-        for k, v in data.items():
+        for k, v in list(data.items()):
             all_ports.extend(v["id"])
 
         ports = Ports.select(Ports).where(Ports.port << all_ports)
 
         for port in ports:
-            for key, value in data.items():
+            for key, value in list(data.items()):
                 for portid in value["id"]:
                     if port.port == portid:
                         value["A"] = value.get("A", 0) + port.ifoutoctets_rate * 8
@@ -363,7 +299,7 @@ class WeatherMapView(APIView):
                         value["poll_frequency"] = 300
                         value["isUp"] = bool(port.ifoperstatus == "up")
 
-        for key, value in data.items():
+        for key, value in list(data.items()):
             del value["id"]
 
         data["timestamp"] = int(datetime.now().strftime("%s"))
@@ -422,16 +358,6 @@ class DashboardAPIView(APIView):
         wireless_networks_available_qs = [
             Q(address__net_contained=network.network) for network in wireless_networks
         ]
-        wireless_addresses_total = Address.objects.filter(
-            reduce(operator.or_, wireless_networks_available_qs)
-        ).count()
-        wireless_addresses_avaiable = Address.objects.filter(
-            reduce(operator.or_, wireless_networks_available_qs),
-            leases__ends__lt=timezone.now(),
-        ).count()
-        wireless_addresses_inuse = (
-            wireless_addresses_total - wireless_addresses_avaiable
-        )
 
         data = (
             (
@@ -457,10 +383,6 @@ class DashboardAPIView(APIView):
                 "Networks: (Total / Wireless)",
                 "%s / %s" % (Network.objects.all().count(), wireless_networks.count()),
             ),
-            # ('Addresses: (Total / Available)', '%s / %s' % (
-            #     Address.objects.all().count(),
-            #     Address.objects.filter(host__isnull=True).count()),
-            # ),
             (
                 "Available Wireless Addresses",
                 Address.objects.filter(

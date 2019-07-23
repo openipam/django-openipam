@@ -31,27 +31,25 @@ class IPAMMenu(Menu):
 
         user = context["request"].user
         admin_sites = admin.site._registry
-        hosts_models = filter(
-            lambda x: x.__module__ == "openipam.hosts.models", admin_sites
-        )
+        hosts_models = [
+            x for x in admin_sites if x.__module__ == "openipam.hosts.models"
+        ]
         hosts_models = tuple(
             sorted(
                 ["%s.%s" % (model.__module__, model.__name__) for model in hosts_models]
             )
         )
 
-        dns_models = filter(
-            lambda x: x.__module__ == "openipam.dns.models", admin_sites
-        )
+        dns_models = [x for x in admin_sites if x.__module__ == "openipam.dns.models"]
         dns_models = tuple(
             sorted(
                 ["%s.%s" % (model.__module__, model.__name__) for model in dns_models]
             )
         )
 
-        network_models = filter(
-            lambda x: x.__module__ == "openipam.network.models", admin_sites
-        )
+        network_models = [
+            x for x in admin_sites if x.__module__ == "openipam.network.models"
+        ]
         network_models = tuple(
             sorted(
                 [

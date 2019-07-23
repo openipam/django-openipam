@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 db_constraint=False,
                 null=True,
-                db_column=b"mac",
+                db_column="mac",
                 to="hosts.Host",
                 unique=True,
             ),

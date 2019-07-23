@@ -1,12 +1,9 @@
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.models import Group
 from django import forms
 
 from openipam.network.models import (
     AddressType,
     DhcpOptionToDhcpGroup,
-    DhcpGroup,
     Address,
     Vlan,
     Building,
@@ -16,8 +13,6 @@ from autocomplete_light import shortcuts as al
 from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
 
 from crispy_forms.helper import FormHelper
-
-from curses.ascii import isprint
 
 import binascii
 
@@ -48,9 +43,9 @@ class AddressTypeAdminForm(forms.ModelForm):
         pool = self.cleaned_data.get("pool", "")
 
         if pool and ranges:
-            raise ValidationError(
-                _("Address Types cannot have both a pool and a range.")
-            )
+            raise ValidationError("Address Types cannot have both a pool and a range.")
+        if not pool and not ranges:
+            raise ValidationError("Address Types must have atleast a pool or a range.")
 
         return self.cleaned_data
 
@@ -66,20 +61,7 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
         super(DhcpOptionToDhcpGroupAdminForm, self).__init__(*args, **kwargs)
 
         if self.instance:
-            printable = True
-            if self.instance.value:
-                for c in self.instance.value:
-                    if not isprint(c):
-                        printable = False
-                        break
-
-            if printable:
-                self.fields["readable_value"].initial = self.instance.value
-            else:
-                self.fields["readable_value"].initial = "0x" + binascii.hexlify(
-                    self.instance.value
-                )
-
+            self.fields["readable_value"].initial = self.instance.value_foredit
             self.original_value = self.fields["readable_value"].initial
 
     def clean_readable_value(self):
@@ -87,7 +69,7 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
         if value[:2] == "0x":
             self.instance.value = binascii.unhexlify(value[2:])
         else:
-            self.instance.value = str(value)
+            self.instance.value = value.encode()
 
         return value
 

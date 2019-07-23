@@ -37,11 +37,11 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"attributes"},
+            options={"db_table": "attributes"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -53,22 +53,22 @@ class Migration(migrations.Migration):
                         max_length=17,
                         serialize=False,
                         primary_key=True,
-                        db_column=b"mac",
+                        db_column="mac",
                     ),
                 ),
                 ("reason", models.TextField(null=True, blank=True)),
-                ("changed", models.DateTimeField(auto_now=True, db_column=b"disabled")),
+                ("changed", models.DateTimeField(auto_now=True, db_column="disabled")),
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"disabled_by"
+                        to=settings.AUTH_USER_MODEL, db_column="disabled_by"
                     ),
                 ),
             ],
             options={
-                "ordering": (b"-changed",),
-                "db_table": b"disabled",
-                "verbose_name": b"Disabled Host",
+                "ordering": ("-changed",),
+                "db_table": "disabled",
+                "verbose_name": "Disabled Host",
             },
             bases=(models.Model,),
         ),
@@ -88,11 +88,11 @@ class Migration(migrations.Migration):
                 (
                     "min_permissions",
                     models.ForeignKey(
-                        to="user.Permission", db_column=b"min_permissions"
+                        to="user.Permission", db_column="min_permissions"
                     ),
                 ),
             ],
-            options={"ordering": (b"expiration",), "db_table": b"expiration_types"},
+            options={"ordering": ("expiration",), "db_table": "expiration_types"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -109,18 +109,15 @@ class Migration(migrations.Migration):
                 ),
                 ("value", models.TextField()),
                 ("changed", models.DateTimeField(auto_now=True)),
-                (
-                    "attribute",
-                    models.ForeignKey(to="hosts.Attribute", db_column=b"aid"),
-                ),
+                ("attribute", models.ForeignKey(to="hosts.Attribute", db_column="aid")),
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
-            options={"db_table": b"freeform_attributes_to_hosts"},
+            options={"db_table": "freeform_attributes_to_hosts"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -141,10 +138,10 @@ class Migration(migrations.Migration):
                 ("description", models.TextField(null=True, blank=True)),
                 (
                     "user",
-                    models.ForeignKey(to=settings.AUTH_USER_MODEL, db_column=b"uid"),
+                    models.ForeignKey(to=settings.AUTH_USER_MODEL, db_column="uid"),
                 ),
             ],
-            options={"db_table": b"guest_tickets"},
+            options={"db_table": "guest_tickets"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -155,7 +152,7 @@ class Migration(migrations.Migration):
                     netfields.fields.MACAddressField(
                         max_length=17,
                         serialize=False,
-                        verbose_name=b"Mac Address",
+                        verbose_name="Mac Address",
                         primary_key=True,
                     ),
                 ),
@@ -174,9 +171,9 @@ class Migration(migrations.Migration):
                 ("last_notified", models.DateTimeField(null=True, blank=True)),
             ],
             options={
-                "ordering": (b"hostname",),
-                "db_table": b"hosts",
-                "permissions": ((b"is_owner_host", b"Is owner"),),
+                "ordering": ("hostname",),
+                "db_table": "hosts",
+                "permissions": (("is_owner_host", "Is owner"),),
             },
             bases=(openipam.core.mixins.DirtyFieldsMixin, models.Model),
         ),
@@ -187,7 +184,7 @@ class Migration(migrations.Migration):
                     "host",
                     models.ForeignKey(
                         primary_key=True,
-                        db_column=b"mac",
+                        db_column="mac",
                         serialize=False,
                         to="hosts.Host",
                     ),
@@ -195,7 +192,7 @@ class Migration(migrations.Migration):
                 ("address", netfields.fields.InetAddressField(max_length=39)),
                 ("stopstamp", models.DateTimeField()),
             ],
-            options={"db_table": b"gul_recent_arp_bymac"},
+            options={"db_table": "gul_recent_arp_bymac"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -205,7 +202,7 @@ class Migration(migrations.Migration):
                     "host",
                     models.ForeignKey(
                         primary_key=True,
-                        db_column=b"mac",
+                        db_column="mac",
                         serialize=False,
                         to="hosts.Host",
                     ),
@@ -213,13 +210,13 @@ class Migration(migrations.Migration):
                 ("address", netfields.fields.InetAddressField(max_length=39)),
                 ("stopstamp", models.DateTimeField()),
             ],
-            options={"db_table": b"gul_recent_arp_byaddress"},
+            options={"db_table": "gul_recent_arp_byaddress"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="freeformattributetohost",
             name="host",
-            field=models.ForeignKey(to="hosts.Host", db_column=b"mac"),
+            field=models.ForeignKey(to="hosts.Host", db_column="mac"),
             preserve_default=True,
         ),
     ]

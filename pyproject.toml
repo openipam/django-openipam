@@ -1,0 +1,23 @@
+[tool.black]
+include = '\.pyi?$'
+
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | env
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | some_ignored_file.py  # also separately exclude a file named foo.py in
+                          # the root of the project
+)
+'''

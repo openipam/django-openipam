@@ -6,6 +6,7 @@ import socket
 import datetime
 import os
 
+
 # Returns basic building map data. Overwritten in local_settings to get data dynamically.
 def get_buildingmap_data():
     return OPENIPAM["BUILDINGMAP_DATA"]
@@ -21,8 +22,9 @@ MANAGERS = ADMINS
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 try:
-    from local_settings import *
-except:
+    from .local_settings import *  # noqa: F403,F401
+    from .local_settings import OPENIPAM
+except ImportError:
     pass
 
 DATABASES = locals().pop(

@@ -9,9 +9,7 @@ CONFIG_DEFAULTS = {
     "GUEST_POOL": "routable-dynamic",
     "APPS": [
         app.split(".")[1]
-        for app in filter(
-            lambda x: x.split(".")[0] == "openipam", settings.INSTALLED_APPS
-        )
+        for app in [x for x in settings.INSTALLED_APPS if x.split(".")[0] == "openipam"]
     ],
     "CONVERT_OLD_PERMISSIONS": False,
     "USER_GROUP": "ipam-users",

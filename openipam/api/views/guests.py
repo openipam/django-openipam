@@ -3,13 +3,12 @@ from django.core.exceptions import ValidationError
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
-from rest_framework import filters
 from rest_framework.views import APIView
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import GuestTicket, Host
-from openipam.network.models import AddressType, Pool
-from openipam.api.views.base import APIPagination, APIMaxPagination
+from openipam.network.models import Pool
+from openipam.api.views.base import APIMaxPagination
 from openipam.api.serializers.guests import (
     GuestDeleteSerializer,
     GuestTicketListCreateSerializer,
@@ -126,7 +125,7 @@ class GuestRegister(APIView):
                 except ValidationError as e:
                     error_list = []
                     if hasattr(e, "error_dict"):
-                        for key, errors in e.message_dict.items():
+                        for key, errors in list(e.message_dict.items()):
                             for error in errors:
                                 error_list.append(error)
                     else:

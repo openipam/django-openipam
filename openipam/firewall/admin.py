@@ -3,7 +3,6 @@ from django.apps import apps
 
 from openipam.firewall.models import Rule
 
-from django.db.models import ForeignKey
 
 app = apps.get_app_config("firewall")
 
@@ -59,7 +58,7 @@ class RuleAdmin(SelectRelatedAdmin):
         return ["id"] + self.get_fields(request)
 
 
-for model_name, model in app.models.items():
+for model_name, model in list(app.models.items()):
     if (
         not model_name.endswith("base")
         and not model_name.endswith("log")

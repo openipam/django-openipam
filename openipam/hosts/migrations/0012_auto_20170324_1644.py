@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             model_name="gulrecentarpbyaddress",
             name="address",
             field=models.ForeignKey(
-                db_column=b"address",
+                db_column="address",
                 db_constraint=False,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="ip_history",
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             model_name="gulrecentarpbyaddress",
             name="host",
             field=models.OneToOneField(
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 on_delete=django.db.models.deletion.CASCADE,
                 primary_key=True,
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
             model_name="gulrecentarpbymac",
             name="address",
             field=models.ForeignKey(
-                db_column=b"address",
+                db_column="address",
                 db_constraint=False,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="mac_history",
@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
             model_name="gulrecentarpbymac",
             name="host",
             field=models.OneToOneField(
-                db_column=b"mac",
+                db_column="mac",
                 db_constraint=False,
                 on_delete=django.db.models.deletion.CASCADE,
                 primary_key=True,

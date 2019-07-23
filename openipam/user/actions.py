@@ -1,9 +1,8 @@
 from django.contrib import messages
-from django.contrib.admin.models import LogEntry, CHANGE, DELETION
+from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
-from django.core import serializers
 
 from openipam.user.forms import GroupForm
 from openipam.user.utils.user_utils import populate_user_from_ldap
@@ -35,7 +34,7 @@ def action_assign_groups(request, selected_users):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(user).pk,
                     object_id=user.pk,
-                    object_repr=force_unicode(user),
+                    object_repr=force_text(user),
                     action_flag=CHANGE,
                     change_message="Groups assigned to users: \n\n %s" % data,
                 )
@@ -44,7 +43,7 @@ def action_assign_groups(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(
@@ -82,7 +81,7 @@ def action_remove_groups(request, selected_users):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(user).pk,
                     object_id=user.pk,
-                    object_repr=force_unicode(user),
+                    object_repr=force_text(user),
                     action_flag=CHANGE,
                     change_message="Groups removed from users: \n\n %s" % data,
                 )
@@ -91,7 +90,7 @@ def action_remove_groups(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(
@@ -129,7 +128,7 @@ def action_assign_perms(request, selected_users):
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(user).pk,
                     object_id=user.pk,
-                    object_repr=force_unicode(user),
+                    object_repr=force_text(user),
                     action_flag=CHANGE,
                     change_message="Groups removed from users: \n\n %s" % data,
                 )
@@ -138,7 +137,7 @@ def action_assign_perms(request, selected_users):
 
         else:
             error_list = []
-            for key, errors in group_form.errors.items():
+            for key, errors in list(group_form.errors.items()):
                 for error in errors:
                     error_list.append(error)
             messages.error(

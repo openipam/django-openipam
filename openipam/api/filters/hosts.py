@@ -10,7 +10,7 @@ from django_filters import FilterSet, CharFilter, NumberFilter
 
 import re
 
-from itertools import izip_longest
+from itertools import zip_longest
 
 User = get_user_model()
 
@@ -116,7 +116,7 @@ class HostCharFilter(CharFilter):
             # Split to list to put back togethor with :
             mac_str = iter(mac_str)
             mac_str = ":".join(
-                a + b for a, b in izip_longest(mac_str, mac_str, fillvalue="")
+                a + b for a, b in zip_longest(mac_str, mac_str, fillvalue="")
             )
             qs = qs.filter(mac__startswith=mac_str.lower())
         return qs

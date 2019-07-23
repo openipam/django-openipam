@@ -3,9 +3,11 @@ from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 
 from guardian.shortcuts import get_objects_for_user
+
+from functools import reduce
 
 # from netfields import NetManager
 

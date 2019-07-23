@@ -158,7 +158,7 @@ class DisabledLog(models.Model):
 class DjangoAdminLog(models.Model):
     id = models.IntegerField(primary_key=True)
     action_time = models.DateTimeField()
-    user = models.ForeignKey(AuthUser)
+    user = models.ForeignKey("AuthUser")
     content_type = models.ForeignKey("DjangoContentType", null=True, blank=True)
     object_id = models.TextField(blank=True)
     object_repr = models.CharField(max_length=200)
@@ -197,7 +197,6 @@ class DnsTypesLog(models.Model):
     id = models.IntegerField()
     name = models.CharField(max_length=16, blank=True)
     description = models.TextField(blank=True)
-    min_permissions = models.TextField()  # This field type is a guess.
     trigger_mode = models.CharField(max_length=10)
     trigger_tuple = models.CharField(max_length=5)
     trigger_changed = models.DateTimeField()
@@ -266,7 +265,6 @@ class DomainsToGroupsLog(models.Model):
 class ExpirationTypesLog(models.Model):
     id = models.IntegerField()
     expiration = models.TextField(blank=True)  # This field type is a guess.
-    min_permissions = models.TextField()  # This field type is a guess.
     trigger_mode = models.CharField(max_length=10)
     trigger_tuple = models.CharField(max_length=5)
     trigger_changed = models.DateTimeField()
@@ -545,7 +543,6 @@ class NetworksToVlansLog(models.Model):
 class NotificationsLog(models.Model):
     id = models.IntegerField()
     notification = models.TextField(blank=True)  # This field type is a guess.
-    min_permissions = models.TextField()  # This field type is a guess.
     trigger_mode = models.CharField(max_length=10)
     trigger_tuple = models.CharField(max_length=5)
     trigger_changed = models.DateTimeField()
@@ -694,7 +691,6 @@ class UsersLog(models.Model):
     id = models.IntegerField()
     username = models.CharField(max_length=50)
     source = models.IntegerField()
-    min_permissions = models.TextField()  # This field type is a guess.
     trigger_mode = models.CharField(max_length=10)
     trigger_tuple = models.CharField(max_length=5)
     trigger_changed = models.DateTimeField()
