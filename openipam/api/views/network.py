@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.views import APIView
 
 from openipam.network.models import (
     Network,
@@ -27,6 +28,85 @@ from openipam.api.views.base import APIPagination
 from openipam.api.serializers import network as network_serializers
 from openipam.api.filters.network import NetworkFilter
 from openipam.api.permissions import IPAMAPIAdminPermission
+
+from ipaddress import IPv4Network
+
+
+class RouterUpgrade(APIView):
+
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def post(self, request, format=None, **kwargs):
+        building_number = request.POST.get("building_number")
+        routable_networks = request.POST.get("routable_networks")
+        non_routable_networks = request.POST.get("non_routable_networks")
+        captive_network = request.POST.get("captive_network")
+
+        building = Building.objects.filter(number=building_number).first()
+        routable_networks = Network.objects.filter(network__in=routable_networks)
+        non_routable_networks = Network.objects.filter(
+            network__in=non_routable_networks
+        )
+
+        # Create Vlans and Building to Vlans
+        vlan10, created = Vlan.objects.get_or_create(
+            vlan_id="10", name="%s.campus_routable" % building.abbreviation.upper()
+        )
+        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan10)
+        vlan20, created = Vlan.objects.get_or_create(
+            vlan_id="20", name="%s.campus_nonroutable" % building.abbreviation.upper()
+        )
+        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan20)
+        vlan30, created = Vlan.objects.get_or_create(
+            vlan_id="30", name="%s.captive" % building.abbreviation.upper()
+        )
+        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan30)
+
+        # Create captive portal network
+        captive_network = IPv4Network(captive_network)
+        captive_gateway = captive_network[1]
+        captive_network, created = Network.objects.get_or_create(
+            network=captive_network,
+            name="%s.captive" % building.abbreviation,
+            gateway=captive_gateway,
+            dhcp_group=DhcpGroup.objects.get(name="restricted"),
+            changed_by=request.user,
+        )
+
+        # Create addresses for captive portal network
+        captive_addresses = []
+        for address in captive_network.network:
+            reserved = False
+            if address in (
+                captive_network.gateway,
+                captive_network.network[0],
+                captive_network.network[-1],
+            ):
+                reserved = True
+            pool = (
+                DefaultPool.objects.get_pool_default(address) if not reserved else None
+            )
+            captive_addresses.append(
+                # TODO: Need to set pool eventually.
+                Address(
+                    address=address,
+                    network=captive_network,
+                    reserved=reserved,
+                    pool=pool,
+                    changed_by=request.user,
+                )
+            )
+        if captive_addresses:
+            Address.objects.bulk_create(captive_addresses)
+
+        # Update Network to Vlans
+        # Update routables
+        for network in routable_networks:
+            NetworkToVlan.objects.get(network=network).update(vlan=vlan10)
+        for network in non_routable_networks:
+            NetworkToVlan.objects.get(network=network).update(vlan=vlan20)
+
+        return Response("Ok!")
 
 
 class NetworkList(generics.ListAPIView):
