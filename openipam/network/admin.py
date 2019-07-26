@@ -240,16 +240,17 @@ class DhcpGroupAdmin(ChangedAdmin):
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
-    list_display = ("combined_value", "changed", "changed_by")
+    list_display = ("id", "combined_value", "changed", "changed_by")
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ("group", "option", "readable_value", "changed", "changed_by")
     readonly_fields = ("changed_by", "changed")
     list_select_related = True
 
     def combined_value(self, obj):
-        return str(obj)
+        return "<textarea style='width: 300px;'>%s</textarea>" % str(obj)
 
     combined_value.short_description = "Group:Option=Value"
+    combined_value.allow_tags = True
 
     def get_queryset(self, request):
         qs = super(DhcpOptionToDhcpGroupAdmin, self).get_queryset(request)

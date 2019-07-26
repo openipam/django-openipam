@@ -235,7 +235,7 @@ class BuildingToVlanViewSet(viewsets.ModelViewSet):
         "building", "vlan", "changed_by"
     ).all()
     filter_fields = ("vlan__id", "vlan__vlan_id", "building__number")
-    lookup_field = "bulding__number"
+    lookup_field = "pk"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
