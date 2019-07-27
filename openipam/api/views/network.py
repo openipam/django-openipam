@@ -119,6 +119,7 @@ class RouterUpgrade(APIView):
             NetworkToVlan.objects.get_or_create(
                 network=network, vlan=vlan10, changed_by=request.user
             )
+        # Update non-routables
         for network in non_routable_networks:
             NetworkToVlan.objects.get_or_create(
                 network=network, vlan=vlan20, changed_by=request.user
