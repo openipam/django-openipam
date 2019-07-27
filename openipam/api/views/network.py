@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from rest_framework import generics
 from rest_framework import permissions
@@ -36,13 +37,14 @@ class RouterUpgrade(APIView):
 
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
+    @transaction.atomic
     def post(self, request, format=None, **kwargs):
         building_number = request.POST.get("building_number")
-        routable_networks = request.POST.get("routable_networks")
-        non_routable_networks = request.POST.get("non_routable_networks")
+        routable_networks = request.POST.getlist("routable_networks")
+        non_routable_networks = request.POST.getlist("non_routable_networks")
         captive_network = request.POST.get("captive_network")
 
-        building = Building.objects.filter(number=building_number).first()
+        building = Building.objects.get(number=building_number)
         routable_networks = Network.objects.filter(network__in=routable_networks)
         non_routable_networks = Network.objects.filter(
             network__in=non_routable_networks
@@ -50,17 +52,29 @@ class RouterUpgrade(APIView):
 
         # Create Vlans and Building to Vlans
         vlan10, created = Vlan.objects.get_or_create(
-            vlan_id="10", name="%s.campus_routable" % building.abbreviation.upper()
+            vlan_id="10",
+            name="%s.campus_routable" % building.abbreviation.upper(),
+            changed_by=request.user,
         )
-        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan10)
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan10, changed_by=request.user
+        )
         vlan20, created = Vlan.objects.get_or_create(
-            vlan_id="20", name="%s.campus_nonroutable" % building.abbreviation.upper()
+            vlan_id="20",
+            name="%s.campus_nonroutable" % building.abbreviation.upper(),
+            changed_by=request.user,
         )
-        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan20)
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan20, changed_by=request.user
+        )
         vlan30, created = Vlan.objects.get_or_create(
-            vlan_id="30", name="%s.captive" % building.abbreviation.upper()
+            vlan_id="30",
+            name="%s.captive" % building.abbreviation.upper(),
+            changed_by=request.user,
         )
-        BuildingToVlan.objects.get_or_create(building=building, vlan=vlan30)
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan30, changed_by=request.user
+        )
 
         # Create captive portal network
         captive_network = IPv4Network(captive_network)
@@ -102,9 +116,13 @@ class RouterUpgrade(APIView):
         # Update Network to Vlans
         # Update routables
         for network in routable_networks:
-            NetworkToVlan.objects.get(network=network).update(vlan=vlan10)
+            NetworkToVlan.objects.get_or_create(
+                network=network, vlan=vlan10, changed_by=request.user
+            )
         for network in non_routable_networks:
-            NetworkToVlan.objects.get(network=network).update(vlan=vlan20)
+            NetworkToVlan.objects.get_or_create(
+                network=network, vlan=vlan20, changed_by=request.user
+            )
 
         return Response("Ok!")
 
