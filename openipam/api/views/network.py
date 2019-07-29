@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.views import APIView
+from rest_framework.parsers import FormParser
 
 from openipam.network.models import (
     Network,
@@ -36,6 +37,7 @@ from ipaddress import IPv4Network
 class RouterUpgrade(APIView):
 
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    parser_classes = [FormParser]
 
     @transaction.atomic
     def update_vlan(self, vlan_id, building, name, user, networks=None):
