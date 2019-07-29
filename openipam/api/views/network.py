@@ -38,6 +38,86 @@ class RouterUpgrade(APIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     @transaction.atomic
+    def update_vlan(self, vlan_id, building, name, user, networks=None):
+
+        # Create Vlans and Building to Vlans
+        abbrev = building.abbreviation.upper()
+        vlan_name = f"{abbrev}.{name}"
+        vlan, created = Vlan.objects.get_or_create(
+            vlan_id=vlan_id, name=vlan_name, changed_by=user
+        )
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan, changed_by=user
+        )
+
+        shared_network = None
+        if not networks:
+            networks = []
+        else:
+            shared_network = SharedNetwork.objects.create(
+                name=vlan_name, changed_by=user
+            )
+
+        for network in networks:
+            network_to_vlan = NetworkToVlan.objects.filter(network=network).first()
+            if network_to_vlan:
+                network_to_vlan.vlan = vlan
+                network_to_vlan.changed_by = user
+                network_to_vlan.save()
+            else:
+                NetworkToVlan.objects.create(
+                    network=network, vlan=vlan, changed_by=user
+                )
+            network.name = vlan_name
+            network.description = (
+                f"{building.name}/{building.abbreviation}/{building.number} {name}"
+            )
+            if shared_network:
+                network.shared_network = shared_network
+            else:
+                network.shared_network = None
+            network.save()
+
+    @transaction.atomic
+    def create_network(self, network_str, building, name, user, dhcp_group_name=None):
+        network = IPv4Network(network_str)
+        gateway = network[1]
+        abbrev = building.abbreviation.upper()
+        network_name = f"{abbrev}.{name}"
+        dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
+        network, created = Network.objects.get_or_create(
+            network=network,
+            name=network_name,
+            gateway=gateway,
+            dhcp_group=dhcp_group if dhcp_group else None,
+            changed_by=user,
+        )
+
+        # Create addresses for captive portal network
+        addresses = []
+        for address in network.network:
+            reserved = False
+            if address in (network.gateway, network.network[0], network.network[-1]):
+                reserved = True
+            pool = (
+                DefaultPool.objects.get_pool_default(address) if not reserved else None
+            )
+            addresses.append(
+                # TODO: Need to set pool eventually.
+                Address(
+                    address=address,
+                    network=network,
+                    reserved=reserved,
+                    pool=pool,
+                    changed_by=user,
+                )
+            )
+        if addresses:
+            Address.objects.bulk_create(addresses)
+
+        return network
+
+    @transaction.atomic
     def post(self, request, format=None, **kwargs):
         building_number = request.POST.get("building_number")
         routable_networks = request.POST.getlist("routable_networks")
@@ -51,80 +131,38 @@ class RouterUpgrade(APIView):
         )
 
         # Create Vlans and Building to Vlans
-        vlan10, created = Vlan.objects.get_or_create(
+        # Vlan 10 - routable
+        self.update_vlan(
             vlan_id="10",
-            name="%s.campus_routable" % building.abbreviation.upper(),
-            changed_by=request.user,
+            building=building,
+            user=request.user,
+            networks=routable_networks,
+            name="campus_routable",
         )
-        BuildingToVlan.objects.get_or_create(
-            building=building, vlan=vlan10, changed_by=request.user
-        )
-        vlan20, created = Vlan.objects.get_or_create(
+        # Vlan 20 - non-routable
+        self.update_vlan(
             vlan_id="20",
-            name="%s.campus_nonroutable" % building.abbreviation.upper(),
-            changed_by=request.user,
+            building=building,
+            user=request.user,
+            networks=non_routable_networks,
+            name="campus_nonroutable",
         )
-        BuildingToVlan.objects.get_or_create(
-            building=building, vlan=vlan20, changed_by=request.user
+
+        # Vlan 30 - captive
+        captive_network = self.create_network(
+            network_str=captive_network,
+            building=building,
+            name="captive",
+            user=request.user,
+            dhcp_group_name="restricted",
         )
-        vlan30, created = Vlan.objects.get_or_create(
+        self.update_vlan(
             vlan_id="30",
-            name="%s.captive" % building.abbreviation.upper(),
-            changed_by=request.user,
+            building=building,
+            user=request.user,
+            networks=[captive_network],
+            name="captive",
         )
-        BuildingToVlan.objects.get_or_create(
-            building=building, vlan=vlan30, changed_by=request.user
-        )
-
-        # Create captive portal network
-        captive_network = IPv4Network(captive_network)
-        captive_gateway = captive_network[1]
-        captive_network, created = Network.objects.get_or_create(
-            network=captive_network,
-            name="%s.captive" % building.abbreviation,
-            gateway=captive_gateway,
-            dhcp_group=DhcpGroup.objects.get(name="restricted"),
-            changed_by=request.user,
-        )
-
-        # Create addresses for captive portal network
-        captive_addresses = []
-        for address in captive_network.network:
-            reserved = False
-            if address in (
-                captive_network.gateway,
-                captive_network.network[0],
-                captive_network.network[-1],
-            ):
-                reserved = True
-            pool = (
-                DefaultPool.objects.get_pool_default(address) if not reserved else None
-            )
-            captive_addresses.append(
-                # TODO: Need to set pool eventually.
-                Address(
-                    address=address,
-                    network=captive_network,
-                    reserved=reserved,
-                    pool=pool,
-                    changed_by=request.user,
-                )
-            )
-        if captive_addresses:
-            Address.objects.bulk_create(captive_addresses)
-
-        # Update Network to Vlans
-        # Update routables
-        for network in routable_networks:
-            NetworkToVlan.objects.get(network=network).update(
-                vlan=vlan10, changed_by=request.user
-            )
-        # Update non-routables
-        for network in non_routable_networks:
-            NetworkToVlan.objects.get(network=network).update(
-                vlan=vlan20, changed_by=request.user
-            )
-
         return Response("Ok!")
 
 
