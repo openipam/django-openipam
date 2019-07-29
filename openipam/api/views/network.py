@@ -123,6 +123,7 @@ class RouterUpgrade(APIView):
         routable_networks = request.POST.getlist("routable_networks")
         non_routable_networks = request.POST.getlist("non_routable_networks")
         captive_network = request.POST.get("captive_network")
+        phone_network = request.POST.get("phone_network")
 
         building = Building.objects.get(number=building_number)
         routable_networks = Network.objects.filter(network__in=routable_networks)
@@ -163,6 +164,22 @@ class RouterUpgrade(APIView):
             networks=[captive_network],
             name="captive",
         )
+
+        phone_network = self.create_network(
+            network_str=phone_network,
+            building=building,
+            name="campus_voice",
+            user=request.user,
+            dhcp_group_name="usu_shoretel_phones-untagged",
+        )
+        self.update_vlan(
+            vlan_id="40",
+            building=building,
+            user=request.user,
+            networks=[phone_network],
+            name="campus_voice",
+        )
+
         return Response("Ok!")
 
 
