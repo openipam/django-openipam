@@ -80,7 +80,7 @@ class RouterUpgrade(APIView):
 
     @transaction.atomic
     def create_network(self, network_str, building, name, user, dhcp_group_name=None):
-        network = IPv4Network(network_str)
+        network = IPv4Network(network_str, False)
         gateway = network[1]
         abbrev = building.abbreviation.upper()
         network_name = f"{abbrev}.{name}"
