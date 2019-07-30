@@ -26,6 +26,28 @@ from netfields.mac import mac_unix_common
 from netfields.rest_framework import InetAddressField, CidrAddressField
 
 
+class RouterUpgradeSerializer(serializers.Serializer):
+    routable_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()]
+    )
+    non_routable_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()]
+    )
+    building = serializers.ChoiceField(
+        choices=[
+            (building.number, building.number) for building in Building.objects.all()
+        ]
+    )
+    captive_network = CidrAddressField()
+    phone_network = CidrAddressField()
+    management_network = CidrAddressField()
+    name = serializers.CharField()
+
+    def validate_building(self, value):
+        building = Building.objects.get(number=value)
+        return building
+
+
 class NetworkVlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vlan

@@ -46,11 +46,9 @@ class RouterUpgrade(APIView):
         abbrev = building.abbreviation.upper()
         vlan_name = f"{abbrev}.{name}"
         vlan, created = Vlan.objects.get_or_create(
-            vlan_id=vlan_id, name=vlan_name, changed_by=user
+            vlan_id=vlan_id, name=vlan_name, defaults={"changed_by": user}
         )
-        BuildingToVlan.objects.get_or_create(
-            building=building, vlan=vlan, changed_by=user
-        )
+        BuildingToVlan.objects.create(building=building, vlan=vlan, changed_by=user)
 
         shared_network = None
         if not networks:
@@ -86,12 +84,14 @@ class RouterUpgrade(APIView):
         gateway = network[1]
         abbrev = building.abbreviation.upper()
         network_name = f"{abbrev}.{name}"
-        dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
-        network, created = Network.objects.get_or_create(
+        dhcp_group = None
+        if dhcp_group_name:
+            dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
+        network = Network.objects.create(
             network=network,
             name=network_name,
             gateway=gateway,
-            dhcp_group=dhcp_group if dhcp_group else None,
+            dhcp_group=dhcp_group,
             changed_by=user,
         )
 
@@ -121,17 +121,13 @@ class RouterUpgrade(APIView):
 
     @transaction.atomic
     def post(self, request, format=None, **kwargs):
-        building_number = request.POST.get("building_number")
-        routable_networks = request.POST.getlist("routable_networks")
-        non_routable_networks = request.POST.getlist("non_routable_networks")
-        captive_network = request.POST.get("captive_network")
-        phone_network = request.POST.get("phone_network")
+        serializer = network_serializers.RouterUpgradeSerializer(data=request.data)
+        if not serializer.is_valid(raise_exception=True):
+            return Response({"serializer": serializer})
 
-        building = Building.objects.get(number=building_number)
-        routable_networks = Network.objects.filter(network__in=routable_networks)
-        non_routable_networks = Network.objects.filter(
-            network__in=non_routable_networks
-        )
+        building = serializer.data["building"]
+        routable_networks = serializer.data["routable_networks"]
+        non_routable_networks = serializer.data["non_routable_networks"]
 
         # Create Vlans and Building to Vlans
         # Vlan 10 - routable
@@ -153,7 +149,7 @@ class RouterUpgrade(APIView):
 
         # Vlan 30 - captive
         captive_network = self.create_network(
-            network_str=captive_network,
+            network_str=serializer.data["captive_network"],
             building=building,
             name="captive",
             user=request.user,
@@ -167,8 +163,9 @@ class RouterUpgrade(APIView):
             name="captive",
         )
 
+        # Vlan 40 - phones
         phone_network = self.create_network(
-            network_str=phone_network,
+            network_str=serializer.data["phone_network"],
             building=building,
             name="campus_voice",
             user=request.user,
@@ -180,6 +177,21 @@ class RouterUpgrade(APIView):
             user=request.user,
             networks=[phone_network],
             name="campus_voice",
+        )
+
+        # Vlan 90 - management
+        management_network = self.create_network(
+            network_str=serializer.data["management_network"],
+            building=building,
+            name="management",
+            user=request.user,
+        )
+        self.update_vlan(
+            vlan_id="90",
+            building=building,
+            user=request.user,
+            networks=[management_network],
+            name="management",
         )
 
         return Response("Ok!")
