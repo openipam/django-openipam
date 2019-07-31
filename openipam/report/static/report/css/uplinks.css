@@ -38,6 +38,7 @@ div.site	{
     border-spacing: 5px;
 	display: table-cell;
 	float: left;
+	height: 147px;
 	min-width: 114px;
 	padding: 2px 4px;
 }
@@ -73,10 +74,10 @@ svg.uplink line {
     stroke-width: 6px;
 }
 
+#building-map div.site {
+	min-width: 160px;
+}
+
 #searchbar {
 	margin-top: 4px;
 }
-/* 
-#sites {
-	list-style: none;
-} */
