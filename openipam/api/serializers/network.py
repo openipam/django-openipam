@@ -25,6 +25,8 @@ from netaddr import EUI, AddrFormatError
 from netfields.mac import mac_unix_common
 from netfields.rest_framework import InetAddressField, CidrAddressField
 
+from ipaddress import IPv4Network
+
 
 class RouterUpgradeSerializer(serializers.Serializer):
     routable_networks = serializers.MultipleChoiceField(
@@ -45,6 +47,26 @@ class RouterUpgradeSerializer(serializers.Serializer):
     def validate_building(self, value):
         building = Building.objects.get(number=value)
         return building
+
+    def validate_captive_network(self, value):
+        try:
+            return IPv4Network(value, False)
+        except Exception as e:
+            raise serializers.ValidationError(e.message)
+
+    validate_phone_network = validate_management_network = validate_captive_network
+
+    # def validate_phone_network(self, value):
+    #     try:
+    #         return IPv4Network(value, False)
+    #     except Exception as e:
+    #         raise serializers.ValidationError(e.message)
+
+    # def validate_management_network(self, value):
+    #     try:
+    #         return IPv4Network(value, False)
+    #     except Exception as e:
+    #         raise serializers.ValidationError(e.message)
 
 
 class NetworkVlanSerializer(serializers.ModelSerializer):
