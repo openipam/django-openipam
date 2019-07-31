@@ -456,12 +456,19 @@ class HostAddAttribute(APIView):
                     )
                 # Add freeform attributes
                 else:
+                    # FIXME: what about attributes that allow multiple values?
                     freeform_attr, created = FreeformAttributeToHost.objects.get_or_create(
-                        host=host, attribute=attr
+                        host=host,
+                        attribute=attr,
+                        defaults={
+                            "changed_by": request.user,
+                            "value": attributes[attr.name],
+                        },
                     )
-                    freeform_attr.value = attributes[attr.name]
-                    freeform_attr.changed_by = request.user
-                    freeform_attr.save()
+                    if not created:
+                        freeform_attr.value = attributes[attr.name]
+                        freeform_attr.changed_by = request.user
+                        freeform_attr.save()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
