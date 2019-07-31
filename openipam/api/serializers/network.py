@@ -41,7 +41,6 @@ class RouterUpgradeSerializer(serializers.Serializer):
     captive_network = CidrAddressField()
     phone_network = CidrAddressField()
     management_network = CidrAddressField()
-    name = serializers.CharField()
 
     def validate_building(self, value):
         building = Building.objects.get(number=value)
