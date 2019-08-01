@@ -40,12 +40,12 @@ class RouterUpgradeSerializer(serializers.Serializer):
             (building.number, building.number) for building in Building.objects.all()
         ]
     )
-    captive_network = CidrAddressField()
-    phone_network = CidrAddressField()
-    management_network = CidrAddressField()
+    captive_network = serializers.CharField()
+    phone_network = serializers.CharField()
+    management_network = serializers.CharField()
 
     def validate_building(self, value):
-        building = Building.objects.get(number=value)
+        building = Building.objects.get(number__iexact=value)
         return building
 
     def validate_captive_network(self, value):
