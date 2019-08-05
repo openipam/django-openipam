@@ -80,7 +80,7 @@ class DuoAuthRequiredMiddleware(object):
                 path = request.path.lstrip("/")
                 if not any(m.match(path) for m in EXEMPT_URLS):
                     if request.path not in duo_exempt_urls:
-                        return redirect("duo_auth")
+                        return redirect(f"{reverse('duo_auth')}?next={request.path}")
 
 
 class MimicUserMiddleware(object):
