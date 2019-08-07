@@ -194,6 +194,21 @@ class RouterUpgrade(APIView):
             name="management",
         )
 
+        # Vlan 11 - campus_lab
+        campus_lab_network = self.create_network(
+            network_str=serializer.data["campus_lab"],
+            building=building,
+            name="campus_lab",
+            user=request.user,
+        )
+        self.update_vlan(
+            vlan_id="11",
+            building=building,
+            user=request.user,
+            networks=[campus_lab_network],
+            name="campus_lab",
+        )
+
         return Response("Ok!")
 
 
