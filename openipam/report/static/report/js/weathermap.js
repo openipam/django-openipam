@@ -294,7 +294,7 @@ function updateUtil(url, refresh, timeSelector) {
     });
 }
 
-function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector) {
+function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector, fullMap=true) {
     var utilizationLevels,
         dateDiff = 0,
         svg;
@@ -312,8 +312,10 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
             if (err) {
                 if (cb) cb(err);
             } else {
-                initMap(data);
-                initUplinks(data);
+                if (fullMap) {
+                    initMap(data);
+                }
+                initUplinks(data, fullMap);
 
                 if (cb) cb();
             }
@@ -381,17 +383,19 @@ function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector
     }
 
     // Initialize uplinks
-    function initUplinks(config) {
-        var container = config.circuitsContainer;
-        svg.append("foreignObject")
-            .attr("width", container.width)
-            .attr("height", container.height)
-            .attr("x", container.coords[0])
-            .attr("y", container.coords[1])
-            .attr("id", "circuits-container");
-
-        if (container.scale) {
-            $("#circuits-container").attr("transform", container.scale);
+    function initUplinks(config, fullMap) {
+        if (fullMap) {
+            var container = config.circuitsContainer;
+            svg.append("foreignObject")
+                .attr("width", container.width)
+                .attr("height", container.height)
+                .attr("x", container.coords[0])
+                .attr("y", container.coords[1])
+                .attr("id", "circuits-container");
+    
+            if (container.scale) {
+                $("#circuits-container").attr("transform", container.scale);
+            }
         }
 
         $("#circuits-container").append('<div class="" id="sites"></div>');
