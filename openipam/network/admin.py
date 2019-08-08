@@ -38,10 +38,17 @@ from autocomplete_light import shortcuts as al
 
 
 class NetworkAdmin(ChangedAdmin):
-    form = al.modelform_factory(Network, exclude=("changed,"))
-    list_display = ("nice_network", "name", "description", "gateway")
+    list_display = (
+        "nice_network",
+        "name",
+        "description",
+        "gateway",
+        "changed_by",
+        "changed",
+    )
     list_filter = (("tags__name", custom_titled_filter("Tags")), "shared_network__name")
-    search_fields = ("network", "shared_network__name")
+    form = al.modelform_factory(Network, exclude=("changed,"))
+    search_fields = ("^network", "^name", "^shared_network__name")
     actions = ["tag_network", "resize_network", "release_abandoned_leases"]
 
     def get_actions(self, request):
@@ -235,12 +242,20 @@ class AddressTypeAdmin(admin.ModelAdmin):
     show_ranges.allow_tags = True
 
 
+class DhcpOptionAdmin(admin.ModelAdmin):
+    list_display = ("name", "option", "size", "comment")
+    search_fields = ("^name",)
+
+
 class DhcpGroupAdmin(ChangedAdmin):
+    list_display = ("name", "description", "changed_by", "changed")
+    search_fields = ("^name",)
     form = al.modelform_factory(DhcpGroup, exclude=("changed",))
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
     list_display = ("id", "combined_value", "changed", "changed_by")
+    search_fields = ("value", "^option__option", "^group__name")
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ("group", "option", "readable_value", "changed", "changed_by")
     readonly_fields = ("changed_by", "changed")
@@ -261,6 +276,7 @@ class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
 
 
 class DefaultPoolAdmin(admin.ModelAdmin):
+    list_display = ("cidr", "pool")
     list_select_related = True
 
     def get_queryset(self, request):
@@ -269,17 +285,24 @@ class DefaultPoolAdmin(admin.ModelAdmin):
 
 
 class PoolAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "name",
+        "description",
+        "allow_unknown",
+        "lease_time",
+        "assignable",
+        "dhcp_group",
+    )
 
 
 class SharedNetworkAdmin(ChangedAdmin):
     list_display = ("name", "description", "changed_by", "changed")
-    search_fields = ("name", "description")
+    search_fields = ("^name", "^description")
 
 
 class VlanAdmin(ChangedAdmin):
     list_display = ("vlan_id", "name", "changed_by", "changed")
-    search_fields = ("vlan_id", "name")
+    search_fields = ("vlan_id", "^name")
     list_select_related = True
     form = VlanForm
 
@@ -296,6 +319,7 @@ class VlanAdmin(ChangedAdmin):
 
 class NetworkToVlanAdmin(ChangedAdmin):
     list_display = ("network", "vlan", "description", "changed_by", "changed")
+    search_fields = ("^network__network", "^vlan__vlan_id", "^vlan__name")
 
     def description(self, obj):
         return "%s" % obj.vlan.description
@@ -317,9 +341,8 @@ class IsExpiredFilter(admin.SimpleListFilter):
 
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
-    # form = al.modelform_factory(Lease)
     list_display = ("address", "mac", "starts", "ends", "server", "abandoned")
-    search_fields = ("address__address", "host__mac", "host__hostname")
+    search_fields = ("^address__address", "^host__mac", "^host__hostname")
     list_filter = ("abandoned", "starts", "ends", "server", IsExpiredFilter)
 
     def save_model(self, request, obj, form, change):
@@ -348,7 +371,7 @@ class HasHostFilter(admin.SimpleListFilter):
 
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
-    search_fields = ("address", "host__mac", "host__hostname")
+    search_fields = ("^address", "^host__mac", "^host__hostname")
     list_filter = ("network", "reserved", "pool", HasHostFilter)
     list_display = (
         "address",
@@ -378,11 +401,11 @@ class BuildingAdmin(ChangedAdmin):
     )
     list_select_related = True
     search_fields = (
-        "name",
-        "number",
-        "abbreviation",
-        "city",
-        "building_vlans__vlan_id",
+        "^name",
+        "^number",
+        "^abbreviation",
+        "^city",
+        "^building_vlans__vlan_id",
     )
     list_filter = ("city", "building_vlans__vlan_id")
 
@@ -391,17 +414,28 @@ class BuildingAdmin(ChangedAdmin):
         return "%s" % " ".join(building_vlans)
 
 
+class BuildingToVlanAdmin(ChangedAdmin):
+    list_display = ("building", "vlan", "changed_by", "changed")
+    search_fields = (
+        "^building__abbreviation",
+        "^building__number",
+        "^vlan__vlan_id",
+        "^vlan__name",
+    )
+
+
 admin.site.register(DefaultPool, DefaultPoolAdmin)
 admin.site.register(NetworkToVlan, NetworkToVlanAdmin)
 admin.site.register(SharedNetwork, SharedNetworkAdmin)
-admin.site.register(DhcpOption)
 admin.site.register(Vlan, VlanAdmin)
 admin.site.register(Building, BuildingAdmin)
+admin.site.register(BuildingToVlan, BuildingToVlanAdmin)
 admin.site.register(NetworkRange)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(Lease, LeaseAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(Address, AddressAdmin)
 admin.site.register(Pool, PoolAdmin)
+admin.site.register(DhcpOption, DhcpOptionAdmin)
 admin.site.register(DhcpGroup, DhcpGroupAdmin)
 admin.site.register(DhcpOptionToDhcpGroup, DhcpOptionToDhcpGroupAdmin)
