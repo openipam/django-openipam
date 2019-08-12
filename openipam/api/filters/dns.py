@@ -69,7 +69,7 @@ class TypeFilter(CharFilter):
 class DnsFilter(FilterSet):
     name = CharFilter(lookup_expr="icontains")
     content = ContentFilter()
-    type = TypeFilter()
+    dns_type = TypeFilter()
 
     class Meta:
         model = DnsRecord

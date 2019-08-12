@@ -22,6 +22,18 @@ from openipam.api.serializers.dns import (
 
 
 class DomainNameList(generics.ListAPIView):
+    """
+        Gets a list of all Domain names
+
+        **Optional Filters**
+
+        * `name` -- Domain name.
+        * `username` -- Username of a user
+        * `limit` -- Number of results to return per page.
+        * `offset` -- The initial index from which to return results.
+
+    """
+
     queryset = Domain.objects.select_related().all()
     permission_classes = (AllowAny,)
     serializer_class = DomainNameSerializer
@@ -32,6 +44,18 @@ class DomainNameList(generics.ListAPIView):
 
 
 class DomainList(generics.ListAPIView):
+    """
+        Gets a list of all Domains
+
+        **Optional Filters**
+
+        * `name` -- Domain name.
+        * `username` -- Username of a user
+        * `limit` -- Number of results to return per page.
+        * `offset` -- The initial index from which to return results.
+
+    """
+
     queryset = Domain.objects.select_related().all()
     serializer_class = DomainSerializer
     filter_fields = ("name", "username")
@@ -40,6 +64,19 @@ class DomainList(generics.ListAPIView):
 
 
 class DnsList(generics.ListAPIView):
+    """
+        Gets list of Dns Records.
+
+        **Optional Filters**
+
+        * `name` -- Dns Record name.
+        * `content` -- Dns Record content.
+        * `dns_type` -- Dns Record type.
+        * `limit` -- Number of results to return per page.
+        * `offset` -- The initial index from which to return results.
+
+    """
+
     queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DnsListDetailSerializer
     filter_fields = ("name", "ip_content", "text_content", "dns_type")
