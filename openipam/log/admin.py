@@ -1,20 +1,28 @@
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+
 from django.utils.timezone import localtime
 from django import forms
 
 from openipam.log.models import HostLog, EmailLog, DnsRecordsLog, AddressLog, UserLog
 
-from autocomplete_light import shortcuts as al
+from dal import autocomplete
 
 User = get_user_model()
 
 
 class LogEntryAdminForm(forms.ModelForm):
-    user = al.ModelChoiceField("UserAutocomplete")
-    content_type = al.ModelChoiceField("ContentTypeAutocomplete")
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    )
+    content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.all(),
+        widget=autocomplete.ModelSelect2(url="content_type_autocomplete"),
+    )
 
     class Meta:
         model = LogEntry

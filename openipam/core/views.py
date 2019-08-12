@@ -2,33 +2,33 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
-from django.contrib.auth.views import password_change as auth_password_change
+from django.contrib.auth.views import PasswordChangeView
 from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
-from django.contrib.auth.views import (
-    login as auth_login_view,
-    logout as auth_logout_view,
-)
+
+# from django.contrib.auth.views import (
+#     login as auth_login_view,
+#     logout as auth_logout_view,
+# )
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
-from openipam.user.forms import IPAMAuthenticationForm
+
+# from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
 
 import duo_web
@@ -58,17 +58,17 @@ def index(request):
         return AdminSite().index(request, extra_context=context)
 
 
-@csrf_exempt
-@require_http_methods(["GET", "POST"])
-def login(request, internal=False, **kwargs):
-    return auth_login_view(
-        request, authentication_form=IPAMAuthenticationForm, **kwargs
-    )
+# @csrf_exempt
+# @require_http_methods(["GET", "POST"])
+# def login(request, internal=False, **kwargs):
+#     return auth_login_view(
+#         request, authentication_form=IPAMAuthenticationForm, **kwargs
+#     )
 
 
-@require_http_methods(["GET"])
-def logout(request, next_page=None, **kwargs):
-    return auth_logout_view(request, next_page="login", **kwargs)
+# @require_http_methods(["GET"])
+# def logout(request, next_page=None, **kwargs):
+#     return auth_logout_view(request, next_page="login", **kwargs)
 
 
 def mimic(request):
@@ -162,21 +162,34 @@ def duo_authenticate(request):
     request.session["duo_authenticated"] = request.user.username
 
 
-def password_change(request, *args, **kwargs):
-    if request.user.has_usable_password():
-        return auth_password_change(request, *args, **kwargs)
-    else:
-        return redirect("admin:index")
+# def password_change(request, *args, **kwargs):
+#     if request.user.has_usable_password():
+#         return PasswordChangeView(request, *args, **kwargs)
+#     else:
+#         return redirect("admin:index")
+
+
+class IPAMPasswordChangeView(PasswordChangeView):
+    def get_form_kwargs(self):
+        if self.request.user.has_usable_password():
+            return super(self, IPAMPasswordChangeView).get_form_kwargs(self)
+        else:
+            return redirect("admin:index")
 
 
 @requires_csrf_token
-def page_denied(request):
-    return page_error(request, template_name="403.html")
+def bad_request(request, exception):
+    return page_error(request, exception=exception, template_name="400.html")
 
 
 @requires_csrf_token
-def page_not_found(request):
-    return page_error(request, template_name="404.html")
+def page_denied(request, exception):
+    return page_error(request, exception=exception, template_name="403.html")
+
+
+@requires_csrf_token
+def page_not_found(request, exception):
+    return page_error(request, exception=exception, template_name="404.html")
 
 
 @requires_csrf_token
@@ -184,7 +197,7 @@ def server_error(request):
     return page_error(request, template_name="500.html")
 
 
-def page_error(request, template_name, extra_context=None):
+def page_error(request, template_name, exception=None, extra_context=None):
     kitty_dir = (
         os.path.dirname(os.path.realpath(__file__)) + "/static/core/img/error_cats"
     )
@@ -196,10 +209,10 @@ def page_error(request, template_name, extra_context=None):
         "request_path": request.path,
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
-        "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         "error_type": error_type.__name__,
         "error_value": error_value,
         "traceback": traceback,
+        "exception": exception,
     }
     if extra_context:
         context.update(extra_context)

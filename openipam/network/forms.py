@@ -9,8 +9,9 @@ from openipam.network.models import (
     Building,
     BuildingToVlan,
 )
-from autocomplete_light import shortcuts as al
-from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
+from openipam.hosts.models import Host
+
+from dal import autocomplete
 
 from crispy_forms.helper import FormHelper
 
@@ -18,8 +19,11 @@ import binascii
 
 
 class AddressAdminForm(forms.ModelForm):
-    host = al.ModelChoiceField("HostAutocomplete", required=False)
-    # network = al.ModelChoiceField('NetworkAutocomplete')
+    host = forms.ModelChoiceField(
+        queryset=Host.objects.all(),
+        required=False,
+        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    )
 
     class Meta:
         model = Address
@@ -79,7 +83,7 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
 
 
 class NetworkTagForm(forms.Form):
-    tags = TaggitField(widget=TaggitWidget("TagAutocomplete"))
+    tags = forms.CharField(widget=autocomplete.TaggitSelect2("tag_autocomplete"))
 
     def __init__(self, *args, **kwargs):
         super(NetworkTagForm, self).__init__(*args, **kwargs)

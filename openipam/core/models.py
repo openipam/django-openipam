@@ -14,7 +14,7 @@ TYPE_CHOICES = (("feature", "Feature"), ("bug", "Bug"), ("comment", "Comment"))
 class FeatureRequest(models.Model):
     type = models.CharField("Request Type", max_length=255, choices=TYPE_CHOICES)
     comment = models.TextField("Comment Details")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     submitted = models.DateTimeField("Date Submitted", auto_now_add=True)
     is_complete = models.BooleanField(default=False)
 

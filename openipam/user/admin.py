@@ -10,6 +10,7 @@ from django.conf.urls import url
 from django.db.models import Q
 from django.shortcuts import redirect, render, reverse
 from django.contrib import messages
+from django.forms import modelform_factory
 
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
@@ -28,7 +29,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
-from autocomplete_light import shortcuts as al
+from dal import autocomplete
 
 
 class IPAMAdminFilter(SimpleListFilter):
@@ -355,7 +356,11 @@ class AuthUserAdmin(UserAdmin):
 
 
 class TokenAdmin(TokenAdmin):
-    form = al.modelform_factory(Token, fields=("user",))
+    form = modelform_factory(
+        Token,
+        fields=("user",),
+        widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+    )
 
 
 class AuthGroupSourceInline(admin.StackedInline):
@@ -387,17 +392,6 @@ class AuthGroupAdmin(GroupAdmin):
         )
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        # group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
-
-        # if group_add_form.is_valid():
-        #     instance = group_add_form.save(commit=False)
-        #     content_object = group_add_form.cleaned_data['object_id'].split('-')
-        #     instance.content_type_id = content_object[0]
-        #     instance.object_pk = content_object[1]
-        #     instance.save()
-
-        #     return redirect('admin:auth_group_change', object_id)
-
         group_object_permissions = GroupObjectPermission.objects.filter(
             group__pk=object_id
         )
@@ -532,11 +526,6 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
 
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
-
-    # def change_view(self, request, object_id, extra_context=None):
-    #     extra_context = extra_context or {}
-    #     extra_context['readonly'] = True
-    #     return super(UserObjectPermissionAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def get_queryset(self, request):
         qs = super(UserObjectPermissionAdmin, self).get_queryset(request)

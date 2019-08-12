@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.contrib.messages import constants as message_constants
 
 import hashlib
@@ -147,10 +147,10 @@ TEMPLATES = [
     }
 ]
 
-LOCAL_MIDDLEWARE_CLASSES = locals().pop("LOCAL_MIDDLEWARE_CLASSES", [])
-DEBUG_MIDDLEWARE_CLASS = locals().pop("DEBUG_MIDDLEWARE_CLASS", [])
-MIDDLEWARE_CLASSES = (
-    DEBUG_MIDDLEWARE_CLASS
+LOCAL_MIDDLEWARE = locals().pop("LOCAL_MIDDLEWARE", [])
+DEBUG_MIDDLEWARE = locals().pop("DEBUG_MIDDLEWARE", [])
+MIDDLEWARE = (
+    DEBUG_MIDDLEWARE
     + [
         "django.middleware.common.CommonMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
@@ -164,7 +164,7 @@ MIDDLEWARE_CLASSES = (
         # Uncomment the next line for simple clickjacking protection:
         # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
-    + LOCAL_MIDDLEWARE_CLASSES
+    + LOCAL_MIDDLEWARE
 )
 
 ROOT_URLCONF = "openipam.urls"
@@ -174,8 +174,8 @@ WSGI_APPLICATION = "openipam.wsgi.application"
 
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
-LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", ())
-INSTALLED_APPS = (
+LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", [])
+INSTALLED_APPS = [
     # openIPAM Apps
     "openipam.core",
     "openipam.user",
@@ -199,7 +199,8 @@ INSTALLED_APPS = (
     "widget_tweaks",
     "django_filters",
     "crispy_forms",
-    "autocomplete_light",
+    "dal",
+    "dal_select2",
     "rest_framework",
     "rest_framework.authtoken",
     "guardian",
@@ -214,7 +215,7 @@ INSTALLED_APPS = (
     "django.contrib.admin",
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-) + LOCAL_INSTALLED_APPS
+] + LOCAL_INSTALLED_APPS
 
 BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
 BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
@@ -232,12 +233,12 @@ BOWER_INSTALLED_APPS = (
 
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
-LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", ())
-AUTHENTICATION_BACKENDS = (
+LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", [])
+AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend',
     "openipam.core.backends.CaseInsensitiveModelBackend",
     "guardian.backends.ObjectPermissionBackend",
-) + LOCAL_AUTHENTICATION_BACKENDS
+] + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
 

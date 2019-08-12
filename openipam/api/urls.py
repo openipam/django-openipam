@@ -85,7 +85,7 @@ urlpatterns = [
         views.web.structured_attribute_selects,
         name="api_structured_attribute_select",
     ),
-    url(r"^web/", include("autocomplete_light.urls")),
+    # url(r"^web/", include("autocomplete_light.urls")),
     # Reports
     url(
         r"^reports/serverhosts/$",

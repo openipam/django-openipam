@@ -4,7 +4,6 @@ from django.utils.timezone import localtime
 register = template.Library()
 
 
-@register.assignment_tag
 def arp_timestamp_filter(list, mac):
     filtered_list = [x for x in list if x.mac == mac]
     if filtered_list:
@@ -13,10 +12,13 @@ def arp_timestamp_filter(list, mac):
         return "No Data"
 
 
-@register.assignment_tag
 def arp_ip_filter(list, mac):
     filtered_list = [x for x in list if x.mac == mac]
     if filtered_list:
         return filtered_list[0].address
     else:
         return "No Data"
+
+
+register.filter("arp_timestamp_filter", arp_timestamp_filter)
+register.filter("arp_ip_filter", arp_ip_filter)
