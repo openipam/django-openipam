@@ -49,7 +49,18 @@ class HostListSerializer(serializers.ModelSerializer):
                 for lease in [x for x in obj.leases.all() if x.ends > timezone.now()]
             ],
             "registered": [str(address.address) for address in obj.addresses.all()],
+            "registered_detail": [],
         }
+
+        for address in obj.addresses.all():
+            addresses["registered_detail"].append(
+                {
+                    "address": str(address.address),
+                    "network": str(address.network),
+                    "pool": address.pool,
+                    "reserved": address.reserved,
+                }
+            )
         return addresses
 
     def get_master_ip_address(self, obj):
