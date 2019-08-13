@@ -195,10 +195,9 @@ class RouterUpgrade(APIView):
         )
 
         # Vlan 11 - campus_lab
-        if serializer.data.get("campus_lab_network", None):
-            campus_lab_network = Network.objects.get(
-                network=serializer.data["campus_lab_network"]
-            )
+        campus_lab_networks = serializer.data.get("campus_lab_networks", [])
+        for subnet in campus_lab_networks:
+            campus_lab_network = Network.objects.get(network=subnet)
             self.update_vlan(
                 vlan_id="11",
                 building=building,
