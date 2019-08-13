@@ -55,7 +55,9 @@ class RouterUpgradeSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(e.message)
 
-    validate_phone_network = validate_management_network = validate_captive_network
+    validate_campus_lab_network = (
+        validate_phone_network
+    ) = validate_management_network = validate_captive_network
 
     # def validate_phone_network(self, value):
     #     try:
