@@ -42,8 +42,8 @@ class RouterUpgradeSerializer(serializers.Serializer):
     )
     captive_network = serializers.CharField()
     phone_network = serializers.CharField()
-    campus_lab_network = serializers.CharField()
     management_network = serializers.CharField()
+    campus_lab_network = serializers.CharField(required=False)
 
     def validate_building(self, value):
         building = Building.objects.get(number__iexact=value)
