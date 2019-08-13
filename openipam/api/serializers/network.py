@@ -40,8 +40,9 @@ class RouterUpgradeSerializer(serializers.Serializer):
             (building.number, building.number) for building in Building.objects.all()
         ]
     )
-    campus_lab_networks = serializers.ListField(
-        child=serializers.CharField(), allow_empty=True
+    campus_lab_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()],
+        required=False,
     )
     captive_network = serializers.CharField()
     phone_network = serializers.CharField()
@@ -50,15 +51,6 @@ class RouterUpgradeSerializer(serializers.Serializer):
     def validate_building(self, value):
         building = Building.objects.get(number__iexact=value)
         return building
-
-    def validate_campus_lab_networks(self, value):
-        nets = []
-        for net in value:
-            try:
-                net.append(IPv4Network(value, False))
-            except Exception as e:
-                raise serializers.ValidationError(e.message)
-        return nets
 
     def validate_captive_network(self, value):
         try:
