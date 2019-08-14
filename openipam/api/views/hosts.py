@@ -88,6 +88,16 @@ class HostList(generics.ListAPIView):
 
 
 class HostMac(APIView):
+    """
+        Gets the MAC address of a given ip address
+
+        **Required Query Parameters:**
+        * ONE of the following:
+            * `leased_ip` -- IP address of a lease
+            * `registered_ip` -- IP address registered to an address
+            * `ip_address` -- Either a registered IP or a leased IP
+    """
+
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None, **kwargs):
@@ -244,6 +254,14 @@ class HostUpdate(generics.RetrieveUpdateAPIView):
 
 
 class HostRenew(generics.RetrieveUpdateAPIView):
+    """
+        Renew a host registration
+
+        **Required Arguments:**
+
+        * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
+    """
+
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
     serializer_class = host_serializers.HostRenewSerializer
     queryset = Host.objects.all()
@@ -276,6 +294,10 @@ class HostDelete(generics.DestroyAPIView):
 
 
 class HostOwnerList(generics.RetrieveAPIView):
+    """
+        Lists host owners.
+    """
+
     serializer_class = host_serializers.HostOwnerSerializer
     queryset = Host.objects.all()
 
@@ -511,6 +533,10 @@ class HostDeleteAttribute(APIView):
 
 
 class DisabledHostList(generics.ListCreateAPIView):
+    """
+        Lists all disabled hosts
+    """
+
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
     pagination_class = APIPagination
@@ -528,6 +554,17 @@ class DisabledHostList(generics.ListCreateAPIView):
 
 
 class DisabledHostCreate(generics.CreateAPIView):
+    """
+        Sets a host as disabled.
+
+        **Required Arguments:**
+        * `mac` -- MAC Address of the host to be disabled.
+        * `changed_by` -- Username of a user.
+
+        **Optional Arguments:**
+        * `reason` -- Reason for disabling the host.
+    """
+
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     queryset = Disabled.objects.select_related("changed_by").all()
     serializer_class = host_serializers.DisabledHostListUpdateSerializer
