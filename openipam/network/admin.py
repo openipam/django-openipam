@@ -31,6 +31,7 @@ from openipam.network.forms import (
     LeaseAdminForm,
     NetworkReziseForm,
     VlanForm,
+    BuildingAssignForm,
 )
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
@@ -305,6 +306,7 @@ class VlanAdmin(ChangedAdmin):
     search_fields = ("vlan_id", "^name")
     list_select_related = True
     form = VlanForm
+    actions = ["assign_buildings"]
 
     def save_model(self, request, obj, form, change):
         super(VlanAdmin, self).save_model(request, obj, form, change)
@@ -315,6 +317,35 @@ class VlanAdmin(ChangedAdmin):
             BuildingToVlan.objects.create(
                 building=building, vlan=obj, changed_by=request.user
             )
+
+    def get_urls(self):
+        urls = super(VlanAdmin, self).get_urls()
+        net_urls = [url(r"^assign_buildings/$", self.assign_buildings_view)]
+        return net_urls + urls
+
+    def assign_buildings_view(self, request):
+        form = BuildingAssignForm(request.POST or None)
+
+        if form.is_valid():
+            ids = request.GET.get("ids").strip().split(",")
+            vlans = Vlan.objects.filter(pk__in=ids)
+            buildings = form.cleaned_data["buildings"]
+            for vlan in vlans:
+                for building in buildings:
+                    BuildingToVlan.objects.get_or_create(
+                        building=building, vlan=vlan, changed_by=request.user
+                    )
+
+            messages.success(request, "Buildings were successfully added")
+
+            return redirect("../")
+
+        return render(request, "admin/actions/assign_buildings.html", {"form": form})
+
+    def assign_buildings(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return redirect("assign_buildings/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
 
 class NetworkToVlanAdmin(ChangedAdmin):
