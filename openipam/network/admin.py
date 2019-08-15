@@ -302,11 +302,15 @@ class SharedNetworkAdmin(ChangedAdmin):
 
 
 class VlanAdmin(ChangedAdmin):
-    list_display = ("vlan_id", "name", "changed_by", "changed")
-    search_fields = ("vlan_id", "^name")
+    list_display = ("vlan_id", "name", "building_numbers", "changed_by", "changed")
+    search_fields = ("vlan_id", "^name", "buildings__number")
     list_select_related = True
     form = VlanForm
     actions = ["assign_buildings"]
+
+    def get_queryset(self, request):
+        qs = super(VlanAdmin, self).get_queryset(request)
+        return qs.prefetch_related("buildings").all()
 
     def save_model(self, request, obj, form, change):
         super(VlanAdmin, self).save_model(request, obj, form, change)
@@ -322,6 +326,12 @@ class VlanAdmin(ChangedAdmin):
         urls = super(VlanAdmin, self).get_urls()
         net_urls = [url(r"^assign_buildings/$", self.assign_buildings_view)]
         return net_urls + urls
+
+    def building_numbers(self, obj):
+        buildings = [building.number for building in obj.buildings.all()]
+        return " ".join(buildings)
+
+    building_numbers.short_description = "Buildings"
 
     def assign_buildings_view(self, request):
         form = BuildingAssignForm(request.POST or None)
