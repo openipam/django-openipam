@@ -18,26 +18,26 @@
 	{{ block.super }}
 	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
 	<link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
-	<link rel="stylesheet" href="{% static 'datatables-responsive/css/dataTables.responsive.css' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'datatables-responsive/css/responsive.dataTables.scss' %}" type="text/css" />
 {% endblock %}
 
 {% block extrahead %}
 	{{ block.super }}
 	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
-	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
-	<script type="text/javascript" src="{% static 'core/js/bootstrap-waitingfor.js' %}"></script>
+	<script type="text/javascript" src="{% static 'datatables-bootstrap/js/dataTables.bootstrap.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'bootstrap-waitingfor/build/bootstrap-waitingfor.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
 {% endblock %}
 
 {% block object-tools %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
-	<a href="{% url 'add_hosts' %}" class="btn btn-primary">
+	<a href="{% url 'hosts:add' %}" class="btn btn-primary">
 	  <i class="icon-plus icon-white"></i>
 	  Add Host
 	</a>
-	<a href="{% url 'add_hosts_bulk' %}" class="btn btn-primary">
+	<a href="{% url 'hosts:add_bulk' %}" class="btn btn-primary">
 	  <i class="icon-plus icon-white"></i>
 	  Add Hosts from (CSV)
 	</a>
@@ -107,7 +107,7 @@
 
 					<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 						<label>
-							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" multiple="multiple" data-autocomplete-url="/api/web/IPAMSearchAutoComplete/" placeholder="Advanced Search" class="form-control autocomplete" />
+							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" multiple="multiple" data-autocomplete-url="/ac/IPAMSearchAutoComplete/" placeholder="Advanced Search" class="form-control autocomplete" />
 							{# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #}
 						</label>
 						<div style="margin-right: 10px; z-index: 5;">
@@ -127,7 +127,7 @@
 					        ˣ
 					    </span>
 					</div>
-					<a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+					<a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'hosts:list' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
 				</div>
 				<div id="search-help" class="help-content">
 					<div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>

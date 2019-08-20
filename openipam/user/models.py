@@ -6,8 +6,18 @@ from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.db.models import Q
-from django.contrib.auth.models import User as AuthUser, Group as AuthGroup
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Permission
+from django.contrib.auth.models import (
+    User as AuthUser,
+    Group as AuthGroup,
+    Permission as AuthPermission,
+    AbstractBaseUser,
+    PermissionsMixin,
+)
+
+from guardian.models import (
+    UserObjectPermission as GuardianUserObjectPermission,
+    GroupObjectPermission as GuardianGroupObjectPermission,
+)
 
 from operator import or_
 from functools import reduce
@@ -19,6 +29,8 @@ from openipam.user.signals import (
     remove_obj_perms_connected_with_user,
     add_group_souce,
 )
+
+from rest_framework.authtoken.models import Token as RestToken
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -55,7 +67,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
-        return self.username
+        return "%s | %s %s" % (self.username, self.first_name, self.last_name)
 
     @cached_property
     def is_ipamadmin(self):
@@ -159,9 +171,34 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _("users")
 
 
+class Group(AuthGroup):
+    class Meta:
+        proxy = True
+
+
+class Permission(AuthPermission):
+    class Meta:
+        proxy = True
+
+
+class UserObjectPermission(GuardianUserObjectPermission):
+    class Meta:
+        proxy = True
+
+
+class GroupObjectPermission(GuardianGroupObjectPermission):
+    class Meta:
+        proxy = True
+
+
+class Token(RestToken):
+    class Meta:
+        proxy = True
+
+
 class GroupSource(models.Model):
     group = models.OneToOneField(
-        AuthGroup, primary_key=True, related_name="source", on_delete=models.CASCADE
+        Group, primary_key=True, related_name="source", on_delete=models.CASCADE
     )
     source = models.ForeignKey(
         "AuthSource",
@@ -176,6 +213,10 @@ class GroupSource(models.Model):
 
 
 class AuthSource(models.Model):
+    """
+        Types of authentication souces that are used (ie. Internal or LDAP)
+    """
+
     name = models.CharField(unique=True, max_length=255, blank=True)
 
     def __str__(self):

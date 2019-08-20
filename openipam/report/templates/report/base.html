@@ -22,22 +22,22 @@
 {% block nav-global %}
 	<ul class="nav navbar-nav">
 		<li id="report-brand" class="nav">Reports</li>
-		<li id="dashboard_link"><a href="{% url 'reports_dashboard' %}">Dashboard</a></li>
+		<li id="dashboard_link"><a href="{% url 'report:dashboard' %}">Dashboard</a></li>
 		<li id="charts_graphs_dropdown" class="dropdown">
 			<a class="dropdown-toggle" href="#" data-toggle="dropdown">Charts &amp; Graphs</a>
 			<ul id="graphs_div" class="dropdown-menu" role="menu">
-				<li id="weathermap_link"><a href="{% url 'reports_weather_map' %}">Weathermap</a></li>
-				<li id="buildingmap_link"><a href="{% url 'reports_building_map' %}">Building Map</a></li>
-				<li id="lease_usage_link"><a href="{% url 'reports_lease_usage' %}">Lease Usage</a></li>
+				<li id="weathermap_link"><a href="{% url 'report:weather_map' %}">Weathermap</a></li>
+				<li id="buildingmap_link"><a href="{% url 'report:building_map' %}">Building Map</a></li>
+				<li id="lease_usage_link"><a href="{% url 'report:lease_usage' %}">Lease Usage</a></li>
 			</ul>
 		</li>
-		<li id="reports_dropdown" class="dropdown" role="menu">
+		<li id="report:dropdown" class="dropdown" role="menu">
 			<a class="dropdown-toggle" href="#" data-toggle="dropdown">Reports</a>
-			<ul id="reports_div" class="dropdown-menu">
-				<li id="disabled_link"><a href="{% url 'reports_disabled' %}">Hardcoded Disabled Hosts</a></li>
-				<li id="server_link"><a href="{% url 'reports_server_hosts' %}">Server Profile Hosts</a></li>
-				<li id="host_dns_link"><a href="{% url 'reports_host_dns' %}">Host with no DNS Records</a></li>
-				<li id="host_dns_link"><a href="{% url 'reports_ptr_dns' %}">Broken PTR Records</a></li>
+			<ul id="report:div" class="dropdown-menu">
+				<li id="disabled_link"><a href="{% url 'report:disabled' %}">Hardcoded Disabled Hosts</a></li>
+				<li id="server_link"><a href="{% url 'report:server_hosts' %}">Server Profile Hosts</a></li>
+				<li id="host_dns_link"><a href="{% url 'report:host_dns' %}">Host with no DNS Records</a></li>
+				<li id="host_dns_link"><a href="{% url 'report:ptr_dns' %}">Broken PTR Records</a></li>
 			</ul>
 		</li>
 	</ul>

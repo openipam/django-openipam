@@ -7,6 +7,10 @@ from django.views.static import serve
 
 from openipam.core.views import server_error, page_not_found, bad_request, page_denied
 
+from autocomplete_light import shortcuts as al
+
+al.autodiscover()
+
 admin.autodiscover()
 
 urlpatterns = [
@@ -17,12 +21,23 @@ urlpatterns = [
     path("400/", bad_request),
     # Uncomment the admin/doc line below to enable admin documentation:
     path("admin/doc/", include("django.contrib.admindocs.urls")),
-    # openIPAM urls
+    # API
+    path("api/", include("openipam.api.urls")),
+    # Autocomplete
+    path("ac/", include("autocomplete_light.urls")),
+    path("select2/", include("django_select2.urls")),
+    # Hosts
+    path("hosts/", include("openipam.hosts.urls")),
+    # DNS
+    path("dns/", include("openipam.dns.urls")),
+    # USU Reports and Tools
+    path("reports/", include("openipam.report.urls")),
+    # Core
     path("", include("openipam.core.urls")),
-    # Admin Frontend
+    # User
+    path("", include("openipam.user.urls")),
+    # Admin
     path("", admin.site.urls),
-    # Utitity routes to serve admin
-    path("admin_tools/", include("admin_tools.urls")),
 ]
 
 # Serve Static and Media on development

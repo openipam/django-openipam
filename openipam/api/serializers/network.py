@@ -85,7 +85,7 @@ class NetworkListSerializer(serializers.ModelSerializer):
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
     network = CidrAddressField()
-    gateway = InetAddressField(allow_blank=True, allow_null=True)
+    gateway = InetAddressField(allow_null=True)
     dhcp_group = serializers.CharField(allow_blank=True, allow_null=True)
     shared_network = serializers.CharField(allow_blank=True, allow_null=True)
 

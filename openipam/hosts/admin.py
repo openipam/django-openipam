@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.forms import modelform_factory
+
+# from django.forms import modelform_factory
 
 from openipam.hosts.models import (
     Host,
@@ -8,12 +9,21 @@ from openipam.hosts.models import (
     GuestTicket,
     ExpirationType,
     StructuredAttributeValue,
+    # AttributeToHost,
+    # StructuredAttributeToHost,
     Notification,
+    OUI,
 )
-from openipam.hosts.forms import ExpirationTypeAdminForm, HostDisableForm
+from openipam.hosts.forms import (
+    ExpirationTypeAdminForm,
+    HostDisableForm,
+    # AttributeForm,
+    StructuredAttributeValueForm,
+)
 from openipam.core.admin import ChangedAdmin
 
-from dal import autocomplete
+# from dal import autocomplete
+# from autocomplete_light import shortcuts as al
 
 from guardian.admin import GuardedModelAdmin
 
@@ -29,7 +39,7 @@ class HostAdmin(ChangedAdmin):
     )
     list_filter = ("dhcp_group",)
     readonly_fields = ("changed_by", "changed")
-    search_fields = ("hostname", "mac")
+    search_fields = ("hostname",)
     # inlines = [HostGroupPermissionInline, HostUserPermissionInline]
 
     # Null Foreign Keys dont get included by default
@@ -47,7 +57,7 @@ class HostAdmin(ChangedAdmin):
 
 
 class DisabledAdmin(ChangedAdmin):
-    list_display = ("mac", "hostname", "reason", "changed", "changed_by_full")
+    list_display = ("mac", "hostname", "reason", "changed", "changed_by")
     form = HostDisableForm
     list_select_related = True
     search_fields = ("mac", "changed_by__username")
@@ -66,11 +76,6 @@ class DisabledAdmin(ChangedAdmin):
         )
         return qs
 
-    def changed_by_full(self, obj):
-        return "%s (%s)" % (obj.changed_by.username, obj.changed_by.get_full_name())
-
-    changed_by_full.short_description = "Changed By"
-
     def hostname(self, obj):
         return "%s" % obj.hostname
 
@@ -81,15 +86,26 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ("ticket", "user", "starts", "ends")
     list_filter = ("starts", "ends")
     search_fields = ("user__username", "ticket")
-    form = modelform_factory(
-        GuestTicket,
-        fields=("user", "ticket", "starts", "ends", "description"),
-        widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
-    )
+    autocomplete_fields = ("user",)
+    # form = modelform_factory(
+    #     GuestTicket,
+    #     fields=("user", "ticket", "starts", "ends", "description"),
+    #     widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+    # )
+    # form = al.modelform_factory(
+    #     GuestTicket, fields=("user", "ticket", "starts", "ends", "description")
+    # )
+
+
+class StructuredAttributeValueInline(admin.TabularInline):
+    model = StructuredAttributeValue
+    form = StructuredAttributeValueForm
 
 
 class AttributeAdmin(ChangedAdmin):
-    pass
+    search_fields = ("name",)
+    # form = AttributeForm
+    inlines = [StructuredAttributeValueInline]
 
 
 class ExpirationTypeAdmin(GuardedModelAdmin):
@@ -104,6 +120,7 @@ class ExpirationTypeAdmin(GuardedModelAdmin):
 class StructuredAttributeValueAdmin(ChangedAdmin):
     list_display = ("attribute", "value", "is_default", "changed_by", "changed")
     list_filter = ("attribute__name",)
+    autocomplete_fields = ("attribute",)
 
 
 admin.site.register(Host, HostAdmin)
@@ -113,3 +130,4 @@ admin.site.register(Notification)
 admin.site.register(ExpirationType, ExpirationTypeAdmin)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)
+admin.site.register(OUI)

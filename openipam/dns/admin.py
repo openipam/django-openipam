@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.forms import modelform_factory
+from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
 from openipam.dns.forms import DhcpDnsRecordForm
@@ -26,26 +28,32 @@ class ObjectPermissionAdmin(admin.ModelAdmin):
         perms = [x for x in self.group_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
-                '<span class="label label-info">%s: %s</span>'
-                % (perm.group.name, perm.permission.codename)
+                '<a href="%s">%s: %s</a>'
+                % (
+                    reverse("admin:user_groupobjectpermission_change", args=[perm.pk]),
+                    perm.group.name,
+                    perm.permission.codename,
+                )
             )
-        return "%s" % " ".join(perms_list)
+        return mark_safe("%s" % "\n".join(perms_list))
 
     sgroup_permissions.short_description = "Group Permissions"
-    sgroup_permissions.allow_tags = True
 
     def suser_permissions(self, obj):
         perms_list = []
         perms = [x for x in self.user_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
-                '<span class="label label-info">%s: %s</span>'
-                % (perm.user.username, perm.permission.codename)
+                '<a href="%s">%s: %s</a>'
+                % (
+                    reverse("admin:user_userobjectpermission_change", args=[perm.pk]),
+                    perm.user.username,
+                    perm.permission.codename,
+                )
             )
-        return "%s" % " ".join(perms_list)
+        return mark_safe("%s" % "\n".join(perms_list))
 
     suser_permissions.short_description = "User Permissions"
-    suser_permissions.allow_tags = True
 
 
 class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
@@ -107,6 +115,7 @@ class DhcpDnsRecordAdmin(admin.ModelAdmin):
         "host__hostname",
         "ip_content__address",
     )
+    autocomplete_fields = ("domain",)
     form = DhcpDnsRecordForm
 
 

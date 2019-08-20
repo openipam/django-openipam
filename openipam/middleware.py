@@ -48,20 +48,22 @@ class DuoAuthRequiredMiddleware(MiddlewareMixin):
  'django.core.context_processors.auth'."
 
         duo_exempt_urls = [
-            reverse("profile"),
-            reverse("password_change"),
-            reverse("password_change_done"),
-            reverse("duo_auth"),
+            reverse("core:profile"),
+            reverse("core:password_change"),
+            reverse("core:password_change_done"),
+            reverse("core:duo_auth"),
         ]
 
         if CONFIG.get("DUO_LOGIN"):
-            if request.user.is_authenticated() and not request.session.get(
+            if request.user.is_authenticated and not request.session.get(
                 "duo_authenticated", False
             ):
                 path = request.path.lstrip("/")
                 if not any(m.match(path) for m in EXEMPT_URLS):
                     if request.path not in duo_exempt_urls:
-                        return redirect(f"{reverse('duo_auth')}?next={request.path}")
+                        return redirect(
+                            f"{reverse('core:duo_auth')}?next={request.path}"
+                        )
 
 
 class MimicUserMiddleware(MiddlewareMixin):

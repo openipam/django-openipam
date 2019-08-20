@@ -142,7 +142,7 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                     % user.pk
                     if self.request.user.is_superuser
                     else "",
-                    '<a class="user-details" href="user/%s">%s</a>'
+                    '<a class="user-details" href="./%s">%s</a>'
                     % (user.pk, user.username),
                     user.get_full_name() if user.first_name or user.last_name else "",
                     user.email,

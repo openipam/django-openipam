@@ -11,7 +11,7 @@ And to activate the app index dashboard::
 """
 
 from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.db.models.aggregates import Count
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -86,11 +86,11 @@ class IPAMIndexDashboard(Dashboard):
                 </ul>
             """
                 % {
-                    "url_hosts": reverse_lazy("list_hosts"),
-                    "url_add_hosts": reverse_lazy("add_hosts"),
-                    "url_dns": reverse_lazy("list_dns"),
-                    "url_feature_request": reverse_lazy("feature_request"),
-                    "url_profile": reverse_lazy("profile"),
+                    "url_hosts": reverse_lazy("hosts:list"),
+                    "url_add_hosts": reverse_lazy("hosts:add"),
+                    "url_dns": reverse_lazy("dns:list"),
+                    "url_feature_request": reverse_lazy("core:feature_request"),
+                    "url_profile": reverse_lazy("core:profile"),
                 },
             )
         )

@@ -5,10 +5,25 @@ from django import forms
 from django.db import models
 from django.db.models.signals import post_save
 from django.core.mail import mail_admins
+from django.contrib.auth import get_user_model
 
-from admin_tools.menu import items
+from openipam.core.menu import items
 
 TYPE_CHOICES = (("feature", "Feature"), ("bug", "Bug"), ("comment", "Comment"))
+
+User = get_user_model()
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    url = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
+
+    def __str__(self):
+        return "%s - %s" % (self.title, self.url)
+
+    class Meta:
+        ordering = ("id",)
 
 
 class FeatureRequest(models.Model):

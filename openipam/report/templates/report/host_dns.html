@@ -38,7 +38,7 @@
 			{% if hosts %}
 				{% for host in hosts %}
 				<tr>
-					<td nowrap="nowrap"><a href="{% url 'update_host' pk=host.mac_stripped %}">{{ host.hostname }}</a></td>
+					<td nowrap="nowrap"><a href="{% url 'hosts:update' pk=host.mac_stripped %}">{{ host.hostname }}</a></td>
 					<td>{{ host.mac }}</td>
 					<td>{{ host.ip_addresses|join:", " }}</td>
 					<td>

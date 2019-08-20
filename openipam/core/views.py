@@ -1,17 +1,18 @@
 # from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.admin.sites import AdminSite
-from django.views.decorators.csrf import requires_csrf_token
+from django.views.decorators.csrf import requires_csrf_token, csrf_exempt
 from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
+from django.contrib.admin.views.decorators import staff_member_required
 
 # from django.contrib.auth.views import (
 #     login as auth_login_view,
@@ -25,8 +26,8 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 from django.urls import reverse
 
-from openipam.core.models import FeatureRequest
-from openipam.core.forms import ProfileForm, FeatureRequestForm
+from openipam.core.models import FeatureRequest, Bookmark
+from openipam.core.forms import ProfileForm, FeatureRequestForm, BookmarkForm
 
 # from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
@@ -78,13 +79,93 @@ def mimic(request):
             try:
                 mimic_user = User.objects.get(pk=mimic_pk)
             except User.DoesNotExist:
-                return redirect("index")
+                return redirect("core:index")
             request.session["mimic_user"] = mimic_user.pk
     else:
         if "mimic_user" in request.session:
             del request.session["mimic_user"]
 
-    return redirect("index")
+    return redirect("core:index")
+
+
+@staff_member_required
+@csrf_exempt
+def add_bookmark(request):
+    """
+    This view serves and validates a bookmark form.
+    If requested via ajax it also returns the drop bookmark form to replace the
+    add bookmark form.
+    """
+    if request.method == "POST":
+        form = BookmarkForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            bookmark = form.save()
+            if not request.is_ajax():
+                messages.success(request, "Bookmark added")
+                if request.POST.get("next"):
+                    return HttpResponseRedirect(request.POST.get("next"))
+                return HttpResponse("Added")
+            return render(
+                request,
+                "core/menu/remove_bookmark_form.html",
+                context={"bookmark": bookmark, "url": bookmark.url},
+            )
+    else:
+        form = BookmarkForm(user=request.user)
+    return render(
+        request, "core/menu/form.html", context={"form": form, "title": "Add Bookmark"}
+    )
+
+
+@staff_member_required
+@csrf_exempt
+def edit_bookmark(request, id):
+    bookmark = get_object_or_404(Bookmark, id=id)
+    if request.method == "POST":
+        form = BookmarkForm(user=request.user, data=request.POST, instance=bookmark)
+        if form.is_valid():
+            form.save()
+            if not request.is_ajax():
+                messages.success(request, "Bookmark updated")
+                if request.POST.get("next"):
+                    return HttpResponseRedirect(request.POST.get("next"))
+            return HttpResponse("Saved")
+    else:
+        form = BookmarkForm(user=request.user, instance=bookmark)
+    return render(
+        request, "core/menu/form.html", context={"form": form, "title": "Edit Bookmark"}
+    )
+
+
+@staff_member_required
+@csrf_exempt
+def remove_bookmark(request, id):
+    """
+    This view deletes a bookmark.
+    If requested via ajax it also returns the add bookmark form to replace the
+    drop bookmark form.
+    """
+    bookmark = get_object_or_404(Bookmark, id=id, user=request.user)
+    if request.method == "POST":
+        bookmark.delete()
+        if not request.is_ajax():
+            messages.success(request, "Bookmark removed")
+            if request.POST.get("next"):
+                return HttpResponseRedirect(request.POST.get("next"))
+            return HttpResponse("Deleted")
+        return render(
+            request,
+            "admin_tools/menu/add_bookmark_form.html",
+            context={
+                "url": request.POST.get("next"),
+                "title": "**title**",  # replaced on the javascript side
+            },
+        )
+    return render(
+        request,
+        "admin_tools/menu/delete_confirm.html",
+        context={"bookmark": bookmark, "title": "Delete Bookmark"},
+    )
 
 
 def profile(request):
@@ -149,7 +230,7 @@ def duo_auth(request):
     context = {
         "sig_request": sig_request,
         "host": duo_settings.get("HOST"),
-        "post_action": f"{reverse('duo_auth')}?next={request.GET.get('next')}",
+        "post_action": f"{reverse('core:duo_auth')}?next={request.GET.get('next')}",
     }
     return render(request, "registration/duo.html", context)
 
@@ -223,7 +304,7 @@ def page_error(request, template_name, exception=None, extra_context=None):
 class FeatureRequestView(CreateView):
     form_class = FeatureRequestForm
     model = FeatureRequest
-    success_url = reverse_lazy("feature_request_complete")
+    success_url = reverse_lazy("core:feature_request_complete")
 
     def form_valid(self, form):
         self.object = form.save(commit=False)

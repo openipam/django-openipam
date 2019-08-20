@@ -1,23 +1,14 @@
-from django.urls import path, include
+from django.urls import path, re_path
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView
 from django.views.generic import TemplateView
 
 from openipam.core import views
 from openipam.user.forms import IPAMAuthenticationForm
 
+app_name = "core"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    # API
-    path("api/", include("openipam.api.urls")),
-    # Hosts
-    path("hosts/", include("openipam.hosts.urls")),
-    # DNS
-    path("dns/", include("openipam.dns.urls")),
-    # User
-    path("user/", include("openipam.user.urls")),
-    # USU Reports and Tools
-    path("reports/", include("openipam.report.urls")),
     # Duo Auth
     path("duo/auth/", views.duo_auth, name="duo_auth"),
     # Account URLS
@@ -31,6 +22,15 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), {"next_page": "login"}, name="logout"),
     path("mimic/", views.mimic, name="mimic"),
     path("profile/", views.profile, name="profile"),
+    path("add_bookmark/", views.add_bookmark, name="menu_add_bookmark"),
+    re_path(
+        r"^edit_bookmark/(?P<id>.+)/$", views.edit_bookmark, name="menu_edit_bookmark"
+    ),
+    re_path(
+        r"^remove_bookmark/(?P<id>.+)/$",
+        views.remove_bookmark,
+        name="menu_remove_bookmark",
+    ),
     path(
         "password/forgot/",
         TemplateView.as_view(template_name="core/password_forgot.html"),

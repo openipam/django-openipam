@@ -23,11 +23,10 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-        ../|{% trans "DNS" %}
         {% if object %}
             {{ object.name }}
         {% else %}
-            {% trans "Add Record" %}
+            {% trans "Add DNS Record" %}
         {% endif %}
 {% endblock %}
 
@@ -42,7 +41,7 @@
                     <div class="form-buttons">
                         <input type="submit" value="Save Changes" class="btn btn-primary" />
                         <input type="submit" name="_add" value="Save and add another" class="btn btn-success" />
-                        <a href="{% url 'list_dns' %}" class="btn">Cancel</a>
+                        <a href="{% url 'dns:list' %}" class="btn">Cancel</a>
                     </div>
                 </div>
             </div>

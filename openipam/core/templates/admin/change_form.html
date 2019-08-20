@@ -4,21 +4,13 @@
 {% block extrahead %}
     {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    {{ media.js }}
-    <script type="text/javascript" src="{% static "chosen/chosen.jquery.min.js" %}"></script>
-    <script type="text/javascript">
-        $(function(){
-            $('select:not(.value-select):not(.no-chosen)').chosen();
-        });
-
-    </script>
+    {{ media }}
 {% endblock %}
 
 {% block extrastyle %}
     {{ block.super }}
-    {{ media.css }}
-    <link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
-    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
+    <!--<link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />-->
     <style type="text/css">
         .panel-group .panel {
             overflow: visible;
@@ -34,12 +26,10 @@
     {% if not is_popup %}
         {% if change %}
             ../../../../|{% trans "Home" %}
-            ../../../|{{ opts.app_label|capfirst|escape }}
             ../../|{{ opts.verbose_name_plural|capfirst }}
-            {{ original|truncatewords:"18"|replace:"/\|/-" }}
+            {{ original }}
         {% else %}
             ../../../|{% trans "Home" %}
-            ../../|{{ opts.app_label|capfirst|escape }}
             ../|{{ opts.verbose_name_plural|capfirst }}
             *{% trans "Add" %} {{ opts.verbose_name }}
         {% endif %}
@@ -95,16 +85,19 @@
                 {% submit_row %}
             {% endif %}
 
-            {% if adminform and add %}
-            	<script type="text/javascript">
-                    $(document).ready(function() {
-                        $('form#{{ opts.model_name }}_form :input:visible:enabled:first').focus()
-                    });
-                </script>
-            {% endif %}
-
             {# JavaScript for prepopulated fields #}
             {% prepopulated_fields_js %}
         </form>
     </div>
+{% endblock %}
+
+{% block footer_scripts %}
+    {{ block.super }}
+    {% if adminform and add %}
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('form#{{ opts.model_name }}_form :input:visible:enabled:first').focus()
+            });
+        </script>
+    {% endif %}
 {% endblock %}

@@ -17,7 +17,7 @@ User = get_user_model()
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, request, username=None, password=None):
         try:
             user = User.objects.get(username__iexact=username)
             if user.check_password(password):
@@ -35,7 +35,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 # Modified django auth ldap backend to allow mirroring of groups and still
 # keep static groups that are django only.
 class IPAMLDAPBackend(LDAPBackend):
-    def authenticate(self, username, password):
+    def authenticate(self, request, username, password):
         if len(password) == 0 and not self.settings.PERMIT_EMPTY_PASSWORD:
             self.logger.debug("Rejecting empty password for %s" % username)
             return None

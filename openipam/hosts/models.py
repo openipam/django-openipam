@@ -21,7 +21,8 @@ from djorm_pgfulltext.models import SearchManager
 from guardian.shortcuts import get_objects_for_user, remove_perm, assign_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from openipam.core.mixins import DirtyFieldsMixin
+from dirtyfields import DirtyFieldsMixin
+
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager, HostQuerySet
 from openipam.user.signals import remove_obj_perms_connected_with_user

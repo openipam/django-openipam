@@ -226,7 +226,7 @@ $(function(){
 	}
 
 	// $('#id_search').yourlabsAutocomplete({
-	// 	url: '/api/web/IPAMSearchAutoComplete',
+	// 	url: '/ac/IPAMSearchAutoComplete',
 	// 	choiceSelector: '[data-value]',
 	// 	minimumCharacters: 2,
 	// 	values: [],

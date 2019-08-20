@@ -200,11 +200,7 @@ class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
 
     def choice_label(self, choice):
         if choice.__class__.__name__ == "User":
-            return "%s | %s | %s" % (
-                choice.__class__.__name__,
-                choice,
-                choice.get_full_name(),
-            )
+            return "%s | %s" % (choice.__class__.__name__, choice)
         elif choice.__class__.__name__ in [
             "StructuredAttributeValue",
             "FreeformAttributeToHost",

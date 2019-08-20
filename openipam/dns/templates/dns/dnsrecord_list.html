@@ -18,6 +18,7 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'dns/css/dnsrecord_list.css' %}" type="text/css" />
+    <script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
     {% if selected_records or form_data %}
     <script type="text/javascript">
         $(function(){
@@ -31,14 +32,15 @@
     </script>
     {% endif %}
     <script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
+    <script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
+    <script type="text/javascript" src="{% static 'datatables-bootstrap/js/dataTables.bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>
 {% endblock %}
 
 {% block object-tools %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
-    <a href="{% url 'add_dns' %}" class="btn btn-primary">
+    <a href="{% url 'dns:add' %}" class="btn btn-primary">
       <i class="icon-plus icon-white"></i>
       Add DNS Record
     </a>
@@ -80,7 +82,7 @@
                     {% endif %}
                     <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
                     <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" value="{{ search_filter }}" class="form-control" /></label></div>
-                    <a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_dns' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+                    <a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'dns:list' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="help-content">
                     <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>

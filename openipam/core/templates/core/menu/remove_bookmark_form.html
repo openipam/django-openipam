@@ -1,0 +1,9 @@
+{% url 'core:menu_remove_bookmark' bookmark.id as form_url%}
+{% if form_url %}
+<form id="bookmark-form" action="{{ form_url }}" method="POST">
+    <input type="hidden" name="next" value="{% firstof url request.get_full_path|urlencode %}" />
+    <button id="bookmark-button" style="border: 0; background: none; margin: 12px 0px 0px 5px;" type="submit">
+        <span class="glyphicon glyphicon glyphicon-star" aria-hidden="true"></span>
+    </button>
+</form>
+{% endif %}

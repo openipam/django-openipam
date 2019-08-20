@@ -500,16 +500,16 @@ class DnsRecordMunged(models.Model):
 
 
 class DhcpDnsRecord(models.Model):
-    domain = models.ForeignKey("Domain", db_column="did", on_delete=models.PROTECT)
+    domain = models.ForeignKey("Domain", db_column="did", on_delete=models.DO_NOTHING)
     host = models.OneToOneField(
-        "hosts.Host", db_column="name", to_field="hostname", on_delete=models.CASCADE
+        "hosts.Host", db_column="name", to_field="hostname", on_delete=models.DO_NOTHING
     )
     ip_content = models.ForeignKey(
         "network.Address",
         null=True,
         db_column="ip_content",
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.DO_NOTHING,
     )
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)

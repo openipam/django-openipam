@@ -99,17 +99,20 @@
 
 {% submit_row %}
 
-{% if adminform and add %}
-  <script type="text/javascript">
-      $(document).ready(function() {
-          $('form#{{ opts.model_name }}_form :input:visible:enabled:first').focus()
-      });
-  </script>
-{% endif %}
-
 {# JavaScript for prepopulated fields #}
 {% prepopulated_fields_js %}
 
 </div>
 </form></div>
+{% endblock %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+  {% if adminform and add %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('form#{{ opts.model_name }}_form :input:visible:enabled:first').focus()
+        });
+    </script>
+  {% endif %}
 {% endblock %}

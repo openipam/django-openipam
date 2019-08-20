@@ -90,9 +90,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    # Hack to find bower components
-    "%s/components/bower_components" % BASE_DIR,
-    "%s/components/static_components" % BASE_DIR,
+    os.path.join(BASE_DIR, "node_modules"),
 )
 
 # List of finder classes that know how to find static files in
@@ -100,7 +98,6 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "djangobower.finders.BowerFinder",
 )
 
 FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
@@ -141,7 +138,6 @@ TEMPLATES = [
             "loaders": [
                 "django.template.loaders.filesystem.Loader",
                 "django.template.loaders.app_directories.Loader",
-                "admin_tools.template_loaders.Loader",
             ],
         },
     }
@@ -188,19 +184,16 @@ INSTALLED_APPS = [
     "openipam.report",
     # Firewall
     # 'openipam.firewall',
-    # Admin Tools
-    "admin_tools",
-    "admin_tools.theming",
-    "admin_tools.menu",
-    "admin_tools.dashboard",
-    "djangobower",
+    # "djangobower",
     "django_nvd3",
     "django_extensions",
     "widget_tweaks",
     "django_filters",
     "crispy_forms",
-    "dal",
-    "dal_select2",
+    "autocomplete_light",
+    "django_select2",
+    # "dal",
+    # "dal_select2",
     "rest_framework",
     "rest_framework.authtoken",
     "guardian",
@@ -217,19 +210,19 @@ INSTALLED_APPS = [
     # 'django.contrib.admindocs',
 ] + LOCAL_INSTALLED_APPS
 
-BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
-BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
+# BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
+# BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
 
-BOWER_INSTALLED_APPS = (
-    "jquery#2.1.4",
-    "jquer-ui#1.11.4",
-    "bootstrap#3.3.5",
-    "datatables#1.10.7",
-    "jquery.cookie#1.4.1",
-    "chosen",
-    "intro.js#0.9.0",
-    "qTip#1.0.0",
-)
+# BOWER_INSTALLED_APPS = (
+#     "jquery#2.1.4",
+#     "jquer-ui#1.11.4",
+#     "bootstrap#3.3.5",
+#     "datatables#1.10.7",
+#     "jquery.cookie#1.4.1",
+#     "chosen",
+#     "intro.js#0.9.0",
+#     "qTip#1.0.0",
+# )
 
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
@@ -253,8 +246,8 @@ LOGIN_EXEMPT_URLS = (
     # 'reports/leases/usage/',
 )
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = reverse_lazy("index")
-LOGOUT_URL = reverse_lazy("logout")
+LOGIN_REDIRECT_URL = reverse_lazy("core:index")
+LOGOUT_URL = reverse_lazy("core:logout")
 
 REST_FRAMEWORK = {
     "PAGINATE_BY": 25,
@@ -276,6 +269,4 @@ JWT_AUTH = {"JWT_LEEWAY": 60, "JWT_EXPIRATION_DELTA": datetime.timedelta(hours=4
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
-ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"
-ADMIN_TOOLS_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMIndexDashboard"
-ADMIN_TOOLS_APP_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMAppIndexDashboard"
+IPAM_MENU = "openipam.core.menu.IPAMMenu"

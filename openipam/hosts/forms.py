@@ -3,7 +3,6 @@ from django.contrib.auth.models import Permission
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
@@ -46,13 +45,39 @@ from netaddr import EUI, AddrFormatError
 
 from guardian.shortcuts import get_objects_for_user
 
-from dal import autocomplete
+from django_select2.forms import ModelSelect2Widget  # Select2Widget
+
+from autocomplete_light import shortcuts as al
+
+# from dal import autocomplete
 
 import operator
 
 User = get_user_model()
 
 NET_IP_CHOICES = (("0", "Network"), ("1", "IP"))
+
+
+class StructuredAttributeValueForm(forms.ModelForm):
+    class Meta:
+        model = StructuredAttributeValue
+        fields = ["value"]
+
+
+class AttributeForm(forms.ModelForm):
+    structured_values = forms.ModelMultipleChoiceField(
+        queryset=StructuredAttributeValue.objects.all(),
+        required=False,
+        widget=ModelSelect2Widget(
+            search_fields=["attribute__name", "value"],
+            max_results=100,
+            attrs={"data-minimum-input-length": 2},
+        ),
+    )
+
+    class Meta:
+        model = Attribute
+        fields = "__all__"
 
 
 class HostForm(forms.ModelForm):
@@ -77,23 +102,31 @@ class HostForm(forms.ModelForm):
     show_hide_dhcp_group = forms.BooleanField(
         label="Assign a DHCP Group", required=False
     )
-    dhcp_group = forms.ModelChoiceField(
-        queryset=DhcpGroup.objects.all(),
+    # dhcp_group = forms.ModelChoiceField(
+    #     queryset=DhcpGroup.objects.all(),
+    #     help_text="Leave this alone unless directed by an IPAM administrator",
+    #     label="DHCP Group",
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2(url="dhcp_group_autocomplete"),
+    # )
+    # user_owners = forms.ModelMultipleChoiceField(
+    #     queryset=User.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelMultipleChoiceField(
+    #     queryset=Group.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+    # )
+    dhcp_group = al.ModelChoiceField(
+        "DhcpGroupAutocomplete",
         help_text="Leave this alone unless directed by an IPAM administrator",
         label="DHCP Group",
         required=False,
-        widget=autocomplete.ModelSelect2(url="dhcp_group_autocomplete"),
     )
-    user_owners = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
-    )
-    group_owners = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
-    )
+    user_owners = al.ModelMultipleChoiceField("UserAutocomplete", required=False)
+    group_owners = al.ModelMultipleChoiceField("GroupAutocomplete", required=False)
 
     def __init__(self, request, *args, **kwargs):
         super(HostForm, self).__init__(*args, **kwargs)
@@ -350,7 +383,7 @@ class HostForm(forms.ModelForm):
                                 Add/Delete Additional Addresses
                             </a>
                         """ % reverse(
-                        "add_addresses_host", kwargs={"pk": self.instance.mac_stripped}
+                        "hosts:add_addresses", kwargs={"pk": self.instance.mac_stripped}
                     )
 
                 self.secondary_address_html = HTML(
@@ -719,16 +752,18 @@ class HostForm(forms.ModelForm):
 
 
 class HostOwnerForm(forms.Form):
-    user_owners = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
-    )
-    group_owners = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
-    )
+    # user_owners = forms.ModelMultipleChoiceField(
+    #     queryset=User.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelMultipleChoiceField(
+    #     queryset=Group.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+    # )
+    user_owners = al.ModelMultipleChoiceField("UserAutocomplete", required=False)
+    group_owners = al.ModelMultipleChoiceField("GroupAutocomplete", required=False)
 
     def clean(self):
         cleaned_data = super(HostOwnerForm, self).clean()
@@ -767,14 +802,16 @@ class HostBulkCreateForm(forms.Form):
 
 
 class HostListForm(forms.Form):
-    user_owners = forms.ModelChoiceField(
-        queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
-    )
-    group_owners = forms.ModelChoiceField(
-        queryset=Group.objects.all(),
-        widget=autocomplete.ModelSelect2(url="group_autocomplete"),
-    )
+    # user_owners = forms.ModelChoiceField(
+    #     queryset=User.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelChoiceField(
+    #     queryset=Group.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+    # )
+    user_owners = al.ModelMultipleChoiceField("UserAutocomplete", required=False)
+    group_owners = al.ModelMultipleChoiceField("GroupAutocomplete", required=False)
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
@@ -787,10 +824,11 @@ class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(
         queryset=Permission.objects.filter(content_type__model="host")
     )
-    content_object = forms.ModelChoiceField(
-        queryset=Host.objects.all(),
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
-    )
+    # content_object = forms.ModelChoiceField(
+    #     queryset=Host.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    # )
+    content_object = al.ModelChoiceField("HostAutocomplete")
 
 
 class ExpirationTypeAdminForm(forms.ModelForm):
@@ -814,10 +852,21 @@ class HostAttributesDeleteForm(forms.Form):
 
 
 class HostDisableForm(forms.ModelForm):
+    # host_mac = forms.CharField(
+    #     max_length="255",
+    #     label="Host or Mac",
+    #     widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    # )
     host_mac = forms.CharField(
         max_length="255",
         label="Host or Mac",
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+        widget=al.TextWidget(
+            "HostAutocomplete",
+            widget_attrs={
+                "placeholder": "Search Hosts or Macs",
+                "class": "form-control",
+            },
+        ),
     )
 
     def __init__(self, *args, **kwargs):

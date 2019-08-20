@@ -45,7 +45,7 @@
 
             $.netAutocompleteInit = function(selector) {
                 $(selector).yourlabsAutocomplete({
-                    url: '/api/web/NetworkAutocomplete',
+                    url: '/ac/NetworkAutocomplete',
                     choiceSelector: '[data-value]',
                     minimumCharacters: 2,
                     getQuery: function() {
@@ -62,7 +62,7 @@
 
             $.ipAutocompleteInit = function(selector) {
                 $(selector).yourlabsAutocomplete({
-                    url: '/api/web/AddressAvailableAutocomplete/',
+                    url: '/ac/AddressAvailableAutocomplete/',
                     choiceSelector: '[data-value]',
                     minimumCharacters: 3,
                 }).input.bind('selectChoice', function(event, choice, autocomplete) {
@@ -72,7 +72,7 @@
 
             $.hostAutoCompleteInit = function(selector) {
                 $(selector).yourlabsAutocomplete({
-                    url: '/api/web/DomainAutocomplete/',
+                    url: '/ac/DomainAutocomplete/',
                     choiceSelector: '[data-value]',
                     minimumCharacters: 1,
                     getQuery: function() {
@@ -190,7 +190,7 @@
                                     {{ row.ip_address }}
                                 </td>
                                 <td>
-                                    <a href="{% url 'remove_addresses_host' pk=object.mac_stripped %}?address={{ row.ip_address }}" class="a-remove">Remove</a>
+                                    <a href="{% url 'hosts:remove_addresses' pk=object.mac_stripped %}?address={{ row.ip_address }}" class="a-remove">Remove</a>
                                 </td>
                             </tr>
                         {% endfor %}

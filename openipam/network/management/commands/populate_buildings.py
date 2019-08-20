@@ -38,12 +38,14 @@ class Command(BaseCommand):
         admin = User.objects.filter(username="admin").first()
         for row in data:
             if row["fields"]["u_type"] == "Building":
-                Building.objects.get_or_create(
-                    name=row["fields"]["u_display_name"],
-                    abbreviation=row["fields"]["u_abbreviation"] or None,
+                building, created = Building.objects.update_or_create(
                     number=row["fields"]["u_code"],
-                    city=row["fields"]["city"],
-                    changed_by=admin,
+                    defaults={
+                        "name": row["fields"]["u_display_name"],
+                        "abbreviation": row["fields"]["u_abbreviation"] or None,
+                        "city": row["fields"]["city"],
+                        "changed_by": admin,
+                    },
                 )
 
         cursor = database.execute_sql(
@@ -84,11 +86,13 @@ class Command(BaseCommand):
                 building = Building.objects.filter(number=code).first()
                 vlan = Vlan.objects.filter(vlan_id=item[0]).first()
                 if building and vlan:
-                    BuildingToVlan.objects.get_or_create(
+                    BuildingToVlan.objects.update_or_createe(
                         building=building,
                         vlan=vlan,
-                        tagged=True if item[1] else False,
-                        changed_by=admin,
+                        defaults={
+                            "tagged": True if item[1] else False,
+                            "changed_by": admin,
+                        },
                     )
                 else:
                     if not building:

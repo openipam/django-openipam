@@ -29,6 +29,17 @@ class ChangedAdmin(admin.ModelAdmin):
 
         return actions
 
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            if getattr(obj, "changed_by"):
+                obj.changed_by = request.user
+                # TODO: Save overrides for these models so we can not set changed_by here
+                try:
+                    obj.save(user=request.user)
+                except Exception:
+                    obj.save()
+        queryset.delete()
+
     def save_model(self, request, obj, form, change):
         obj.changed_by = request.user
         super(ChangedAdmin, self).save_model(request, obj, form, change)

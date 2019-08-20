@@ -49,7 +49,7 @@
         $(function(){
 
             $('#id_hostname').yourlabsAutocomplete({
-                url: '/api/web/DomainAutocomplete/',
+                url: '/ac/DomainAutocomplete/',
                 choiceSelector: '[data-value]',
                 minimumCharacters: 1,
                 getQuery: function() {
@@ -77,7 +77,7 @@
             $('#id_network').chosen();
 
             $('#id_ip_address').yourlabsAutocomplete({
-                url: '/api/web/AddressAvailableAutocomplete/',
+                url: '/ac/AddressAvailableAutocomplete/',
                 choiceSelector: '[data-value]',
                 minimumCharacters: 3,
             }).input.bind('selectChoice', function(event, choice, autocomplete) {
@@ -248,22 +248,22 @@
 
                 {% if object and object.is_static and request.user.is_ipamadmin %}
                     <div class="pull-left">
-                         <a href="{% url 'add_addresses_host' pk=object.mac_stripped %}" class="btn btn-primary">Add/Delete Additional Addresses</a>
+                         <a href="{% url 'hosts:add_addresses' pk=object.mac_stripped %}" class="btn btn-primary">Add/Delete Additional Addresses</a>
                     </div>
                 {% endif %}
 
                 <div class="pull-right">
                     <input type="submit" value="Save Changes" class="btn btn-primary" data-toggle="modal" data-target="#processing-modal" />
                     {% if request.user.is_ipamadmin %}
-                        {% url 'add_hosts' as add_url %}
-                        {% url 'add_hosts_bulk' as add_url_bulk %}
-                        {% url 'add_hosts_new' as add_url_new %}
+                        {% url 'hosts:add' as add_url %}
+                        {% url 'hosts:add_bulk' as add_url_bulk %}
+                        {% url 'hosts:add_new' as add_url_new %}
                         {% if request.get_full_path == add_url or request.get_full_path == add_url_bulk or request.get_full_path == add_url_new %}
                             <input type="submit" name="_add" value="Save and add another" class="btn btn-success" data-toggle="modal" data-target="#processing-modal" />
                         {% endif %}
                         <input type="submit" name="_continue" value="Save and continue editing" class="btn btn-info"  />
                     {% endif %}
-                    <a href="{% url 'list_hosts' %}" class="btn">Cancel</a>
+                    <a href="{% url 'hosts:list' %}" class="btn">Cancel</a>
                 </div>
 
                 <div class="clear"><!-- --></div>
