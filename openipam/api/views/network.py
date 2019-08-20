@@ -30,6 +30,17 @@ from openipam.api.permissions import IPAMAPIAdminPermission
 
 
 class NetworkList(generics.ListAPIView):
+    """
+        Lists networks based on given criteria.
+
+        **Optional Filters**
+
+        * `name` -- Network name contains.
+        * `network` -- Network contains or equals address/network.
+        * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
+        * `offset` -- The initial index from which to return results.
+    """
+
     permission_classes = (permissions.IsAuthenticated,)
     queryset = Network.objects.all()
     pagination_class = APIPagination
@@ -45,18 +56,40 @@ class NetworkList(generics.ListAPIView):
 
 
 class NetworkDetail(generics.RetrieveAPIView):
+    """
+        Gets details for a network.
+    """
+
     permission_classes = (permissions.IsAuthenticated,)
     queryset = Network.objects.all()
     serializer_class = network_serializers.NetworkListSerializer
 
 
 class NetworkCreate(generics.CreateAPIView):
+    """
+        Creates a new network.
+
+        **Required Parameters:**
+        * `network` -- The CIDR Address of the network.
+
+        **Optional Parameters:**
+        * `name` -- The name of the network
+        * `gateway` --
+        * `description` -- A text description of the network.
+        * `dhcp_group` -- A DHCP Group id for this network.  Administrators Only.
+        * `shared_network` -- A shared network id for this network.
+    """
+
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = network_serializers.NetworkCreateUpdateSerializer
     queryset = Network.objects.all()
 
 
 class NetworkUpdate(generics.RetrieveUpdateAPIView):
+    """
+        Updates a network.
+    """
+
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = network_serializers.NetworkCreateUpdateSerializer
     queryset = Network.objects.all()

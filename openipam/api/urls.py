@@ -277,26 +277,20 @@ urlpatterns = [
         name="api_network_delete",
     ),
     url(
-        r"^address(es)?/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/$",
+        r"^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/$",
         views.network.AddressDetail.as_view(),
         name="api_address_view",
     ),
     url(
-        r"^address(es)?/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/update/$",
+        r"^address/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}))/update/$",
         views.network.AddressUpdate.as_view(),
         name="api_address_update",
     ),
-    url(
-        r"^address(es)?/$", views.network.AddressList.as_view(), name="api_address_list"
-    ),
+    url(r"^address/$", views.network.AddressList.as_view(), name="api_address_list"),
     url(
         r"^login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     url(r"^login/jwt_token/", views.base.obtain_jwt_token),
-    url(
-        r"^docs",
-        schema_view.with_ui("swagger", cache_timeout=None),
-        name="schema-swagger",
-    ),
+    url(r"^docs", schema_view.with_ui("swagger"), name="schema-swagger"),
     url(r"^", include("rest_framework.urls", namespace="rest_framework")),
 ]
