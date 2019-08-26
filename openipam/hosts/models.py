@@ -259,6 +259,7 @@ class GulRecentArpByaddress(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_byaddress"
+        verbose_name = "Recent Arp By Address"
 
 
 class GulRecentArpBymac(models.Model):
@@ -286,6 +287,7 @@ class GulRecentArpBymac(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_bymac"
+        verbose_name = "Recent Arp By Mac"
 
 
 class Host(DirtyFieldsMixin, models.Model):
@@ -1277,6 +1279,7 @@ class StructuredAttributeValue(models.Model):
     class Meta:
         db_table = "structured_attribute_values"
         ordering = ("attribute__name", "value")
+        verbose_name = "structured value"
 
 
 class StructuredAttributeToHost(models.Model):

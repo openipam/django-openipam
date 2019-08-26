@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_modify openipam static %}
+{% load i18n admin_urls admin_modify openipam static %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -41,8 +41,9 @@
         {% if not is_popup %}
         	<div class="pull-right object-tools">
         		{% block object-tools-items %}
-        		<a href="history/" class="btn btn-info">{% trans "History" %}</a>
-        		{% if has_absolute_url %}<a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="btn primary">{% trans "View on site" %}</a>{% endif%}
+        		{# <a href="history/" class="btn btn-info">{% trans "History" %}</a> #}
+                {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+                <a href="{% add_preserved_filters history_url %}" class="btn btn-info">{% trans "History" %}</a>
         		{% endblock %}
         	</div>
         {% endif %}

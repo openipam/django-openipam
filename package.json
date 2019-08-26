@@ -1,0 +1,34 @@
+{
+  "name": "django-openipam",
+  "version": "1.0.0",
+  "description": "django-openipam ===============",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "datatables": "^1.10.18",
+    "datatables-responsive": "^1.0.7",
+    "bootstrap": "^3.3.7",
+    "bootstrap-waitingfor": "^1.2.7",
+    "jquery.cookie": "^1.4.1",
+    "jquery": "^3.4.1",
+    "datatables-bootstrap": "^0.0.1",
+    "qtip": "^0.0.4",
+    "nvd3": "^1.8.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmacul2/django-openipam.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jmacul2/django-openipam/issues"
+  },
+  "homepage": "https://github.com/jmacul2/django-openipam#readme"
+}

@@ -102,6 +102,8 @@ class IPAMMenu(Menu):
         Use this method if you need to access the request context.
         """
 
+        self.children += [items.Bookmarks(_("Bookmarks"))]
+
         user = context["request"].user
         admin_sites = admin.site._registry
         hosts_models = [
@@ -171,10 +173,10 @@ class IPAMMenu(Menu):
             # core_menus = [host_items, dns_items]
             self.children += [
                 items.MenuItem(
-                    "Hosts & Tickets",
+                    "Hosts",
                     children=[
                         items.ModelList(
-                            "Host Info",
+                            "Host & Tickets",
                             [
                                 "openipam.hosts.models.Host",
                                 "openipam.hosts.models.GuestTicket",
@@ -189,15 +191,86 @@ class IPAMMenu(Menu):
                             ],
                         ),
                         items.ModelList(
-                            "Host Admin",
+                            "Admin",
                             [
                                 "openipam.hosts.models.Notification",
                                 "openipam.hosts.models.ExpirationType",
+                                "openipam.hosts.models.GulRecentArpByaddress",
+                                "openipam.hosts.models.GulRecentArpBymac",
+                                "openipam.hosts.models.MacOui",
                                 "openipam.hosts.models.OUI",
                             ],
                         ),
                     ],
-                )
+                ),
+                items.MenuItem(
+                    "DNS",
+                    children=[
+                        items.ModelList(
+                            "DNS",
+                            [
+                                "openipam.dns.models.DnsRecord",
+                                "openipam.dns.models.DnsType",
+                                "openipam.dns.models.DnsView",
+                            ],
+                        ),
+                        items.ModelList("Domains", ["openipam.dns.models.Domain"]),
+                        items.ModelList(
+                            "Admin",
+                            [
+                                "openipam.dns.models.Supermaster",
+                                "openipam.dns.models.PdnsZoneXfer",
+                                "openipam.dns.models.DnsRecordMunged",
+                            ],
+                        ),
+                    ],
+                ),
+                items.MenuItem(
+                    "DHCP",
+                    children=[
+                        items.ModelList(
+                            "DHCP",
+                            [
+                                "openipam.dns.models.DhcpDnsRecord",
+                                "openipam.network.models.DhcpGroup",
+                                "openipam.network.models.DhcpOption",
+                                "openipam.network.models.DhcpOptionToDhcpGroup",
+                            ],
+                        )
+                    ],
+                ),
+                items.MenuItem(
+                    "Network",
+                    children=[
+                        items.ModelList(
+                            "Network",
+                            [
+                                "openipam.network.models.Network",
+                                "openipam.network.models.SharedNe`twork",
+                                "openipam.network.models.NetworkRange",
+                                "openipam.network.models.Pool",
+                                "openipam.network.models.DefaultPool",
+                            ],
+                        ),
+                        items.ModelList(
+                            "Address",
+                            [
+                                "openipam.network.models.Address",
+                                "openipam.network.models.AddressType",
+                                "openipam.network.models.Lease",
+                            ],
+                        ),
+                        items.ModelList(
+                            "Vlans",
+                            [
+                                "openipam.network.models.Vlan",
+                                "openipam.network.models.Building",
+                                "openipam.network.models.NetworkToVlan",
+                                "openipam.network.models.BuildingToVlan",
+                            ],
+                        ),
+                    ],
+                ),
             ]
         elif user.is_staff:
             host_models = items.ModelList("", ["openipam.hosts.*"])
@@ -233,11 +306,8 @@ class IPAMMenu(Menu):
                 items.MenuItem("DNS", url=reverse("dns:list")),
             ]
 
-        self.children += [items.Bookmarks(_("Bookmarks"))]
-
         if core_menus:
             self.children += core_menus
-        self.children.append(items.ModelList("Network", network_models))
 
         if user.is_superuser:
             self.children.append(

@@ -94,6 +94,9 @@ class LeaseUsageView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+        for ld in lease_data:
+            if ld["router"] is None:
+                ld["router"] = ""
         lease_data = sorted(
             lease_data, key=lambda k: (k["router"], IPNetwork(k["network"]))
         )
@@ -123,7 +126,7 @@ class LeaseUsageView(APIView):
             if g > 1.0:
                 g = 1.0
 
-            rgb = ((1 - r) * 255, g * 255, 0)
+            rgb = (int((1 - r) * 255), int(g * 255), 0)
             color = "#%02x%02x%02x" % rgb
             return color
 

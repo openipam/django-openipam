@@ -482,14 +482,27 @@ class DnsRecord(models.Model):
 
 
 class DnsRecordMunged(models.Model):
-    domain_id = models.IntegerField(null=True, blank=True)
+    domain = models.ForeignKey(
+        "Domain",
+        db_column="domain_id",
+        null=True,
+        blank=True,
+        on_delete=models.DO_NOTHING,
+    )
     name = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=32, blank=True)
     content = models.TextField(blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     prio = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
-    view_id = models.IntegerField(null=True, blank=True)
+    dns_view = models.ForeignKey(
+        "DnsView",
+        db_column="view_id",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.DO_NOTHING,
+    )
 
     def __str__(self):
         return self.name
@@ -620,14 +633,27 @@ class Record(models.Model):
 
 
 class RecordMunged(models.Model):
-    domain_id = models.IntegerField(null=True, blank=True)
+    domain = models.ForeignKey(
+        "Domain",
+        db_column="domain_id",
+        null=True,
+        blank=True,
+        on_delete=models.DO_NOTHING,
+    )
     name = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     prio = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
-    view_id = models.IntegerField(null=True, blank=True)
+    dns_view = models.ForeignKey(
+        "DnsView",
+        db_column="view_id",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.DO_NOTHING,
+    )
 
     def __str__(self):
         return "%s %s" % (self.domain_id, self.name)

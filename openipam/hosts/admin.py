@@ -9,18 +9,12 @@ from openipam.hosts.models import (
     GuestTicket,
     ExpirationType,
     StructuredAttributeValue,
-    # AttributeToHost,
-    # StructuredAttributeToHost,
+    GulRecentArpByaddress,
+    GulRecentArpBymac,
     Notification,
-    OUI,
 )
-from openipam.hosts.forms import (
-    ExpirationTypeAdminForm,
-    HostDisableForm,
-    # AttributeForm,
-    StructuredAttributeValueForm,
-)
-from openipam.core.admin import ChangedAdmin
+from openipam.hosts.forms import ExpirationTypeAdminForm, HostDisableForm, AttributeForm
+from openipam.core.admin import ChangedAdmin, ReadOnlyAdmin
 
 # from dal import autocomplete
 # from autocomplete_light import shortcuts as al
@@ -97,15 +91,19 @@ class GuestTicketAdmin(admin.ModelAdmin):
     # )
 
 
-class StructuredAttributeValueInline(admin.TabularInline):
-    model = StructuredAttributeValue
-    form = StructuredAttributeValueForm
-
-
 class AttributeAdmin(ChangedAdmin):
+    list_display = ("name", "structured", "multiple", "choices")
     search_fields = ("name",)
-    # form = AttributeForm
-    inlines = [StructuredAttributeValueInline]
+    form = AttributeForm
+    list_select_related = True
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super(AttributeAdmin, self).get_form(request, obj, change, **kwargs)
+        form.request = request
+        return form
+
+    def choices(self, obj):
+        return ", ".join([choice.value for choice in obj.choices.all()])
 
 
 class ExpirationTypeAdmin(GuardedModelAdmin):
@@ -117,17 +115,32 @@ class ExpirationTypeAdmin(GuardedModelAdmin):
         super(ExpirationTypeAdmin, self).__init__(*args, **kwargs)
 
 
-class StructuredAttributeValueAdmin(ChangedAdmin):
-    list_display = ("attribute", "value", "is_default", "changed_by", "changed")
+class StructuredAttributeAdmin(ChangedAdmin):
+    list_display = ("attribute", "value", "is_default")
     list_filter = ("attribute__name",)
+    list_select_related = True
     autocomplete_fields = ("attribute",)
+
+
+class GulRecentAdmin(ReadOnlyAdmin):
+    list_display = ("host", "host_mac", "address", "stopstamp")
+    readonly_fields = ("host", "address", "stopstamp")
+    search_fields = ("host__hostname", "host__mac", "address__address")
+    list_select_related = True
+
+    def host_mac(self, obj):
+        return obj.host.mac
+
+    host_mac.admin_order_field = "host__mac"
+    host_mac.short_description = "Mac Address"
 
 
 admin.site.register(Host, HostAdmin)
 admin.site.register(Attribute, AttributeAdmin)
-admin.site.register(StructuredAttributeValue, StructuredAttributeValueAdmin)
+admin.site.register(StructuredAttributeValue, StructuredAttributeAdmin)
 admin.site.register(Notification)
 admin.site.register(ExpirationType, ExpirationTypeAdmin)
 admin.site.register(Disabled, DisabledAdmin)
 admin.site.register(GuestTicket, GuestTicketAdmin)
-admin.site.register(OUI)
+admin.site.register(GulRecentArpByaddress, GulRecentAdmin)
+admin.site.register(GulRecentArpBymac, GulRecentAdmin)
