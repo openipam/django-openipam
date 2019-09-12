@@ -50,9 +50,8 @@
       }
     </style>
 
-    <link type="text/css" rel="stylesheet" href="{% static "qtip2/jquery.qtip.min.css" %}" />
-    <script type="text/javascript" src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "qtip2/jquery.qtip.min.js" %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static "qtip2/dist/jquery.qtip.min.css" %}" />
+    <script type="text/javascript" src="{% static "qtip2/dist/jquery.qtip.min.js" %}"></script>
     {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
     <script type="text/javascript">
       // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
@@ -160,10 +159,10 @@
           start = new Date;
         }
 
-        $('#lease-graph').draggable({
+        /*$('#lease-graph').draggable({
             handle: ".modal-header",
             cursor: "move"
-        });
+        });*/
 
         var updateTime = function() {
           $('#time').text("Updated " + Math.round((new Date - start) / 1000) + " seconds ago");
