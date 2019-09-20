@@ -6,6 +6,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
 from django.conf.urls import url
 from django.db.models import Q
 from django.shortcuts import redirect, render, reverse
@@ -266,11 +267,8 @@ class AuthUserAdmin(UserAdmin):
     )
 
     def permissions(self, obj):
-        return '<a href="%s">Permissions</a>' % reverse(
-            "admin:user_perms_view", args=[obj.pk]
-        )
-
-    permissions.allow_tags = True
+        url = reverse("admin:user_perms_view", args=[obj.pk])
+        return mark_safe(f'<a href="{url}">Permissions</a>')
 
     def full_name(self, obj):
         first_name = "" if obj.first_name is None else obj.first_name
