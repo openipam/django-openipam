@@ -691,7 +691,7 @@ class Host(DirtyFieldsMixin, models.Model):
             if isinstance(network, string_types):
                 network = Network.objects.get(network=network)
 
-            if not user_nets.filter(network=network.network):
+            if not user_nets.filter(network=network):
                 raise ValidationError(
                     "You do not have access to assign host '%s' to the "
                     "network specified: %s." % (hostname, network)
@@ -1182,9 +1182,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 ],
                 any_perm=True,
             )
-            if self.network.network not in [
-                network.network for network in valid_network
-            ]:
+            if self.network not in [network.network for network in valid_network]:
                 raise ValidationError(
                     "Insufficient permissions to add hosts to "
                     "the assigned network: %s. Please contact an IPAM Administrator."

@@ -50,7 +50,7 @@ class DnsListDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = DnsRecord
         fields = ("url", "id", "name", "content", "dns_type", "ttl", "host")
-        extra_kwargs = {"url": {"view_name": "api_dns_view", "lookup_field": "pk"}}
+        extra_kwargs = {"url": {"view_name": "api:dns_view", "lookup_field": "pk"}}
 
 
 class DnsCreateSerializer(serializers.ModelSerializer):
