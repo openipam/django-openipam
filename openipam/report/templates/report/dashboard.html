@@ -3,9 +3,9 @@
 
 {% block extrahead %}
 	{{ block.super }}
-	<link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+	<link media="all" href="{% static 'nvd3/build/nv.d3.css' %}" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
-	<script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
+	<script type="text/javascript" src='{% static 'nvd3/build/nv.d3.min.js' %}'></script>
 	<script>
 		$(function(){
 
