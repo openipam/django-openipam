@@ -192,11 +192,14 @@ $(function(){
 			// Set pagination to stick when scrolling
 			var page_bar = $('.paginator')
 			page_bar.removeClass('fixed')
-			if(page_bar.length){
+			if(page_bar.length) {
 				var height=page_bar[0].offsetTop + page_bar.outerHeight();
 				var onchange = function(){
+					var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 					var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-					if(s<height){page_bar.addClass('fixed');}
+					if((s < height) && (!isMobile)) {
+						page_bar.addClass('fixed');
+					}
 					else{page_bar.removeClass('fixed');}
 				}
 				window.onscroll=onchange;
@@ -220,11 +223,14 @@ $(function(){
 		}
 	}).columns.adjust();
 
-	var pageOnchange = function() {
-		var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-		if(s<height){page_bar.addClass('fixed');}
-		else{page_bar.removeClass('fixed');}
-	}
+	// var pageOnchange = function() {
+	// 	var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+	// 	var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
+	// 	if not (isMobile) {
+	// 		if(s<height){page_bar.addClass('fixed');}
+	// 		else{page_bar.removeClass('fixed');}
+	// 	}
+	// }
 
 	// $('#id_search').yourlabsAutocomplete({
 	// 	url: '/api/web/IPAMUserSearchAutoComplete',
