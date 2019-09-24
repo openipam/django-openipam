@@ -1,5 +1,5 @@
 from django.conf.urls import url, include
-
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.routers import SimpleRouter, Route
 
@@ -64,6 +64,11 @@ router.register(r"buildings?", views.network.BuildingViewSet)
 router.register(r"buildings?tovlans?", views.network.BuildingToVlanViewSet)
 
 urlpatterns = [
+    url(
+        r"^network/router_upgrade/$",
+        csrf_exempt(views.network.RouterUpgrade.as_view()),
+        name="router_upgrade",
+    ),
     url(r"^", include(router.urls)),
     url(
         r"^web/show_users/(?P<group_id>\d+)$",

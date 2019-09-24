@@ -54,6 +54,7 @@ class HostList(generics.ListAPIView):
 
         * `mac` -- MAC Address contains
         * `hostname` -- Hostname contains
+        * `hostname_exact` -- Hostname exact
         * `user` -- Username of a user
         * `user_with_groups` -- Username of a user.  This will display the users hosts as well as all hosts in the users groups.
         * `group` -- Group name of a group.  To speficy multiple groups as a union, user a | between group names.
