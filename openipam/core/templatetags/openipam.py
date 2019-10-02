@@ -212,6 +212,7 @@ class BreadcrumbsNode(template.Node):
                 if len(d) == 2:
                     out += '<li%s><a href="%s">%s</a></li>' % (active, d[0], d[1])
                 elif len(d) == 1:
+                    d[0] = d[0].replace("&amp;vert;", "&vert;")
                     out += "<li%s>%s</li>" % (active, d[0])
                 else:
                     raise ValueError(
@@ -286,3 +287,8 @@ def replace(string, args):
     replace = args.split(args[0])[2]
 
     return re.sub(search, replace, string)
+
+
+@register.filter
+def html_encode_pipe(value):
+    return str(value).replace("|", "&vert;")
