@@ -1,8 +1,10 @@
 from django.core.management.base import BaseCommand
 
 from django.contrib.auth import get_user_model
-from openipam.network.models import Building, BuildingToVlan, Vlan
-from openipam.report.models import database
+
+from openipam.network.models import Building  # , BuildingToVlan, Vlan
+
+# from openipam.report.models import database
 
 import json
 
@@ -37,61 +39,60 @@ class Command(BaseCommand):
 
         admin = User.objects.filter(username="admin").first()
         for row in data:
-            if row["fields"]["u_type"] == "Building":
+            if row["u_type"] == "Building":
                 Building.objects.get_or_create(
-                    name=row["fields"]["u_display_name"],
-                    abbreviation=row["fields"]["u_abbreviation"] or None,
-                    number=row["fields"]["u_code"],
-                    city=row["fields"]["city"],
+                    name=row["u_display_name"],
+                    abbreviation=row["u_abbreviation"] or None,
+                    number=row["u_code"],
+                    city=row["city"],
                     changed_by=admin,
                 )
 
-        cursor = database.execute_sql(
-            r"""
-            SELECT DISTINCT
-            regexp_replace(ports.ifAlias, '^[^/]+/[^/]+/([0-9a-z]+).*', '\\1') AS building_code,
-            ports.ifVlan AS vlan_id,
-            false AS tagged
-            FROM devices join ports on devices.device_id = ports.device_id
-            WHERE ports.ifAlias RLIKE '^[^/]+/[^/]+/([0-9a-z]{4,}).*' AND ports.ifName LIKE '%%ethernet%%'
-                AND ports.ifAlias not LIKE 'ethernet%%' AND ports.ifVlan not in (1, 4094, 4095)
+        # cursor = database.execute_sql(
+        #     r"""
+        #     SELECT DISTINCT
+        #     regexp_replace(ports.ifAlias, '^[^/]+/[^/]+/([0-9a-z]+).*', '\\1') AS building_code,
+        #     ports.ifVlan AS vlan_id,
+        #     false AS tagged
+        #     FROM devices join ports on devices.device_id = ports.device_id
+        #     WHERE ports.ifAlias RLIKE '^[^/]+/[^/]+/([0-9a-z]{4,}).*' AND ports.ifName LIKE '%%ethernet%%'
+        #         AND ports.ifAlias not LIKE 'ethernet%%' AND ports.ifVlan not in (1, 4094, 4095)
 
-            UNION
+        #     UNION
 
-            SELECT DISTINCT
-            regexp_replace(ports.ifAlias, '^[^/]+/[^/]+/([0-9a-z]+).*', '\\1') AS building_code,
-            ports_vlans.vlan AS vlan_id,
-            true AS tagged
-            FROM devices JOIN ports ON devices.device_id = ports.device_id
-               JOIN ports_vlans ON ports.port_id = ports_vlans.port_id
-            WHERE ports.ifAlias RLIKE '^[^/]+/[^/]+/([0-9a-z]{4,}).*' AND ports.ifName LIKE '%%ethernet%%'
-                AND ports.ifAlias not LIKE 'ethernet%%' AND ports_vlans.vlan not in (1, 4094, 4095);
+        #     SELECT DISTINCT
+        #     regexp_replace(ports.ifAlias, '^[^/]+/[^/]+/([0-9a-z]+).*', '\\1') AS building_code,
+        #     ports_vlans.vlan AS vlan_id,
+        #     true AS tagged
+        #     FROM devices JOIN ports ON devices.device_id = ports.device_id
+        #        JOIN ports_vlans ON ports.port_id = ports_vlans.port_id
+        #     WHERE ports.ifAlias RLIKE '^[^/]+/[^/]+/([0-9a-z]{4,}).*' AND ports.ifName LIKE '%%ethernet%%'
+        #         AND ports.ifAlias not LIKE 'ethernet%%' AND ports_vlans.vlan not in (1, 4094, 4095);
 
+        # """
+        # )
 
-        """
-        )
+        # vlan_data = cursor.fetchall()
+        # building_vlans = {}
 
-        vlan_data = cursor.fetchall()
-        building_vlans = {}
+        # for row in vlan_data:
+        #     if row[0].upper() not in building_vlans:
+        #         building_vlans[row[0].upper()] = []
+        #     building_vlans[row[0].upper()].append([row[1], row[2]])
 
-        for row in vlan_data:
-            if row[0].upper() not in building_vlans:
-                building_vlans[row[0].upper()] = []
-            building_vlans[row[0].upper()].append([row[1], row[2]])
-
-        for code, vlan in list(building_vlans.items()):
-            for item in vlan:
-                building = Building.objects.filter(number=code).first()
-                vlan = Vlan.objects.filter(vlan_id=item[0]).first()
-                if building and vlan:
-                    BuildingToVlan.objects.get_or_create(
-                        building=building,
-                        vlan=vlan,
-                        tagged=True if item[1] else False,
-                        changed_by=admin,
-                    )
-                else:
-                    if not building:
-                        self.stdout.write("Building %s does not exist in IPAM" % code)
-                    if not vlan:
-                        self.stdout.write("Vlan %s does not exist in IPAM" % item[0])
+        # for code, vlan in list(building_vlans.items()):
+        #     for item in vlan:
+        #         building = Building.objects.filter(number=code).first()
+        #         vlan = Vlan.objects.filter(vlan_id=item[0]).first()
+        #         if building and vlan:
+        #             BuildingToVlan.objects.get_or_create(
+        #                 building=building,
+        #                 vlan=vlan,
+        #                 tagged=True if item[1] else False,
+        #                 changed_by=admin,
+        #             )
+        #         else:
+        #             if not building:
+        #                 self.stdout.write("Building %s does not exist in IPAM" % code)
+        #             if not vlan:
+        #                 self.stdout.write("Vlan %s does not exist in IPAM" % item[0])
