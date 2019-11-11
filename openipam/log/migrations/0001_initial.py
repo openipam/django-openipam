@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             options={"db_table": "addresses_log", "managed": False},
         ),
         migrations.CreateModel(
-            name="DnsRecordsLog",
+            name="DnsRecordLog",
             fields=[
                 ("trigger_mode", models.CharField(max_length=10)),
                 ("trigger_tuple", models.CharField(max_length=5)),

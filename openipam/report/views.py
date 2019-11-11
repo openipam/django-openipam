@@ -8,6 +8,7 @@ from datetime import timedelta
 from openipam.hosts.models import GulRecentArpBymac, Host
 from openipam.network.models import Address, Lease, Network
 from openipam.dns.models import DnsRecord
+from openipam.api.views.report import get_stats_view
 
 from functools import reduce
 
@@ -17,6 +18,19 @@ from braces.views import GroupRequiredMixin
 import operator
 
 User = get_user_model()
+
+
+# $.get('/api/reports/chartstats/?app=hosts&model=Host&column=changed', function(data){
+#     $("#hoststats").html(data);
+# });
+# $.get('/api/reports/chartstats/?app=network&model=Lease&column=starts', function(data){
+#     $("#leasestats").html(data);
+# });
+# $.get('/api/reports/chartstats/?app=dns&model=DnsRecord&column=changed', function(data){
+#     $("#dnsstats").html(data);
+# });
+# $.get('/api/reports/chartstats/?app=user&model=User&column=last_login', function(data){
+#     $("#userstats").html(data);
 
 
 class DashboardView(TemplateView):
@@ -62,6 +76,19 @@ class DashboardView(TemplateView):
         context["active_users"] = User.objects.filter(
             last_login__gte=(timezone.now() - timedelta(days=365))
         ).count()
+
+        context["dns_stats"] = get_stats_view(
+            app="dns", model="DnsRecord", column="changed"
+        )
+        context["host_stats"] = get_stats_view(
+            app="hosts", model="Host", column="changed"
+        )
+        context["lease_stats"] = get_stats_view(
+            app="network", model="Lease", column="starts"
+        )
+        context["user_stats"] = get_stats_view(
+            app="user", model="User", column="last_login"
+        )
 
         return context
 

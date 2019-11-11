@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import localtime
 from django import forms
 
-from openipam.log.models import HostLog, EmailLog, DnsRecordsLog, AddressLog, UserLog
+from openipam.log.models import HostLog, EmailLog, DnsRecordLog, AddressLog, UserLog
 
 # from dal import autocomplete
 from autocomplete_light import shortcuts as al
@@ -120,7 +120,7 @@ class HostLogAdmin(admin.ModelAdmin):
         pass
 
 
-class DnsRecordsLogAdmin(admin.ModelAdmin):
+class DnsRecordLogAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "ttl",
@@ -245,6 +245,6 @@ admin.site.disable_action("delete_selected")
 admin.site.register(EmailLog, EmailLogAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(HostLog, HostLogAdmin)
-admin.site.register(DnsRecordsLog, DnsRecordsLogAdmin)
+admin.site.register(DnsRecordLog, DnsRecordLogAdmin)
 admin.site.register(AddressLog, AddressLogAdmin)
 admin.site.register(UserLog, UserLogAdmin)

@@ -7,15 +7,16 @@
     "doc": "docs"
   },
   "dependencies": {
-    "datatables": "^1.10.18",
-    "datatables-responsive": "^1.0.7",
     "bootstrap": "^3.3.7",
     "bootstrap-waitingfor": "^1.2.7",
-    "jquery.cookie": "^1.4.1",
-    "jquery": "^3.4.1",
+    "chart.js": "^2.8.0",
+    "datatables": "^1.10.18",
     "datatables-bootstrap": "^0.0.1",
-    "qtip": "^0.0.4",
-    "nvd3": "^1.8.6"
+    "datatables-responsive": "^1.0.7",
+    "jquery": "^3.4.1",
+    "jquery.cookie": "^1.4.1",
+    "nvd3": "^1.8.6",
+    "qtip": "^0.0.4"
   },
   "devDependencies": {},
   "scripts": {

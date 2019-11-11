@@ -408,6 +408,7 @@ class Building(models.Model):
 
     class Meta:
         db_table = "buildings"
+        ordering = ["number"]
 
 
 class BuildingToVlan(models.Model):

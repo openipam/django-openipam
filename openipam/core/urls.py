@@ -22,6 +22,11 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), {"next_page": "login"}, name="logout"),
     path("mimic/", views.mimic, name="mimic"),
     path("profile/", views.profile, name="profile"),
+    path(
+        "dashboard/stats/",
+        views.DashbardStatsJSONView.as_view(),
+        name="dashboard_stats",
+    ),
     path("add_bookmark/", views.add_bookmark, name="menu_add_bookmark"),
     re_path(
         r"^edit_bookmark/(?P<id>.+)/$", views.edit_bookmark, name="menu_edit_bookmark"
