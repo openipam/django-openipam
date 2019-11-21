@@ -13,6 +13,8 @@ from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models.aggregates import Count
+from django.db.models import Q
 
 # from django.contrib.auth.views import (
 #     login as auth_login_view,
@@ -24,26 +26,118 @@ from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
+
 from django.urls import reverse
+from django.utils import timezone
 
 from openipam.core.models import FeatureRequest, Bookmark
+from openipam.hosts.models import Host
+from openipam.dns.models import DnsRecord
+from openipam.log.models import LeaseLog, EmailLog, UserLog
+from openipam.network.models import Lease, Network, Address
 from openipam.core.forms import ProfileForm, FeatureRequestForm, BookmarkForm
 
 # from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
 
+import qsstats
+from chartjs.views.lines import BaseLineChartView
+from chartjs.colors import next_color
+
 import duo_web
 
+from functools import reduce
 import os
 import random
 import sys
 import json
+import datetime
+import operator
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+COLORS = [
+    (202, 201, 197),  # Light gray
+    # (171, 9, 0),      # Red
+    (166, 78, 46),  # Light orange
+    # (255, 190, 67),  # Yellow
+    # (163, 191, 63),   # Light green
+    (122, 159, 191),  # Light blue
+    # (140, 5, 84),  # Pink
+    (166, 133, 93),  # Light brown
+    # (75, 64, 191),  # Red blue
+    # (237, 124, 60),  # orange
+]
+
+
+class DashbardStatsJSONView(BaseLineChartView):
+    def get_colors(self):
+        return next_color(color_list=COLORS)
+
+    def get_labels(self):
+        """Return 7 labels for the x-axis."""
+        today = datetime.date.today()
+        td = datetime.timedelta
+        return [
+            today + td(-6),
+            today + td(-5),
+            today + td(-4),
+            today + td(-3),
+            today + td(-2),
+            today + td(-1),
+            today,
+        ]
+
+    def get_providers(self):
+        """Return names of datasets."""
+        return ["Wireless Leases", "Total Leases", "Active Users", "Notifications Sent"]
+
+    def get_data(self):
+        """Return 3 datasets to plot."""
+
+        wireless_networks = Network.objects.filter(
+            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
+        )
+        wireless_networks_available_qs = [
+            Q(address__address__net_contained=network.network)
+            for network in wireless_networks
+        ]
+        user_qs = UserLog.objects.filter(trigger_tuple="new")
+        lease_sq = LeaseLog.objects.filter(trigger_tuple="new")
+        # dns_qs = DnsRecordLog.objects.filter(trigger_tuple="new")
+        notify_qs = EmailLog.objects.filter(subject__icontains="[USU:Important]")
+        wireless_qs = LeaseLog.objects.filter(
+            reduce(operator.or_, wireless_networks_available_qs)
+        )
+
+        user_stats = qsstats.QuerySetStats(user_qs, "last_login", aggregate=Count("pk"))
+        lease_stats = qsstats.QuerySetStats(lease_sq, "starts", aggregate=Count("pk"))
+        # dns_stats = qsstats.QuerySetStats(dns_qs, "changed", aggregate=Count("pk"))
+        notify_stats = qsstats.QuerySetStats(notify_qs, "when", aggregate=Count("pk"))
+        wireless_stats = qsstats.QuerySetStats(
+            wireless_qs, "starts", aggregate=Count("pk")
+        )
+
+        today = datetime.date.today()
+        seven_days_ago = today - datetime.timedelta(days=7)
+
+        user_time_series = user_stats.time_series(seven_days_ago, today)
+        lease_time_series = lease_stats.time_series(seven_days_ago, today)
+        # dns_time_series = dns_stats.time_series(seven_days_ago, today)
+        notify_time_series = notify_stats.time_series(seven_days_ago, today)
+        wireless_time_series = wireless_stats.time_series(seven_days_ago, today)
+
+        return [
+            [n for t, n in wireless_time_series],
+            [n for t, n in lease_time_series],
+            [n for t, n in user_time_series],
+            [n for t, n in notify_time_series],
+        ]
 
 
 def index(request):
@@ -56,6 +150,46 @@ def index(request):
             "email": CONFIG.get("EMAIL_ADDRESS"),
             "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         }
+
+        wireless_networks = Network.objects.filter(
+            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
+        )
+        wireless_networks_available_qs = [
+            Q(address__net_contained=network.network) for network in wireless_networks
+        ]
+
+        context.update(
+            {
+                "dynamic_hosts": Host.objects.filter(
+                    pools__isnull=False, expires__gte=timezone.now()
+                ).count(),
+                "static_hosts": Host.objects.filter(
+                    addresses__isnull=False, expires__gte=timezone.now()
+                ).count(),
+                "active_leases": Lease.objects.filter(ends__gte=timezone.now()).count(),
+                "abandoned_leases": Lease.objects.filter(abandoned=True).count(),
+                "total_networks": Network.objects.all().count(),
+                "wireless_networks": wireless_networks.count(),
+                "wireless_addresses_total": Address.objects.filter(
+                    reduce(operator.or_, wireless_networks_available_qs)
+                ).count(),
+                "wireless_addresses_available": Address.objects.filter(
+                    reduce(operator.or_, wireless_networks_available_qs),
+                    leases__ends__lt=timezone.now(),
+                ).count(),
+                "dns_a_records": DnsRecord.objects.filter(
+                    dns_type__name__in=["A", "AAAA"]
+                ).count(),
+                "dns_cname_records": DnsRecord.objects.filter(
+                    dns_type__name="CNAME"
+                ).count(),
+                "dns_mx_records": DnsRecord.objects.filter(dns_type__name="MX").count(),
+                "active_users": User.objects.filter(
+                    last_login__gte=(timezone.now() - datetime.timedelta(days=365))
+                ).count(),
+            }
+        )
+
         return AdminSite().index(request, extra_context=context)
 
 

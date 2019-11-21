@@ -1,4 +1,8 @@
 {% load static nvd3_tags %}
 
-{% include_container chartcontainer 200 400 %}
-{% load_chart charttype chartdata chartcontainer extra %}
+{% if error_message %}
+    <h4>{{ error_message }}
+{% else %}
+    {% include_container chartcontainer 200 400 %}
+    {% load_chart charttype chartdata chartcontainer extra %}
+{% endif %}

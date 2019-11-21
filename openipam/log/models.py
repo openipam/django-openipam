@@ -117,7 +117,7 @@ class EmailLog(models.Model):
         db_table = "email_log"
 
 
-class DnsRecordsLog(BaseLog):
+class DnsRecordLog(BaseLog):
     id = models.IntegerField()
     domain = models.IntegerField(db_column="did")
     type_id = models.IntegerField(db_column="tid")
@@ -179,6 +179,25 @@ class AddressLog(BaseLog):
     class Meta:
         managed = False
         db_table = "addresses_log"
+
+
+class LeaseLog(BaseLog):
+    address = models.ForeignKey(
+        "network.Address",
+        db_constraint=False,
+        db_column="address",
+        on_delete=models.DO_NOTHING,
+    )
+    # address = models.GenericIPAddressField()
+    mac = models.TextField(blank=True, null=True)  # This field type is a guess.
+    abandoned = models.BooleanField()
+    server = models.CharField(max_length=255, blank=True, null=True)
+    starts = models.DateTimeField()
+    ends = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "leases_log"
 
 
 class AuthSource(models.Model):

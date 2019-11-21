@@ -185,6 +185,7 @@ INSTALLED_APPS = [
     # Firewall
     # 'openipam.firewall',
     # "djangobower",
+    "chartjs",
     "django_nvd3",
     "django_extensions",
     "widget_tweaks",
