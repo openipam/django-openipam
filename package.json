@@ -7,16 +7,17 @@
     "doc": "docs"
   },
   "dependencies": {
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^3.4.1",
     "bootstrap-waitingfor": "^1.2.7",
-    "chart.js": "^2.8.0",
+    "d3": "^3.5.17",
     "datatables": "^1.10.18",
     "datatables-bootstrap": "^0.0.1",
     "datatables-responsive": "^1.0.7",
+    "html5sortable": "^0.9.16",
     "jquery": "^3.4.1",
     "jquery.cookie": "^1.4.1",
     "nvd3": "^1.8.6",
-    "qtip": "^0.0.4"
+    "qtip2": "^3.0.3"
   },
   "devDependencies": {},
   "scripts": {
@@ -24,12 +25,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jmacul2/django-openipam.git"
+    "url": "git+https://github.com/openipam/django-openipam.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jmacul2/django-openipam/issues"
+    "url": "https://github.com/openipam/django-openipam/issues"
   },
-  "homepage": "https://github.com/jmacul2/django-openipam#readme"
+  "homepage": "https://github.com/openipam/django-openipam#readme"
 }

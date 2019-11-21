@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 # from django.forms import modelform_factory
 
@@ -43,9 +44,8 @@ class HostAdmin(ChangedAdmin):
         return qs
 
     def nice_hostname(self, obj):
-        return '<a href="./%s/">%s</a>' % (obj.mac, obj.hostname or "N/A")
+        return mark_safe(f'<a href="./{obj.mac}/">{obj.hostname or "N/A"}</a>')
 
-    nice_hostname.allow_tags = True
     nice_hostname.short_description = "Hostname"
     nice_hostname.admin_order_field = "hostname"
 

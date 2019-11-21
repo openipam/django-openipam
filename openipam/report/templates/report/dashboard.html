@@ -3,9 +3,9 @@
 
 {% block extrahead %}
 	{{ block.super }}
-	<link media="all" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" type="text/css" rel="stylesheet" />
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"></script>
+	<link media="all" href="{% static 'nvd3/build/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
+	<script type="text/javascript" src='{% static 'nvd3/build/nv.d3.min.js' %}'></script>
 	<script>
 		$(function(){
 

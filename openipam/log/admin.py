@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 
 from django.utils.timezone import localtime
+from django.utils.safestring import mark_safe
 from django import forms
 
 from openipam.log.models import HostLog, EmailLog, DnsRecordLog, AddressLog, UserLog
@@ -43,13 +44,11 @@ class LogEntryAdmin(admin.ModelAdmin):
         return qs.select_related("content_type", "user")
 
     def change_time(self, obj):
-        return '<span class="nowrap">%s</span>' % localtime(obj.action_time).strftime(
-            "%d %b %Y %H:%M:%S"
-        )
+        time = localtime(obj.action_time).strftime("%d %b %Y %H:%M:%S")
+        return mark_safe(f'<span class="nowrap">{time}</span>')
 
     change_time.short_description = "Timestamp"
     change_time.admin_order_field = "action_time"
-    change_time.allow_tags = True
 
     def action_name(self, obj):
         if obj.action_flag == 1:
@@ -92,22 +91,17 @@ class HostLogAdmin(admin.ModelAdmin):
     readonly_fields = ("changed_by",)
 
     def nice_changed_by(self, obj):
-        href = '<a href="%s">%s (%s)</a>'
-
         username = obj.changed_by.username
         if obj.changed_by.first_name and obj.changed_by.last_name:
             full_name = obj.changed_by.get_full_name()
         else:
             full_name = ""
 
-        return href % (
-            reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk]),
-            full_name,
-            username,
-        )
+        url = reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk])
+
+        return mark_safe(f'<a href="{url}">{full_name} ({username})</a>')
 
     nice_changed_by.short_description = "Changed By"
-    nice_changed_by.allow_tags = True
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -142,22 +136,17 @@ class DnsRecordLogAdmin(admin.ModelAdmin):
     readonly_fields = ("changed_by",)
 
     def nice_changed_by(self, obj):
-        href = '<a href="%s">%s (%s)</a>'
-
         username = obj.changed_by.username
         if obj.changed_by.first_name and obj.changed_by.last_name:
             full_name = obj.changed_by.get_full_name()
         else:
             full_name = ""
 
-        return href % (
-            reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk]),
-            full_name,
-            username,
-        )
+        url = reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk])
+
+        return mark_safe(f'<a href="{url}">{full_name} ({username})</a>')
 
     nice_changed_by.short_description = "Changed By"
-    nice_changed_by.allow_tags = True
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -185,22 +174,17 @@ class AddressLogAdmin(admin.ModelAdmin):
     readonly_fields = ("changed_by",)
 
     def nice_changed_by(self, obj):
-        href = '<a href="%s">%s (%s)</a>'
-
         username = obj.changed_by.username
         if obj.changed_by.first_name and obj.changed_by.last_name:
             full_name = obj.changed_by.get_full_name()
         else:
             full_name = ""
 
-        return href % (
-            reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk]),
-            full_name,
-            username,
-        )
+        url = reverse_lazy("admin:user_user_change", args=[obj.changed_by.pk])
+
+        return mark_safe(f'<a href="{url}">{full_name} ({username})</a>')
 
     nice_changed_by.short_description = "Changed By"
-    nice_changed_by.allow_tags = True
 
     def has_delete_permission(self, request, obj=None):
         return False

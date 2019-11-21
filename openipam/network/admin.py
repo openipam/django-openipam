@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.contrib import messages
 
 # from django.forms import modelform_factory
@@ -73,7 +74,7 @@ class NetworkAdmin(ChangedAdmin):
 
     def nice_network(self, obj):
         url = str(obj.network).replace("/", "_2F")
-        return mark_safe('<a href="./%s/">%s</a>' % (url, obj.network))
+        return mark_safe(f'<a href="./{url}/">{obj.network}</a>')
 
     nice_network.short_description = "Network"
 
@@ -249,10 +250,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
     def show_ranges(self, obj):
         ranges = [str(range) for range in obj.ranges.all()]
-        return "%s" % "<br />".join(ranges) if ranges else ""
+        range_str = "<br />".join(ranges) if ranges else ""
+        return mark_safe(f"{range_str}")
 
     show_ranges.short_description = "Network Ranges"
-    show_ranges.allow_tags = True
 
 
 class DhcpOptionAdmin(admin.ModelAdmin):
@@ -276,10 +277,11 @@ class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
     list_select_related = True
 
     def combined_value(self, obj):
-        return "<textarea style='width: 300px;'>%s</textarea>" % str(obj)
+        return mark_safe(
+            f"<textarea style='width: 300px;' readonly>{str(obj)}</textarea>"
+        )
 
     combined_value.short_description = "Group:Option=Value"
-    combined_value.allow_tags = True
 
     def get_queryset(self, request):
         qs = super(DhcpOptionToDhcpGroupAdmin, self).get_queryset(request)

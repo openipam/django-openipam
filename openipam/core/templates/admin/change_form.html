@@ -27,7 +27,7 @@
         {% if change %}
             ../../../../|{% trans "Home" %}
             ../../|{{ opts.verbose_name_plural|capfirst }}
-            {{ original }}
+            {{ original|html_encode_pipe }}
         {% else %}
             ../../../|{% trans "Home" %}
             ../|{{ opts.verbose_name_plural|capfirst }}
