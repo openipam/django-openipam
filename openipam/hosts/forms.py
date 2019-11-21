@@ -45,7 +45,7 @@ from netaddr import EUI, AddrFormatError
 
 from guardian.shortcuts import get_objects_for_user
 
-from django_select2.forms import ModelSelect2Widget  # Select2Widget
+from django_select2.forms import Select2MultipleWidget, Select2TagMixin
 
 from autocomplete_light import shortcuts as al
 
@@ -59,25 +59,67 @@ NET_IP_CHOICES = (("0", "Network"), ("1", "IP"))
 
 
 class StructuredAttributeValueForm(forms.ModelForm):
+    value = forms.CharField()
+
     class Meta:
         model = StructuredAttributeValue
-        fields = ["value"]
+        fields = ["value", "is_default"]
+
+
+class StructuredAttributeValueWidget(Select2TagMixin, Select2MultipleWidget):
+    pass
 
 
 class AttributeForm(forms.ModelForm):
-    structured_values = forms.ModelMultipleChoiceField(
-        queryset=StructuredAttributeValue.objects.all(),
-        required=False,
-        widget=ModelSelect2Widget(
-            search_fields=["attribute__name", "value"],
-            max_results=100,
-            attrs={"data-minimum-input-length": 2},
-        ),
-    )
+    choices = forms.CharField(required=False, widget=StructuredAttributeValueWidget())
+
+    def __init__(self, *args, **kwargs):
+        super(AttributeForm, self).__init__(*args, **kwargs)
+
+        choices = [
+            (choice.value, choice.value)
+            for choice in StructuredAttributeValue.objects.filter(
+                attribute__pk=self.instance.pk
+            )
+        ]
+        self.fields["choices"].widget.choices = choices
+        self.fields["choices"].initial = [initial[0] for initial in choices]
+
+    # def clean(self):
+    #     assert False, self.data.getlist("choices")
+
+    def save(self, *args, **kwargs):
+        super(AttributeForm, self).save(*args, **kwargs)
+        choices = self.data.getlist("choices")
+        existing_choices = StructuredAttributeValue.objects.filter(
+            attribute=self.instance, value__in=choices
+        )
+        # Delete all choices not selected
+        StructuredAttributeValue.objects.filter(attribute=self.instance).exclude(
+            pk__in=[choice.pk for choice in existing_choices]
+        ).delete()
+
+        for choice in choices:
+            StructuredAttributeValue.objects.get_or_create(
+                attribute_id=self.instance.pk,
+                value=choice,
+                defaults={"changed_by": self.request.user},
+            )
+
+        return self.instance
 
     class Meta:
         model = Attribute
-        fields = "__all__"
+        fields = [
+            "name",
+            "description",
+            "validation",
+            "required",
+            "multiple",
+            "structured",
+            "choices",
+            "changed_by",
+        ]
 
 
 class HostForm(forms.ModelForm):

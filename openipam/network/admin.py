@@ -2,12 +2,14 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.conf.urls import url
+from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 
 # from django.forms import modelform_factory
+
 
 from openipam.network.models import (
     Network,
@@ -33,6 +35,7 @@ from openipam.network.forms import (
     AddressAdminForm,
     LeaseAdminForm,
     NetworkReziseForm,
+    NetworkForm,
     VlanForm,
 )
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
@@ -59,6 +62,7 @@ class NetworkAdmin(ChangedAdmin):
     #         "dhcp_group": autocomplete.ModelSelect2(url="dhcp_group_autocomplete")
     #     },
     # )
+    form = NetworkForm
     search_fields = ("^network", "^name", "^shared_network__name")
     actions = ["tag_network", "resize_network", "release_abandoned_leases"]
 
@@ -384,7 +388,7 @@ class HasHostFilter(admin.SimpleListFilter):
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network", "reserved", "pool", HasHostFilter)
+    list_filter = ("network__network", "reserved", "pool", HasHostFilter)
     list_display = (
         "address",
         "network",

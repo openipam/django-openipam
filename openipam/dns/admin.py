@@ -3,9 +3,17 @@ from django.forms import modelform_factory
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
-from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
+from openipam.dns.models import (
+    DnsRecord,
+    DnsType,
+    Domain,
+    DnsView,
+    DhcpDnsRecord,
+    PdnsZoneXfer,
+    DnsRecordMunged,
+)
 from openipam.dns.forms import DhcpDnsRecordForm
-from openipam.core.admin import ChangedAdmin
+from openipam.core.admin import ChangedAdmin, ReadOnlyAdmin
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
@@ -115,11 +123,62 @@ class DhcpDnsRecordAdmin(admin.ModelAdmin):
         "ip_content__address",
     )
     autocomplete_fields = ("domain",)
+    list_select_related = True
     form = DhcpDnsRecordForm
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            super(DhcpDnsRecordAdmin, self)
+            .get_queryset(*args, **kwargs)
+            .select_related("ip_content", "host", "domain")
+        )
 
 
 class DnsTypeAdmin(ObjectPermissionAdmin):
     list_display = ("name", "description", "sgroup_permissions", "suser_permissions")
+
+
+class PdnsZoneXferAdmin(ReadOnlyAdmin):
+    list_display = (
+        "domain",
+        "name",
+        "type",
+        "content",
+        "ttl",
+        "priority",
+        "change_date",
+    )
+    list_select_related = True
+    list_filter = ("type",)
+    search_fields = ("domain__name", "name", "content")
+
+
+# class SupermasterAdmin(ChangedAdmin):
+#     list_display = ("ip", "nameserver", "account", "changed_by", "changed")
+#     list_select_related = True
+
+
+class DnsRecordMungedAdmin(ReadOnlyAdmin):
+    list_display = (
+        "domain",
+        "name",
+        "type",
+        "content",
+        "ttl",
+        "prio",
+        "change_date",
+        "dns_view",
+    )
+    list_select_related = True
+    list_filter = ("type",)
+    search_fields = ("domain__name", "name", "content")
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            super(DnsRecordMungedAdmin, self)
+            .get_queryset(*args, **kwargs)
+            .select_related("domain")
+        )
 
 
 admin.site.register(DnsView)
@@ -127,3 +186,5 @@ admin.site.register(DnsType, DnsTypeAdmin)
 admin.site.register(DnsRecord, DnsRecordAdmin)
 admin.site.register(DhcpDnsRecord, DhcpDnsRecordAdmin)
 admin.site.register(Domain, DomainAdmin)
+admin.site.register(PdnsZoneXfer, PdnsZoneXferAdmin)
+admin.site.register(DnsRecordMunged, DnsRecordMungedAdmin)

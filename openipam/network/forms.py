@@ -8,7 +8,18 @@ from openipam.network.models import (
     Vlan,
     Building,
     BuildingToVlan,
+    Network,
+    DhcpGroup,
+    SharedNetwork,
 )
+
+from django_select2.forms import (
+    ModelSelect2Widget,
+    Select2MultipleWidget,
+    Select2TagMixin,
+)
+
+from taggit.models import Tag
 
 # from dal import autocomplete
 from autocomplete_light import shortcuts as al
@@ -82,6 +93,42 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
     class Meta:
         model = DhcpOptionToDhcpGroup
         exclude = ("value",)
+
+
+class NetworkTagWidget(Select2TagMixin, Select2MultipleWidget):
+    def value_from_datadict(self, data, files, name):
+        try:
+            getter = data.getlist
+        except AttributeError:
+            getter = data.get
+        values_list = getter(name)
+        return ",".join(values_list)
+
+
+class NetworkForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(NetworkForm, self).__init__(*args, **kwargs)
+
+        choices = [(tag.name, tag.name) for tag in Tag.objects.all()]
+        self.fields["tags"].widget.choices = choices
+
+    class Meta:
+        model = Network
+        fields = "__all__"
+        exclude = ("changed",)
+        widgets = {
+            "dhcp_group": ModelSelect2Widget(
+                model=DhcpGroup,
+                search_fields=["name__icontains"],
+                attrs={"data-minimum-input-length": 0},
+            ),
+            "shared_network": ModelSelect2Widget(
+                model=SharedNetwork,
+                search_fields=["name__icontains"],
+                attrs={"data-minimum-input-length": 0},
+            ),
+            "tags": NetworkTagWidget(attrs={"data-minimum-input-length": 0}),
+        }
 
 
 class NetworkTagForm(forms.Form):

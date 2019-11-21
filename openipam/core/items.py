@@ -121,7 +121,6 @@ class MenuItem(object):
             self.url == current_url
             or len([c for c in self.children if c.is_selected(request)]) > 0
         )
-        print("%s, %s - %s" % (self.url, current_url, foo))
         return foo
 
     def is_empty(self):

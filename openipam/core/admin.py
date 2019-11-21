@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 from openipam.core.models import FeatureRequest
 from openipam.core.actions import changed_delete_selected
@@ -43,6 +45,26 @@ class ChangedAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.changed_by = request.user
         super(ChangedAdmin, self).save_model(request, obj, form, change)
+
+
+class ReadOnlyAdmin(admin.ModelAdmin):
+    actions = None
+    list_display_links = None
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        opts = self.model._meta
+        url = reverse(
+            "admin:{app}_{model}_changelist".format(
+                app=opts.app_label, model=opts.model_name
+            )
+        )
+        return HttpResponseRedirect(url)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 def custom_titled_filter(title):

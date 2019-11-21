@@ -281,6 +281,9 @@ class SharedNetwork(models.Model):
 class TaggedNetworks(TaggedItemBase):
     content_object = models.ForeignKey("Network", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.tag.name
+
 
 class Network(models.Model):
     network = CidrAddressField(primary_key=True)
@@ -321,7 +324,9 @@ class Network(models.Model):
         auto_update_search_field=True,
     )
 
-    tags = TaggableManager(through=TaggedNetworks, blank=True)
+    tags = TaggableManager(
+        through=TaggedNetworks, related_name="network_tags", blank=True
+    )
 
     # Forcing pk as string
     @property

@@ -585,6 +585,7 @@
     font-size: 13px;
     font-weight: bold;
     text-transform: uppercase;
+    color: #cc0000 !important;
 }
 .empty-form
 {
@@ -1011,8 +1012,8 @@ ul.timelist, .timelist li
 }
 .select2-selection {
     border-color: #ccc !important;
-    height: 34px !important;
-    padding-top: 3px !important;
+    min-height: 34px !important;
+    /*padding-top: 3px !important;*/
 }
 .select2-selection__arrow {
     height: 30px !important;
