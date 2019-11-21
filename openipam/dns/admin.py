@@ -109,10 +109,9 @@ class DnsRecordAdmin(ChangedAdmin):
         return obj.address.address
 
     def edit_link(self, obj):
-        return '<a href="%s">Edit</a>' % obj.pk
+        return mark_safe(f'<a href="{obj.pk}">Edit</a>')
 
     edit_link.short_description = "Edit"
-    edit_link.allow_tags = True
 
 
 class DhcpDnsRecordAdmin(admin.ModelAdmin):
