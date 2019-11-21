@@ -1,0 +1,50 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+black = "*"
+
+[packages]
+beautifulsoup4 = "*"
+django-admin-tools = "*"
+django-auth-ldap = "*"
+django-autocomplete-light = "==2.3.3"
+django-braces = "*"
+django-crispy-forms = "*"
+django-debug-toolbar = "*"
+django-extensions = "*"
+django-filter = "*"
+django-guardian = "*"
+django-netfields = "*"
+django-nvd3 = "*"
+django-pglocks = "*"
+django-qsstats-magic = "*"
+django-taggit = "*"
+django-widget-tweaks = "*"
+djangorestframework = "*"
+djangorestframework-csv = "*"
+djangorestframework-jwt = "*"
+djorm-ext-pgfulltext = "*"
+drf-compound-fields = "*"
+peewee = "*"
+python-dateutil = "*"
+raven = "*"
+six = "*"
+Django = "==2.2.7"
+duo_web = "*"
+pip = "*"
+requests = "*"
+ipython = "*"
+psycopg2-binary = "*"
+django-dirtyfields = "*"
+django-select2 = "*"
+django-chartjs = "*"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
