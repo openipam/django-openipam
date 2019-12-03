@@ -50,9 +50,9 @@
       }
     </style>
 
-    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.css" />
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="{% static "qtip2/dist/jquery.qtip.min.css" %}" />
+    <script type="text/javascript" src="{% static "qtip2/dist/jquery.qtip.min.js" %}"></script>
+    {# <script type="text/javascript" src="{% static "qtip2/imagesloaded.pkg.min.js" %}"></script> #}
     <script type="text/javascript">
       // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -136,7 +136,7 @@
         var updatePage = function() {
           // var sortByNetwork = (sortBy == "usage" ? '' : '&sort_by_network=true');
           $.get('/api/reports/leaseusage/?format=html&network_blocks=129.123.0.0/16,144.39.0.0/16,172.16.0.0/12').done(function(data){
-            $("#usage-chart").html(data);
+          	$("#usage-chart").html(data);
             $('div.network').each(function() {
               $(this).qtip({
                 content: $(this).next('div'),

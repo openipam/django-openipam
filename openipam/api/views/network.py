@@ -148,55 +148,36 @@ class RouterUpgrade(APIView):
         )
 
         # Vlan 30 - captive
-        if serializer.data.get("captive_network", None):
-            captive_network = self.create_network(
-                network_str=serializer.data["captive_network"],
-                building=building,
-                name="captive",
-                user=request.user,
-                dhcp_group_name="restricted",
-            )
-            self.update_vlan(
-                vlan_id="30",
-                building=building,
-                user=request.user,
-                networks=[captive_network],
-                name="captive",
-            )
-
-        # Vlan 39 - captive_housing
-        if serializer.data.get("captive_housing_network", None):
-            captive_housing_network = self.create_network(
-                network_str=serializer.data["captive_housing_network"],
-                building=building,
-                name="captive_housing",
-                user=request.user,
-                dhcp_group_name="restricted",
-            )
-            self.update_vlan(
-                vlan_id="39",
-                building=building,
-                user=request.user,
-                networks=[captive_housing_network],
-                name="captive_housing",
-            )
+        captive_network = self.create_network(
+            network_str=serializer.data["captive_network"],
+            building=building,
+            name="captive",
+            user=request.user,
+            dhcp_group_name="restricted",
+        )
+        self.update_vlan(
+            vlan_id="30",
+            building=building,
+            user=request.user,
+            networks=[captive_network],
+            name="captive",
+        )
 
         # Vlan 40 - phones
-        if serializer.data.get("phone_network", None):
-            phone_network = self.create_network(
-                network_str=serializer.data["phone_network"],
-                building=building,
-                name="campus_voice",
-                user=request.user,
-                dhcp_group_name="usu_shoretel_phones-untagged",
-            )
-            self.update_vlan(
-                vlan_id="40",
-                building=building,
-                user=request.user,
-                networks=[phone_network],
-                name="campus_voice",
-            )
+        phone_network = self.create_network(
+            network_str=serializer.data["phone_network"],
+            building=building,
+            name="campus_voice",
+            user=request.user,
+            dhcp_group_name="usu_shoretel_phones-untagged",
+        )
+        self.update_vlan(
+            vlan_id="40",
+            building=building,
+            user=request.user,
+            networks=[phone_network],
+            name="campus_voice",
+        )
 
         # Vlan 90 - management
         management_network = self.create_network(
@@ -214,15 +195,19 @@ class RouterUpgrade(APIView):
         )
 
         # Vlan 11 - campus_lab
-        campus_lab_networks = serializer.data.get("campus_lab_networks", [])
-        if campus_lab_networks:
-            self.update_vlan(
-                vlan_id="11",
-                building=building,
-                user=request.user,
-                networks=campus_lab_networks,
-                name="campus_lab",
-            )
+        campus_lab_network = self.create_network(
+            network_str=serializer.data["campus_lab"],
+            building=building,
+            name="campus_lab",
+            user=request.user,
+        )
+        self.update_vlan(
+            vlan_id="11",
+            building=building,
+            user=request.user,
+            networks=[campus_lab_network],
+            name="campus_lab",
+        )
 
         return Response("Ok!")
 

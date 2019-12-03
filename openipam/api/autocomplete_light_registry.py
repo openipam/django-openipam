@@ -11,14 +11,7 @@ from openipam.hosts.models import (
     StructuredAttributeValue,
     FreeformAttributeToHost,
 )
-from openipam.network.models import (
-    Network,
-    Address,
-    AddressType,
-    Pool,
-    DhcpGroup,
-    Building,
-)
+from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
 
 from taggit.models import Tag
 
@@ -498,9 +491,6 @@ al.register(
 
 
 al.register(Group, search_fields=["name"], attrs={"placeholder": "Search Groups"})
-
-
-al.register(Building, search_fields=["name", "number", "abbreviation"])
 
 
 class GroupFilterAutocomplete(al.AutocompleteModelBase):

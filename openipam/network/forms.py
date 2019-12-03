@@ -71,16 +71,6 @@ class AddressTypeAdminForm(forms.ModelForm):
         fields = ("name", "description", "ranges", "pool", "is_default")
 
 
-class BuildingAssignForm(forms.Form):
-    buildings = al.ModelMultipleChoiceField("BuildingAutocomplete", required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(BuildingAssignForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-
-
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
     readable_value = forms.CharField(label="Value")
 

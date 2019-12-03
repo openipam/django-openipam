@@ -40,13 +40,8 @@ class RouterUpgradeSerializer(serializers.Serializer):
             (building.number, building.number) for building in Building.objects.all()
         ]
     )
-    campus_lab_networks = serializers.MultipleChoiceField(
-        choices=[(network, network) for network in Network.objects.all()],
-        required=False,
-    )
-    captive_network = serializers.CharField(required=False)
-    captive_housing_network = serializers.CharField(required=False)
-    phone_network = serializers.CharField(required=False)
+    captive_network = serializers.CharField()
+    phone_network = serializers.CharField()
     management_network = serializers.CharField()
 
     def validate_building(self, value):
@@ -59,9 +54,7 @@ class RouterUpgradeSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(e.message)
 
-    validate_phone_network = (
-        validate_management_network
-    ) = validata_captive_housing_network = validate_captive_network
+    validate_phone_network = validate_management_network = validate_captive_network
 
     # def validate_phone_network(self, value):
     #     try:
