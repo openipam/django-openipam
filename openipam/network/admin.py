@@ -37,6 +37,7 @@ from openipam.network.forms import (
     NetworkReziseForm,
     NetworkForm,
     VlanForm,
+    BuildingAssignForm,
 )
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
@@ -317,10 +318,15 @@ class SharedNetworkAdmin(ChangedAdmin):
 
 
 class VlanAdmin(ChangedAdmin):
-    list_display = ("vlan_id", "name", "changed_by", "changed")
-    search_fields = ("vlan_id", "^name")
+    list_display = ("vlan_id", "name", "building_numbers", "changed_by", "changed")
+    search_fields = ("vlan_id", "^name", "buildings__number")
     list_select_related = True
     form = VlanForm
+    actions = ["assign_buildings"]
+
+    def get_queryset(self, request):
+        qs = super(VlanAdmin, self).get_queryset(request)
+        return qs.prefetch_related("buildings").all()
 
     def save_model(self, request, obj, form, change):
         super(VlanAdmin, self).save_model(request, obj, form, change)
@@ -331,6 +337,41 @@ class VlanAdmin(ChangedAdmin):
             BuildingToVlan.objects.create(
                 building=building, vlan=obj, changed_by=request.user
             )
+
+    def get_urls(self):
+        urls = super(VlanAdmin, self).get_urls()
+        net_urls = [url(r"^assign_buildings/$", self.assign_buildings_view)]
+        return net_urls + urls
+
+    def building_numbers(self, obj):
+        buildings = [building.number for building in obj.buildings.all()]
+        return " ".join(buildings)
+
+    building_numbers.short_description = "Buildings"
+
+    def assign_buildings_view(self, request):
+        form = BuildingAssignForm(request.POST or None)
+
+        if form.is_valid():
+            ids = request.GET.get("ids").strip().split(",")
+            vlans = Vlan.objects.filter(pk__in=ids)
+            buildings = form.cleaned_data["buildings"]
+            for vlan in vlans:
+                for building in buildings:
+                    BuildingToVlan.objects.get_or_create(
+                        building=building, vlan=vlan, changed_by=request.user
+                    )
+
+            messages.success(request, "Buildings were successfully added")
+
+            return redirect("../")
+
+        return render(request, "admin/actions/assign_buildings.html", {"form": form})
+
+    def assign_buildings(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return redirect("assign_buildings/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
 
 class NetworkToVlanAdmin(ChangedAdmin):

@@ -226,7 +226,8 @@ $(function(){
 	// var pageOnchange = function() {
 	// 	var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 	// 	var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-	// 	if (!isMobile) {
+
+	// 	if not (isMobile) {
 	// 		if(s<height){page_bar.addClass('fixed');}
 	// 		else{page_bar.removeClass('fixed');}
 	// 	}

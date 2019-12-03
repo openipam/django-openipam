@@ -240,11 +240,11 @@ $(function(){
         }
     }).columns.adjust();;
 
-    var pageOnchange = function() {
-        var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-        if(s<height){page_bar.addClass('fixed');}
-        else{page_bar.removeClass('fixed');}
-    }
+    // var pageOnchange = function() {
+    //     var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
+    //     if(s<height){page_bar.addClass('fixed');}
+    //     else{page_bar.removeClass('fixed');}
+    // }
 
     var formActionCheck = function() {
         var selectedRecords = $.selectedRecords ? $.selectedRecords : []
