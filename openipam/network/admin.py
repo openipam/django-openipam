@@ -5,7 +5,6 @@ from django.conf.urls import url
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 from django.contrib import messages
 
 # from django.forms import modelform_factory
