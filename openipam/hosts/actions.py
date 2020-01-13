@@ -478,7 +478,7 @@ def export_csv(request, selected_hosts):
         users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
         usernames = ",".join(set([user.username for user in users]))
         emails = ",".join(set([user.email or "" for user in users]))
-        
+
         gul_by_address = GulRecentArpByaddress.objects.filter(host=host).first()
         gul_by_mac = GulRecentArpBymac.objects.filter(host=host).first()
 
