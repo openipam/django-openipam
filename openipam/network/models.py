@@ -182,23 +182,27 @@ class DhcpOptionToDhcpGroup(models.Model):
 
     @classmethod
     def is_displayable(self, value):
+        print(value)
         return all(self.is_displayable_byte(b) for b in value)
 
     def displayable_value(self, repr_ascii=False):
         value = self.value
-        if hasattr(value, "tobytes"):
-            value = value.tobytes()
-        elif isinstance(value, str):
-            value = value.encode()
+        if value:
+            if hasattr(value, "tobytes"):
+                value = value.tobytes()
+            elif isinstance(value, str):
+                value = value.encode()
 
-        use_ascii = self.is_displayable(value)
+            use_ascii = self.is_displayable(value)
 
-        if use_ascii:
-            displayable = value.decode(encoding="ascii")
-            if repr_ascii:
-                return repr(displayable)
-            return displayable
-        return "0x" + value.hex()
+            if use_ascii:
+                displayable = value.decode(encoding="ascii")
+                if repr_ascii:
+                    return repr(displayable)
+                return displayable
+            return "0x" + value.hex()
+        else:
+            return None
 
     @property
     def value_fordisplay(self):
