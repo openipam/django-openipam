@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib import messages
 
+
 from openipam.network.models import (
     Network,
     NetworkRange,
@@ -240,8 +241,8 @@ class DhcpGroupAdmin(ChangedAdmin):
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
-    list_display = ("combined_value", "changed", "changed_by")
-    list_filter = ("group", "changed_by")
+    list_display = ("combined_value", "group", "changed", "changed_by")
+    list_filter = ("group",)
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ("group", "option", "readable_value", "changed", "changed_by")
     readonly_fields = ("changed_by", "changed")
