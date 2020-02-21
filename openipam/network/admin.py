@@ -385,11 +385,11 @@ class HasHostFilter(admin.SimpleListFilter):
 
 
 class IsStaticAddress(admin.SimpleListFilter):
-    title = "if static"
-    parameter_name = "if_static"
+    title = "static"
+    parameter_name = "static"
 
     def lookups(self, request, model_admin):
-        return (("1", "Show Static"), ("0", "Show Dynamic"))
+        return (("1", "Yes"), ("0", "No"))
 
     def queryset(self, request, queryset):
         if self.value() == "1":
