@@ -314,6 +314,9 @@ class DnsRecord(models.Model):
         # TODO: more of these need to be added
         try:
             if self.text_content:
+                # Strip off any trailing dots
+                self.text_content = self.text_content.rstrip(".")
+
                 if self.dns_type.name == "CNAME" and len(self.text_content) > 255:
                     raise ValidationError("CNAME Content cannot be longer than 255.")
 
