@@ -457,7 +457,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                 messages.success(
                     self.request, "Selected DNS records have been updated."
                 )
-                return redirect("list_dns")
+                return redirect("dns:list")
 
         return self.get(request, *args, **kwargs)
 
