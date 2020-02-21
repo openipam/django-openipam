@@ -384,24 +384,10 @@ class HasHostFilter(admin.SimpleListFilter):
             return queryset.filter(host__isnull=True)
 
 
-class IsStaticAddress(admin.SimpleListFilter):
-    title = "if static"
-    parameter_name = "if_static"
-
-    def lookups(self, request, model_admin):
-        return (("1", "Show Static"), ("0", "Show Dynamic"))
-
-    def queryset(self, request, queryset):
-        if self.value() == "1":
-            return queryset.filter(pool__isnull=True)
-        if self.value() == "0":
-            return queryset.filter(pool__isnull=False)
-
-
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network__network", "reserved", "pool", HasHostFilter, IsStaticAddress)
+    list_filter = ("network__network", "reserved", "pool", HasHostFilter)
     list_display = (
         "address",
         "network",
