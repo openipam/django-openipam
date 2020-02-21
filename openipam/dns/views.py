@@ -14,7 +14,7 @@ from django.forms.utils import ErrorList
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
-from openipam.dns.forms import DSNCreateFrom
+from openipam.dns.forms import DNSCreateForm
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.dns.actions import delete_records
 from openipam.core.views import BaseDatatableView
@@ -465,7 +465,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
     permission_required = "dns.add_dnsrecord"
     template_name = "dns/dnsrecord_form.html"
-    form_class = DSNCreateFrom
+    form_class = DNSCreateForm
     success_url = reverse_lazy("dns:list")
     record = None
 

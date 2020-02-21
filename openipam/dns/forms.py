@@ -113,7 +113,7 @@ class DNSUpdateForm(forms.ModelForm):
         fields = ("name", "ttl", "text_content")
 
 
-class DSNCreateFrom(forms.Form):
+class DNSCreateForm(forms.Form):
     name = forms.CharField(required=True)
     dns_type = forms.ModelChoiceField(
         queryset=DnsType.objects.all(), required=True, widget=Select2Widget
@@ -122,7 +122,7 @@ class DSNCreateFrom(forms.Form):
     content = forms.CharField(required=True)
 
     def __init__(self, user, *args, **kwargs):
-        super(DSNCreateFrom, self).__init__(*args, **kwargs)
+        super(DNSCreateForm, self).__init__(*args, **kwargs)
 
         self.fields["dns_type"].queryset = get_objects_for_user(
             user,
