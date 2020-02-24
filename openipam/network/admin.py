@@ -420,7 +420,9 @@ class AddressAdmin(ChangedAdmin):
         return qs.select_related("host", "network", "changed_by").all()
 
     def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super(AddressAdmin, self).get_search_results(request, queryset, search_term)
+        queryset, use_distinct = super(AddressAdmin, self).get_search_results(
+            request, queryset, search_term
+        )
 
         # Check if the search is for a network
         if "q" in request.GET and "/" in request.GET["q"]:
