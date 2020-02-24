@@ -403,7 +403,13 @@ class IsStaticAddress(admin.SimpleListFilter):
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network__network", "reserved", "pool", HasHostFilter, IsStaticAddress)
+    list_filter = (
+        "network__network",
+        "reserved",
+        "pool",
+        HasHostFilter,
+        IsStaticAddress,
+    )
     list_display = (
         "address",
         "network",
