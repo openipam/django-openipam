@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ("ttl", models.IntegerField(default=-1, null=True, blank=True)),
                 ("changed", models.DateTimeField(auto_now=True)),
             ],
-            options={"db_table": b"dhcp_dns_records"},
+            options={"db_table": "dhcp_dns_records"},
             bases=(models.Model,),
         )
     ]

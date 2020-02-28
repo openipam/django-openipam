@@ -166,7 +166,7 @@ def duo_auth(request):
             )
             if authenticated_username:
                 duo_authenticate(request)
-                return redirect("admin:index")
+                return redirect(request.GET.get("next", "admin:index"))
 
     sig_request = duo_web.sign_request(
         duo_settings.get("IKEY"),
@@ -178,7 +178,7 @@ def duo_auth(request):
     context = {
         "sig_request": sig_request,
         "host": duo_settings.get("HOST"),
-        "post_action": reverse("duo_auth"),
+        "post_action": f"{reverse('duo_auth')}?next={request.GET.get('next')}",
     }
     return render(request, "registration/duo.html", context)
 

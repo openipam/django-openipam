@@ -77,3 +77,19 @@ class IPAddressField(serializers.CharField):
     def __init__(self, **kwargs):
         super(IPAddressField, self).__init__(**kwargs)
         self.validators.append(validate_ipv46_address)
+
+
+class ChangedBySerializer(serializers.ModelSerializer):
+    changed_by = serializers.SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username
+
+    def create(self, validated_data):
+        validated_data["changed_by"] = self.context["request"].user
+        instance = super(ChangedBySerializer, self).create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        validated_data["changed_by"] = self.context["request"].user
+        return super(ChangedBySerializer, self).update(instance, validated_data)

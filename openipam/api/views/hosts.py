@@ -54,6 +54,7 @@ class HostList(generics.ListAPIView):
 
         * `mac` -- MAC Address contains
         * `hostname` -- Hostname contains
+        * `hostname_exact` -- Hostname exact
         * `user` -- Username of a user
         * `user_with_groups` -- Username of a user.  This will display the users hosts as well as all hosts in the users groups.
         * `group` -- Group name of a group.  To speficy multiple groups as a union, user a | between group names.
@@ -457,15 +458,23 @@ class HostAddAttribute(APIView):
                     )
                 # Add freeform attributes
                 else:
+                    # FIXME: what about attributes that allow multiple values?
                     (
                         freeform_attr,
                         created,
                     ) = FreeformAttributeToHost.objects.get_or_create(
-                        host=host, attribute=attr
+                    freeform_attr, created = FreeformAttributeToHost.objects.get_or_create(
+                        host=host,
+                        attribute=attr,
+                        defaults={
+                            "changed_by": request.user,
+                            "value": attributes[attr.name],
+                        },
                     )
-                    freeform_attr.value = attributes[attr.name]
-                    freeform_attr.changed_by = request.user
-                    freeform_attr.save()
+                    if not created:
+                        freeform_attr.value = attributes[attr.name]
+                        freeform_attr.changed_by = request.user
+                        freeform_attr.save()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

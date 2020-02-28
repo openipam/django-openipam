@@ -136,6 +136,7 @@ class NetworkFilter(CharFilter):
 class HostFilter(FilterSet):
     mac = HostCharFilter()
     hostname = CharFilter(lookup_expr="icontains")
+    hostname_exact = CharFilter(field_name="hostname", lookup_expr="iexact")
     is_expired = IsExpiredFilter()
     group = GroupFilter()
     user = UserFilter()

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 from django.utils import timezone
 
@@ -147,7 +146,7 @@ class DhcpOption(models.Model):
     comment = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return "%s_%s" % (self.id, self.name)
+        return "%s" % self.name
 
     class Meta:
         db_table = "dhcp_options"
@@ -182,27 +181,25 @@ class DhcpOptionToDhcpGroup(models.Model):
 
     @classmethod
     def is_displayable(self, value):
-        print(value)
-        return all(self.is_displayable_byte(b) for b in value)
+        return all(self.is_displayable_byte(b) for b in value) if value else None
 
     def displayable_value(self, repr_ascii=False):
         value = self.value
-        if value:
-            if hasattr(value, "tobytes"):
-                value = value.tobytes()
-            elif isinstance(value, str):
-                value = value.encode()
-
-            use_ascii = self.is_displayable(value)
-
-            if use_ascii:
-                displayable = value.decode(encoding="ascii")
-                if repr_ascii:
-                    return repr(displayable)
-                return displayable
-            return "0x" + value.hex()
-        else:
+        if not value:
             return None
+        if hasattr(value, "tobytes"):
+            value = value.tobytes()
+        elif isinstance(value, str):
+            value = value.encode()
+
+        use_ascii = self.is_displayable(value)
+
+        if use_ascii:
+            displayable = value.decode(encoding="ascii")
+            if repr_ascii:
+                return repr(displayable)
+            return displayable
+        return "0x" + value.hex()
 
     @property
     def value_fordisplay(self):
@@ -317,7 +314,7 @@ class NetworkRange(models.Model):
 
 class Vlan(models.Model):
     vlan_id = models.SmallIntegerField()
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     buildings = models.ManyToManyField(
         "Building", through="BuildingToVlan", related_name="building_vlans"
@@ -370,6 +367,7 @@ class BuildingToVlan(models.Model):
 
     class Meta:
         db_table = "buildings_to_vlans"
+        unique_together = ["building", "vlan"]
 
 
 class Address(models.Model):

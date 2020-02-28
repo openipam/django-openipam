@@ -26,25 +26,25 @@ class Migration(migrations.Migration):
                     "type",
                     models.CharField(
                         max_length=255,
-                        verbose_name=b"Request Type",
+                        verbose_name="Request Type",
                         choices=[
-                            (b"feature", b"Feature"),
-                            (b"bug", b"Bug"),
-                            (b"comment", b"Comment"),
+                            ("feature", "Feature"),
+                            ("bug", "Bug"),
+                            ("comment", "Comment"),
                         ],
                     ),
                 ),
-                ("comment", models.TextField(verbose_name=b"Comment Details")),
+                ("comment", models.TextField(verbose_name="Comment Details")),
                 (
                     "submitted",
                     models.DateTimeField(
-                        auto_now_add=True, verbose_name=b"Date Submitted"
+                        auto_now_add=True, verbose_name="Date Submitted"
                     ),
                 ),
                 ("is_complete", models.BooleanField(default=False)),
                 ("user", models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
-            options={"ordering": (b"-submitted",), "db_table": b"feature_requests"},
+            options={"ordering": ("-submitted",), "db_table": "feature_requests"},
             bases=(models.Model,),
         )
     ]

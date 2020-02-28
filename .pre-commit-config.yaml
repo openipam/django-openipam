@@ -8,6 +8,7 @@ repos:
     rev: v1.2.3
     hooks:
     - id: flake8
+      language_version: python3.7
       args: ["--ignore=W503,E501,E203", --max-line-length=88]
     - id: check-json
     - id: check-yaml

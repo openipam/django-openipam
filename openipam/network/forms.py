@@ -1,5 +1,4 @@
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from django import forms
 
 from openipam.network.models import (
@@ -53,6 +52,16 @@ class AddressTypeAdminForm(forms.ModelForm):
     class Meta:
         model = AddressType
         fields = ("name", "description", "ranges", "pool", "is_default")
+
+
+class BuildingAssignForm(forms.Form):
+    buildings = al.ModelMultipleChoiceField("BuildingAutocomplete", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(BuildingAssignForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
 
 class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):

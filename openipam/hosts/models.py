@@ -1041,8 +1041,18 @@ class Host(DirtyFieldsMixin, models.Model):
 
     def remove_owners(self):
         users, groups = self.get_owners()
+        self.remove_user_owners(users)
+        self.remove_group_owners(groups)
+
+    def remove_user_owners(self, users=None):
+        if not users:
+            users = self.get_owners(users_only=True)
         for user in users:
             remove_perm("is_owner_host", user, self)
+
+    def remove_group_owners(self, groups=None):
+        if not groups:
+            users, groups = self.get_owners()
         for group in groups:
             remove_perm("is_owner_host", group, self)
 

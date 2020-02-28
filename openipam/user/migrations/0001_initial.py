@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "db_table": b"users",
+                "db_table": "users",
                 "verbose_name": "user",
                 "verbose_name_plural": "users",
             },
@@ -114,14 +114,14 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(unique=True, max_length=255, blank=True)),
             ],
-            options={"db_table": b"auth_sources"},
+            options={"db_table": "auth_sources"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="user",
             name="source",
             field=models.ForeignKey(
-                db_column=b"source",
+                db_column="source",
                 default=None,
                 blank=True,
                 to="user.AuthSource",
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
                 (
                     "source",
                     models.ForeignKey(
-                        db_column=b"source", default=1, to="user.AuthSource"
+                        db_column="source", default=1, to="user.AuthSource"
                     ),
                 ),
             ],
@@ -154,20 +154,20 @@ class Migration(migrations.Migration):
                 (
                     "permission",
                     models.CharField(
-                        max_length=8, serialize=False, primary_key=True, db_column=b"id"
+                        max_length=8, serialize=False, primary_key=True, db_column="id"
                     ),
                 ),
                 ("name", models.TextField(blank=True)),
                 ("description", models.TextField(blank=True)),
             ],
-            options={"db_table": b"permissions"},
+            options={"db_table": "permissions"},
             bases=(models.Model,),
         ),
         migrations.AddField(
             model_name="user",
             name="min_permissions",
             field=models.ForeignKey(
-                db_column=b"min_permissions",
+                db_column="min_permissions",
                 default=None,
                 blank=True,
                 to="user.Permission",
