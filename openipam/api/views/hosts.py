@@ -463,7 +463,6 @@ class HostAddAttribute(APIView):
                         freeform_attr,
                         created,
                     ) = FreeformAttributeToHost.objects.get_or_create(
-                    freeform_attr, created = FreeformAttributeToHost.objects.get_or_create(
                         host=host,
                         attribute=attr,
                         defaults={
