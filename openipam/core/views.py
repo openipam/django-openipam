@@ -332,9 +332,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
     model = None
     columns = []
     order_columns = []
-    max_display_length = (
-        100
-    )  # max limit of records returned, do not allow to kill our server by huge sets of data
+    max_display_length = 100  # max limit of records returned, do not allow to kill our server by huge sets of data
 
     def initialize(*args, **kwargs):
         pass
