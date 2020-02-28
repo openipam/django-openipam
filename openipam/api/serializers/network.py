@@ -14,21 +14,80 @@ from openipam.network.models import (
     Vlan,
     NetworkRange,
     NetworkToVlan,
+    Building,
+    BuildingToVlan,
 )
 from openipam.hosts.models import Host
+from openipam.api.serializers.base import ChangedBySerializer
 
 from netaddr import EUI, AddrFormatError
 
 from netfields.mac import mac_unix_common
 from netfields.rest_framework import InetAddressField, CidrAddressField
 
+from ipaddress import IPv4Network
+
+
+class RouterUpgradeSerializer(serializers.Serializer):
+    routable_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()]
+    )
+    non_routable_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()]
+    )
+    building = serializers.ChoiceField(
+        choices=[
+            (building.number, building.number) for building in Building.objects.all()
+        ]
+    )
+    campus_lab_networks = serializers.MultipleChoiceField(
+        choices=[(network, network) for network in Network.objects.all()],
+        required=False,
+    )
+    captive_network = serializers.CharField(required=False)
+    captive_housing_network = serializers.CharField(required=False)
+    phone_network = serializers.CharField(required=False)
+    management_network = serializers.CharField()
+
+    def validate_building(self, value):
+        building = Building.objects.get(number__iexact=value)
+        return building
+
+    def validate_captive_network(self, value):
+        try:
+            return IPv4Network(value, False)
+        except Exception as e:
+            raise serializers.ValidationError(e.message)
+
+    validate_phone_network = (
+        validate_management_network
+    ) = validata_captive_housing_network = validate_captive_network
+
+    # def validate_phone_network(self, value):
+    #     try:
+    #         return IPv4Network(value, False)
+    #     except Exception as e:
+    #         raise serializers.ValidationError(e.message)
+
+    # def validate_management_network(self, value):
+    #     try:
+    #         return IPv4Network(value, False)
+    #     except Exception as e:
+    #         raise serializers.ValidationError(e.message)
+
+
+class NetworkVlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vlan
+        fields = ["id", "vlan_id", "name", "description"]
+
 
 class NetworkListSerializer(serializers.ModelSerializer):
-    # network = serializers.CharField()
+    vlans = NetworkVlanSerializer(many=True, read_only=True)
 
     class Meta:
         model = Network
-        fields = ("network", "name", "description")
+        fields = "__all__"
 
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
@@ -126,17 +185,8 @@ class NetworkRangeDeleteSerializer(serializers.ModelSerializer):
         read_only_fields = ("range",)
 
 
-class NetworkToVlanSerializer(serializers.ModelSerializer):
+class NetworkToVlanSerializer(ChangedBySerializer):
     network = CidrAddressField()
-    vlan = serializers.SerializerMethodField()
-
-    def validate_vlan(self, value):
-        if value:
-            vlan_exists = Vlan.objects.filter(name=value).first()
-            if not vlan_exists:
-                raise serializers.ValidationError("The vlan entered does not exist.")
-            return vlan_exists
-        return None
 
     def validate_network(self, value):
         if value:
@@ -146,21 +196,9 @@ class NetworkToVlanSerializer(serializers.ModelSerializer):
             return network_exists
         return None
 
-    def create(self, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        instance = super(NetworkToVlanSerializer, self).create(validated_data)
-        return instance
-
-    def update(self, instance, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        return super(NetworkToVlanSerializer, self).update(instance, validated_data)
-
-    def get_vlan(self, obj):
-        return obj.vlan_id
-
     class Meta:
         model = NetworkToVlan
-        fields = ("network", "vlan")
+        fields = "__all__"
 
 
 class NetworkToVlanDeleteSerializer(serializers.ModelSerializer):
@@ -245,21 +283,7 @@ class AddressSerializer(serializers.ModelSerializer):
         )
 
 
-class DhcpGroupSerializer(serializers.ModelSerializer):
-    changed_by = serializers.SerializerMethodField()
-
-    def get_changed_by(self, obj):
-        return obj.changed_by.username
-
-    def create(self, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        instance = super(DhcpGroupSerializer, self).create(validated_data)
-        return instance
-
-    def update(self, instance, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        return super(DhcpGroupSerializer, self).update(instance, validated_data)
-
+class DhcpGroupSerializer(ChangedBySerializer):
     class Meta:
         model = DhcpGroup
         fields = "__all__"
@@ -279,13 +303,17 @@ class DhcpOptionSerializer(serializers.ModelSerializer):
 
 
 class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(allow_blank=True, allow_null=True)
-    option = serializers.CharField(allow_blank=True, allow_null=True)
+    group = serializers.PrimaryKeyRelatedField(
+        many=False, read_only=False, queryset=DhcpGroup.objects.all()
+    )
+    option = serializers.PrimaryKeyRelatedField(
+        many=False, read_only=False, queryset=DhcpOption.objects.all()
+    )
     readable_value = serializers.CharField(
         source="get_readable_value", read_only=True, label="value"
     )
     value = serializers.CharField(write_only=True, allow_blank=True, allow_null=True)
-    changed_by = serializers.StringRelatedField()
+    changed_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def validate_group(self, value):
         if value:
@@ -318,17 +346,6 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
             return binascii.unhexlify(value)
         return None
 
-    def create(self, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        instance = super(DhcpOptionToDhcpGroupSerializer, self).create(validated_data)
-        return instance
-
-    def update(self, instance, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        return super(DhcpOptionToDhcpGroupSerializer, self).update(
-            instance, validated_data
-        )
-
     class Meta:
         model = DhcpOptionToDhcpGroup
         fields = ("id", "group", "option", "readable_value", "value", "changed_by")
@@ -341,21 +358,7 @@ class DhcpOptionToDhcpGroupDeleteSerializer(serializers.ModelSerializer):
         read_only_fields = ("group", "option", "value")
 
 
-class SharedNetworkSerializer(serializers.ModelSerializer):
-    changed_by = serializers.SerializerMethodField()
-
-    def get_changed_by(self, obj):
-        return obj.changed_by.username
-
-    def create(self, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        instance = super(SharedNetworkSerializer, self).create(validated_data)
-        return instance
-
-    def update(self, instance, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        return super(SharedNetworkSerializer, self).update(instance, validated_data)
-
+class SharedNetworkSerializer(ChangedBySerializer):
     class Meta:
         model = SharedNetwork
         fields = "__all__"
@@ -368,24 +371,25 @@ class SharedNetworkDeleteSerializer(serializers.ModelSerializer):
         read_only_fields = ("name",)
 
 
-class VlanSerializer(serializers.ModelSerializer):
-    changed_by = serializers.SerializerMethodField()
+class VlanBuildingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Building
+        fields = ["id", "number", "abbreviation", "name"]
 
-    def get_changed_by(self, obj):
-        return obj.changed_by.username
 
-    def create(self, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        instance = super(VlanSerializer, self).create(validated_data)
-        return instance
+class VlanNetworkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Network
+        fields = ["network", "name", "gateway", "dhcp_group", "shared_network"]
 
-    def update(self, instance, validated_data):
-        validated_data["changed_by"] = self.context["request"].user
-        return super(VlanSerializer, self).update(instance, validated_data)
+
+class VlanSerializer(ChangedBySerializer):
+    buildings = VlanBuildingSerializer(many=True, read_only=True)
+    vlan_networks = VlanNetworkSerializer(many=True, read_only=True)
 
     class Meta:
         model = Vlan
-        exclude = ("changed",)
+        fields = "__all__"
 
 
 class VlanDeleteSerializer(serializers.ModelSerializer):
@@ -393,6 +397,45 @@ class VlanDeleteSerializer(serializers.ModelSerializer):
         model = Vlan
         fields = ("name",)
         read_only_fields = ("name",)
+
+
+class BuildingVlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vlan
+        fields = ["id", "vlan_id", "name", "description"]
+
+
+class BuildingSerializer(ChangedBySerializer):
+    building_vlans = BuildingVlanSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Building
+        fields = "__all__"
+
+
+class BuildingDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Building
+        fields = ("name",)
+        read_only_fields = ("name",)
+
+
+class BuildingToVlanSerializer(ChangedBySerializer):
+    vlan_id = serializers.SerializerMethodField()
+
+    def get_vlan_id(self, obj):
+        return obj.vlan_id
+
+    class Meta:
+        model = BuildingToVlan
+        fields = "__all__"
+
+
+class BuildingToVlanDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BuildingToVlan
+        fields = ("building", "vlan")
+        read_only_fields = ("building", "vlan")
 
 
 class PoolSerializer(serializers.ModelSerializer):

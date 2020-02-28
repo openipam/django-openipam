@@ -8,4 +8,4 @@ class NetworkFilter(FilterSet):
 
     class Meta:
         model = Network
-        fields = ["name"]
+        fields = ["name", "shared_network"]

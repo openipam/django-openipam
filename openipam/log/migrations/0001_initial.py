@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 (
                     "address_type",
                     models.IntegerField(
-                        null=True, db_column=b"address_type_id", blank=True
+                        null=True, db_column="address_type_id", blank=True
                     ),
                 ),
                 ("dhcp_group", models.IntegerField(null=True, blank=True)),
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
                 ("username", models.CharField(max_length=50)),
                 ("source", models.IntegerField()),
                 ("min_permissions", models.CharField(max_length=8)),
-                ("password", models.CharField(default=b"!", max_length=128)),
+                ("password", models.CharField(default="!", max_length=128)),
                 ("last_login", models.DateTimeField(null=True, blank=True)),
                 ("is_superuser", models.BooleanField(default=False)),
                 ("is_staff", models.BooleanField(default=False)),

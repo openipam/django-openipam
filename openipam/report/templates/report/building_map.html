@@ -137,19 +137,15 @@
         });
     </script>
     <script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
-    <style>
-        div.site {
-            width: 160px;
-            height: 147px;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
     <span id="mapName" /></span>
     <img id="logo" />
 
-    <svg id="map" viewBox="0 0 1280 750" />
+    <div id="building-map">
+        <div id="circuits-container" />
+    </div>
 
     <template id="arrow">
       <svg>
@@ -167,7 +163,7 @@
     <script type="text/javascript">
       var site = (window.location.href.match(/site=([^;&]+)/) || [])[1] || '';
       site = site ? site.concat(".") : site;
-      (new Map("/api/reports/buildingmap/config.json", "#map", "#time", "#mapName", "#acronym")).init();
+      (new Map("/api/reports/buildingmap/config.json", "#map", "#time", "#mapName", "#acronym", false)).init();
       if (site) {
         d3.select('span#return').attr('style','display:inline');
         d3.select('span#site').text(site.toUpperCase().substr(0,site.length-1)).attr('style','display:inline');

@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             name="address_type_id",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.SET_NULL,
-                db_column=b"address_type_id",
+                db_column="address_type_id",
                 blank=True,
                 to="network.AddressType",
                 null=True,
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
             model_name="host",
             name="changed_by",
             field=models.ForeignKey(
-                to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                to=settings.AUTH_USER_MODEL, db_column="changed_by"
             ),
             preserve_default=True,
         ),
@@ -42,11 +42,11 @@ class Migration(migrations.Migration):
             name="dhcp_group",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.SET_NULL,
-                db_column=b"dhcp_group",
+                db_column="dhcp_group",
                 blank=True,
                 to="network.DhcpGroup",
                 null=True,
-                verbose_name=b"DHCP Group",
+                verbose_name="DHCP Group",
             ),
             preserve_default=True,
         ),
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                 ),
                 ("vendor", models.TextField()),
             ],
-            options={"db_table": b"mac_oui"},
+            options={"db_table": "mac_oui"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -88,11 +88,11 @@ class Migration(migrations.Migration):
                 (
                     "min_permissions",
                     models.ForeignKey(
-                        to="user.Permission", db_column=b"min_permissions"
+                        to="user.Permission", db_column="min_permissions"
                     ),
                 ),
             ],
-            options={"db_table": b"notifications"},
+            options={"db_table": "notifications"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -107,9 +107,9 @@ class Migration(migrations.Migration):
                         primary_key=True,
                     ),
                 ),
-                ("host", models.ForeignKey(to="hosts.Host", db_column=b"mac")),
+                ("host", models.ForeignKey(to="hosts.Host", db_column="mac")),
             ],
-            options={"db_table": b"notifications_to_hosts"},
+            options={"db_table": "notifications_to_hosts"},
             bases=(models.Model,),
         ),
         migrations.AddField(
@@ -123,7 +123,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="notificationtohost",
             name="notification",
-            field=models.ForeignKey(to="hosts.Notification", db_column=b"nid"),
+            field=models.ForeignKey(to="hosts.Notification", db_column="nid"),
             preserve_default=True,
         ),
         migrations.CreateModel(
@@ -142,12 +142,12 @@ class Migration(migrations.Migration):
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
-                ("host", models.ForeignKey(to="hosts.Host", db_column=b"mac")),
+                ("host", models.ForeignKey(to="hosts.Host", db_column="mac")),
             ],
-            options={"db_table": b"structured_attributes_to_hosts"},
+            options={"db_table": "structured_attributes_to_hosts"},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -165,20 +165,17 @@ class Migration(migrations.Migration):
                 ("value", models.TextField()),
                 ("is_default", models.BooleanField(default=False)),
                 ("changed", models.DateTimeField(auto_now=True)),
-                (
-                    "attribute",
-                    models.ForeignKey(to="hosts.Attribute", db_column=b"aid"),
-                ),
+                ("attribute", models.ForeignKey(to="hosts.Attribute", db_column="aid")),
                 (
                     "changed_by",
                     models.ForeignKey(
-                        to=settings.AUTH_USER_MODEL, db_column=b"changed_by"
+                        to=settings.AUTH_USER_MODEL, db_column="changed_by"
                     ),
                 ),
             ],
             options={
-                "ordering": (b"attribute__name", b"value"),
-                "db_table": b"structured_attribute_values",
+                "ordering": ("attribute__name", "value"),
+                "db_table": "structured_attribute_values",
             },
             bases=(models.Model,),
         ),
@@ -186,7 +183,7 @@ class Migration(migrations.Migration):
             model_name="structuredattributetohost",
             name="structured_attribute_value",
             field=models.ForeignKey(
-                to="hosts.StructuredAttributeValue", db_column=b"avid"
+                to="hosts.StructuredAttributeValue", db_column="avid"
             ),
             preserve_default=True,
         ),

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 db_constraint=False,
                 primary_key=True,
-                db_column=b"mac",
+                db_column="mac",
                 serialize=False,
                 to="hosts.Host",
             ),

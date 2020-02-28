@@ -108,10 +108,10 @@ class Migration(migrations.Migration):
             name="dns_type",
             field=models.ForeignKey(
                 related_name="records",
-                db_column=b"tid",
-                verbose_name=b"Type",
+                db_column="tid",
+                verbose_name="Type",
                 error_messages={
-                    b"blank": b"Type fields for DNS records cannot be blank."
+                    "blank": "Type fields for DNS records cannot be blank."
                 },
                 to="dns.DnsType",
             ),
@@ -122,7 +122,7 @@ class Migration(migrations.Migration):
             name="host",
             field=models.ForeignKey(
                 related_name="dns_records",
-                db_column=b"mac",
+                db_column="mac",
                 blank=True,
                 to="hosts.Host",
                 null=True,
@@ -134,11 +134,11 @@ class Migration(migrations.Migration):
             name="ip_content",
             field=models.ForeignKey(
                 related_name="arecords",
-                db_column=b"ip_content",
+                db_column="ip_content",
                 blank=True,
                 to="network.Address",
                 null=True,
-                verbose_name=b"IP Content",
+                verbose_name="IP Content",
             ),
             preserve_default=True,
         ),

@@ -23,10 +23,10 @@ class Migration(migrations.Migration):
             model_name="dhcpdnsrecord",
             name="name",
             field=models.OneToOneField(
-                db_column=b"name",
+                db_column="name",
                 on_delete=django.db.models.deletion.CASCADE,
                 to="hosts.Host",
-                to_field=b"hostname",
+                to_field="hostname",
             ),
         ),
     ]

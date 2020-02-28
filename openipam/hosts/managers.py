@@ -287,11 +287,13 @@ class HostManager(Manager):
             instance.save(force_update=True)
 
         if user_owners is not None or group_owners is not None:
-            # Remove owners
-            instance.remove_owners()
+            # Get existing owners
+            users, groups = instance.get_owners()
             user_groups = []
 
-            if user_owners:
+            if user_owners is not None:
+                # Remove existing user owners
+                instance.remove_user_owners(users=users)
                 if isinstance(user_owners, QuerySet):
                     users_to_add = user_owners
                 elif isinstance(user_owners, list):
@@ -306,7 +308,9 @@ class HostManager(Manager):
                 users_to_add = list(users_to_add)
                 user_groups += users_to_add
 
-            if group_owners:
+            if group_owners is not None:
+                # Remove existing group owners
+                instance.remove_group_owners()
                 if isinstance(group_owners, QuerySet):
                     groups_to_add = group_owners
                 elif isinstance(group_owners, list):
