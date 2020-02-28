@@ -83,7 +83,7 @@ class DnsRecord(models.Model):
         max_length=255,
         error_messages={"blank": "Name fields for DNS records cannot be blank."},
     )
-    text_content = models.CharField(max_length=255, blank=True, null=True)
+    text_content = models.CharField(max_length=65535, blank=True, null=True)
     ip_content = models.ForeignKey(
         "network.Address",
         db_column="ip_content",
@@ -314,6 +314,12 @@ class DnsRecord(models.Model):
         # TODO: more of these need to be added
         try:
             if self.text_content:
+                # Strip off any trailing dots
+                self.text_content = self.text_content.rstrip(".")
+
+                if self.dns_type.name == "CNAME" and len(self.text_content) > 255:
+                    raise ValidationError("CNAME Content cannot be longer than 255.")
+
                 if self.dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
                     validate_fqdn(self.text_content)
 

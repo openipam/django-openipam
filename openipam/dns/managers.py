@@ -208,6 +208,9 @@ class DnsManager(Manager):
             if dns_type:
                 dns_record.dns_type = dns_type
 
+            # strip trailing dots
+            content = content.rstrip(".")
+
             if not content:
                 raise ValidationError("Content is required to create a DNS record.")
 
