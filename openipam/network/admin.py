@@ -7,6 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib import messages
 
+from netaddr import IPNetwork
+
 # from django.forms import modelform_factory
 
 
@@ -384,10 +386,30 @@ class HasHostFilter(admin.SimpleListFilter):
             return queryset.filter(host__isnull=True)
 
 
+class IsStaticAddress(admin.SimpleListFilter):
+    title = "static"
+    parameter_name = "static"
+
+    def lookups(self, request, model_admin):
+        return (("1", "Yes"), ("0", "No"))
+
+    def queryset(self, request, queryset):
+        if self.value() == "1":
+            return queryset.filter(pool__isnull=True)
+        if self.value() == "0":
+            return queryset.filter(pool__isnull=False)
+
+
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network__network", "reserved", "pool", HasHostFilter)
+    list_filter = (
+        "network__network",
+        "reserved",
+        "pool",
+        HasHostFilter,
+        IsStaticAddress,
+    )
     list_display = (
         "address",
         "network",
@@ -402,6 +424,18 @@ class AddressAdmin(ChangedAdmin):
     def get_queryset(self, request):
         qs = super(AddressAdmin, self).get_queryset(request)
         return qs.select_related("host", "network", "changed_by").all()
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(AddressAdmin, self).get_search_results(
+            request, queryset, search_term
+        )
+
+        # Check if the search is for a network
+        if "q" in request.GET and "/" in request.GET["q"]:
+            net = IPNetwork(request.GET["q"])
+            queryset = Address.objects.filter(address__net_contained=net)
+
+        return queryset, use_distinct
 
 
 class BuildingAdmin(ChangedAdmin):
