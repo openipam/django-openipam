@@ -1016,6 +1016,11 @@ class Host(DirtyFieldsMixin, models.Model):
 
             # Remove all pools
             self.pools.clear()
+            # TODO: Look at delete_dns for a way to only delete dhcp dns records.
+            try:
+                self.dhcpdnsrecord.delete()
+            except ObjectDoesNotExist:
+                pass
 
             # Current IP
             current_ip_address = self.master_ip_address
