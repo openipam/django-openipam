@@ -918,7 +918,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
     def form_valid(self, form):
         hosts = []
         csv_file = form.cleaned_data["csv_file"]
-        lines = csv_file.read().splitlines()
+        lines = csv_file.read().decode("utf-8").splitlines()
         # with csv.open() as f:
         records = csv.reader(lines)
         for row in records:
