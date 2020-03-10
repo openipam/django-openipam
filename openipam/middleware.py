@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
+from django.utils.deprecation import MiddlewareMixin
 
 from openipam.conf.ipam_settings import CONFIG
 
@@ -17,7 +18,7 @@ if hasattr(settings, "LOGIN_EXEMPT_URLS"):
     EXEMPT_URLS += [compile(expr) for expr in settings.LOGIN_EXEMPT_URLS]
 
 
-class SetRemoteAddrMiddleware(object):
+class SetRemoteAddrMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.META.get("REMOTE_ADDR") == "127.0.0.1":
             try:
@@ -27,7 +28,7 @@ class SetRemoteAddrMiddleware(object):
                 pass
 
 
-class LoginRequiredMiddleware(object):
+class LoginRequiredMiddleware(MiddlewareMixin):
     """
     Middleware that requires a user to be authenticated to view any page other
     than LOGIN_URL. Exemptions to this requirement can optionally be specified
@@ -55,7 +56,7 @@ class LoginRequiredMiddleware(object):
                 )
 
 
-class DuoAuthRequiredMiddleware(object):
+class DuoAuthRequiredMiddleware(MiddlewareMixin):
     def process_request(self, request):
         assert hasattr(
             request, "user"
@@ -83,7 +84,7 @@ class DuoAuthRequiredMiddleware(object):
                         return redirect(f"{reverse('duo_auth')}?next={request.path}")
 
 
-class MimicUserMiddleware(object):
+class MimicUserMiddleware(MiddlewareMixin):
     def process_request(self, request):
         mimic_user = request.session.get("mimic_user")
         if mimic_user:
