@@ -47,6 +47,7 @@ nosetests.xml
 .vscode
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
 
 # For Ipam
 fabfile.py
