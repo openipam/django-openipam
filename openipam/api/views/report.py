@@ -85,7 +85,7 @@ class LeaseUsageView(APIView):
         else:
             lease_data = requests.get(
                 "https://gul.usu.edu/subnetparser.py?format=json",
-                auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
+                auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD),
             )
 
         try:

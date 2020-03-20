@@ -5,14 +5,8 @@
 ALLOWED_HOSTS = ["*"]
 
 AUTH = {
-    "OBSERVIUM": {
-        "USER": "",
-        "PASSWD": "",
-    },
-    "GUL": {
-        "USER": "",
-        "PASSWD": "",
-    },
+    "OBSERVIUM": {"USER": "", "PASSWD": ""},
+    "GUL": {"USER": "", "PASSWD": ""},
 }
 
 DATABASES = {
