@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 from rest_framework_csv.renderers import CSVRenderer
 from rest_framework import serializers
 
+from django.conf import settings
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
@@ -69,7 +70,7 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
             )
         elif network_tags:
             network_tags = network_tags.split(",")
@@ -79,12 +80,12 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
             )
         else:
             lease_data = requests.get(
                 "https://gul.usu.edu/subnetparser.py?format=json",
-                auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt"),
+                auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
             )
 
         try:
