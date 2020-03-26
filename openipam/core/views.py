@@ -24,7 +24,6 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.utils.six.moves import urllib_parse
 from django.core.urlresolvers import reverse
 
 from openipam.core.models import FeatureRequest
@@ -33,7 +32,7 @@ from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
 
 # from django_cas_ng.views import login as cas_login, logout as cas_logout
-from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
+# from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
 
 import duo_web
 
@@ -76,7 +75,7 @@ def login(request, internal=False, **kwargs):
 @require_http_methods(["GET"])
 def logout(request, next_page=None, **kwargs):
 
-    backend = request.session.get("_auth_user_backend", "").split(".")[-1]
+    # backend = request.session.get("_auth_user_backend", "").split(".")[-1]
 
     # if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
     #     cas_logout(request, next_page, **kwargs)
