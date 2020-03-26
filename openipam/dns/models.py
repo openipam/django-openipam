@@ -554,13 +554,16 @@ class Supermaster(models.Model):
 
 
 class PdnsZoneXfer(models.Model):
-    domain = models.ForeignKey("Domain")
+    domain_id = models.ForeignKey("Domain")
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10)
-    content = models.CharField(max_length=255)
+    content = models.CharField(max_length=65535)
     ttl = models.IntegerField(null=True, blank=True)
-    priority = models.IntegerField(null=True, blank=True)
+    prio = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
+    disabled = models.BooleanField(default=False)
+    ordername = models.CharField(max_length=255, null=True, blank=True)
+    auth = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
