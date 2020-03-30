@@ -258,109 +258,103 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
         assert self.choices, "autocomplete.choices should be a queryset list"
 
         q = self.request.GET.get("q", "").split(",")[-1]
-        choice_q = q.split(":")[0]
-        q = "".join(q.split(":")[1:])
+        q = "".join(q.split(":"))
 
         self.choices = []
         self.search_fields = []
 
         if q:
-            if choice_q == "user":
-                self.choices = (User.objects.all(),)
-                self.search_fields = (
-                    ("username", "^first_name", "^last_name", "email"),
-                )
-            elif choice_q == "group":
-                self.choices = (Group.objects.all(),)
-                self.search_fields = (("name",),)
-            elif choice_q == "perm":
-                self.choices = (
-                    GroupObjectPermission.objects.filter(
-                        Q(
-                            object_pk__in=[
-                                host.pk
-                                for host in Host.objects.filter(
-                                    hostname__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                network.pk
-                                for network in Network.objects.filter(
-                                    network__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                domain.pk
-                                for domain in Domain.objects.filter(
-                                    name__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                pool.pk
-                                for pool in Pool.objects.filter(name__istartswith=q)[
-                                    :10
-                                ]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                dnstype.pk
-                                for dnstype in DnsType.objects.filter(
-                                    name__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                    ),
-                    UserObjectPermission.objects.filter(
-                        Q(
-                            object_pk__in=[
-                                host.pk
-                                for host in Host.objects.filter(
-                                    hostname__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                network.pk
-                                for network in Network.objects.filter(
-                                    network__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                domain.pk
-                                for domain in Domain.objects.filter(
-                                    name__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                pool.pk
-                                for pool in Pool.objects.filter(name__istartswith=q)[
-                                    :10
-                                ]
-                            ]
-                        )
-                        | Q(
-                            object_pk__in=[
-                                dnstype.pk
-                                for dnstype in DnsType.objects.filter(
-                                    name__istartswith=q
-                                )[:10]
-                            ]
-                        )
-                    ),
-                )
-                self.search_fields = ([], [])
+            self.choices = (User.objects.all(), Group.objects.all(),
+                            GroupObjectPermission.objects.filter(
+                                Q(
+                                    object_pk__in=[
+                                        host.pk
+                                        for host in Host.objects.filter(
+                                            hostname__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        network.pk
+                                        for network in Network.objects.filter(
+                                            network__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        domain.pk
+                                        for domain in Domain.objects.filter(
+                                            name__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        pool.pk
+                                        for pool in Pool.objects.filter(name__istartswith=q)[
+                                            :10
+                                        ]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        dnstype.pk
+                                        for dnstype in DnsType.objects.filter(
+                                            name__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                            ),
+                            UserObjectPermission.objects.filter(
+                                Q(
+                                    object_pk__in=[
+                                        host.pk
+                                        for host in Host.objects.filter(
+                                            hostname__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        network.pk
+                                        for network in Network.objects.filter(
+                                            network__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        domain.pk
+                                        for domain in Domain.objects.filter(
+                                            name__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        pool.pk
+                                        for pool in Pool.objects.filter(name__istartswith=q)[
+                                            :10
+                                        ]
+                                    ]
+                                )
+                                | Q(
+                                    object_pk__in=[
+                                        dnstype.pk
+                                        for dnstype in DnsType.objects.filter(
+                                            name__istartswith=q
+                                        )[:10]
+                                    ]
+                                )
+                            ),
+                            )
+            self.search_fields = (
+                ("username", "^first_name", "^last_name", "email"),
+                ("name",),
+                [], []
+            )
 
         request_choices = []
         querysets_left = len(self.choices)
@@ -368,9 +362,22 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
         i = 0
         for queryset in self.choices:
             conditions = self._choices_for_request_conditions(q, self.search_fields[i])
-
+            
             limit = (self.limit_choices - len(request_choices)) / querysets_left
             for choice in queryset.filter(conditions)[:limit]:
+                if type(choice) is User:
+                    pass
+                    # print("type: USER\n")
+                elif type(choice) is Group:
+                    pass
+                    # print("type: GROUP\n")
+                elif type(choice) is UserObjectPermission:
+                    pass
+                elif type(choice) is GroupObjectPermission:
+                    pass
+                else:
+                    print("type: ", type(choice))
+
                 request_choices.append(choice)
 
             querysets_left -= 1
