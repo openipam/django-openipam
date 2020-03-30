@@ -70,7 +70,7 @@
 				{% else %}
 					<span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
 				{% endif %}
-				<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
+				<!-- <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div> -->
 				<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 					<label>
 						<input 
@@ -78,7 +78,7 @@
 							id="id_search"
 							data-autocomplete-choice-selector="[data-value]" 
 							data-autocomplete-url="/ac/IPAMUserSearchAutoComplete/" 
-							placeholder="Advanced Filter" 
+							placeholder="Search" 
 							class="form-control autocomplete" 
 						/>
 					</label>
