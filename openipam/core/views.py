@@ -151,6 +151,11 @@ def index(request):
             "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         }
 
+        hosts = request.user.host_set.all()
+        for host in hosts:
+            print("\n", host, "\n")
+        context.update({"hosts": hosts})
+
         wireless_networks = Network.objects.filter(
             dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
         )
