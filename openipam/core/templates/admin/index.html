@@ -3,6 +3,7 @@
 
 {% block extrahead %}
 <script type="text/javascript" src="{% static 'chart.js/dist/Chart.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'core/js/index.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -35,7 +36,7 @@
                     </thead>
                     <tbody>
                         {% for host in hosts %}
-                        <tr>
+                        <tr id="{{ host }}">
                             <td>{{ host }}</td>
                             <td>{{ host.mac }}</td>
                             <td {% if host.expire_days <= 30 %}class="near-exp"{% endif %}>
@@ -54,8 +55,11 @@
                                 {% if host.is_disabled %}
                                     <strong>Registration Disabled, please contact the Serive Desk.</strong>
                                 {% else %}
-                                    <a href="{% url 'hosts:remove_addresses' pk=host.mac_stripped %}">Delete</a>
-                                    <a>Renew</a>
+                                    <a 
+                                        id="delete-{{ host }}" 
+                                        onclick="deleteHost(this.id, '{{ host.mac_stripped }}')"
+                                    >Delete</a>
+                                    <a id="renew-{{ host }}" name="renew-host">Renew</a>
                                     <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
                                 {% endif %}
                             </td>

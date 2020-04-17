@@ -152,8 +152,6 @@ def index(request):
         }
 
         hosts = request.user.host_set.all()
-        for host in hosts:
-            print("\n", host, "\n")
         context.update({"hosts": hosts})
 
         wireless_networks = Network.objects.filter(
