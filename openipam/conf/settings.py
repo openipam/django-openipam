@@ -241,7 +241,7 @@ LOGIN_EXEMPT_URLS = (
     "static/?.*",
     "password/forgot/",
     "logout/",
-    "api/?.*",
+    "api/(?!web).*",
     "reports/?.*",
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
