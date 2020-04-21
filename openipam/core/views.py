@@ -144,7 +144,7 @@ def index(request):
     if CONFIG.get("DUO_LOGIN") and not is_duo_authenticated(request):
         return redirect("duo_auth")
     if not request.user.get_full_name() or not request.user.email:
-        return redirect("profile")
+        return redirect("core:profile")
     else:
         context = {
             "email": CONFIG.get("EMAIL_ADDRESS"),
@@ -323,10 +323,16 @@ def profile(request):
         form.save()
 
         messages.add_message(request, messages.INFO, "Your profile has been updated.")
-        return redirect("profile")
+        return redirect("core:profile")
+
+    if request.user.get_full_name():
+        name = request.user.get_full_name()
+
+    else:
+        name = request.user.username
 
     context = {
-        "title": "Profile for %s" % request.user.get_full_name(),
+        "title": "Profile for %s" % name,
         "groups": groups,
         "form": form,
     }
