@@ -41,13 +41,15 @@ has a nicer output.
 from django.db import connections, connection
 from django.template import Template, Context
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
+
 import sys
 import os
 import time
 import datetime
 
 
-class SQLLogToConsoleMiddleware(object):
+class SQLLogToConsoleMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if settings.DEBUG:
             for connection_name in connections:
@@ -76,7 +78,7 @@ class SQLLogToConsoleMiddleware(object):
         return response
 
 
-class SQLLogToConsoleColorMiddleware:
+class SQLLogToConsoleColorMiddleware(MiddlewareMixin):
     """
     Color SQL logging middleware.
     Prints a short summary (number of database queries and
@@ -299,7 +301,7 @@ class SQLLogToConsoleColorMiddleware:
         return response
 
 
-class SQLLogMiddlewareSimple:
+class SQLLogMiddlewareSimple(MiddlewareMixin):
     def process_response(self, request, response):
         ttime = 0.0
         for q in connection.queries:
@@ -354,7 +356,7 @@ class SQLLogMiddlewareSimple:
         return response
 
 
-class SQLLogMiddleware:
+class SQLLogMiddleware(MiddlewareMixin):
 
     """
     Logs SQL statements and excecutions times to the end of templates.

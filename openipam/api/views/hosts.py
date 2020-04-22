@@ -459,7 +459,10 @@ class HostAddAttribute(APIView):
                 # Add freeform attributes
                 else:
                     # FIXME: what about attributes that allow multiple values?
-                    freeform_attr, created = FreeformAttributeToHost.objects.get_or_create(
+                    (
+                        freeform_attr,
+                        created,
+                    ) = FreeformAttributeToHost.objects.get_or_create(
                         host=host,
                         attribute=attr,
                         defaults={

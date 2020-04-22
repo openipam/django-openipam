@@ -61,6 +61,6 @@ def push_data(carbon_server, carbon_port):
                 timestamp,
             )
             graphite_data.append(line)
-    carbon_s.sendall("\n".join(graphite_data))
-    carbon_s.sendall("\n")
+    carbon_s.sendall("\n".join(graphite_data).encode())
+    carbon_s.sendall("\n".encode())
     carbon_s.close()

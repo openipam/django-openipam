@@ -24,7 +24,6 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.utils.six.moves import urllib_parse
 from django.core.urlresolvers import reverse
 
 from openipam.core.models import FeatureRequest
@@ -32,8 +31,8 @@ from openipam.core.forms import ProfileForm, FeatureRequestForm
 from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
 
-from django_cas_ng.views import login as cas_login, logout as cas_logout
-from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
+# from django_cas_ng.views import login as cas_login, logout as cas_logout
+# from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
 
 import duo_web
 
@@ -65,39 +64,39 @@ def index(request):
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def login(request, internal=False, **kwargs):
-    if CONFIG.get("CAS_LOGIN") and internal is False:
-        return cas_login(request, **kwargs)
-    else:
-        return auth_login_view(
-            request, authentication_form=IPAMAuthenticationForm, **kwargs
-        )
+    # if CONFIG.get("CAS_LOGIN") and internal is False:
+    #     return cas_login(request, **kwargs)
+    # else:
+    return auth_login_view(
+        request, authentication_form=IPAMAuthenticationForm, **kwargs
+    )
 
 
 @require_http_methods(["GET"])
 def logout(request, next_page=None, **kwargs):
 
-    backend = request.session.get("_auth_user_backend", "").split(".")[-1]
+    # backend = request.session.get("_auth_user_backend", "").split(".")[-1]
 
-    if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
-        cas_logout(request, next_page, **kwargs)
+    # if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
+    #     cas_logout(request, next_page, **kwargs)
 
-        next_page = next_page or get_redirect_url(request)
-        if settings.CAS_LOGOUT_COMPLETELY:
-            protocol = get_protocol(request)
-            host = request.get_host()
-            redirect_url = urllib_parse.urlunparse(
-                (protocol, host, next_page, "", "", "")
-            )
-            client = get_cas_client()
-            client.server_url = settings.CAS_SERVER_URL[:-3]
-            return HttpResponseRedirect(client.get_logout_url(redirect_url))
-        else:
-            # This is in most cases pointless if not CAS_RENEW is set. The user will
-            # simply be logged in again on next request requiring authorization.
-            return HttpResponseRedirect(next_page)
-    else:
-        next_page = "internal_login" if CONFIG.get("CAS_LOGIN") else "login"
-        return auth_logout_view(request, next_page=next_page, **kwargs)
+    #     next_page = next_page or get_redirect_url(request)
+    #     if settings.CAS_LOGOUT_COMPLETELY:
+    #         protocol = get_protocol(request)
+    #         host = request.get_host()
+    #         redirect_url = urllib_parse.urlunparse(
+    #             (protocol, host, next_page, "", "", "")
+    #         )
+    #         client = get_cas_client()
+    #         client.server_url = settings.CAS_SERVER_URL[:-3]
+    #         return HttpResponseRedirect(client.get_logout_url(redirect_url))
+    #     else:
+    #         # This is in most cases pointless if not CAS_RENEW is set. The user will
+    #         # simply be logged in again on next request requiring authorization.
+    #         return HttpResponseRedirect(next_page)
+    # else:
+    next_page = "internal_login" if CONFIG.get("CAS_LOGIN") else "login"
+    return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
 def mimic(request):
@@ -332,9 +331,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
     model = None
     columns = []
     order_columns = []
-    max_display_length = (
-        100
-    )  # max limit of records returned, do not allow to kill our server by huge sets of data
+    max_display_length = 100  # max limit of records returned, do not allow to kill our server by huge sets of data
 
     def initialize(*args, **kwargs):
         pass
