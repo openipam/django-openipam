@@ -2,7 +2,6 @@
 include = '\.pyi?$'
 
 exclude = '''
-
 (
   /(
       \.eggs         # exclude a few common directories in the
@@ -21,3 +20,54 @@ exclude = '''
                           # the root of the project
 )
 '''
+
+[tool.poetry]
+name = "django-openipam"
+version = "1.0"
+description = "Openipam Django/Web frontent"
+authors = ["Jay McEntire <jay.mcentire@usu.edu>"]
+
+[tool.poetry.dependencies]
+python = ">3.7"
+Django = "*"
+beautifulsoup4 = "*"
+django-admin-tools = "*"
+django-auth-ldap = "*"
+django-autocomplete-light = "2.3.3"
+django-braces = "*"
+django-crispy-forms = "*"
+django-debug-toolbar = "*"
+django-extensions = "*"
+django-filter = "*"
+django-guardian = "*"
+django-netfields = "*"
+django-nvd3 = "*"
+django-pglocks = "*"
+django-qsstats-magic = "*"
+django-taggit = "*"
+django-widget-tweaks = "*"
+djangorestframework = "*"
+djangorestframework-csv = "*"
+djangorestframework-jwt = "*"
+django-dirtyfields = "*"
+django-select2 = "*"
+django-chartjs = "*"
+djorm-ext-pgfulltext = "*"
+drf-compound-fields = "*"
+duo-web = "*"
+peewee = "*"
+python-dateutil = "*"
+six = "*"
+sentry-sdk = "^0.14.3"
+requests = "^2.23.0"
+profanity-check = "^1.0.3"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+psycopg2-binary = "*"
+pre-commit = "^2.1.1"
+pylint = "^2.4.4"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
