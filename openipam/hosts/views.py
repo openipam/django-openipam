@@ -598,7 +598,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         if response:
             return response
         else:
-            return redirect("list_hosts")
+            return redirect("hosts:list")
 
 
 class HostDetailView(PermissionRequiredMixin, DetailView):
@@ -919,6 +919,8 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         hosts = []
         csv_file = form.cleaned_data["csv_file"]
         lines = csv_file.read().splitlines()
+        if isinstance(lines[0], bytes):
+            lines = [line.decode("utf-8") for line in lines]
         # with csv.open() as f:
         records = csv.reader(lines)
         for row in records:
@@ -992,8 +994,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         Host.objects.add_or_update_host(self.request.user, **host)
                     except Exception as e:
                         error_list.append("Error adding host from row %s" % (i + 1))
-                        error_list.append(str(e))
-                        raise ValidationError
+                        raise ValidationError(e)
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
@@ -1011,11 +1012,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
             error_list.append("Please try again.")
             messages.error(self.request, mark_safe("<br />".join(error_list)))
-            return redirect("add_hosts_bulk")
+            return redirect("hosts:add_bulk")
             # return render(self.request, self.template_name)
 
         messages.info(self.request, "Hosts from CSV have been added.")
-        return redirect("list_hosts")
+        return redirect("hosts:list")
 
 
 def change_owners(request):

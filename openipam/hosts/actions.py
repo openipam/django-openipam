@@ -479,8 +479,11 @@ def export_csv(request, selected_hosts):
         usernames = ",".join(set([user.username for user in users]))
         emails = ",".join(set([user.email or "" for user in users]))
 
-        ip_history = GulRecentArpByaddress.objects.filter(host=host).first().stopstamp
-        mac_history = GulRecentArpBymac.objects.filter(host=host).first().stopstamp
+        recentIp = GulRecentArpByaddress.objects.filter(host=host).first()
+        ip_history = recentIp.stopstamp if hasattr(recentIp, "stopstamp") else None
+
+        recentMac = GulRecentArpBymac.objects.filter(host=host).first()
+        mac_history = recentMac.stopstamp if hasattr(recentMac, "stopstamp") else None
 
         writer.writerow(
             [

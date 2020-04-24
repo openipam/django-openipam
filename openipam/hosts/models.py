@@ -251,7 +251,7 @@ class GulRecentArpByaddress(models.Model):
         db_constraint=False,
         related_name="ip_history",
     )
-    stopstamp = models.DateTimeField()
+    stopstamp = models.DateTimeField(blank=True, null=True)
 
     objects = NetManager()
 
