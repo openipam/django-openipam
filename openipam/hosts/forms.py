@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import Permission
 from django.template.defaultfilters import slugify
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -45,13 +45,81 @@ from netaddr import EUI, AddrFormatError
 
 from guardian.shortcuts import get_objects_for_user
 
+from django_select2.forms import Select2MultipleWidget, Select2TagMixin
+
 from autocomplete_light import shortcuts as al
+
+# from dal import autocomplete
 
 import operator
 
 User = get_user_model()
 
 NET_IP_CHOICES = (("0", "Network"), ("1", "IP"))
+
+
+class StructuredAttributeValueForm(forms.ModelForm):
+    value = forms.CharField()
+
+    class Meta:
+        model = StructuredAttributeValue
+        fields = ["value", "is_default"]
+
+
+class StructuredAttributeValueWidget(Select2TagMixin, Select2MultipleWidget):
+    pass
+
+
+class AttributeForm(forms.ModelForm):
+    choices = forms.CharField(required=False, widget=StructuredAttributeValueWidget())
+
+    def __init__(self, *args, **kwargs):
+        super(AttributeForm, self).__init__(*args, **kwargs)
+
+        choices = [
+            (choice.value, choice.value)
+            for choice in StructuredAttributeValue.objects.filter(
+                attribute__pk=self.instance.pk
+            )
+        ]
+        self.fields["choices"].widget.choices = choices
+        self.fields["choices"].initial = [initial[0] for initial in choices]
+
+    # def clean(self):
+    #     assert False, self.data.getlist("choices")
+
+    def save(self, *args, **kwargs):
+        super(AttributeForm, self).save(*args, **kwargs)
+        choices = self.data.getlist("choices")
+        existing_choices = StructuredAttributeValue.objects.filter(
+            attribute=self.instance, value__in=choices
+        )
+        # Delete all choices not selected
+        StructuredAttributeValue.objects.filter(attribute=self.instance).exclude(
+            pk__in=[choice.pk for choice in existing_choices]
+        ).delete()
+
+        for choice in choices:
+            StructuredAttributeValue.objects.get_or_create(
+                attribute_id=self.instance.pk,
+                value=choice,
+                defaults={"changed_by": self.request.user},
+            )
+
+        return self.instance
+
+    class Meta:
+        model = Attribute
+        fields = [
+            "name",
+            "description",
+            "validation",
+            "required",
+            "multiple",
+            "structured",
+            "choices",
+            "changed_by",
+        ]
 
 
 class HostForm(forms.ModelForm):
@@ -76,6 +144,23 @@ class HostForm(forms.ModelForm):
     show_hide_dhcp_group = forms.BooleanField(
         label="Assign a DHCP Group", required=False
     )
+    # dhcp_group = forms.ModelChoiceField(
+    #     queryset=DhcpGroup.objects.all(),
+    #     help_text="Leave this alone unless directed by an IPAM administrator",
+    #     label="DHCP Group",
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2(url="dhcp_group_autocomplete"),
+    # )
+    # user_owners = forms.ModelMultipleChoiceField(
+    #     queryset=User.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelMultipleChoiceField(
+    #     queryset=Group.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+    # )
     dhcp_group = al.ModelChoiceField(
         "DhcpGroupAutocomplete",
         help_text="Leave this alone unless directed by an IPAM administrator",
@@ -301,7 +386,9 @@ class HostForm(forms.ModelForm):
             html_primary_address = (
                 """
                 <p class="pull-left"><span class="label label-primary">%s</span></p>
-                <a href="javascript:void(0);" id="ip-change" class="pull-left renew">Change Address</a>
+                <a href="javascript:void(0);" id="ip-change" class="pull-left renew">
+                    Change Address
+                </a>
             """
                 % master_ip_address
             )
@@ -309,7 +396,9 @@ class HostForm(forms.ModelForm):
             self.primary_address_html = HTML(
                 """
                 <div class="form-group">
-                    <label class="col-sm-2 col-md-2 col-lg-2 control-label">Primary IP Address:</label>
+                    <label class="col-sm-2 col-md-2 col-lg-2 control-label">
+                        Primary IP Address:
+                    </label>
                     <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
                             %s
                     </div>
@@ -321,24 +410,30 @@ class HostForm(forms.ModelForm):
             html_secondary_addresses = []
             for address in addresses:
                 html_secondary_addresses.append(
-                    '<p class="pull-left"><span class="label label-primary">%s</span></p>'
+                    """
+                        <p class="pull-left"><span class="label label-primary">
+                            %s
+                        </span></p>
+                    """
                     % address
                 )
             if html_secondary_addresses:
                 add_link = ""
                 if self.user.is_ipamadmin:
-                    add_link = (
-                        '<a href="%s" class="pull-left renew">Add/Delete Additional Addresses</a>'
-                        % reverse(
-                            "add_addresses_host",
-                            kwargs={"pk": self.instance.mac_stripped},
-                        )
+                    add_link = """
+                            <a href="%s" class="pull-left renew">
+                                Add/Delete Additional Addresses
+                            </a>
+                        """ % reverse(
+                        "hosts:add_addresses", kwargs={"pk": self.instance.mac_stripped}
                     )
 
                 self.secondary_address_html = HTML(
                     """
                     <div class="form-group">
-                        <label class="col-sm-2 col-md-2 col-lg-2 control-label">Additional IP Addresses:</label>
+                        <label class="col-sm-2 col-md-2 col-lg-2 control-label">
+                            Additional IP Addresses:
+                        </label>
                         <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
                                 %s
                                 %s
@@ -595,8 +690,8 @@ class HostForm(forms.ModelForm):
                 raise ValidationError(
                     mark_safe(
                         "You do not have access to assign this host to the "
-                        "network specified: %s.<br />Please contact an IPAM Administrator."
-                        % network
+                        "network specified: %s.<br />"
+                        "Please contact an IPAM Administrator." % network
                     )
                 )
 
@@ -613,7 +708,8 @@ class HostForm(forms.ModelForm):
             if not address:
                 raise ValidationError(
                     mark_safe(
-                        "There is no addresses available from the network specified: %s.<br />"
+                        "There is no addresses available from "
+                        "the network specified: %s.<br />"
                         "Please contact an IPAM Administrator." % network
                     )
                 )
@@ -698,6 +794,16 @@ class HostForm(forms.ModelForm):
 
 
 class HostOwnerForm(forms.Form):
+    # user_owners = forms.ModelMultipleChoiceField(
+    #     queryset=User.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelMultipleChoiceField(
+    #     queryset=Group.objects.all(),
+    #     required=False,
+    #     widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+    # )
     user_owners = al.ModelMultipleChoiceField("UserAutocomplete", required=False)
     group_owners = al.ModelMultipleChoiceField("GroupAutocomplete", required=False)
 
@@ -738,8 +844,16 @@ class HostBulkCreateForm(forms.Form):
 
 
 class HostListForm(forms.Form):
-    groups = al.ModelChoiceField("GroupFilterAutocomplete")
-    users = al.ModelChoiceField("UserFilterAutocomplete")
+    # user_owners = forms.ModelChoiceField(
+    #     queryset=User.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    # )
+    # group_owners = forms.ModelChoiceField(
+    #     queryset=Group.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+    # )
+    user_owners = al.ModelMultipleChoiceField("UserAutocomplete", required=False)
+    group_owners = al.ModelMultipleChoiceField("GroupAutocomplete", required=False)
 
 
 class HostGroupPermissionForm(BaseGroupObjectPermissionForm):
@@ -752,6 +866,10 @@ class HostUserPermissionForm(BaseUserObjectPermissionForm):
     permission = forms.ModelChoiceField(
         queryset=Permission.objects.filter(content_type__model="host")
     )
+    # content_object = forms.ModelChoiceField(
+    #     queryset=Host.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    # )
     content_object = al.ModelChoiceField("HostAutocomplete")
 
 
@@ -776,10 +894,21 @@ class HostAttributesDeleteForm(forms.Form):
 
 
 class HostDisableForm(forms.ModelForm):
+    # host_mac = forms.CharField(
+    #     max_length="255",
+    #     label="Host or Mac",
+    #     widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    # )
     host_mac = forms.CharField(
         max_length="255",
         label="Host or Mac",
-        widget=al.TextWidget("HostAutocomplete", widget_attrs={"placeholder": "HO"}),
+        widget=al.TextWidget(
+            "HostAutocomplete",
+            widget_attrs={
+                "placeholder": "Search Hosts or Macs",
+                "class": "form-control",
+            },
+        ),
     )
 
     def __init__(self, *args, **kwargs):

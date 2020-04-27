@@ -3,7 +3,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView, FormView
 from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView, View
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
@@ -482,8 +482,8 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 change_permissions = True
             else:
                 change_permissions = False
-            host_view_href = reverse_lazy("view_host", args=(slugify(host["mac"]),))
-            host_edit_href = reverse_lazy("update_host", args=(slugify(host["mac"]),))
+            host_view_href = reverse_lazy("hosts:detail", args=(slugify(host["mac"]),))
+            host_edit_href = reverse_lazy("hosts:update", args=(slugify(host["mac"]),))
             host_ips = get_ips(host)
             expires = get_expires(host["expires"])
             last_mac_stamp = get_last_mac_stamp(host)
@@ -515,7 +515,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     render_cell(last_mac_stamp, is_flagged, is_disabled),
                     render_cell(last_ip_stamp, is_flagged, is_disabled),
                     '<a href="%s?q=host:%s">DNS Records</a>'
-                    % (reverse_lazy("list_dns"), host["hostname"]),
+                    % (reverse_lazy("dns:list"), host["hostname"]),
                     '<a href="%s">%s</a>'
                     % (
                         host_edit_href if change_permissions else host_view_href,
@@ -529,7 +529,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 class HostRedirectView(RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         pk = "".join(re.split("[^a-zA-Z0-9]*", kwargs["pk"]))
-        self.url = reverse_lazy("update_host", kwargs={"pk": pk})
+        self.url = reverse_lazy("hosts:update", kwargs={"pk": pk})
         return super(HostRedirectView, self).get_redirect_url(*args, **kwargs)
 
 
@@ -649,7 +649,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
 class HostUpdateCreateMixin(object):
     model = Host
     form_class = HostForm
-    success_url = reverse_lazy("list_hosts")
+    success_url = reverse_lazy("hosts:list")
 
     def get_form(self, form_class=None):
         if form_class is None:
@@ -725,7 +725,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy("update_host", args=[self.object.mac_stripped]),
+                    reverse_lazy("hosts:update", args=[self.object.mac_stripped]),
                     self.object.hostname,
                 )
             ),
@@ -733,7 +733,7 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 
         if self.request.POST.get("_continue"):
             return redirect(
-                reverse_lazy("update_host", kwargs={"pk": slugify(self.object.pk)})
+                reverse_lazy("hosts:update", kwargs={"pk": slugify(self.object.pk)})
             )
 
         return valid_form
@@ -758,7 +758,7 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy("update_host", args=[self.object.mac_stripped]),
+                    reverse_lazy("hosts:update", args=[self.object.mac_stripped]),
                     self.object.hostname,
                 )
             ),
@@ -766,12 +766,12 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
 
         if self.request.POST.get("_continue"):
             return redirect(
-                reverse_lazy("update_host", kwargs={"pk": slugify(self.object.pk)})
+                reverse_lazy("hosts:update", kwargs={"pk": slugify(self.object.pk)})
             )
         elif self.request.POST.get("_add"):
             # Get fields that would carry over
             self.request.session["host_form_add"] = form.data
-            return redirect(reverse_lazy("add_hosts_new"))
+            return redirect(reverse_lazy("hosts:add_new"))
 
         return valid_form
 

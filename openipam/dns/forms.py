@@ -15,8 +15,10 @@ from guardian.shortcuts import get_objects_for_user
 
 from crispy_forms.helper import FormHelper
 
-from autocomplete_light import shortcuts as al
+from django_select2.forms import Select2Widget
 
+# from dal import autocomplete
+from autocomplete_light import shortcuts as al
 
 User = get_user_model()
 
@@ -30,6 +32,18 @@ class DNSSearchForm(forms.Form):
 
 
 class DNSListForm(forms.Form):
+    # host = forms.ModelChoiceField(
+    #     queryset=Host.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    # )
+    # groups = forms.ModelChoiceField(
+    #     queryset=Group.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+    # )
+    # users = forms.ModelChoiceField(
+    #     queryset=User.objects.all(),
+    #     widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    # )
     host = al.ModelChoiceField("HostFilterAutocomplete")
     groups = al.ModelChoiceField("GroupFilterAutocomplete")
     users = al.ModelChoiceField("UserFilterAutocomplete")
@@ -82,8 +96,10 @@ class DNSUpdateForm(forms.ModelForm):
 
         # data = self.cleaned_data
         # if data['text_content'] and self.instance.ip_content:
-        #     raise ValidationError('Content for DNS entry %s cannot be added because'
-        #                           ' it has IP Content of %s' % (self.instance.name, self.instance.ip_content))
+        #     raise ValidationError(
+        #       'Content for DNS entry %s ''cannot be added because'
+        #       ' it has IP Content of %s' %
+        #       (self.instance.name, self.instance.ip_content))
 
         return super(DNSUpdateForm, self).clean(*args, **kwargs)
 
@@ -92,30 +108,28 @@ class DNSUpdateForm(forms.ModelForm):
         self.instance.dns_type_id = self.cleaned_data["dns_types"]
         return super(DNSUpdateForm, self).save(*args, **kwargs)
 
-        # assert False, dns_type_queryset
-        # if dns_type_queryset:
-        #     self.fields['dns_type'] = forms.ModelChoiceField(queryset=dns_type_queryset)
-
     class Meta:
         model = DnsRecord
         fields = ("name", "ttl", "text_content")
 
 
-class DSNCreateFrom(forms.Form):
+class DNSCreateForm(forms.Form):
     name = forms.CharField(required=True)
-    dns_type = forms.ModelChoiceField(queryset=DnsType.objects.all(), required=True)
+    dns_type = forms.ModelChoiceField(
+        queryset=DnsType.objects.all(), required=True, widget=Select2Widget
+    )
     ttl = forms.IntegerField(label="TTL", required=True, initial=14400)
     content = forms.CharField(required=True)
 
     def __init__(self, user, *args, **kwargs):
-        super(DSNCreateFrom, self).__init__(*args, **kwargs)
+        super(DNSCreateForm, self).__init__(*args, **kwargs)
 
         self.fields["dns_type"].queryset = get_objects_for_user(
             user,
             ["dns.add_records_to_dnstype", "dns.change_dnstype"],
             any_perm=True,
             use_groups=True,
-            with_superuser=False,
+            with_superuser=True,
         )
 
         # Disabling dns_type edits per ekoyle
@@ -128,7 +142,6 @@ class DSNCreateFrom(forms.Form):
 
 
 class DhcpDnsRecordForm(forms.ModelForm):
-    domain = al.ModelChoiceField("DomainAutocomplete")
     host = forms.CharField()
 
     class Meta:

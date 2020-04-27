@@ -1,4 +1,4 @@
-{% load static theming_tags openipam admin_tools_menu_tags %}
+{% load static openipam menu_tags %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" dir="ltr" direction="ltr">
     <head>
@@ -6,25 +6,23 @@
 
         <link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}">
         <link rel="stylesheet" type="text/css" href="{% static "core/css/style.css" %}?{% now "c" %}" />
-        
+
         <link rel="icon" type="image/png" href="{% static "core/img/favicon-32x32.png" %}" sizes="32x32" />
         <link rel="icon" type="image/png" href="{% static "core/img/favicon-16x16.png" %}" sizes="16x16" />
 
         {% block extrastyle %}{% endblock %}
 
         {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}" />{% endif %}
-        <script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
 
         <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
         <script type="text/javascript" src="{% static "jquery.cookie/jquery.cookie.js" %}"></script>
-        <script src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
 
         {% block extrahead %}{% endblock %}
-        <!-- {% render_theming_css %} -->
-        
+
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+        {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
     </head>
     {% load i18n %}
 
@@ -56,6 +54,7 @@
             {% if not is_popup %}
                 {% block page_nav %}
                     <div id="page-nav" class="well well-sm">
+                        {% render_bookmarks %}
                         {% block content_title %}
                         {% if title %}
                             <h3 id="breadcrumb-title" class="pull-left">
@@ -105,11 +104,6 @@
     {% endblock %}
     <!-- END Container -->
 
-    {% block footer_scripts %}
-        <script type="text/javascript">
-            // autocomplete_light sets this to true which conflicts with datatables.
-            $.ajaxSettings.traditional = false;
-        </script>
-    {% endblock %}
+    {% block footer_scripts %}{% endblock %}
     </body>
 </html>

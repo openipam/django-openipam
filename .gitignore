@@ -27,6 +27,8 @@ env/share
 env/include
 .venv/*
 !.venv/.gitkeep
+node_modules/*
+!node_modules/.gitkeep
 
 # Installer logs
 pip-log.txt
@@ -47,6 +49,7 @@ nosetests.xml
 .vscode
 *.sublime-project
 *.sublime-workspace
+.vscode
 *.code-workspace
 
 # For Ipam
@@ -59,3 +62,4 @@ dump.rdb
 
 # Mac garbage
 .DS_Store
+._*

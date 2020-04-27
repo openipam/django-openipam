@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
+from django.conf import settings
 
 from openipam.dns.managers import (
     DnsManager,
@@ -33,7 +34,9 @@ class Domain(models.Model):
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     description = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     objects = DomainQuerySet.as_manager()
 
@@ -49,9 +52,16 @@ class Domain(models.Model):
 
 
 class DnsRecord(models.Model):
-    domain = models.ForeignKey("Domain", db_column="did", verbose_name="Domain")
+    domain = models.ForeignKey(
+        "Domain", db_column="did", verbose_name="Domain", on_delete=models.PROTECT
+    )
     host = models.ForeignKey(
-        "hosts.Host", db_column="mac", related_name="dns_records", blank=True, null=True
+        "hosts.Host",
+        db_column="mac",
+        related_name="dns_records",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     dns_type = models.ForeignKey(
         "DnsType",
@@ -59,15 +69,21 @@ class DnsRecord(models.Model):
         verbose_name="Type",
         related_name="records",
         error_messages={"blank": "Type fields for DNS records cannot be blank."},
+        on_delete=models.CASCADE,
     )
     dns_view = models.ForeignKey(
-        "DnsView", db_column="vid", verbose_name="View", blank=True, null=True
+        "DnsView",
+        db_column="vid",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
     name = models.CharField(
         max_length=255,
         error_messages={"blank": "Name fields for DNS records cannot be blank."},
     )
-    text_content = models.CharField(max_length=255, blank=True, null=True)
+    text_content = models.CharField(max_length=65535, blank=True, null=True)
     ip_content = models.ForeignKey(
         "network.Address",
         db_column="ip_content",
@@ -75,11 +91,14 @@ class DnsRecord(models.Model):
         blank=True,
         null=True,
         related_name="arecords",
+        on_delete=models.PROTECT,
     )
     ttl = models.IntegerField(default=14400, blank=True, null=True)
     priority = models.IntegerField(verbose_name="Priority", blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        "user.User", db_column="changed_by", on_delete=models.PROTECT
+    )
 
     objects = DnsManager.from_queryset(DNSQuerySet)()
 
@@ -181,14 +200,16 @@ class DnsRecord(models.Model):
         )
         valid_addresses = Address.objects.by_dns_change_perms(user)
 
-        # Users must either have domain permissions when except for PTRs what are being created from host saves.
+        # Users must either have domain permissions when except
+        # for PTRs what are being created from host saves.
         if self.dns_type.is_ptr_record and self.host.is_dirty():
             pass
         elif not valid_domains or self.domain not in valid_domains:
             raise ValidationError(
                 "Invalid credentials: user %s does not have permissions"
-                " to add DNS records to the domain provided. Please contact an IPAM administrator "
-                "to ensure you have the proper permissions." % user
+                " to add DNS records to the domain provided. Please "
+                "contact an IPAM administrator to ensure you have "
+                "the proper permissions." % user
             )
 
         # If A or AAAA, then users must have Address / Network permission
@@ -197,7 +218,8 @@ class DnsRecord(models.Model):
         ):
             raise ValidationError(
                 "Invalid credentials: user %s does not have permissions"
-                " to add DNS records to the address provided. Please contact an IPAM administrator "
+                " to add DNS records to the address provided. "
+                "Please contact an IPAM administrator "
                 "to ensure you have the proper host and/or network permissions." % user
             )
 
@@ -292,6 +314,12 @@ class DnsRecord(models.Model):
         # TODO: more of these need to be added
         try:
             if self.text_content:
+                # Strip off any trailing dots
+                self.text_content = self.text_content.rstrip(".")
+
+                if self.dns_type.name == "CNAME" and len(self.text_content) > 255:
+                    raise ValidationError("CNAME Content cannot be longer than 255.")
+
                 if self.dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
                     validate_fqdn(self.text_content)
 
@@ -341,7 +369,8 @@ class DnsRecord(models.Model):
                     )
                 elif self.dns_type.is_srv_record and len(parsed_content) != 4:
                     error_list.append(
-                        "Content for SRV records need to only have a priority, weight, port, and FQDN."
+                        "Content for SRV records need to only have "
+                        "a priority, weight, port, and FQDN."
                     )
 
         if error_list:
@@ -459,14 +488,27 @@ class DnsRecord(models.Model):
 
 
 class DnsRecordMunged(models.Model):
-    domain_id = models.IntegerField(null=True, blank=True)
+    domain = models.ForeignKey(
+        "Domain",
+        db_column="domain_id",
+        null=True,
+        blank=True,
+        on_delete=models.DO_NOTHING,
+    )
     name = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=32, blank=True)
     content = models.TextField(blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     prio = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
-    view_id = models.IntegerField(null=True, blank=True)
+    dns_view = models.ForeignKey(
+        "DnsView",
+        db_column="view_id",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.DO_NOTHING,
+    )
 
     def __str__(self):
         return self.name
@@ -477,10 +519,16 @@ class DnsRecordMunged(models.Model):
 
 
 class DhcpDnsRecord(models.Model):
-    domain = models.ForeignKey("Domain", db_column="did")
-    host = models.OneToOneField("hosts.Host", db_column="name", to_field="hostname")
+    domain = models.ForeignKey("Domain", db_column="did", on_delete=models.DO_NOTHING)
+    host = models.OneToOneField(
+        "hosts.Host", db_column="name", to_field="hostname", on_delete=models.DO_NOTHING
+    )
     ip_content = models.ForeignKey(
-        "network.Address", null=True, db_column="ip_content", blank=True
+        "network.Address",
+        null=True,
+        db_column="ip_content",
+        blank=True,
+        on_delete=models.DO_NOTHING,
     )
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
@@ -544,7 +592,9 @@ class Supermaster(models.Model):
     nameserver = models.CharField(max_length=255)
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        "user.User", db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.ip
@@ -554,7 +604,7 @@ class Supermaster(models.Model):
 
 
 class PdnsZoneXfer(models.Model):
-    domain_id = models.ForeignKey("Domain")
+    domain = models.ForeignKey("Domain", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10)
     content = models.CharField(max_length=65535)
@@ -592,14 +642,27 @@ class Record(models.Model):
 
 
 class RecordMunged(models.Model):
-    domain_id = models.IntegerField(null=True, blank=True)
+    domain = models.ForeignKey(
+        "Domain",
+        db_column="domain_id",
+        null=True,
+        blank=True,
+        on_delete=models.DO_NOTHING,
+    )
     name = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     ttl = models.IntegerField(null=True, blank=True)
     prio = models.IntegerField(null=True, blank=True)
     change_date = models.IntegerField(null=True, blank=True)
-    view_id = models.IntegerField(null=True, blank=True)
+    dns_view = models.ForeignKey(
+        "DnsView",
+        db_column="view_id",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.DO_NOTHING,
+    )
 
     def __str__(self):
         return "%s %s" % (self.domain_id, self.name)

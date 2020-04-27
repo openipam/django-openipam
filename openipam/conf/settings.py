@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.contrib.messages import constants as message_constants
 
 import hashlib
@@ -31,18 +31,17 @@ DATABASES = locals().pop(
     "DATABASES",
     {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            "NAME": "%s/development.db"
-            % BASE_DIR,  # Or path to database file if using sqlite3.
-            "USER": "",  # Not used with sqlite3.
-            "PASSWORD": "",  # Not used with sqlite3.
-            "HOST": "",  # Set to empty string for localhost. Not used with sqlite3.
-            "PORT": "",  # Set to empty string for default. Not used with sqlite3.
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": "%s/development.db" % BASE_DIR,
+            "USER": "",
+            "PASSWORD": "",
+            "HOST": "",
+            "PORT": "",
         }
     },
 )
 
-OBSERVIUM_AUTH = ("openipam", "N6pZUgcaPwGNrECPaXGkmM7jDzo7i0F3")
+AUTH = locals().pop("AUTH", [])
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -91,9 +90,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    # Hack to find bower components
-    "%s/components/bower_components" % BASE_DIR,
-    "%s/components/static_components" % BASE_DIR,
+    os.path.join(BASE_DIR, "node_modules"),
 )
 
 # List of finder classes that know how to find static files in
@@ -101,7 +98,6 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "djangobower.finders.BowerFinder",
 )
 
 FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
@@ -142,7 +138,6 @@ TEMPLATES = [
             "loaders": [
                 "django.template.loaders.filesystem.Loader",
                 "django.template.loaders.app_directories.Loader",
-                "admin_tools.template_loaders.Loader",
             ],
         },
     }
@@ -175,8 +170,8 @@ WSGI_APPLICATION = "openipam.wsgi.application"
 
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
-LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", ())
-INSTALLED_APPS = (
+LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", [])
+INSTALLED_APPS = [
     # openIPAM Apps
     "openipam.core",
     "openipam.user",
@@ -189,24 +184,22 @@ INSTALLED_APPS = (
     "openipam.report",
     # Firewall
     # 'openipam.firewall',
-    # Admin Tools
-    "admin_tools",
-    "admin_tools.theming",
-    "admin_tools.menu",
-    "admin_tools.dashboard",
-    "djangobower",
+    # "djangobower",
+    "chartjs",
     "django_nvd3",
     "django_extensions",
     "widget_tweaks",
     "django_filters",
     "crispy_forms",
     "autocomplete_light",
+    "django_select2",
+    # "dal",
+    # "dal_select2",
     "rest_framework",
     "rest_framework.authtoken",
     "guardian",
     "netfields",
     "taggit",
-    "django_cas_ng",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -216,52 +209,46 @@ INSTALLED_APPS = (
     "django.contrib.admin",
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-) + LOCAL_INSTALLED_APPS
+] + LOCAL_INSTALLED_APPS
 
-BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
-BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
+# BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
+# BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
 
-BOWER_INSTALLED_APPS = (
-    "jquery#2.1.4",
-    "jquer-ui#1.11.4",
-    "bootstrap#3.3.5",
-    "datatables#1.10.7",
-    "jquery.cookie#1.4.1",
-    "chosen",
-    "intro.js#0.9.0",
-    "qTip#1.0.0",
-)
+# BOWER_INSTALLED_APPS = (
+#     "jquery#2.1.4",
+#     "jquer-ui#1.11.4",
+#     "bootstrap#3.3.5",
+#     "datatables#1.10.7",
+#     "jquery.cookie#1.4.1",
+#     "chosen",
+#     "intro.js#0.9.0",
+#     "qTip#1.0.0",
+# )
 
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
-LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", ())
-AUTHENTICATION_BACKENDS = (
+LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", [])
+AUTHENTICATION_BACKENDS = [
     # 'django.contrib.auth.backends.ModelBackend',
     "openipam.core.backends.CaseInsensitiveModelBackend",
-    # "openipam.core.backends.IPAMCASBackend",
-    # 'django_cas_ng.backends.CASBackend',
     "guardian.backends.ObjectPermissionBackend",
-) + LOCAL_AUTHENTICATION_BACKENDS
+] + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
-
-# CAS_SERVER_URL = locals().pop("CAS_SERVER_URL", "https://login.usu.edu/cas/p3/")
-# CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
     "static/?.*",
     "password/forgot/",
     "logout/",
-    "api/?.*",
+    "api/(?!web).*",
     "reports/?.*",
-    # "cas/?.*",
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
 )
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = reverse_lazy("index")
-LOGOUT_URL = reverse_lazy("logout")
+LOGIN_REDIRECT_URL = reverse_lazy("core:index")
+LOGOUT_URL = reverse_lazy("core:logout")
 
 REST_FRAMEWORK = {
     "PAGINATE_BY": 25,
@@ -283,6 +270,4 @@ JWT_AUTH = {"JWT_LEEWAY": 60, "JWT_EXPIRATION_DELTA": datetime.timedelta(hours=4
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
-ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"
-ADMIN_TOOLS_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMIndexDashboard"
-ADMIN_TOOLS_APP_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMAppIndexDashboard"
+IPAM_MENU = "openipam.core.menu.IPAMMenu"

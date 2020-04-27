@@ -1,44 +1,40 @@
-from django.conf.urls import url
-from django.core.urlresolvers import reverse_lazy
+from django.urls import path, re_path
+from django.urls import reverse_lazy
 from django.views.generic.base import RedirectView
 
 from openipam.hosts import views
 
+app_name = "hosts"
+
 urlpatterns = [
-    url(r"^host/add/?$", RedirectView.as_view(url=reverse_lazy("add_hosts"))),
-    url(r"^host/(?P<pk>[0-9a-fA-F:_.-]+)$", views.HostRedirectView.as_view()),
-    url(r"^host/.*$", RedirectView.as_view(url=reverse_lazy("list_hosts"))),
-    url(r"^$", views.HostListView.as_view(), name="list_hosts"),
-    # url(r'^$', 'index', name='hosts'),
-    url(
+    path("", views.HostListView.as_view(), name="list"),
+    re_path(r"^host/add/?$", RedirectView.as_view(url=reverse_lazy("hosts:add"))),
+    re_path(r"^host/(?P<pk>[0-9a-fA-F:_.-]+)$", views.HostRedirectView.as_view()),
+    re_path(r"^host/.*$", RedirectView.as_view(url=reverse_lazy("hosts:list"))),
+    # path(r'^$', 'index', name='hosts'),
+    re_path(
         r"^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/addresses/remove/$",
         views.HostAddressDeleteView.as_view(),
-        name="remove_addresses_host",
+        name="remove_addresses",
     ),
-    url(
+    re_path(
         r"^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/addresses/$",
         views.HostAddressCreateView.as_view(),
-        name="add_addresses_host",
+        name="add_addresses",
     ),
-    url(
+    re_path(
         r"^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/detail/$",
         views.HostDetailView.as_view(),
-        name="view_host",
+        name="detail",
     ),
-    url(
+    re_path(
         r"^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/$",
         views.HostUpdateView.as_view(),
-        name="update_host",
+        name="update",
     ),
-    url(r"^data/$", views.HostListJson.as_view(), name="json_hosts"),
-    url(r"^add/bulk/$", views.HostBulkCreateView.as_view(), name="add_hosts_bulk"),
-    url(
-        r"^add/new/$",
-        views.HostCreateView.as_view(),
-        {"new": True},
-        name="add_hosts_new",
-    ),
-    url(r"^add/$", views.HostCreateView.as_view(), name="add_hosts"),
-    url(r"^owners/$", views.change_owners, name="change_owners"),
-    # url(r'^add/$', 'add', name='add_hosts'),
+    path("data/", views.HostListJson.as_view(), name="json"),
+    path("add/bulk/", views.HostBulkCreateView.as_view(), name="add_bulk"),
+    path("add/new/", views.HostCreateView.as_view(), {"new": True}, name="add_new"),
+    path("add/", views.HostCreateView.as_view(), name="add"),
+    path("owners/", views.change_owners, name="change_owners"),
 ]

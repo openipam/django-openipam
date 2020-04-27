@@ -32,10 +32,9 @@
 {% block extrahead %}
 	{{ block.super }}
 	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
-	<script type="text/javascript" src="{% static 'core/js/bootstrap-waitingfor.js' %}"></script>
-	<script type="text/javascript" src="{% static 'chosen/chosen.jquery.min.js' %}"></script>
-	<!--<script type="text/javascript" src="{% static 'ajax-chosen/lib/ajax-chosen.min.js' %}"></script>-->
+	<script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
+	<script type="text/javascript" src="{% static 'datatables-bootstrap/js/dataTables.bootstrap.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'bootstrap-waitingfor/build/bootstrap-waitingfor.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'user/js/user_manager.js' %}"></script>
 {% endblock %}
 
@@ -71,10 +70,16 @@
 				{% else %}
 					<span id="url-filtered-label" class="label label-primary pull-left">Records Filtered from the URL</span>
 				{% endif %}
-				<div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
 				<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 					<label>
-						<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" data-autocomplete-url="/api/web/IPAMUserSearchAutoComplete/" placeholder="Advanced Filter" class="form-control autocomplete" />
+						<input 
+							type="text" 
+							id="id_search"
+							data-autocomplete-choice-selector="[data-value]" 
+							data-autocomplete-url="/ac/IPAMUserSearchAutoComplete/" 
+							placeholder="Search" 
+							class="form-control autocomplete" 
+						/>
 					</label>
 				    <div style="margin-top: 5px; margin-right: 10px; z-index: 5;">
 						<span id="advanced-search-deck" class="deck">
@@ -93,7 +98,7 @@
 				        ˣ
 				    </span>
 				</div>
-				<a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'user_manager' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+				<a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'user:list' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
 
 			</div>
 			<div id="search-help" class="help-content">

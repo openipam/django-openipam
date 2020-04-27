@@ -4,6 +4,11 @@
 
 ALLOWED_HOSTS = ["*"]
 
+AUTH = {
+    "OBSERVIUM": {"USER": "", "PASSWD": ""},
+    "GUL": {"USER": "", "PASSWD": ""},
+}
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
@@ -32,7 +37,6 @@ INTERNAL_IPS = ("127.0.0.1",)
 # OPENIPAM Settings, see openipam/conf/ipam_settings.py
 # OPENIPAM = {
 #     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.company.com'],
-#     'CAS_LOGIN': False,
 #     'DUO_LOGIN': True,
 # }
 

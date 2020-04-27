@@ -10,17 +10,14 @@ from openipam.user.models import AuthSource
 # Dont require this.
 try:
     from django_auth_ldap.backend import LDAPBackend, _LDAPUser
-    from django_cas_ng.backends import CASBackend
 except ImportError:
     pass
-
-import re
 
 User = get_user_model()
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, request, username=None, password=None):
         try:
             user = User.objects.get(username__iexact=username)
             if user.check_password(password):
@@ -38,7 +35,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 # Modified django auth ldap backend to allow mirroring of groups and still
 # keep static groups that are django only.
 class IPAMLDAPBackend(LDAPBackend):
-    def authenticate(self, username, password):
+    def authenticate(self, request, username, password):
         if len(password) == 0 and not self.settings.PERMIT_EMPTY_PASSWORD:
             self.logger.debug("Rejecting empty password for %s" % username)
             return None
@@ -86,7 +83,6 @@ class _IPAMLDAPUser(_LDAPUser):
         source_id = source.pk
 
         target_group_names = frozenset(self._get_groups().get_group_names())
-        # current_group_names = frozenset(self._user.groups.values_list('name', flat=True).iterator())
         static_groups = list(
             self._user.groups.exclude(source__source=source).iterator()
         )
@@ -138,56 +134,3 @@ class ConsoleLoggingEmailBackend(ConsoleEmailBackend):
         except Exception:
             pass
         return message_len
-
-
-class IPAMCASBackend(CASBackend):
-    def authenticate(self, ticket, service, request):
-        self.user = super(IPAMCASBackend, self).authenticate(ticket, service, request)
-
-        if self.user:
-            self.request = request
-            self._mirror_groups()
-
-            # Get LDAP source
-            # source = AuthSource.objects.get(name='LDAP')
-
-            # group_names = self._get_group_names(request)
-            # if group_names:
-            #     user_groups = populate_central_groups(group_names, source)
-            #     for group in user_groups:
-            #         user.groups.add(group)
-
-        return self.user
-
-    def _get_group_names(self):
-        group_names = []
-        attributes = self.request.session.get("attributes", {})
-        if attributes.get("memberOf", None):
-            group_names_str = "".join(attributes["memberOf"])
-            pattern = re.compile("CN=([^,]*)")
-            group_names = pattern.findall(group_names_str)
-        return group_names
-
-    def _mirror_groups(self):
-        source = AuthSource.objects.get(name="LDAP")
-        source_id = source.pk
-
-        target_group_names = frozenset(self._get_group_names())
-        # current_group_names = frozenset(self._user.groups.values_list('name', flat=True).iterator())
-        static_groups = list(self.user.groups.exclude(source__source=source).iterator())
-
-        # if target_group_names != current_group_names:
-        existing_groups = list(
-            Group.objects.filter(name__in=target_group_names).iterator()
-        )
-
-        new_groups = []
-        for name in target_group_names:
-            if name not in existing_groups:
-                obj, created = Group.objects.get_or_create(name=name)
-                if obj.source.source_id != source_id:
-                    obj.source.source_id = source_id
-                    obj.source.save()
-                new_groups.append(obj)
-
-        self.user.groups = static_groups + existing_groups + new_groups

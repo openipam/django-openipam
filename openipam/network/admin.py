@@ -2,9 +2,14 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.conf.urls import url
+from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib import messages
+
+from netaddr import IPNetwork
+
+# from django.forms import modelform_factory
 
 
 from openipam.network.models import (
@@ -31,12 +36,14 @@ from openipam.network.forms import (
     AddressAdminForm,
     LeaseAdminForm,
     NetworkReziseForm,
+    NetworkForm,
     VlanForm,
-    BuildingAssignForm,
 )
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
 from autocomplete_light import shortcuts as al
+
+# from dal import autocomplete
 
 
 class NetworkAdmin(ChangedAdmin):
@@ -49,7 +56,14 @@ class NetworkAdmin(ChangedAdmin):
         "changed",
     )
     list_filter = (("tags__name", custom_titled_filter("Tags")), "shared_network__name")
-    form = al.modelform_factory(Network, exclude=("changed,"))
+    # form = modelform_factory(
+    #     Network,
+    #     exclude=("changed,",),
+    #     widgets={
+    #         "dhcp_group": autocomplete.ModelSelect2(url="dhcp_group_autocomplete")
+    #     },
+    # )
+    form = NetworkForm
     search_fields = ("^network", "^name", "^shared_network__name")
     actions = ["tag_network", "resize_network", "release_abandoned_leases"]
 
@@ -61,10 +75,9 @@ class NetworkAdmin(ChangedAdmin):
 
     def nice_network(self, obj):
         url = str(obj.network).replace("/", "_2F")
-        return '<a href="./%s/">%s</a>' % (url, obj.network)
+        return mark_safe(f'<a href="./{url}/">{obj.network}</a>')
 
     nice_network.short_description = "Network"
-    nice_network.allow_tags = True
 
     def get_urls(self):
         urls = super(NetworkAdmin, self).get_urls()
@@ -238,10 +251,10 @@ class AddressTypeAdmin(admin.ModelAdmin):
 
     def show_ranges(self, obj):
         ranges = [str(range) for range in obj.ranges.all()]
-        return "%s" % "<br />".join(ranges) if ranges else ""
+        range_str = "<br />".join(ranges) if ranges else ""
+        return mark_safe(f"{range_str}")
 
     show_ranges.short_description = "Network Ranges"
-    show_ranges.allow_tags = True
 
 
 class DhcpOptionAdmin(admin.ModelAdmin):
@@ -252,6 +265,7 @@ class DhcpOptionAdmin(admin.ModelAdmin):
 class DhcpGroupAdmin(ChangedAdmin):
     list_display = ("name", "description", "changed_by", "changed")
     search_fields = ("^name",)
+    # form = modelform_factory(DhcpGroup, exclude=("changed,",))
     form = al.modelform_factory(DhcpGroup, exclude=("changed",))
 
 
@@ -266,10 +280,11 @@ class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
     list_select_related = True
 
     def combined_value(self, obj):
-        return "<textarea style='width: 300px;'>%s</textarea>" % str(obj)
+        return mark_safe(
+            f"<textarea style='width: 300px;' readonly>{str(obj)}</textarea>"
+        )
 
     combined_value.short_description = "Group:Option=Value"
-    combined_value.allow_tags = True
 
     def get_queryset(self, request):
         qs = super(DhcpOptionToDhcpGroupAdmin, self).get_queryset(request)
@@ -305,15 +320,10 @@ class SharedNetworkAdmin(ChangedAdmin):
 
 
 class VlanAdmin(ChangedAdmin):
-    list_display = ("vlan_id", "name", "building_numbers", "changed_by", "changed")
-    search_fields = ("vlan_id", "^name", "buildings__number")
+    list_display = ("vlan_id", "name", "changed_by", "changed")
+    search_fields = ("vlan_id", "^name")
     list_select_related = True
     form = VlanForm
-    actions = ["assign_buildings"]
-
-    def get_queryset(self, request):
-        qs = super(VlanAdmin, self).get_queryset(request)
-        return qs.prefetch_related("buildings").all()
 
     def save_model(self, request, obj, form, change):
         super(VlanAdmin, self).save_model(request, obj, form, change)
@@ -324,41 +334,6 @@ class VlanAdmin(ChangedAdmin):
             BuildingToVlan.objects.create(
                 building=building, vlan=obj, changed_by=request.user
             )
-
-    def get_urls(self):
-        urls = super(VlanAdmin, self).get_urls()
-        net_urls = [url(r"^assign_buildings/$", self.assign_buildings_view)]
-        return net_urls + urls
-
-    def building_numbers(self, obj):
-        buildings = [building.number for building in obj.buildings.all()]
-        return " ".join(buildings)
-
-    building_numbers.short_description = "Buildings"
-
-    def assign_buildings_view(self, request):
-        form = BuildingAssignForm(request.POST or None)
-
-        if form.is_valid():
-            ids = request.GET.get("ids").strip().split(",")
-            vlans = Vlan.objects.filter(pk__in=ids)
-            buildings = form.cleaned_data["buildings"]
-            for vlan in vlans:
-                for building in buildings:
-                    BuildingToVlan.objects.get_or_create(
-                        building=building, vlan=vlan, changed_by=request.user
-                    )
-
-            messages.success(request, "Buildings were successfully added")
-
-            return redirect("../")
-
-        return render(request, "admin/actions/assign_buildings.html", {"form": form})
-
-    def assign_buildings(self, request, queryset):
-        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        ct = ContentType.objects.get_for_model(queryset.model)
-        return redirect("assign_buildings/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
 
 class NetworkToVlanAdmin(ChangedAdmin):
@@ -413,10 +388,30 @@ class HasHostFilter(admin.SimpleListFilter):
             return queryset.filter(host__isnull=True)
 
 
+class IsStaticAddress(admin.SimpleListFilter):
+    title = "static"
+    parameter_name = "static"
+
+    def lookups(self, request, model_admin):
+        return (("1", "Yes"), ("0", "No"))
+
+    def queryset(self, request, queryset):
+        if self.value() == "1":
+            return queryset.filter(pool__isnull=True)
+        if self.value() == "0":
+            return queryset.filter(pool__isnull=False)
+
+
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network", "reserved", "pool", HasHostFilter)
+    list_filter = (
+        "network__network",
+        "reserved",
+        "pool",
+        HasHostFilter,
+        IsStaticAddress,
+    )
     list_display = (
         "address",
         "network",
@@ -431,6 +426,18 @@ class AddressAdmin(ChangedAdmin):
     def get_queryset(self, request):
         qs = super(AddressAdmin, self).get_queryset(request)
         return qs.select_related("host", "network", "changed_by").all()
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(AddressAdmin, self).get_search_results(
+            request, queryset, search_term
+        )
+
+        # Check if the search is for a network
+        if "q" in request.GET and "/" in request.GET["q"]:
+            net = IPNetwork(request.GET["q"])
+            queryset = Address.objects.filter(address__net_contained=net)
+
+        return queryset, use_distinct
 
 
 class BuildingAdmin(ChangedAdmin):

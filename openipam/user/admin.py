@@ -6,15 +6,27 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
 from django.conf.urls import url
 from django.db.models import Q
 from django.shortcuts import redirect, render, reverse
 from django.contrib import messages
 
+# from django.forms import modelform_factory
+
 from openipam.dns.models import Domain
 from openipam.hosts.models import Host
 from openipam.network.models import Network
-from openipam.user.models import User, GroupSource, AuthSource
+from openipam.user.models import (
+    User,
+    Group,
+    Token,
+    Permission,
+    UserObjectPermission,
+    GroupObjectPermission,
+    GroupSource,
+    AuthSource,
+)
 from openipam.user.forms import (
     AuthUserCreateAdminForm,
     AuthUserChangeAdminForm,
@@ -23,11 +35,15 @@ from openipam.user.forms import (
     GroupObjectPermissionAdminForm,
 )
 
-from guardian.models import UserObjectPermission, GroupObjectPermission
+# from guardian.models import (
+#     UserObjectPermission as GuardianUserObjectPermission,
+#     GroupObjectPermission as GuardianGroupObjectPermission,
+# )
 
-from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.models import Token as RestToken
 from rest_framework.authtoken.admin import TokenAdmin
 
+# from dal import autocomplete
 from autocomplete_light import shortcuts as al
 
 
@@ -54,7 +70,7 @@ class IPAMGroupFilter(ListFilter):
     title = "groups"
     parameter_name = "groups"
     template = "admin/filter_autocomplete.html"
-    autocomplete_url = "/api/web/GroupAutocomplete/"
+    autocomplete_url = "/ac/GroupAutocomplete/"
     placeholder = "Search Groups"
 
     def has_output(self):
@@ -106,7 +122,7 @@ class IPAMUserFilter(ListFilter):
     title = "users"
     parameter_name = "users"
     template = "admin/filter_autocomplete.html"
-    autocomplete_url = "/api/web/UserAutocomplete/"
+    autocomplete_url = "/ac/UserAutocomplete/"
     placeholder = "Search Users"
 
     def has_output(self):
@@ -204,6 +220,7 @@ class AuthUserChangeList(ChangeList):
         return qs
 
 
+@admin.register(User)
 class AuthUserAdmin(UserAdmin):
     add_form = AuthUserCreateAdminForm
     form = AuthUserChangeAdminForm
@@ -250,11 +267,8 @@ class AuthUserAdmin(UserAdmin):
     )
 
     def permissions(self, obj):
-        return '<a href="%s">Permissions</a>' % reverse(
-            "admin:user_perms_view", args=[obj.pk]
-        )
-
-    permissions.allow_tags = True
+        url = reverse("admin:user_perms_view", args=[obj.pk])
+        return mark_safe(f'<a href="{url}">Permissions</a>')
 
     def full_name(self, obj):
         first_name = "" if obj.first_name is None else obj.first_name
@@ -354,7 +368,13 @@ class AuthUserAdmin(UserAdmin):
         return render(request, "admin/user/user/permissions.html", context)
 
 
+@admin.register(Token)
 class TokenAdmin(TokenAdmin):
+    # form = modelform_factory(
+    #     Token,
+    #     fields=("user",),
+    #     widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+    # )
     form = al.modelform_factory(Token, fields=("user",))
 
 
@@ -362,7 +382,8 @@ class AuthGroupSourceInline(admin.StackedInline):
     model = GroupSource
 
 
-class AuthGroupAdmin(GroupAdmin):
+@admin.register(Group)
+class GroupAdmin(GroupAdmin):
     list_display = ("name", "authsources")
     list_filter = (IPAMObjUserFilter, GroupSourceFilter, IPAMGroupHasPermissionsFilter)
     form = AuthGroupAdminForm
@@ -372,7 +393,7 @@ class AuthGroupAdmin(GroupAdmin):
     ordering = ("source__source", "name")
 
     def get_queryset(self, request):
-        qs = super(AuthGroupAdmin, self).get_queryset(request)
+        qs = super(GroupAdmin, self).get_queryset(request)
         return qs.select_related("source__source").distinct()
 
     def changelist_view(self, request, extra_context=None):
@@ -380,24 +401,13 @@ class AuthGroupAdmin(GroupAdmin):
         permission_param = request.GET.get("permissions", "")
         q = request.GET.get("q", "")
         if not q and not permission_param:
-            return redirect(reverse("admin:auth_group_changelist") + "?permissions=1")
+            return redirect(reverse("admin:user_group_changelist") + "?permissions=1")
 
-        return super(AuthGroupAdmin, self).changelist_view(
+        return super(GroupAdmin, self).changelist_view(
             request, extra_context=extra_context
         )
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        # group_add_form = GroupObjectPermissionAdminForm(request.POST or None, initial={'group': object_id})
-
-        # if group_add_form.is_valid():
-        #     instance = group_add_form.save(commit=False)
-        #     content_object = group_add_form.cleaned_data['object_id'].split('-')
-        #     instance.content_type_id = content_object[0]
-        #     instance.object_pk = content_object[1]
-        #     instance.save()
-
-        #     return redirect('admin:auth_group_change', object_id)
-
         group_object_permissions = GroupObjectPermission.objects.filter(
             group__pk=object_id
         )
@@ -416,12 +426,12 @@ class AuthGroupAdmin(GroupAdmin):
             "domain_permissions": domain_permissions,
             "network_permissions": network_permissions,
         }
-        return super(AuthGroupAdmin, self).change_view(
+        return super(GroupAdmin, self).change_view(
             request, object_id, form_url, extra_context=extra_context
         )
 
     def get_urls(self):
-        urls = super(AuthGroupAdmin, self).get_urls()
+        urls = super(GroupAdmin, self).get_urls()
         new_urls = [
             url(
                 r"^perm_delete/(\d+)/$",
@@ -459,7 +469,8 @@ class AuthGroupAdmin(GroupAdmin):
     change_source_ldap.description = "Change Group Source to LDAP"
 
 
-class AuthPermissionAdmin(admin.ModelAdmin):
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
     list_filter = ("content_type__app_label", "codename", "content_type__model")
     list_select_related = True
     search_fields = ("name", "codename")
@@ -522,6 +533,7 @@ class ObjectPermissionSearchChangeList(ChangeList):
         return qs
 
 
+@admin.register(UserObjectPermission)
 class UserObjectPermissionAdmin(admin.ModelAdmin):
     form = UserObjectPermissionAdminForm
     list_display = ("user", "content_type", "content_object", "permission_name")
@@ -533,14 +545,10 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return ObjectPermissionSearchChangeList
 
-    # def change_view(self, request, object_id, extra_context=None):
-    #     extra_context = extra_context or {}
-    #     extra_context['readonly'] = True
-    #     return super(UserObjectPermissionAdmin, self).change_view(request, object_id, extra_context=extra_context)
-
     def get_queryset(self, request):
         qs = super(UserObjectPermissionAdmin, self).get_queryset(request)
-        # qs = qs.prefetch_related('user', 'permission', 'content_object').all()
+        # qs = qs.prefetch_related('user',
+        # 'permission', 'content_object', 'content_type').all()
         qs = qs.distinct()
         return qs
 
@@ -566,6 +574,7 @@ class UserObjectPermissionAdmin(admin.ModelAdmin):
     object_name.short_description = "Object"
 
 
+@admin.register(GroupObjectPermission)
 class GroupObjectPermissionAdmin(admin.ModelAdmin):
     list_display = ("group", "object_name", "permission_name")
     list_filter = (ObjectPermissionFilter, IPAMObjGroupFilter)
@@ -603,13 +612,7 @@ class GroupObjectPermissionAdmin(admin.ModelAdmin):
     object_name.short_description = "Object"
 
 
-admin.site.register(User, AuthUserAdmin)
+# admin.site.unregister(GuardianUserObjectPermission)
+# admin.site.unregister(GuardianGroupObjectPermission)
 admin.site.unregister(AuthGroup)
-admin.site.register(AuthGroup, AuthGroupAdmin)
-admin.site.register(AuthPermission, AuthPermissionAdmin)
-admin.site.unregister(Token)
-admin.site.register(Token, TokenAdmin)
-
-
-admin.site.register(UserObjectPermission, UserObjectPermissionAdmin)
-admin.site.register(GroupObjectPermission, GroupObjectPermissionAdmin)
+admin.site.unregister(RestToken)

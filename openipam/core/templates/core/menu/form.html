@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<form action="." method="POST">
+    {{ form.as_p }}
+    <input type="hidden" name="next" value= "{{ request.META.HTTP_REFERER }}" />
+    <p><input type="submit" class="btn btn-primary" value="Save" /></p>
+</form>
+
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load i18n menu_tags %}
+{% if menu.children %}
+<ul id="navigation-menu" class="nav navbar-nav navbar-left">
+    {% for item in menu.children %}{% render_menu_item item forloop.counter %}{% endfor %}
+</ul>
+{% endif %}

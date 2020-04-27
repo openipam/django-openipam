@@ -28,7 +28,7 @@ from openipam.network.models import (
 )
 from openipam.api.views.base import APIPagination
 from openipam.api.serializers import network as network_serializers
-from openipam.api.filters.network import NetworkFilter
+from openipam.api.filters.network import NetworkFilter, AddressFilter
 from openipam.api.permissions import IPAMAPIAdminPermission
 
 from ipaddress import IPv4Network
@@ -148,55 +148,36 @@ class RouterUpgrade(APIView):
         )
 
         # Vlan 30 - captive
-        if serializer.data.get("captive_network", None):
-            captive_network = self.create_network(
-                network_str=serializer.data["captive_network"],
-                building=building,
-                name="captive",
-                user=request.user,
-                dhcp_group_name="restricted",
-            )
-            self.update_vlan(
-                vlan_id="30",
-                building=building,
-                user=request.user,
-                networks=[captive_network],
-                name="captive",
-            )
-
-        # Vlan 39 - captive_housing
-        if serializer.data.get("captive_housing_network", None):
-            captive_housing_network = self.create_network(
-                network_str=serializer.data["captive_housing_network"],
-                building=building,
-                name="captive_housing",
-                user=request.user,
-                dhcp_group_name="restricted",
-            )
-            self.update_vlan(
-                vlan_id="39",
-                building=building,
-                user=request.user,
-                networks=[captive_housing_network],
-                name="captive_housing",
-            )
+        captive_network = self.create_network(
+            network_str=serializer.data["captive_network"],
+            building=building,
+            name="captive",
+            user=request.user,
+            dhcp_group_name="restricted",
+        )
+        self.update_vlan(
+            vlan_id="30",
+            building=building,
+            user=request.user,
+            networks=[captive_network],
+            name="captive",
+        )
 
         # Vlan 40 - phones
-        if serializer.data.get("phone_network", None):
-            phone_network = self.create_network(
-                network_str=serializer.data["phone_network"],
-                building=building,
-                name="campus_voice",
-                user=request.user,
-                dhcp_group_name="usu_shoretel_phones-untagged",
-            )
-            self.update_vlan(
-                vlan_id="40",
-                building=building,
-                user=request.user,
-                networks=[phone_network],
-                name="campus_voice",
-            )
+        phone_network = self.create_network(
+            network_str=serializer.data["phone_network"],
+            building=building,
+            name="campus_voice",
+            user=request.user,
+            dhcp_group_name="usu_shoretel_phones-untagged",
+        )
+        self.update_vlan(
+            vlan_id="40",
+            building=building,
+            user=request.user,
+            networks=[phone_network],
+            name="campus_voice",
+        )
 
         # Vlan 90 - management
         management_network = self.create_network(
@@ -214,15 +195,19 @@ class RouterUpgrade(APIView):
         )
 
         # Vlan 11 - campus_lab
-        campus_lab_networks = serializer.data.get("campus_lab_networks", [])
-        if campus_lab_networks:
-            self.update_vlan(
-                vlan_id="11",
-                building=building,
-                user=request.user,
-                networks=campus_lab_networks,
-                name="campus_lab",
-            )
+        campus_lab_network = self.create_network(
+            network_str=serializer.data["campus_lab"],
+            building=building,
+            name="campus_lab",
+            user=request.user,
+        )
+        self.update_vlan(
+            vlan_id="11",
+            building=building,
+            user=request.user,
+            networks=[campus_lab_network],
+            name="campus_lab",
+        )
 
         return Response("Ok!")
 
@@ -232,7 +217,7 @@ class NetworkList(generics.ListAPIView):
     queryset = Network.objects.all()
     pagination_class = APIPagination
     serializer_class = network_serializers.NetworkListSerializer
-    filter_fields = ("network", "name")
+    filterset_fields = ("network", "name")
     filter_class = NetworkFilter
 
     def filter_queryset(self, queryset):
@@ -320,7 +305,8 @@ class AddressList(generics.ListAPIView):
     queryset = Address.objects.select_related().all()
     serializer_class = network_serializers.AddressSerializer
     pagination_class = APIPagination
-    filter_fields = ("address", "mac")
+    filterset_fields = ("address", "mac")
+    filterset_class = AddressFilter
 
 
 class AddressDetail(generics.RetrieveAPIView):
@@ -363,8 +349,8 @@ class AddressUpdate(generics.RetrieveUpdateAPIView):
 
 class DhcpGroupViewSet(viewsets.ModelViewSet):
     queryset = DhcpGroup.objects.select_related().prefetch_related("dhcp_options").all()
-    filter_fields = ("name",)
-    lookup_field = "name"
+    filterset_fields = ("name",)
+    lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
@@ -375,7 +361,7 @@ class DhcpGroupViewSet(viewsets.ModelViewSet):
 
 class DhcpOptionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DhcpOption.objects.all()
-    filter_fields = ("option",)
+    filterset_fields = ("option",)
     lookup_field = "option"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = network_serializers.DhcpOptionSerializer
@@ -383,7 +369,7 @@ class DhcpOptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
     queryset = DhcpOptionToDhcpGroup.objects.all()
-    filter_fields = ("group__name", "option__name")
+    filterset_fields = ("group__name", "option__name")
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def get_serializer_class(self):
@@ -394,7 +380,7 @@ class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
 
 class SharedNetworkViewSet(viewsets.ModelViewSet):
     queryset = SharedNetwork.objects.all()
-    filter_fields = ("id", "name")
+    filterset_fields = ("id", "name")
     lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -406,7 +392,7 @@ class SharedNetworkViewSet(viewsets.ModelViewSet):
 
 class VlanViewSet(viewsets.ModelViewSet):
     queryset = Vlan.objects.all()
-    filter_fields = ("name", "vlan_id", "id")
+    filterset_fields = ("name", "vlan_id", "id")
     lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -418,7 +404,7 @@ class VlanViewSet(viewsets.ModelViewSet):
 
 class BuildingViewSet(viewsets.ModelViewSet):
     queryset = Building.objects.select_related("changed_by").all()
-    filter_fields = ("number", "abbreviation")
+    filterset_fields = ("number", "abbreviation")
     lookup_field = "number"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -432,7 +418,7 @@ class BuildingToVlanViewSet(viewsets.ModelViewSet):
     queryset = BuildingToVlan.objects.select_related(
         "building", "vlan", "changed_by"
     ).all()
-    filter_fields = ("vlan__id", "vlan__vlan_id", "building__number")
+    filterset_fields = ("vlan__id", "vlan__vlan_id", "building__number")
     lookup_field = "pk"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
@@ -444,7 +430,7 @@ class BuildingToVlanViewSet(viewsets.ModelViewSet):
 
 class PoolViewSet(viewsets.ModelViewSet):
     queryset = Pool.objects.all()
-    filter_fields = ("name",)
+    filterset_fields = ("name",)
     lookup_field = "name"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 

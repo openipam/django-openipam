@@ -1,12 +1,21 @@
 from django.contrib import admin
+from django.forms import modelform_factory
+from django.utils.safestring import mark_safe
+from django.urls import reverse
 
-from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
+from openipam.dns.models import (
+    DnsRecord,
+    DnsType,
+    Domain,
+    DnsView,
+    DhcpDnsRecord,
+    PdnsZoneXfer,
+    DnsRecordMunged,
+)
 from openipam.dns.forms import DhcpDnsRecordForm
-from openipam.core.admin import ChangedAdmin
+from openipam.core.admin import ChangedAdmin, ReadOnlyAdmin
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
-
-from autocomplete_light import shortcuts as al
 
 
 class ObjectPermissionAdmin(admin.ModelAdmin):
@@ -27,26 +36,32 @@ class ObjectPermissionAdmin(admin.ModelAdmin):
         perms = [x for x in self.group_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
-                '<span class="label label-info">%s: %s</span>'
-                % (perm.group.name, perm.permission.codename)
+                '<a href="%s">%s: %s</a>'
+                % (
+                    reverse("admin:user_groupobjectpermission_change", args=[perm.pk]),
+                    perm.group.name,
+                    perm.permission.codename,
+                )
             )
-        return "%s" % " ".join(perms_list)
+        return mark_safe("%s" % "\n".join(perms_list))
 
     sgroup_permissions.short_description = "Group Permissions"
-    sgroup_permissions.allow_tags = True
 
     def suser_permissions(self, obj):
         perms_list = []
         perms = [x for x in self.user_permissions if int(x.object_pk) == obj.pk]
         for perm in perms:
             perms_list.append(
-                '<span class="label label-info">%s: %s</span>'
-                % (perm.user.username, perm.permission.codename)
+                '<a href="%s">%s: %s</a>'
+                % (
+                    reverse("admin:user_userobjectpermission_change", args=[perm.pk]),
+                    perm.user.username,
+                    perm.permission.codename,
+                )
             )
-        return "%s" % " ".join(perms_list)
+        return mark_safe("%s" % "\n".join(perms_list))
 
     suser_permissions.short_description = "User Permissions"
-    suser_permissions.allow_tags = True
 
 
 class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
@@ -57,7 +72,7 @@ class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
         "changed_by",
         "changed",
     )
-    form = al.modelform_factory(Domain, exclude=("changed",))
+    form = modelform_factory(Domain, exclude=("changed",))
     search_fields = ("name",)
 
 
@@ -73,7 +88,7 @@ class DnsRecordAdmin(ChangedAdmin):
         "edit_link",
     )
     list_filter = ("dns_type", "dns_view", "priority", "domain")
-    form = al.modelform_factory(DnsRecord, exclude=("changed",))
+    form = modelform_factory(DnsRecord, exclude=("changed",))
     list_editable = ("name", "dns_type", "text_content")
     list_display_links = ("edit_link",)
     # list_select_related = True
@@ -94,10 +109,9 @@ class DnsRecordAdmin(ChangedAdmin):
         return obj.address.address
 
     def edit_link(self, obj):
-        return '<a href="%s">Edit</a>' % obj.pk
+        return mark_safe(f'<a href="{obj.pk}">Edit</a>')
 
     edit_link.short_description = "Edit"
-    edit_link.allow_tags = True
 
 
 class DhcpDnsRecordAdmin(admin.ModelAdmin):
@@ -108,11 +122,63 @@ class DhcpDnsRecordAdmin(admin.ModelAdmin):
         "host__hostname",
         "ip_content__address",
     )
+    autocomplete_fields = ("domain",)
+    list_select_related = True
     form = DhcpDnsRecordForm
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            super(DhcpDnsRecordAdmin, self)
+            .get_queryset(*args, **kwargs)
+            .select_related("ip_content", "host", "domain")
+        )
 
 
 class DnsTypeAdmin(ObjectPermissionAdmin):
     list_display = ("name", "description", "sgroup_permissions", "suser_permissions")
+
+
+class PdnsZoneXferAdmin(ReadOnlyAdmin):
+    list_display = (
+        "domain",
+        "name",
+        "type",
+        "content",
+        "ttl",
+        "priority",
+        "change_date",
+    )
+    list_select_related = True
+    list_filter = ("type",)
+    search_fields = ("domain__name", "name", "content")
+
+
+# class SupermasterAdmin(ChangedAdmin):
+#     list_display = ("ip", "nameserver", "account", "changed_by", "changed")
+#     list_select_related = True
+
+
+class DnsRecordMungedAdmin(ReadOnlyAdmin):
+    list_display = (
+        "domain",
+        "name",
+        "type",
+        "content",
+        "ttl",
+        "prio",
+        "change_date",
+        "dns_view",
+    )
+    list_select_related = True
+    list_filter = ("type",)
+    search_fields = ("domain__name", "name", "content")
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            super(DnsRecordMungedAdmin, self)
+            .get_queryset(*args, **kwargs)
+            .select_related("domain")
+        )
 
 
 admin.site.register(DnsView)
@@ -120,3 +186,5 @@ admin.site.register(DnsType, DnsTypeAdmin)
 admin.site.register(DnsRecord, DnsRecordAdmin)
 admin.site.register(DhcpDnsRecord, DhcpDnsRecordAdmin)
 admin.site.register(Domain, DomainAdmin)
+admin.site.register(PdnsZoneXfer, PdnsZoneXferAdmin)
+admin.site.register(DnsRecordMunged, DnsRecordMungedAdmin)

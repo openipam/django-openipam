@@ -1,0 +1,11 @@
+{% url 'core:menu_add_bookmark' as form_url %}
+{% if form_url %}
+<form id="bookmark-form" action="{{ form_url }}" method="POST">
+    <input type="hidden" name="next" value="{% firstof url request.get_full_path|urlencode %}" />
+    <input type="hidden" name="url" value="{% firstof url request.get_full_path|urlencode %}" />
+    <input type="hidden" name="title" value="{{ cl.opts.verbose_name_plural|capfirst }}" />
+    <button id="bookmark-button" style="border: 0; background: none; margin: 12px 0px 0px 5px;" type="submit">
+        <span class="glyphicon glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+    </button>
+</form>
+{% endif %}

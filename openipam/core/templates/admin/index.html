@@ -1,16 +1,67 @@
 {% extends "admin/base_site.html" %}
-{% load static i18n admin_tools_dashboard_tags %}
+{% load static i18n %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'chart.js/dist/Chart.min.js' %}"></script>
+{% endblock %}
 
 {% block extrastyle %}
-    {{ block.super }}
-    {% block dashboard_css %}
-    {% admin_tools_render_dashboard_css %}
-    {% endblock %}
+{{ block.super }}
+{% block dashboard_css %}
+{% endblock %}
 {% endblock %}
 
 {% block page_nav %}{% endblock %}
 {% block breadcrumbs %}{% endblock %}
 {% block content_title %}{% endblock %}
 {% block content %}
-    {% admin_tools_render_dashboard %}
+<div class="window pull-right">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Snapshot</h3>
+        </div>
+        <table id="dashboard-stats" class="table table-inverse">
+            <tr>
+                <td>Hosts: (Dynamic / Static) </td>
+                <td align="right">{{ dynamic_hosts }} / {{ static_hosts }}</td>
+            </tr>
+            <tr>
+                <td>Leases: (Active / Abandoned)</td>
+                <td align="right">{{ active_leases }} / {{ abandoned_leases }}</td>
+            </tr>
+            <tr>
+                <td>Networks: (Total / Wireless)</td>
+                <td align="right">{{ total_networks }} / {{ wireless_addresses_total }}</td>
+            </tr>
+            <tr>
+                <td>Available Wireless Addresses:</td>
+                <td align="right">{{ wireless_addresses_available }}</td>
+            </tr>
+            <tr>
+                <td>DNS Records: (A / CNAME / MX)</td>
+                <td align="right">{{ dns_a_records }} / {{ dns_cname_records }} / {{ dns_mx_records }}</td>
+            </tr>
+            <tr>
+                <td>Active Users within 1 year:</td>
+                <td align="right">{{ active_users }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Stats</h3>
+        </div>
+        <div id="hoststats" class="panel-body">
+            <canvas id="stats_chart" width="300" height="300"></canvas>
+            <script type="text/javascript">
+                $.get('{% url "core:dashboard_stats" %}', function (data) {
+                    var ctx = $("#stats_chart").get(0).getContext("2d");
+                    new Chart(ctx, {
+                        type: 'line', data: data
+                    });
+                });
+            </script>
+        </div>
+    </div>
+</div>
 {% endblock %}

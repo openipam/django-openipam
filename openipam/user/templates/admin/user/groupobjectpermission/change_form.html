@@ -1,0 +1,16 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        {% if change %}
+            ../../../../|{% trans "Home" %}
+            ../../|{{ opts.verbose_name_plural|capfirst }}
+            {{ original.pk }}
+        {% else %}
+            ../../../|{% trans "Home" %}
+            ../|{{ opts.verbose_name_plural|capfirst }}
+            *{% trans "Add" %} {{ opts.verbose_name }}
+        {% endif %}
+    {% endif %}
+{% endblock %}

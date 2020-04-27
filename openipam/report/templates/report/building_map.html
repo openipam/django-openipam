@@ -3,11 +3,16 @@
 
 {% block page_title %}USU Building Map{% endblock %}
 
-{% block extrahead %}
+{% block extrastyle %}
     {{ block.super }}
     <link media="all" href="{% static 'report/css/weathermap.css' %}" type="text/css" rel="stylesheet" />
     <link media="all" href="{% static 'report/css/svg.css' %}" type="text/css" rel="stylesheet" />
     <link media="all" href="{% static 'report/css/uplinks.css' %}" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "html5sortable/dist/html5sortable.js" %}"></script>
     <script type="text/javascript">
         $(function(){
             $("#building_connections_link").addClass('active');
@@ -53,7 +58,7 @@
             };
 
             let saveCustomSortOrder = (e, ui) => {
-                let sortOrder = $('#sites').sortable('toArray');
+                let sortOrder = sortable("#sites", "serialize")[0].items;
                 userSettings.sortOrder = sortOrder;
                 localStorage.setItem('buildingmap_userSettings', JSON.stringify(userSettings));
             };
@@ -83,19 +88,14 @@
             };
 
             let numSorting = (a, b) => {
-                let re = /[a-z]$/
                 let valA = a.id;
                 let valB = b.id;
-
-                if (re.test(valA)) valA = '0' + valA;
-                if (re.test(valB)) valB = '0' + valB;
-
                 return compare(valA, valB);
             };
 
             function sortBuildings(sortType) {
                 let sortFunc;
-                $("#sites").sortable("disable");
+                sortable("#sites","disable");
                 $(".move-handle").hide();
                 if (sortType == "sort_by_name") {
                     $("#sort_type").html("Name");
@@ -108,7 +108,7 @@
                     sortFunc = defaultSorting;
                 } else {
                     $("#sort_type").html("Custom");
-                    $("#sites").sortable("option", "disabled", false)
+                    sortable("#sites","enable")
                     setSortAttributes();
                     sortFunc = customSorting;
                     $(".move-handle").show();
@@ -127,16 +127,22 @@
                 sortBuildings(sortType);
             });
             document.addEventListener('sitesAdded', (e) => {
-                $('#sites').sortable({
-                    handle: '.site-title'
+                sortable("#sites",{
+                    handle: ".site-title",
+                    placeholderClass: "ui-sortable-helper site",
+                    itemSerializer(item, container) {
+                        return item.node.id;
+                    },
+                    containerSerializer(container) {
+                        return;
+                    }
                 });
                 $('#sites').on('sortstop', saveCustomSortOrder);
-                $('#sites').sortable("disable");
+                sortable("#sites", "disable");
                 sortBuildings(userSettings.lastSortType);
             });
         });
     </script>
-    <script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -163,7 +169,7 @@
     <script type="text/javascript">
       var site = (window.location.href.match(/site=([^;&]+)/) || [])[1] || '';
       site = site ? site.concat(".") : site;
-      (new Map("/api/reports/buildingmap/config.json", "#map", "#time", "#mapName", "#acronym", false)).init();
+      (new WeatherMap("/api/reports/buildingmap/config.json", "#map", "#time", "#mapName", "#acronym", false)).init();
       if (site) {
         d3.select('span#return').attr('style','display:inline');
         d3.select('span#site').text(site.toUpperCase().substr(0,site.length-1)).attr('style','display:inline');

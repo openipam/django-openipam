@@ -11,7 +11,6 @@ from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
 from django.db.utils import DatabaseError
-from django.db import transaction
 
 from netfields import MACAddressField, NetManager
 
@@ -21,7 +20,8 @@ from djorm_pgfulltext.models import SearchManager
 from guardian.shortcuts import get_objects_for_user, remove_perm, assign_perm
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from openipam.core.mixins import DirtyFieldsMixin
+from dirtyfields import DirtyFieldsMixin
+
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager, HostQuerySet
 from openipam.user.signals import remove_obj_perms_connected_with_user
@@ -42,7 +42,9 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.name
@@ -72,10 +74,11 @@ class AttributeToHost(models.Model):
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
-    # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column="disabled")
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="disabled_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="disabled_by", on_delete=models.PROTECT
+    )
 
     def __init__(self, *args, **kwargs):
         # Initialize setters
@@ -119,12 +122,19 @@ class ExpirationType(models.Model):
 
 class FreeformAttributeToHost(models.Model):
     host = models.ForeignKey(
-        "Host", db_column="mac", related_name="freeform_attributes"
+        "Host",
+        db_column="mac",
+        related_name="freeform_attributes",
+        on_delete=models.CASCADE,
     )
-    attribute = models.ForeignKey("Attribute", db_column="aid")
+    attribute = models.ForeignKey(
+        "Attribute", db_column="aid", on_delete=models.PROTECT
+    )
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s %s" % (self.pk, self.attribute.name, self.value)
@@ -134,7 +144,9 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="uid")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="uid", on_delete=models.CASCADE
+    )
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -246,6 +258,7 @@ class GulRecentArpByaddress(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_byaddress"
+        verbose_name = "Recent Arp By Address"
 
 
 class GulRecentArpBymac(models.Model):
@@ -273,6 +286,7 @@ class GulRecentArpBymac(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_bymac"
+        verbose_name = "Recent Arp By Mac"
 
 
 class Host(DirtyFieldsMixin, models.Model):
@@ -291,21 +305,19 @@ class Host(DirtyFieldsMixin, models.Model):
     pools = models.ManyToManyField(
         "network.Pool", through="network.HostToPool", related_name="pool_hosts"
     )
-    # freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
-    #                                             related_name='freeform_hosts',  blank=True, null=True)
-    # structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
-    #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey(
         "network.DhcpGroup",
         db_column="dhcp_group",
         verbose_name="DHCP Group",
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,  # This was SET_NULL before, wrong?
     )
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
     last_notified = models.DateTimeField(blank=True, null=True)
 
     objects = HostManager.from_queryset(HostQuerySet)()
@@ -647,7 +659,8 @@ class Host(DirtyFieldsMixin, models.Model):
 
         address = None
 
-        # Check to see if hostname already taken for any hosts other then the current one if being updated.
+        # Check to see if hostname already taken for any
+        # hosts other then the current one if being updated.
         used_hostname = (
             DnsRecord.objects.filter(
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA], name=hostname
@@ -679,7 +692,7 @@ class Host(DirtyFieldsMixin, models.Model):
             if isinstance(network, string_types):
                 network = Network.objects.get(network=network)
 
-            if not user_nets.filter(network=network.network):
+            if not user_nets.filter(network=network):
                 raise ValidationError(
                     "You do not have access to assign host '%s' to the "
                     "network specified: %s." % (hostname, network)
@@ -1098,8 +1111,7 @@ class Host(DirtyFieldsMixin, models.Model):
             self.save(user=user, add_dns=False, force_update=True)
         except DatabaseError:
             pass
-        with transaction.atomic():
-            super(Host, self).delete(*args, **kwargs)
+        super(Host, self).delete(*args, **kwargs)
 
     def clean(self):
         from openipam.dns.models import DnsRecord, DnsType
@@ -1175,9 +1187,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 ],
                 any_perm=True,
             )
-            if self.network.network not in [
-                network.network for network in valid_network
-            ]:
+            if self.network not in [network.network for network in valid_network]:
                 raise ValidationError(
                     "Insufficient permissions to add hosts to "
                     "the assigned network: %s. Please contact an IPAM Administrator."
@@ -1254,11 +1264,15 @@ class Notification(models.Model):
 
 
 class StructuredAttributeValue(models.Model):
-    attribute = models.ForeignKey("Attribute", db_column="aid", related_name="choices")
+    attribute = models.ForeignKey(
+        "Attribute", db_column="aid", related_name="choices", on_delete=models.CASCADE
+    )
     value = models.TextField()
     is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.value
@@ -1266,17 +1280,23 @@ class StructuredAttributeValue(models.Model):
     class Meta:
         db_table = "structured_attribute_values"
         ordering = ("attribute__name", "value")
+        verbose_name = "structured value"
 
 
 class StructuredAttributeToHost(models.Model):
     host = models.ForeignKey(
-        "Host", db_column="mac", related_name="structured_attributes"
+        "Host",
+        db_column="mac",
+        related_name="structured_attributes",
+        on_delete=models.CASCADE,
     )
     structured_attribute_value = models.ForeignKey(
-        "StructuredAttributeValue", db_column="avid"
+        "StructuredAttributeValue", db_column="avid", on_delete=models.CASCADE
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s" % (self.host.hostname, self.structured_attribute_value)

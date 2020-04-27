@@ -10,7 +10,9 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 
 from rest_framework_csv.renderers import CSVRenderer
+from rest_framework import serializers
 
+from django.conf import settings
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
@@ -68,7 +70,7 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
             )
         elif network_tags:
             network_tags = network_tags.split(",")
@@ -78,12 +80,12 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt")
+                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
             )
         else:
             lease_data = requests.get(
                 "https://gul.usu.edu/subnetparser.py?format=json",
-                auth=("django-openipam", "ZEraWDJ1aSLsYmzvqhUT2ZL4z2xpA9Yt"),
+                auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD),
             )
 
         try:
@@ -312,42 +314,59 @@ class WeatherMapView(APIView):
 
 class StatsAPIView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (TemplateHTMLRenderer,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, TemplateHTMLRenderer)
 
     def get(self, request, format=None, **kwargs):
         app = request.GET.get("app")
         model = request.GET.get("model")
         column = request.GET.get("column")
 
-        model_klass = apps.get_model(app_label=app, model_name=model)
-        queryset = model_klass.objects.all()
-        qs_stats = qsstats.QuerySetStats(queryset, column, aggregate=Count("pk"))
+        if not app or not model or not column:
+            error_message = "app, model, and column params must be passed."
+            if request.accepted_renderer.format == "html":
+                return Response(
+                    {"error_message": error_message},
+                    template_name="api/web/ipam_stats.html",
+                )
+            else:
+                raise serializers.ValidationError(error_message)
 
-        xdata = ["Today", "This Week", "This Month"]
-        ydata = [qs_stats.this_day(), qs_stats.this_week(), qs_stats.this_month()]
+        data = get_stats_view(app, model, column)
 
-        extra_serie1 = {
-            "tooltip": {
-                "y_start": "",
-                "y_end": " %s" % model_klass._meta.verbose_name_plural.title(),
-            }
+        if request.accepted_renderer.format == "html":
+            return Response(data, template_name="api/web/ipam_stats.html")
+        else:
+            return Response(data, status_code=status.HTTP_200_OK)
+
+
+def get_stats_view(app, model, column):
+    model_klass = apps.get_model(app_label=app, model_name=model)
+    queryset = model_klass.objects.all()
+    qs_stats = qsstats.QuerySetStats(queryset, column, aggregate=Count("pk"))
+
+    xdata = ["Today", "This Week", "This Month"]
+    ydata = [qs_stats.this_day(), qs_stats.this_week(), qs_stats.this_month()]
+
+    extra_serie1 = {
+        "tooltip": {
+            "y_start": "",
+            "y_end": " %s" % model_klass._meta.verbose_name_plural.title(),
         }
-        chartdata = {"x": xdata, "name1": "Hosts", "y1": ydata, "extra1": extra_serie1}
-        charttype = "discreteBarChart"
-        chartcontainer = "%s_stats" % model.lower()
-        context = {
-            "charttype": charttype,
-            "chartdata": chartdata,
-            "chartcontainer": chartcontainer,
-            "extra": {
-                "x_is_date": False,
-                "x_axis_format": "",
-                "tag_script_js": True,
-                "jquery_on_ready": False,
-            },
-        }
-
-        return Response(context, template_name="api/web/ipam_stats.html")
+    }
+    chartdata = {"x": xdata, "name1": "Hosts", "y1": ydata, "extra1": extra_serie1}
+    charttype = "discreteBarChart"
+    chartcontainer = "%s_stats" % model.lower()
+    return {
+        "charttype": charttype,
+        "chartdata": chartdata,
+        "chartcontainer": chartcontainer,
+        "extra": {
+            "x_is_date": False,
+            "x_axis_format": "",
+            "tag_script_js": True,
+            "jquery_on_ready": False,
+        },
+    }
 
 
 class DashboardAPIView(APIView):

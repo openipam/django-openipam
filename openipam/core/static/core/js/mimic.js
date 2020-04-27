@@ -1,7 +1,7 @@
 $(function() {
     if ($('#id_mimic_select').length > 0) {
         $('#id_mimic_select').yourlabsAutocomplete({
-            url: '/api/web/UserAutocomplete/',
+            url: '/ac/UserAutocomplete/',
             choiceSelector: '[data-value]',
             minimumCharacters: 1,
             placeholder: 'Mimic User'

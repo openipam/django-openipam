@@ -294,7 +294,7 @@ function updateUtil(url, refresh, timeSelector) {
     });
 }
 
-function Map(configURL, mapSelector, timeSelector, nameSelector, acronymSelector, fullMap=true) {
+function WeatherMap(configURL, mapSelector, timeSelector, nameSelector, acronymSelector, fullMap=true) {
     var utilizationLevels,
         dateDiff = 0,
         svg;

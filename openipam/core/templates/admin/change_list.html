@@ -4,8 +4,8 @@
 {% block extrastyle %}
 	{{ block.super }}
     {{ media.css }}
-    <link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
-    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
+    <!--<link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />-->
 {% endblock %}
 
 {% block extrahead %}
@@ -21,7 +21,7 @@
                 }
             });
 
-            $("select.filter-select").chosen();
+            //$("select.filter-select").chosen();
             $("select.filter-select").on('change', function(){
                 location.href = $(this).val();
             });
@@ -59,7 +59,7 @@
 {% block breadcrumbs %}
 	{% if not is_popup %}
 		../../|{% trans "Home" %}
-		../|{{ opts.app_label|capfirst }}
+		{% comment %}../|{{ opts.app_label|capfirst }}{% endcomment %}
 		*{{ cl.opts.verbose_name_plural|capfirst }}
 	{% endif %}
 {% endblock %}
@@ -68,7 +68,7 @@
 
 {% block content_title %}
 	<h3 id="breadcrumb-title" class="pull-left">
-			{{ cl.opts.verbose_name_plural|capfirst }}
+		{{ cl.opts.verbose_name_plural|capfirst }}
 	</h3>
 {% endblock %}
 

@@ -14,7 +14,7 @@
 {
     border-right: 1px solid #ddd;
     margin-right: 5px;
-    padding: 0px 20px 0px 10px;
+    padding: 0px 20px 0px 0px;
 }
 #changelist-filter-actions
 {
@@ -585,6 +585,7 @@
     font-size: 13px;
     font-weight: bold;
     text-transform: uppercase;
+    color: #cc0000 !important;
 }
 .empty-form
 {
@@ -1008,6 +1009,14 @@ ul.timelist, .timelist li
     list-style-type: none;
     margin: 0;
     padding: 0;
+}
+.select2-selection {
+    border-color: #ccc !important;
+    min-height: 34px !important;
+    /*padding-top: 3px !important;*/
+}
+.select2-selection__arrow {
+    height: 30px !important;
 }
 @media screen and (max-width: 767px)
 {

@@ -1,0 +1,7 @@
+ <div class="pull-left">
+{% if bookmark %}
+    {% include "core/menu/remove_bookmark_form.html" %}
+{% else %}
+    {% include "core/menu/add_bookmark_form.html" %}
+{% endif %}
+</div>

@@ -37,7 +37,7 @@ Same as SQLLogMiddlewareSimple except works with ajax requests and
 has a nicer output.
 
 """
-
+from django.utils.deprecation import MiddlewareMixin
 from django.db import connections, connection
 from django.template import Template, Context
 from django.conf import settings
@@ -60,21 +60,23 @@ class SQLLogToConsoleMiddleware(MiddlewareMixin):
                         '{{name}}: {{count}} quer{{count|pluralize:"y,ies"}} in {{time}} seconds'
                     )
                     print(
-                        header_t.render(
-                            Context(
-                                {
-                                    "name": connection_name,
-                                    "sqllog": conn.queries,
-                                    "count": len(conn.queries),
-                                    "time": qtime,
-                                }
+                        (
+                            header_t.render(
+                                Context(
+                                    {
+                                        "name": connection_name,
+                                        "sqllog": conn.queries,
+                                        "count": len(conn.queries),
+                                        "time": qtime,
+                                    }
+                                )
                             )
                         )
                     )
                     t = Template(
                         "{% for sql in sqllog %}[{{forloop.counter}}] {{sql.time}}s: {{sql.sql|safe}}{% if not forloop.last %}\n\n{% endif %}{% endfor %}"
                     )
-                print(t.render(Context({"sqllog": conn.queries})))
+                print((t.render(Context({"sqllog": conn.queries}))))
         return response
 
 
@@ -245,7 +247,7 @@ class SQLLogToConsoleColorMiddleware(MiddlewareMixin):
 
         if verbose:
             print("\033[0;30;1m")
-            print("-" * 70)
+            print(("-" * 70))
             print("\033[0m")
 
         i = 0
@@ -267,14 +269,14 @@ class SQLLogToConsoleColorMiddleware(MiddlewareMixin):
                     tcolor = "\033[30;1m"
                     ptime = ""
 
-                print("%s%s" % (tcolor, sql))
-                print("%s\033[1m%s\033[0m" % (tcolor, ptime))
+                print(("%s%s" % (tcolor, sql)))
+                print(("%s\033[1m%s\033[0m" % (tcolor, ptime)))
                 i = i + 1
                 if i < len(connection.queries):
                     print()
 
         sys.stdout.write("\033[0;30;1m")
-        print("-" * 70)
+        print(("-" * 70))
         print("\033[35;1m")
 
         qtime = ttime
@@ -292,10 +294,13 @@ class SQLLogToConsoleColorMiddleware(MiddlewareMixin):
             ccolor = "\033[30;1m"
 
         print(
-            "%s %.3fs \033[30;1m| %s%d queries\033[0m" % (tcolor, qtime, ccolor, count)
+            (
+                "%s %.3fs \033[30;1m| %s%d queries\033[0m"
+                % (tcolor, qtime, ccolor, count)
+            )
         )
         sys.stdout.write("\033[0;30;1m")
-        print("-" * 70)
+        print(("-" * 70))
         print("\033[0m")
 
         return response

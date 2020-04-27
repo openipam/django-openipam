@@ -31,7 +31,10 @@ class HostLog(BaseLog):
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     def __str__(self):
@@ -114,7 +117,7 @@ class EmailLog(models.Model):
         db_table = "email_log"
 
 
-class DnsRecordsLog(BaseLog):
+class DnsRecordLog(BaseLog):
     id = models.IntegerField()
     domain = models.IntegerField(db_column="did")
     type_id = models.IntegerField(db_column="tid")
@@ -126,7 +129,10 @@ class DnsRecordsLog(BaseLog):
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     @cached_property
@@ -146,7 +152,10 @@ class AddressLog(BaseLog):
     network = models.TextField(blank=True)  # This field type is a guess.
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     @cached_property
@@ -172,6 +181,25 @@ class AddressLog(BaseLog):
         db_table = "addresses_log"
 
 
+class LeaseLog(BaseLog):
+    address = models.ForeignKey(
+        "network.Address",
+        db_constraint=False,
+        db_column="address",
+        on_delete=models.DO_NOTHING,
+    )
+    # address = models.GenericIPAddressField()
+    mac = models.TextField(blank=True, null=True)  # This field type is a guess.
+    abandoned = models.BooleanField()
+    server = models.CharField(max_length=255, blank=True, null=True)
+    starts = models.DateTimeField()
+    ends = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "leases_log"
+
+
 class AuthSource(models.Model):
     name = models.CharField(unique=True, max_length=255, blank=True)
 
@@ -179,4 +207,4 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        db_table = "auth_sources"
+        db_table = "auth_sources_log"

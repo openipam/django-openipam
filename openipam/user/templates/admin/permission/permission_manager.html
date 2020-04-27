@@ -30,7 +30,7 @@
 {% block object-tools %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
-    <a href="{% url 'add_hosts' %}" class="btn btn-primary">
+    <a href="{% url 'hosts:add' %}" class="btn btn-primary">
       <i class="icon-plus icon-white"></i>
       Add Host
     </a>
@@ -85,7 +85,7 @@
                     {% endif %}
                     <div id="search-help-button" href="javascript:void(0);" class="pull-left glyphicon glyphicon-question-sign {% if request.GET|length != 0 %}hide{% endif %}"></div>
                     <div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %}"><label><input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /></label></div>
-                    <a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+                    <a id="clear-filters" class="pull-left btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'hosts:list' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
                 </div>
                 <div id="search-help" class="help-content">
                     <div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>
@@ -111,7 +111,7 @@
                             <div class="clear"></div>
                         </th>
                         <th scope="col">Hostname</th>
-                        <th scope="col" style="min-width: 150px;">Ethernet Address</th>
+                        <th scope="col" style="min-width: 150px;">MAC Address</th>
                         <th scope="col" style="min-width: 150px;">IP Address</th>
                         <th scope="col">Expires</th>
                         <th scope="col">Mac Address Last seen</th>
