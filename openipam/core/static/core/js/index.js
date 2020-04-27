@@ -48,7 +48,7 @@ function renewHost(renewId, mac) {
             'sessionid': $.cookie('sessionid'),
         },
         data: {
-            expire_days: 2,
+            expire_days: 365,
         },
         success: res => {
             // Update displayed expiration
