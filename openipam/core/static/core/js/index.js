@@ -48,12 +48,17 @@ function renewHost(renewId, mac) {
             'sessionid': $.cookie('sessionid'),
         },
         data: {
-            expire_days: 365,
+            expire_days: 2,
         },
         success: res => {
             // Update displayed expiration
             let expire_days = Number(res.expire_days);
             let expire_display = document.getElementById(`expire-${baseId}`);
+
+            if(expire_days <= 30)
+                expire_display.classList.add('near-exp');
+            else    
+                expire_display.classList.remove('near-exp');
 
             if(expire_days === 0) 
                 expire_display.innerText = 'Today';
@@ -62,9 +67,7 @@ function renewHost(renewId, mac) {
             else if(!expire_days) 
                 expire_display.innerText = 'None';
             else
-                expire_display.innerText = `
-                    ${expire_days} ${expire_days > 1 ? 'days' : 'day'}
-                `;
+                expire_display.innerText = `${expire_days} ${expire_days > 1 ? 'days' : 'day'}`;
         }
     });
 }
