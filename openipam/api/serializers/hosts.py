@@ -330,7 +330,10 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                         % host_exists[0].hostname
                     )
                 else:
-                    host_exists[0].delete(user=self.context["request"].user)
+                    Host.objects.filter(pk=host_exists[0].pk).delete(
+                        user=self.context["request"].user
+                    )
+                    # host_exists[0].delete(user=self.context["request"].user)
             else:
                 raise serializers.ValidationError(
                     "The mac address entered already exists for host: %s."

@@ -46,9 +46,11 @@ nosetests.xml
 .project
 .pydevproject
 .idea
+.vscode
 *.sublime-project
 *.sublime-workspace
-*.vscode
+.vscode
+*.code-workspace
 
 # For Ipam
 fabfile.py
@@ -60,3 +62,4 @@ dump.rdb
 
 # Mac garbage
 .DS_Store
+._*

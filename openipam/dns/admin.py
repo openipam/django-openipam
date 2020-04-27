@@ -145,7 +145,7 @@ class PdnsZoneXferAdmin(ReadOnlyAdmin):
         "type",
         "content",
         "ttl",
-        "priority",
+        # "priority",
         "change_date",
     )
     list_select_related = True
