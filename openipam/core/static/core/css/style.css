@@ -482,6 +482,10 @@
 {
     clear: both;
 }
+.clickable
+{
+    cursor: pointer;
+}
 .clockbox
 {
     width: auto;

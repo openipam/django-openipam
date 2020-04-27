@@ -60,10 +60,12 @@
                                 {% else %}
                                     <a 
                                         id="delete-{{ host }}" 
+                                        class="clickable"
                                         onclick="deleteHost(this.id, '{{ host.mac_stripped }}')"
                                     >Delete</a>
                                     <a 
                                         id="renew-{{ host }}" 
+                                        class="clickable"
                                         onclick="renewHost(this.id, '{{ host.mac_stripped}}')"
                                     >Renew</a>
                                     <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
