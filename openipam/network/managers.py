@@ -78,6 +78,9 @@ class NetworkQuerySet(QuerySet):
                 return qs
 
     def by_address_type(self, address_type):
+        if not address_type:
+            return self.none()
+
         from openipam.network.models import NetworkRange
 
         # Get assigned ranges
