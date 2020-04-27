@@ -52,8 +52,19 @@ function renewHost(renewId, mac) {
         },
         success: res => {
             // Update displayed expiration
-            document.getElementById(`expire-${baseId}`).innerText = `${res.expire_days} days`;
-            console.log(`${baseId} was renewed`);
+            let expire_days = Number(res.expire_days);
+            let expire_display = document.getElementById(`expire-${baseId}`);
+
+            if(expire_days === 0) 
+                expire_display.innerText = 'Today';
+            else if(expire_days < 0) 
+                expire_display.innerText = 'Expired';
+            else if(!expire_days) 
+                expire_display.innerText = 'None';
+            else
+                expire_display.innerText = `
+                    ${expire_days} ${expire_days > 1 ? 'days' : 'day'}
+                `;
         }
     });
 }
