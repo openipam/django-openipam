@@ -39,7 +39,10 @@
                         <tr id="{{ host }}">
                             <td>{{ host }}</td>
                             <td>{{ host.mac }}</td>
-                            <td {% if host.expire_days <= 30 %}class="near-exp"{% endif %}>
+                            <td 
+                                id="expire-{{ host }}" 
+                                {% if host.expire_days <= 30 %}class="near-exp"{% endif %}
+                            >
                                 {% if host.expire_days == 0 %}
                                     Today
                                 {% elif host.expire_days < 0 %}
@@ -59,7 +62,10 @@
                                         id="delete-{{ host }}" 
                                         onclick="deleteHost(this.id, '{{ host.mac_stripped }}')"
                                     >Delete</a>
-                                    <a id="renew-{{ host }}" name="renew-host">Renew</a>
+                                    <a 
+                                        id="renew-{{ host }}" 
+                                        onclick="renewHost(this.id, '{{ host.mac_stripped}}')"
+                                    >Renew</a>
                                     <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
                                 {% endif %}
                             </td>
