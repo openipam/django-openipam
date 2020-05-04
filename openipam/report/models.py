@@ -8,6 +8,7 @@ from peewee import (
     PrimaryKeyField,
     DateTimeField,
 )
+
 database = MySQLDatabase(
     "librenms",
     **{
