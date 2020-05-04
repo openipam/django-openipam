@@ -8,13 +8,12 @@ from peewee import (
     PrimaryKeyField,
     DateTimeField,
 )
-
 database = MySQLDatabase(
     "librenms",
     **{
-        "passwd": settings.AUTH.OBSERVIUM.PASSWD,
+        "passwd": settings.AUTH["OBSERVIUM"]["PASSWD"],
         "host": "129.123.1.51",
-        "user": settings.AUTH.OBSERVIUM.USER,
+        "user": settings.AUTH["OBSERVIUM"]["USER"],
     }
 )
 
