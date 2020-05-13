@@ -11,7 +11,6 @@ from django.core.validators import validate_ipv46_address
 from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
 from django.db.utils import DatabaseError
-from django.db import transaction
 
 from netfields import MACAddressField, NetManager
 
@@ -1107,8 +1106,7 @@ class Host(DirtyFieldsMixin, models.Model):
             self.save(user=user, add_dns=False, force_update=True)
         except DatabaseError:
             pass
-        with transaction.atomic():
-            super(Host, self).delete(*args, **kwargs)
+        super(Host, self).delete(*args, **kwargs)
 
     def clean(self):
         from openipam.dns.models import DnsRecord, DnsType

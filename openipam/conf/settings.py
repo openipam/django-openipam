@@ -41,7 +41,7 @@ DATABASES = locals().pop(
     },
 )
 
-OBSERVIUM_AUTH = ("openipam", "N6pZUgcaPwGNrECPaXGkmM7jDzo7i0F3")
+AUTH = locals().pop("AUTH", [])
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -241,7 +241,7 @@ LOGIN_EXEMPT_URLS = (
     "static/?.*",
     "password/forgot/",
     "logout/",
-    "api/?.*",
+    "api/(?!web).*",
     "reports/?.*",
     # 'reports/weathermap/',
     # 'reports/leases/usage/',

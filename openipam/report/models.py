@@ -12,9 +12,9 @@ from peewee import (
 database = MySQLDatabase(
     "librenms",
     **{
-        "passwd": settings.OBSERVIUM_AUTH[1],
+        "passwd": settings.AUTH.OBSERVIUM.PASSWD,
         "host": "129.123.1.51",
-        "user": settings.OBSERVIUM_AUTH[0],
+        "user": settings.AUTH.OBSERVIUM.USER,
     }
 )
 
