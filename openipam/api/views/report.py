@@ -70,7 +70,7 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
+                url, auth=(settings.AUTH["GUL"]["USER"], settings.AUTH["GUL"]["PASSWD"])
             )
         elif network_tags:
             network_tags = network_tags.split(",")
@@ -80,12 +80,12 @@ class LeaseUsageView(APIView):
             )
             url = "https://gul.usu.edu/subnetparser.py?format=json&%s" % show_blocks
             lease_data = requests.get(
-                url, auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD)
+                url, auth=(settings.AUTH["GUL"]["USER"], settings.AUTH["GUL"]["PASSWD"])
             )
         else:
             lease_data = requests.get(
                 "https://gul.usu.edu/subnetparser.py?format=json",
-                auth=(settings.AUTH.GUL.USER, settings.AUTH.GUL.PASSWD),
+                auth=(settings.AUTH["GUL"]["USER"], settings.AUTH["GUL"]["PASSWD"]),
             )
 
         try:
