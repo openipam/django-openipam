@@ -19,6 +19,7 @@
 	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
 	<link rel="stylesheet" href="{% static 'hosts/css/host_list.css' %}" type="text/css" />
 	<link rel="stylesheet" href="{% static 'datatables-responsive/css/responsive.dataTables.scss' %}" type="text/css" />
+	<link rel="stylesheet" href="{% static 'select2/dist/css/select2.css' %}"></link>
 {% endblock %}
 
 {% block extrahead %}
@@ -28,6 +29,7 @@
 	<script type="text/javascript" src="{% static 'datatables-bootstrap/js/dataTables.bootstrap.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'bootstrap-waitingfor/build/bootstrap-waitingfor.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'hosts/js/host_list.js' %}"></script>
+	<script type="text/javascript" src="{% static 'select2/dist/js/select2.js' %}"></script>
 {% endblock %}
 
 {% block object-tools %}
@@ -107,7 +109,8 @@
 
 					<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 						<label>
-							<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" multiple="multiple" data-autocomplete-url="/ac/IPAMSearchAutoComplete/" placeholder="Advanced Search" class="form-control autocomplete" />
+							<select name="search-select" id="id_search_select" class="form-control" multiple="multiple"></select>
+							<!-- <input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]" multiple="multiple" data-autocomplete-url="/ac/IPAMSearchAutoComplete/" placeholder="Advanced Search" class="form-control autocomplete" /> -->
 							{# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #}
 						</label>
 						<div style="margin-right: 10px; z-index: 5;">

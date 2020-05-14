@@ -96,7 +96,7 @@
     float: left;
     margin: 5px 10px 0px 0px;
 }
-#id_search
+#id_search, #id_search_select
 {
     margin-bottom: 0px;
     margin-right: 5px;
@@ -559,8 +559,11 @@
 }
 .deck span.remove
 {
+    cursor: pointer;
+    height: 16px;
     margin-right: 3px;
     margin-top: 3px;
+    width: 16px;
 }
 .deck span:not(.remove)
 {
@@ -827,6 +830,13 @@
 .search-results
 {
     color: #999999 !important;
+}
+.select2-dropdown {
+    width: max-content !important;
+}
+.select2-results > .select2-results__options
+{
+    max-height: max-content !important;
 }
 .side10
 {

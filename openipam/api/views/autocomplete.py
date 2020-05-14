@@ -1,20 +1,23 @@
-# from dal import autocomplete
+from django_select2.views import AutoResponseView
 
+from django.contrib.auth.models import Group  # , Permission
 
-# from django.contrib.auth.models import Group, Permission
 # from django.contrib.contenttypes.models import ContentType
-# from django.contrib.auth import get_user_model
-# from django.db.models import Q
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.http import JsonResponse
+
 # from django.utils import timezone
+from django.utils.encoding import force_text
 
 # from openipam.conf.ipam_settings import CONFIG
 # from openipam.dns.models import Domain, DnsType
-# from openipam.hosts.models import (
-#     Host,
-#     StructuredAttributeValue,
-#     FreeformAttributeToHost,
-# )
-# from openipam.network.models import Network, Address, AddressType, Pool, DhcpGroup
+from openipam.hosts.models import (
+    # Host,
+    StructuredAttributeValue,
+    FreeformAttributeToHost,
+)
+from openipam.network.models import Network, AddressType  # , Address, Pool, DhcpGroup
 
 # from taggit.models import Tag
 
@@ -23,7 +26,7 @@
 
 # import six
 
-# User = get_user_model()
+User = get_user_model()
 
 # # autocomplete_light.register(User,
 # #     search_fields=['username', 'first_name', 'last_name', 'email'],
@@ -137,103 +140,110 @@
 # al.register(IPAMObjectsAutoComplete)
 
 
-# class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
-#     split_words = True
+class IPAMBaseAutocompleteView(AutoResponseView):
+    # Adapted from django-autocomplete_light
+    limit_choices = 20
+    choices = None
+    search_fields = None
 
-#     choices = (
-#         Network.objects.all(),
-#         User.objects.all(),
-#         Group.objects.all(),
-#         StructuredAttributeValue.objects.all(),
-#         FreeformAttributeToHost.objects.all(),
-#         AddressType.objects.all(),
-#     )
+    def _get_search_string(self, search_field):
+        if search_field.startswith("^"):
+            return f"{search_field[1:]}__istartswith"
+        else:
+            return f"{search_field}__icontains"
 
-#     search_fields = (
-#         ("network", "name"),
-#         ("username", "^first_name", "^last_name"),
-#         ("name",),
-#         ("attribute__name", "value"),
-#         ("attribute__name", "value"),
-#         ("name", "description"),
-#     )
+    def get_results(self, query):
+        results = []
+        remaining_querysets = len(self.choices)
 
-#     attrs = {"minimum_characters": 2, "placeholder": "Advanced Search"}
+        i = 0
+        for queryset in self.choices:
+            filter_args = Q()
+            for word in query.strip().split():
+                for search_field in self.search_fields[i]:
+                    filter_args |= Q(**{self._get_search_string(search_field): word})
+            limit = (self.limit_choices - len(results)) / remaining_querysets
+            for choice in queryset.filter(filter_args)[:limit]:
+                results.append(
+                    {
+                        "id": choice.pk,
+                        "choiceValue": self.choice_value(choice),
+                        "text": self.choice_label(choice),
+                    }
+                )
 
-#     # def choices_for_request(self):
-#     #     """
-#     #     Propose local results and fill the autocomplete with remote
-#     #     suggestions.
-#     #     """
-#     #     assert self.choices, 'autocomplete.choices should be a queryset list'
+            remaining_querysets -= 1
+            i += 1
+        return results
 
-#     #     q = self.request.GET.get('q', '').split(',')[-1]
-#     #     choice_q = q.split(':')[0]
-#     #     q = ''.join(q.split(':')[1:])
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get("q")
+        data = {"results": self.get_results(query), "pagination": {"more": False}}
+        return JsonResponse(data)
 
-#     #     if choice_q == 'net':
-#     #         self.choices = (Network.objects.all(),)
-#     #         self.search_fields = (('network',),)
-#     #     elif choice_q == 'user':
-#     #         self.choices = (User.objects.all(),)
-#     #         self.search_fields = (('username', '^first_name', '^last_name'),)
-#     #     elif choice_q == 'group':
-#     #         self.choices = (Group.objects.all(),)
-#     #         self.search_fields = (('name',),)
+    def choice_value(self, choice):
+        return choice.pk
 
-#     #     request_choices = []
-#     #     querysets_left = len(self.choices)
-
-#     #     i = 0
-#     #     for queryset in self.choices:
-#     #         conditions = self._choices_for_request_conditions(q,
-#     #                 self.search_fields[i])
-
-#     #         limit = ((self.limit_choices - len(request_choices)) /
-#     #             querysets_left)
-#     #         for choice in queryset.filter(conditions)[:limit]:
-#     #             request_choices.append(choice)
-
-#     #         querysets_left -= 1
-#     #         i += 1
-
-#     #     return request_choices
-
-#     def choice_label(self, choice):
-#         if choice.__class__.__name__ == "User":
-#             return "%s | %s | %s" % (
-#                 choice.__class__.__name__,
-#                 choice,
-#                 choice.get_full_name(),
-#             )
-#         elif choice.__class__.__name__ in [
-#             "StructuredAttributeValue",
-#             "FreeformAttributeToHost",
-#         ]:
-#             return "%s | %s | %s" % ("Attribute", choice.attribute, choice.value)
-#         elif choice.__class__.__name__ == "AddressType":
-#             return "%s | %s" % ("Address Type", choice)
-#         elif choice.__class__.__name__ == "Network":
-#             return "%s | %s | %s" % ("Network", choice.name, choice)
-#         else:
-#             return "%s | %s" % (choice.__class__.__name__, choice)
-
-#     def choice_value(self, choice):
-#         if choice.__class__.__name__ == "User":
-#             return "user:%s" % choice.username
-#         elif choice.__class__.__name__ == "Group":
-#             return "group:%s" % choice.name
-#         elif choice.__class__.__name__ == "Network":
-#             return "net:%s" % choice.network
-#         elif choice.__class__.__name__ == "StructuredAttributeValue":
-#             return "sattr:%s" % choice.value
-#         elif choice.__class__.__name__ == "FreeformAttributeToHost":
-#             return "fattr:%s" % choice.value
-#         elif choice.__class__.__name__ == "AddressType":
-#             return "atype:%s" % choice.pk
+    def choice_label(self, choice):
+        # This should be overwritten in derived classes
+        return force_text(choice)
 
 
-# al.register(IPAMSearchAutoComplete)
+class IPAMSearchAutoCompleteView(IPAMBaseAutocompleteView):
+    split_words = True
+
+    limit_choices = 20
+
+    choices = (
+        Network.objects.all(),
+        User.objects.all(),
+        Group.objects.all(),
+        StructuredAttributeValue.objects.all(),
+        FreeformAttributeToHost.objects.all(),
+        AddressType.objects.all(),
+    )
+
+    search_fields = (
+        ("network", "name"),
+        ("username", "^first_name", "^last_name"),
+        ("name",),
+        ("attribute__name", "value"),
+        ("attribute__name", "value"),
+        ("name", "description"),
+    )
+
+    def choice_label(self, choice):
+        if choice.__class__.__name__ == "User":
+            return "%s | %s | %s" % (
+                choice.__class__.__name__,
+                choice,
+                choice.get_full_name(),
+            )
+        elif choice.__class__.__name__ in [
+            "StructuredAttributeValue",
+            "FreeformAttributeToHost",
+        ]:
+            return "%s | %s | %s" % ("Attribute", choice.attribute, choice.value)
+        elif choice.__class__.__name__ == "AddressType":
+            return "%s | %s" % ("Address Type", choice)
+        elif choice.__class__.__name__ == "Network":
+            return "%s | %s | %s" % ("Network", choice.name, choice)
+        else:
+            return "%s | %s" % (choice.__class__.__name__, choice)
+
+    def choice_value(self, choice):
+        if choice.__class__.__name__ == "User":
+            return "user:%s" % choice.username
+        elif choice.__class__.__name__ == "Group":
+            return "group:%s" % choice.name
+        elif choice.__class__.__name__ == "Network":
+            return "net:%s" % choice.network
+        elif choice.__class__.__name__ == "StructuredAttributeValue":
+            return "sattr:%s" % choice.value
+        elif choice.__class__.__name__ == "FreeformAttributeToHost":
+            return "fattr:%s" % choice.value
+        elif choice.__class__.__name__ == "AddressType":
+            return "atype:%s" % choice.pk
 
 
 # class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):

@@ -343,20 +343,20 @@ $(function(){
 			$(".search_init").val('');
 			$("#id_search").val('');
 			$(".search_init, #id_search").removeClass('red-highlight');
-
 			results.clearPipeline().columns().search('').draw();
 		}
 	});
 
 	$('body').on('click', '.autocomplete-light-widget .deck .remove', function() {
 		var value = $(this).parent().attr('data-value');
-		var searchFilter = sessionStorage.getItem(path + 'search_filter').split(',');
+		var searchFilter = (sessionStorage.getItem(path + 'search_filter') || "").split(',');
 		var toRemove = searchFilter.indexOf(value)
 		if (toRemove != -1) {
 			searchFilter.splice(toRemove, 1);
 			sessionStorage.setItem(path + 'search_filter', searchFilter.join());
 			results.clearPipeline().draw();
 		}
+		$(this).parent().remove();
 	});
 
 	$(".search_init").on('input', function(e) {
@@ -478,5 +478,32 @@ $(function(){
 		}
 
 		return false;
+	});
+	$("#id_search_select").select2({
+		ajax: {
+			url: "/api/autocomplete/search",
+			dataType: 'json'
+		},
+		// allowClear: true,
+		minimumInputLength: 2,
+		placeholder: "Advanced Search",
+		templateSelection: (state)=>{
+			const selection = document.createElement("span");
+			selection.innerHTML = `<span data-value="${state.choiceValue}">${state.text}</span>`
+			return selection
+		},
+		width: "element",
+	}).on("select2:selecting", (e)=>{
+		e.preventDefault();
+		let filter = sessionStorage.getItem(path + "search_filter") || "";
+		if (filter) filter += ",";
+		sessionStorage.setItem(path + "search_filter", filter + e.params.args.data.choiceValue);
+
+		const selected = `<span data-value="${e.params.args.data.choiceValue}" class="hilight">
+			<span style="display: inline-block;" class="remove">ˣ</span>${e.params.args.data.text}
+		</span>`
+		$("#advanced-search-deck").append(selected);
+
+		results.clearPipeline().draw();
 	});
 });
