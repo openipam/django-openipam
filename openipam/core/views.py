@@ -190,6 +190,21 @@ def index(request):
                 "active_users": User.objects.filter(
                     last_login__gte=(timezone.now() - datetime.timedelta(days=365))
                 ).count(),
+                "user_hosts_dynamic": request.user.host_set.filter(
+                    pools__isnull=False, 
+                    expires__gte=timezone.now()
+                ).count(),
+                "user_hosts_static": request.user.host_set.filter(
+                    addresses__isnull=False,
+                    expires__gte=timezone.now()
+                ).count(),
+                "user_dns_a": request.user.dnsrecord_set.filter(
+                    dns_type__name__in=["A", "AAAA"]
+                ).count(),
+                "user_dns_cname": request.user.dnsrecord_set.filter(
+                    dns_type__name="CNAME"
+                ).count(),
+                "user_dns_mx": request.user.dnsrecord_set.filter(dns_type__name="MX").count(),
             }
         )
 
