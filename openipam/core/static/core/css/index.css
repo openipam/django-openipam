@@ -111,7 +111,6 @@ p h1 h2 h3 h4 h5 h6 {
   text-align: center;
   padding: .5rem 1rem .5rem 1rem;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  margin-right: 2rem;
   height: 121px;
 }
 
@@ -128,6 +127,15 @@ p h1 h2 h3 h4 h5 h6 {
 
 .pc-row-sm {
   height: 150px;
+}
+
+.pc-stat-sm {
+  border: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  text-align: center;
+  padding: .5rem 1rem .5rem 1rem;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
 .pcstat-number {
