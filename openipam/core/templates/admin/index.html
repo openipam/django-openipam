@@ -2,6 +2,9 @@
 {% load static i18n %}
 
 {% block extrahead %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet" >
+<link rel="stylesheet" type="text/css" href="{% static 'core/css/index.css' %}">
+
 <script type="text/javascript" src="{% static 'chart.js/dist/Chart.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'core/js/index.js' %}"></script>
 {% endblock %}
@@ -16,7 +19,7 @@
 {% block breadcrumbs %}{% endblock %}
 {% block content_title %}{% endblock %}
 {% block content %}
-<div class="window">
+<!-- <div class="window">
     <div class="row">
         <div class="col-md-9">
             <div class="panel panel-primary">
@@ -128,5 +131,286 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
+
+
+
+<div class="container-fluid">
+    <div class="section px-5">
+      <div class="overview-card-row">
+        <div class="overview-card">
+          <h4 class="my-2">Hosts</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">3431</p>
+              <p class="oc-description">Dynamic</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">5218</p>
+              <p class="oc-description">Static</p>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card border">
+          <h4 class="my-2">Leases</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">0</p>
+              <p class="oc-description">Active</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">1538</p>
+              <p class="oc-description">Abandoned</p>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card border">
+          <h4 class="my-2">Networks</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">944</p>
+              <p class="oc-description">Total</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">30976</p>
+              <p class="oc-description">Wireless</p>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card border">
+          <h4 class="my-2">Available Wireless Addresses</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">0</p>
+              <p class="oc-description">Active</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">1538</p>
+              <p class="oc-description">Abandoned</p>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card border">
+          <h4 class="my-2">DNS</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">19566</p>
+              <p class="oc-description">A</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">3157</p>
+              <p class="oc-description">CNAME</p>
+            </div>
+            <div class="border-left oc-stat">
+              <p class="ocstat-number">298</p>
+              <p class="oc-description">MX</p>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card border">
+          <h4 class="my-2">Active Users</h4>
+          <div class="oc-data">
+            <div class="oc-stat">
+              <p class="ocstat-number">5</p>
+              <p class="oc-description">Within one year</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section section-margin px-5 no-display show-below-1200">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="profile-card-sm">
+            <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200" data-src="holder.js/200x200" class="pc-img-sm" alt="profile picture">
+            <div class="border-left pc-info-sm">
+              <h4 class="pc-info-user-sm">User</h4>
+              <p>A00000000</p>
+              <p>Admin</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="overview-card">
+            <h4 class="my-2">Leases</h4>
+            <div class="oc-data">
+              <div class="oc-stat">
+                <p class="ocstat-number">0</p>
+                <p class="oc-description">Active</p>
+              </div>
+              <div class="border-left oc-stat">
+                <p class="ocstat-number">1538</p>
+                <p class="oc-description">Abandoned</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="overview-card">
+            <h4 class="my-2">Networks</h4>
+            <div class="oc-data">
+              <div class="oc-stat">
+                <p class="ocstat-number">944</p>
+                <p class="oc-description">Total</p>
+              </div>
+              <div class="border-left oc-stat">
+                <p class="ocstat-number">30976</p>
+                <p class="oc-description">Wireless</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section section-margin">
+      <div class="row">
+
+        <div id="user-card" class="col-lg-3 hide-below-1200">
+          <div class="card">
+            <div class="p-0 pt-4 text-center">
+              <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200" data-src="holder.js/200x200" class="profile-card-img" alt="profile picture">
+              <h1 class="mt-2">User</h1>
+              <p>A0000123 ~ Admin</p>
+
+              <div class="user-stats">
+                <h4 class="my-3">Hosts</h4>
+                <div class="pcstat-row">
+                  <div class="pcstat-col border-right p-0 m-0">
+                    <p class="pcstat-number">12</p>
+                    <p>Dynamic</p>
+                  </div>
+                  <div class="pcstat-col border-left p-0 m-0">
+                    <p class="pcstat-number">6</p>
+                    <p>Static</p>
+                  </div>
+                </div>
+                <h4 class="my-3">Networks</h4>
+                <div class="pcstat-row">
+                  <div class="pcstat-col border-right p-0 m-0">
+                    <p class="pcstat-number">5</p>
+                    <p>Total</p>
+                  </div>
+                  <div class="pcstat-col border-left p-0 m-0">
+                    <p class="pcstat-number">2</p>
+                    <p>Wireless</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="data-table" class="col-lg-9 col-xs-12 mt-3 mt-lg-0">
+          <div class="card bg-light">
+            <div id="dashboard-quick-view">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Hostname</th>
+                    <th>Mac Address</th>
+                    <th>Expiration</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>a0000123.bluezone.usu.edu</td>
+                    <td>98:01:a7:1d:dc:76</td>
+                    <td>None</td>
+                    <td></td>
+                    <td nowrap="nowrap">
+                      <a class="clickable">Delete</a>
+                      <a class="clickable">Renew</a>
+                      <a class="clickable">Edit</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 {% endblock %}
