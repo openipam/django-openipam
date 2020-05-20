@@ -147,6 +147,8 @@ def index(request):
         return redirect("core:profile")
     else:
         context = {
+            "user_name": request.user.get_short_name(),
+            "user_username": request.user.username,
             "email": CONFIG.get("EMAIL_ADDRESS"),
             "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         }
