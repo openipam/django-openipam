@@ -1,11 +1,5 @@
 $(function () {
-    //     $('a[name=delete-host]').click(() => {
-    //         console.log($(this));
-    //         console.log($(this).prop('id'), 'clicked');
-    //         $(this).hide();
-    //     });
-
-
+    $('#user-table').DataTable();
 });
 
 function deleteHost(delId, mac) {
@@ -41,7 +35,7 @@ function renewHost(renewId, mac) {
 
     // Send an AJAX request to renew the record
     $.ajax({
-        url: `/api/hosts/${mac}/renew/`, 
+        url: `/api/hosts/${mac}/renew/`,
         type: 'POST',
         headers: {
             'X-CSRFToken': $.cookie('csrftoken'),
@@ -55,16 +49,16 @@ function renewHost(renewId, mac) {
             let expire_days = Number(res.expire_days);
             let expire_display = document.getElementById(`expire-${baseId}`);
 
-            if(expire_days <= 30)
+            if (expire_days <= 30)
                 expire_display.classList.add('near-exp');
-            else    
+            else
                 expire_display.classList.remove('near-exp');
 
-            if(expire_days === 0) 
+            if (expire_days === 0)
                 expire_display.innerText = 'Today';
-            else if(expire_days < 0) 
+            else if (expire_days < 0)
                 expire_display.innerText = 'Expired';
-            else if(!expire_days) 
+            else if (!expire_days)
                 expire_display.innerText = 'None';
             else
                 expire_display.innerText = `${expire_days} ${expire_days > 1 ? 'days' : 'day'}`;
