@@ -138,6 +138,11 @@ p h1 h2 h3 h4 h5 h6 {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
+.pc-username {
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+
 .pcstat-number {
   font-size: 48px;
   font-family: 'Montserrat', sans-serif;

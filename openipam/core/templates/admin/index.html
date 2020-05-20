@@ -19,113 +19,6 @@
 {% block breadcrumbs %}{% endblock %}
 {% block content_title %}{% endblock %}
 {% block content %}
-<!-- <div class="window">
-  <div class="row">
-    <div class="col-md-9">
-      <div class="panel panel-primary">
-
-        <div class="panel-heading">
-          <h3 class="panel-title">Quickview</h3>
-        </div>
-        <table id="dashboard-stats" class="table table-striped">
-          <thead>
-            <tr>
-              <th>Hostname</th>
-              <th>Mac Address</th>
-              <th>Expiration</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for host in hosts %}
-            <tr id="{{ host }}">
-              <td>{{ host }}</td>
-              <td>{{ host.mac }}</td>
-              <td id="expire-{{ host }}" {% if host.expire_days <= 30 %}class="near-exp" {% endif %}>
-                {% if host.expire_days == 0 %}
-                Today
-                {% elif host.expire_days < 0 %}
-                Expired
-                {% elif host.expire_days is None %}
-                None
-                {% else %}
-                {{ host.expire_days }} day{% if host.expire_days > 1 %}s{% endif %}
-                {% endif %}
-              </td>
-              <td>{{ host.description }}</td>
-              <td nowrap="nowrap">
-                {% if host.is_disabled %}
-                <strong>Registration Disabled, please contact the Serive Desk.</strong>
-                {% else %}
-                <a id="delete-{{ host }}" class="clickable"
-                  onclick="deleteHost(this.id, '{{ host.mac_stripped }}')">Delete</a>
-                <a id="renew-{{ host }}" class="clickable"
-                  onclick="renewHost(this.id, '{{ host.mac_stripped}}')">Renew</a>
-                <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="panel panel-primary">
-
-        <div class="panel-heading">
-          <h3 class="panel-title">Snapshot</h3>
-        </div>
-        <table id="dashboard-stats" class="table table-inverse">
-          <tr>
-            <td>Hosts: (Dynamic / Static) </td>
-            <td align="right">{{ dynamic_hosts }} / {{ static_hosts }}</td>
-          </tr>
-          <tr>
-            <td>Leases: (Active / Abandoned)</td>
-            <td align="right">{{ active_leases }} / {{ abandoned_leases }}</td>
-          </tr>
-          <tr>
-            <td>Networks: (Total / Wireless)</td>
-            <td align="right">{{ total_networks }} / {{ wireless_addresses_total }}</td>
-          </tr>
-          <tr>
-            <td>Available Wireless Addresses:</td>
-            <td align="right">{{ wireless_addresses_available }}</td>
-          </tr>
-          <tr>
-            <td>DNS Records: (A / CNAME / MX)</td>
-            <td align="right">{{ dns_a_records }} / {{ dns_cname_records }} / {{ dns_mx_records }}</td>
-          </tr>
-          <tr>
-            <td>Active Users within 1 year:</td>
-            <td align="right">{{ active_users }}</td>
-          </tr>
-        </table>
-      </div>
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">Stats</h3>
-        </div>
-        <div id="hoststats" class="panel-body">
-          <canvas id="stats_chart" width="300" height="300"></canvas>
-          <script type="text/javascript">
-            $.get('{% url "core:dashboard_stats" %}', function (data) {
-              var ctx = $("#stats_chart").get(0).getContext("2d");
-              new Chart(ctx, {
-                type: 'line', data: data
-              });
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-  </div>
-</div> -->
-
-
-
 <div class="container-fluid">
   <div class="section px-5">
     <div class="overview-card-row">
@@ -264,7 +157,7 @@
             <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200"
               data-src="holder.js/200x200" class="profile-card-img" alt="profile picture">
             <h1 class="mt-2">{{ user_name }}</h1>
-            <p>{{ user_username }}</p>
+            <p class="pc-username">{{ user_username }}</p>
 
             <div class="user-stats">
               <h4 class="my-3">Hosts</h4>
