@@ -315,96 +315,46 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>a0000123.bluezone.usu.edu</td>
-                    <td>98:01:a7:1d:dc:76</td>
-                    <td>None</td>
-                    <td></td>
-                    <td nowrap="nowrap">
-                      <a class="clickable">Delete</a>
-                      <a class="clickable">Renew</a>
-                      <a class="clickable">Edit</a>
-                    </td>
-                  </tr>
-                </tbody>
+                    <tbody>
+                        {% for host in hosts %}
+                        <tr id="{{ host }}">
+                            <td>{{ host }}</td>
+                            <td>{{ host.mac }}</td>
+                            <td 
+                                id="expire-{{ host }}" 
+                                {% if host.expire_days <= 30 %}class="near-exp"{% endif %}
+                            >
+                                {% if host.expire_days == 0 %}
+                                    Today
+                                {% elif host.expire_days < 0 %}
+                                    Expired
+                                {% elif host.expire_days is None %}
+                                    None
+                                {% else %}
+                                    {{ host.expire_days }} day{% if host.expire_days > 1 %}s{% endif %}
+                                {% endif %}
+                            </td>
+                            <td>{{ host.description }}</td>
+                            <td nowrap="nowrap">
+                                {% if host.is_disabled %}
+                                    <strong>Registration Disabled, please contact the Serive Desk.</strong>
+                                {% else %}
+                                    <a 
+                                        id="delete-{{ host }}" 
+                                        class="clickable"
+                                        onclick="deleteHost(this.id, '{{ host.mac_stripped }}')"
+                                    >Delete</a>
+                                    <a 
+                                        id="renew-{{ host }}" 
+                                        class="clickable"
+                                        onclick="renewHost(this.id, '{{ host.mac_stripped}}')"
+                                    >Renew</a>
+                                    <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
               </table>
             </div>
           </div>
