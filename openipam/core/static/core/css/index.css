@@ -218,16 +218,16 @@ p h1 h2 h3 h4 h5 h6 {
   }
 }
 
-@media screen and (max-width: 768px) {
-  .hide-below-800 {
+@media screen and (max-width: 767px) {
+  .hide-below-sm {
     display: none !important;
   }
-  .show-below-800 {
+  .show-below-sm {
     display: block;
   }
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1000px) {
   #data-table td:nth-child(3), /* Expiration */
   #data-table th:nth-child(3) {/* Expiration */
     display: none;
