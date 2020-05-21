@@ -156,60 +156,6 @@ def index(request):
         hosts = request.user.host_set.all()
         context.update({"hosts": hosts})
 
-        wireless_networks = Network.objects.filter(
-            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
-        )
-        wireless_networks_available_qs = [
-            Q(address__net_contained=network.network) for network in wireless_networks
-        ]
-
-        context.update(
-            {
-                "dynamic_hosts": Host.objects.filter(
-                    pools__isnull=False, expires__gte=timezone.now()
-                ).count(),
-                "static_hosts": Host.objects.filter(
-                    addresses__isnull=False, expires__gte=timezone.now()
-                ).count(),
-                "active_leases": Lease.objects.filter(ends__gte=timezone.now()).count(),
-                "abandoned_leases": Lease.objects.filter(abandoned=True).count(),
-                "total_networks": Network.objects.all().count(),
-                "wireless_networks": wireless_networks.count(),
-                "wireless_addresses_total": Address.objects.filter(
-                    reduce(operator.or_, wireless_networks_available_qs)
-                ).count(),
-                "wireless_addresses_available": Address.objects.filter(
-                    reduce(operator.or_, wireless_networks_available_qs),
-                    leases__ends__lt=timezone.now(),
-                ).count(),
-                "dns_a_records": DnsRecord.objects.filter(
-                    dns_type__name__in=["A", "AAAA"]
-                ).count(),
-                "dns_cname_records": DnsRecord.objects.filter(
-                    dns_type__name="CNAME"
-                ).count(),
-                "dns_mx_records": DnsRecord.objects.filter(dns_type__name="MX").count(),
-                "active_users": User.objects.filter(
-                    last_login__gte=(timezone.now() - datetime.timedelta(days=365))
-                ).count(),
-                "user_hosts_dynamic": request.user.host_set.filter(
-                    pools__isnull=False, 
-                    expires__gte=timezone.now()
-                ).count(),
-                "user_hosts_static": request.user.host_set.filter(
-                    addresses__isnull=False,
-                    expires__gte=timezone.now()
-                ).count(),
-                "user_dns_a": request.user.dnsrecord_set.filter(
-                    dns_type__name__in=["A", "AAAA"]
-                ).count(),
-                "user_dns_cname": request.user.dnsrecord_set.filter(
-                    dns_type__name="CNAME"
-                ).count(),
-                "user_dns_mx": request.user.dnsrecord_set.filter(dns_type__name="MX").count(),
-            }
-        )
-
         return AdminSite().index(request, extra_context=context)
 
 
