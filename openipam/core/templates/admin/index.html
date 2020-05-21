@@ -31,11 +31,11 @@
         <h4 class="oc-title">Hosts</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ dynamic_hosts }}</p>
+            <p id="dynamic_hosts" class="ocstat-number"></p>
             <p class="oc-description">Dynamic</p>
           </div>
           <div class="border-left oc-stat">
-            <p class="ocstat-number">{{ static_hosts }}</p>
+            <p id="static_hosts" class="ocstat-number"></p>
             <p class="oc-description">Static</p>
           </div>
         </div>
@@ -44,11 +44,11 @@
         <h4 class="oc-title">Leases</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ active_leases }}</p>
+            <p id="active_leases" class="ocstat-number"></p>
             <p class="oc-description">Active</p>
           </div>
           <div class="border-left oc-stat">
-            <p class="ocstat-number">{{ abandoned_leases }}</p>
+            <p id="abandoned_leases" class="ocstat-number"></p>
             <p class="oc-description">Abandoned</p>
           </div>
         </div>
@@ -57,11 +57,11 @@
         <h4 class="oc-title">Networks</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ total_networks }}</p>
+            <p id="total_networks" class="ocstat-number"></p>
             <p class="oc-description">Total</p>
           </div>
           <div class="border-left oc-stat">
-            <p class="ocstat-number">{{ wireless_addresses_total }}</p>
+            <p id="wireless_addresses_total" class="ocstat-number"></p>
             <p class="oc-description">Wireless</p>
           </div>
         </div>
@@ -70,7 +70,7 @@
         <h4 class="oc-title">Available Addresses</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ wireless_addresses_available }}</p>
+            <p id="wireless_addresses_available" class="ocstat-number"></p>
             <p class="oc-description">Wireless</p>
           </div>
         </div>
@@ -79,15 +79,15 @@
         <h4 class="oc-title">DNS</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ dns_a_records }}</p>
+            <p id="dns_a_records" class="ocstat-number"></p>
             <p class="oc-description">A</p>
           </div>
           <div class="border-left oc-stat">
-            <p class="ocstat-number">{{ dns_cname_records }}</p>
+            <p id="dns_cname_records" class="ocstat-number"></p>
             <p class="oc-description">CNAME</p>
           </div>
           <div class="border-left oc-stat">
-            <p class="ocstat-number">{{ dns_mx_records }}</p>
+            <p id="dns_mx_records" class="ocstat-number"></p>
             <p class="oc-description">MX</p>
           </div>
         </div>
@@ -96,7 +96,7 @@
         <h4 class="oc-title">Active Users</h4>
         <div class="oc-data">
           <div class="oc-stat">
-            <p class="ocstat-number">{{ active_users }}</p>
+            <p id="active_users" class="ocstat-number"></p>
             <p class="oc-description">Within one year</p>
           </div>
         </div>
@@ -109,11 +109,11 @@
             <h4 class="oc-title">User Hosts</h4>
             <div class="oc-data">
               <div class="oc-stat">
-                <p class="ocstat-number">{{ user_hosts_dynamic }}</p>
+                <p id="user_hosts_dynamic_sm" class="ocstat-number"></p>
                 <p class="oc-description">Dynamic</p>
               </div>
               <div class="border-left oc-stat">
-                <p class="ocstat-number">{{ user_hosts_static }}</p>
+                <p id="user_hosts_static_sm" class="ocstat-number"></p>
                 <p class="oc-description">Static</p>
               </div>
             </div>
@@ -124,15 +124,15 @@
             <h4 class="oc-title">User DNS</h4>
             <div class="oc-data">
               <div class="oc-stat">
-                <p class="ocstat-number">{{ user_dns_a }}</p>
+                <p id="user_dns_a_sm" class="ocstat-number"></p>
                 <p class="oc-description">A</p>
               </div>
               <div class="border-left oc-stat">
-                <p class="ocstat-number">{{ user_dns_cname }}</p>
+                <p id="user_dns_cname_sm" class="ocstat-number"></p>
                 <p class="oc-description">CNAME</p>
               </div>
               <div class="border-left oc-stat">
-                <p class="ocstat-number">{{ user_dns_mx }}</p>
+                <p id="user_dns_mx_sm" class="ocstat-number"></p>
                 <p class="oc-description">MX</p>
               </div>
             </div>
@@ -158,26 +158,26 @@
               <h4 class="my-3">Hosts</h4>
               <div class="pcstat-row">
                 <div class="pcstat-col border-right p-0 m-0">
-                  <p class="pcstat-number">{{ user_hosts_dynamic }}</p>
+                  <p id="user_hosts_dynamic" class="pcstat-number"></p>
                   <p>Dynamic</p>
                 </div>
                 <div class="pcstat-col border-left p-0 m-0">
-                  <p class="pcstat-number">{{ user_hosts_static }}</p>
+                  <p id="user_hosts_static" class="pcstat-number"></p>
                   <p>Static</p>
                 </div>
               </div>
               <h4 class="my-3">DNS</h4>
               <div class="pcstat-row">
                 <div class="pcstat-col border-right p-0 m-0">
-                  <p class="pcstat-number">{{ user_dns_a }}</p>
+                  <p id="user_dns_a" class="pcstat-number"></p>
                   <p>A</p>
                 </div>
                 <div class="pcstat-col border-left p-0 m-0">
-                  <p class="pcstat-number">{{ user_dns_cname }}</p>
+                  <p id="user_dns_cname" class="pcstat-number"></p>
                   <p>CNAME</p>
                 </div>
                 <div class="pcstat-col border-left p-0 m-0">
-                  <p class="pcstat-number">{{ user_dns_mx }}</p>
+                  <p id="user_dns_mx" class="pcstat-number"></p>
                   <p>MX</p>
                 </div>
               </div>
