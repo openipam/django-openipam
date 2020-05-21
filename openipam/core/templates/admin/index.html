@@ -28,7 +28,7 @@
   <div class="section px-5">
     <div class="overview-card-row">
       <div class="overview-card">
-        <h4 class="my-2">Hosts</h4>
+        <h4 class="oc-title">Hosts</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ dynamic_hosts }}</p>
@@ -41,7 +41,7 @@
         </div>
       </div>
       <div class="overview-card border">
-        <h4 class="my-2">Leases</h4>
+        <h4 class="oc-title">Leases</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ active_leases }}</p>
@@ -54,7 +54,7 @@
         </div>
       </div>
       <div class="overview-card border">
-        <h4 class="my-2">Networks</h4>
+        <h4 class="oc-title">Networks</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ total_networks }}</p>
@@ -67,7 +67,7 @@
         </div>
       </div>
       <div class="overview-card border">
-        <h4 class="my-2">Available Addresses</h4>
+        <h4 class="oc-title">Available Addresses</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ wireless_addresses_available }}</p>
@@ -76,7 +76,7 @@
         </div>
       </div>
       <div class="overview-card border">
-        <h4 class="my-2">DNS</h4>
+        <h4 class="oc-title">DNS</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ dns_a_records }}</p>
@@ -93,7 +93,7 @@
         </div>
       </div>
       <div class="overview-card border">
-        <h4 class="my-2">Active Users</h4>
+        <h4 class="oc-title">Active Users</h4>
         <div class="oc-data">
           <div class="oc-stat">
             <p class="ocstat-number">{{ active_users }}</p>
@@ -104,21 +104,11 @@
     </div>
   </div>
 
-  <div class="section section-margin px-5 no-display show-below-1200">
+  <div class="section section-margin px-5 no-display show-below-800">
     <div class="row">
-      <div class="col-sm-4">
-        <div class="profile-card-sm">
-          <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200"
-            data-src="holder.js/200x200" class="pc-img-sm" alt="profile picture">
-          <div class="border-left pc-info-sm">
-            <h4>{{ user_name }}</h4>
-            <p>{{ user_username }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-4">
+      <div class="col-xs-6">
         <div class="pc-stat-sm">
-          <h4 class="my-2">Hosts</h4>
+          <h4 class="oc-title">User Hosts</h4>
           <div class="oc-data">
             <div class="oc-stat">
               <p class="ocstat-number">{{ user_hosts_dynamic }}</p>
@@ -131,9 +121,9 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-4">
+      <div class="col-xs-6">
         <div class="pc-stat-sm">
-          <h4 class="my-2">DNS</h4>
+          <h4 class="oc-title">User DNS</h4>
           <div class="oc-data">
             <div class="oc-stat">
               <p class="ocstat-number">{{ user_dns_a }}</p>
@@ -156,12 +146,12 @@
   <div class="section section-margin">
     <div class="row">
 
-      <div id="user-card" class="col-lg-3 hide-below-1200">
+      <div id="user-card" class="col-lg-2 col-sm-3 hide-below-800">
         <div class="card">
           <div class="p-0 pt-4 text-center">
             <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200"
               data-src="holder.js/200x200" class="profile-card-img" alt="profile picture">
-            <h1 class="mt-2">{{ user_name }}</h1>
+            <h2 class="mt-2">{{ user_name }}</h2>
             <p class="pc-username">{{ user_username }}</p>
 
             <div class="user-stats">
@@ -196,7 +186,7 @@
         </div>
       </div>
 
-      <div id="data-table" class="col-lg-9 col-xs-12 mt-3 mt-lg-0">
+      <div id="data-table" class="col-lg-10 col-sm-9 col-xs-12 mt-3 mt-lg-0">
         <div class="card bg-light">
           <div id="dashboard-quick-view">
             <table id="user-table" class="table table-striped">

@@ -8,6 +8,7 @@ p h1 h2 h3 h4 h5 h6 {
 
 #user-card {
   display: flex;
+  padding-right: 0;
 }
 
 /* Expiration */
@@ -78,16 +79,10 @@ p h1 h2 h3 h4 h5 h6 {
 }
 
 .ocstat-number {
-  font-size: 36px;
+  font-size: 24px;
   font-family: 'Montserrat', sans-serif;
   margin: 0px;
   margin-bottom: -8px;
-}
-
-.oc-description {
-  font-size: 16px;
-  color: grey;
-  margin-bottom: .5rem;
 }
 
 .oc-data {
@@ -95,14 +90,24 @@ p h1 h2 h3 h4 h5 h6 {
   justify-content: center;
 }
 
+.oc-description {
+  font-size: 14px;
+  color: grey;
+  margin-bottom: .5rem;
+}
+
+.oc-title {
+  margin: 1rem 1rem .75rem 1rem;
+}
+
 .overview-card {
   border: 1px;
   border-style: solid;
   border-color: lightgray;
   text-align: center;
-  padding: .5rem 1rem .5rem 1rem;
+  padding: 0;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 
 .overview-card-row {
@@ -158,14 +163,15 @@ p h1 h2 h3 h4 h5 h6 {
 }
 
 .pcstat-number {
-  font-size: 48px;
+  font-size: 36px;
   font-family: 'Montserrat', sans-serif;
   margin: 0px;
-  margin-bottom: -18px;
+  margin-bottom: -10px;
 }
 
 .pcstat-col {
   width: 50%;
+  padding: 0 4px 0 4px;
 }
 
 .pcstat-row {
@@ -183,7 +189,7 @@ p h1 h2 h3 h4 h5 h6 {
 }
 
 .section {
-  padding: 2rem;
+  padding: 1.5rem;
   border: 2px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   width: 100%;
@@ -208,20 +214,55 @@ p h1 h2 h3 h4 h5 h6 {
   }
 }
 
-@media screen and (max-width: 800px) {
-  #data-table td:nth-child(4), /* Description */
-  #data-table th:nth-child(4), /* Description */
+@media screen and (max-width: 768px) {
+  .hide-below-800 {
+    display: none !important;
+  }
+  .show-below-800 {
+    display: block;
+  }
+}
+
+@media screen and (max-width: 900px) {
   #data-table td:nth-child(3), /* Expiration */
   #data-table th:nth-child(3) {/* Expiration */
     display: none;
   }
 }
 
-@media only screen and (max-width: 1199px) {
-  .hide-below-1200 {
-    display: none !important;
+@media screen and (max-width: 1200px) {
+  #data-table td:nth-child(4), /* Description */
+  #data-table th:nth-child(4){ /* Description */
+    display: none;
   }
-  .show-below-1200 {
-    display: block;
+}
+
+@media screen and (min-width: 1350px) {
+  .ocstat-number {
+    font-size: 24px;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0px;
+    margin-bottom: -8px;
+  }
+
+  .oc-description {
+    font-size: 16px;
+    color: grey;
+    margin-bottom: .5rem;
+  }
+  
+  .oc-data {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .overview-card {
+    border: 1px;
+    border-style: solid;
+    border-color: lightgray;
+    text-align: center;
+    padding: .5rem 1rem .5rem 1rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    margin-right: 2rem;
   }
 }
