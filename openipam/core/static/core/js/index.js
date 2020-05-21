@@ -1,5 +1,17 @@
 $(function () {
+    if($(this).width() <= 600)
+        $('#th-actions').text('Edit');
+
     $('#user-table').DataTable();
+
+    $(window).resize(function() {
+        if($(this).width() <= 600) {
+            $('#th-actions').text('Edit');
+        }
+        else if($(this).width() > 600) {
+            $('#th-actions').text('Actions');
+        }
+    });
 });
 
 function deleteHost(delId, mac) {

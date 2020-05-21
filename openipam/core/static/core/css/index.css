@@ -6,12 +6,26 @@ p h1 h2 h3 h4 h5 h6 {
   font-family: 'Montserrat', sans-serif;
 }
 
-#dashboard-quick-view {
-  overflow: auto;
-}
-
 #user-card {
   display: flex;
+}
+
+/* Expiration */
+#data-table td:nth-child(3), 
+#data-table th:nth-child(3) {
+  min-width: 99px;
+}
+
+/* Description */
+#data-table td:nth-child(4),
+#data-table th:nth-child(4) {
+  min-width: 108px;
+}
+
+/* Actions */
+#data-table td:nth-child(5),
+#data-table th:nth-child(5) {
+  min-width: 85px;
 }
 
 .border {
@@ -177,6 +191,30 @@ p h1 h2 h3 h4 h5 h6 {
 
 .section-margin {
   margin-top: 2rem;
+}
+
+@media screen and (max-width: 600px) {
+  .action-hide {
+    display: none;
+  }
+  /* Actions */
+  #data-table td:nth-child(5),
+  #data-table th:nth-child(5) {
+    min-width: 64px;
+  }
+  
+  #data-table {
+    overflow: auto;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  #data-table td:nth-child(4), /* Description */
+  #data-table th:nth-child(4), /* Description */
+  #data-table td:nth-child(3), /* Expiration */
+  #data-table th:nth-child(3) {/* Expiration */
+    display: none;
+  }
 }
 
 @media only screen and (max-width: 1199px) {

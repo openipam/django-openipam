@@ -206,7 +206,7 @@
                   <th>Mac Address</th>
                   <th>Expiration</th>
                   <th>Description</th>
-                  <th>Actions</th>
+                  <th id="th-actions">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,9 +230,9 @@
                     {% if host.is_disabled %}
                     <strong>Registration Disabled, please contact the Serive Desk.</strong>
                     {% else %}
-                    <a id="delete-{{ host }}" class="clickable"
+                    <a id="delete-{{ host }}" class="clickable action-hide"
                       onclick="deleteHost(this.id, '{{ host.mac_stripped }}')">Delete</a>
-                    <a id="renew-{{ host }}" class="clickable"
+                    <a id="renew-{{ host }}" class="clickable action-hide"
                       onclick="renewHost(this.id, '{{ host.mac_stripped}}')">Renew</a>
                     <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
                     {% endif %}
