@@ -148,6 +148,10 @@ p h1 h2 h3 h4 h5 h6 {
   height: 150px;
 }
 
+.pc-sm {
+  margin: 1rem 0 0 0;
+}
+
 .pc-stat-sm {
   border: 1px;
   border-style: solid;
