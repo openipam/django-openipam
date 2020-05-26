@@ -132,12 +132,10 @@ class OverviewStatsAPI(APIView):
                     last_login__gte=(timezone.now() - datetime.timedelta(days=365))
                 ).count(),
                 "user_hosts_dynamic": request.user.host_set.filter(
-                    pools__isnull=False, 
-                    expires__gte=timezone.now()
+                    pools__isnull=False, expires__gte=timezone.now()
                 ).count(),
                 "user_hosts_static": request.user.host_set.filter(
-                    addresses__isnull=False,
-                    expires__gte=timezone.now()
+                    addresses__isnull=False, expires__gte=timezone.now()
                 ).count(),
                 "user_dns_a": request.user.dnsrecord_set.filter(
                     dns_type__name__in=["A", "AAAA"]
@@ -145,7 +143,9 @@ class OverviewStatsAPI(APIView):
                 "user_dns_cname": request.user.dnsrecord_set.filter(
                     dns_type__name="CNAME"
                 ).count(),
-                "user_dns_mx": request.user.dnsrecord_set.filter(dns_type__name="MX").count(),
+                "user_dns_mx": request.user.dnsrecord_set.filter(
+                    dns_type__name="MX"
+                ).count(),
             }
         )
         return Response(context, status=status.HTTP_200_OK)
