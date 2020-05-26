@@ -28,13 +28,10 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 
 from django.urls import reverse
-from django.utils import timezone
 
 from openipam.core.models import FeatureRequest, Bookmark
-from openipam.hosts.models import Host
-from openipam.dns.models import DnsRecord
 from openipam.log.models import LeaseLog, EmailLog, UserLog
-from openipam.network.models import Lease, Network, Address
+from openipam.network.models import Network
 from openipam.core.forms import ProfileForm, FeatureRequestForm, BookmarkForm
 
 # from openipam.user.forms import IPAMAuthenticationForm

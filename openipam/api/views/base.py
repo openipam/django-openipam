@@ -8,11 +8,8 @@ from rest_framework import pagination
 
 from rest_framework_jwt.views import ObtainJSONWebToken, jwt_response_payload_handler
 
-from openipam.conf.ipam_settings import CONFIG
-
 from django.utils import timezone
 from django.db.models import Q
-from django.core import serializers
 
 from openipam.user.models import User
 from openipam.hosts.models import Host
