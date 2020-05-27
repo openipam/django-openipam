@@ -63,7 +63,6 @@ class IPAMIndexDashboard(Dashboard):
             """
                 % {
                     "email": CONFIG.get("EMAIL_ADDRESS"),
-                    "legacy_domain": CONFIG.get("LEGACY_DOMAIN"),
                     "feature_request_link": "https://github.com/openipam/django-openipam/issues/",
                 },
             )
