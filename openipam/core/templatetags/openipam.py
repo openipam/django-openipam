@@ -186,7 +186,9 @@ class BreadcrumbsNode(template.Node):
             data.index('<div class="breadcrumbs">')
         except ValueError:
             lines = [
-                line.strip().split(self.delimiter) for line in data.split("\n") if line.strip()
+                line.strip().split(self.delimiter)
+                for line in data.split("\n")
+                if line.strip()
             ]
         else:
             # data is django-style breadcrumbs, parsing
