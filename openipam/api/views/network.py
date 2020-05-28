@@ -131,7 +131,7 @@ class CreateIPAMNetwork(IPAMNetwork):
         building = serializer.data["building"]
         vlan_id = serializer.data["vlan_id"]
         name = serializer.data["name"]
-        dhcp_group_name = serializer.data["dhcp_group_name"]
+        dhcp_group_name = serializer.data.get("dhcp_group_name", None)
 
         network = self.create_network(
             network_str=serializer.data["network"],
