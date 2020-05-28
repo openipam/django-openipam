@@ -65,6 +65,8 @@ black = "^19.10b0"
 psycopg2-binary = "*"
 pre-commit = "^2.1.1"
 pylint = "^2.4.4"
+ipython = "^7.14.0"
+flake8 = "^3.8.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
