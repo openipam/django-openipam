@@ -2,7 +2,16 @@
 {% load static i18n %}
 
 {% block extrahead %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
+<link rel="stylesheet" type="text/css" href="{% static 'core/css/index.css' %}">
+
+<script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
+<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"></script>
+<script type="text/javascript" src="{% static 'datatables-bootstrap/js/dataTables.bootstrap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'chart.js/dist/Chart.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'core/js/index.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -15,53 +24,218 @@
 {% block breadcrumbs %}{% endblock %}
 {% block content_title %}{% endblock %}
 {% block content %}
-<div class="window pull-right">
-    <div class="panel panel-primary">
-        <div class="panel-heading">
-            <h3 class="panel-title">Snapshot</h3>
+<div class="container-fluid">
+  <div class="section px-5">
+    <div class="overview-card-row">
+      <div class="overview-card">
+        <h4 class="oc-title">Hosts</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="dynamic_hosts" class="ocstat-number"></p>
+            <p class="oc-description">Dynamic</p>
+          </div>
+          <div class="border-left oc-stat">
+            <p id="static_hosts" class="ocstat-number"></p>
+            <p class="oc-description">Static</p>
+          </div>
         </div>
-        <table id="dashboard-stats" class="table table-inverse">
-            <tr>
-                <td>Hosts: (Dynamic / Static) </td>
-                <td align="right">{{ dynamic_hosts }} / {{ static_hosts }}</td>
-            </tr>
-            <tr>
-                <td>Leases: (Active / Abandoned)</td>
-                <td align="right">{{ active_leases }} / {{ abandoned_leases }}</td>
-            </tr>
-            <tr>
-                <td>Networks: (Total / Wireless)</td>
-                <td align="right">{{ total_networks }} / {{ wireless_addresses_total }}</td>
-            </tr>
-            <tr>
-                <td>Available Wireless Addresses:</td>
-                <td align="right">{{ wireless_addresses_available }}</td>
-            </tr>
-            <tr>
-                <td>DNS Records: (A / CNAME / MX)</td>
-                <td align="right">{{ dns_a_records }} / {{ dns_cname_records }} / {{ dns_mx_records }}</td>
-            </tr>
-            <tr>
-                <td>Active Users within 1 year:</td>
-                <td align="right">{{ active_users }}</td>
-            </tr>
-        </table>
+      </div>
+      <div class="overview-card border">
+        <h4 class="oc-title">Leases</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="active_leases" class="ocstat-number"></p>
+            <p class="oc-description">Active</p>
+          </div>
+          <div class="border-left oc-stat">
+            <p id="abandoned_leases" class="ocstat-number"></p>
+            <p class="oc-description">Abandoned</p>
+          </div>
+        </div>
+      </div>
+      <div class="overview-card border">
+        <h4 class="oc-title">Networks</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="total_networks" class="ocstat-number"></p>
+            <p class="oc-description">Total</p>
+          </div>
+          <div class="border-left oc-stat">
+            <p id="wireless_addresses_total" class="ocstat-number"></p>
+            <p class="oc-description">Wireless</p>
+          </div>
+        </div>
+      </div>
+      <div class="overview-card border">
+        <h4 class="oc-title">Available Addresses</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="wireless_addresses_available" class="ocstat-number"></p>
+            <p class="oc-description">Wireless</p>
+          </div>
+        </div>
+      </div>
+      <div class="overview-card border">
+        <h4 class="oc-title">DNS</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="dns_a_records" class="ocstat-number"></p>
+            <p class="oc-description">A</p>
+          </div>
+          <div class="border-left oc-stat">
+            <p id="dns_cname_records" class="ocstat-number"></p>
+            <p class="oc-description">CNAME</p>
+          </div>
+          <div class="border-left oc-stat">
+            <p id="dns_mx_records" class="ocstat-number"></p>
+            <p class="oc-description">MX</p>
+          </div>
+        </div>
+      </div>
+      <div class="overview-card border">
+        <h4 class="oc-title">Active Users</h4>
+        <div class="oc-data">
+          <div class="oc-stat">
+            <p id="active_users" class="ocstat-number"></p>
+            <p class="oc-description">Within one year</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="panel panel-primary">
-        <div class="panel-heading">
-            <h3 class="panel-title">Stats</h3>
+    <div class="pc-sm no-display show-below-sm">
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="pc-stat-sm">
+            <h4 class="oc-title">User Hosts</h4>
+            <div class="oc-data">
+              <div class="oc-stat">
+                <p id="user_hosts_dynamic_sm" class="ocstat-number"></p>
+                <p class="oc-description">Dynamic</p>
+              </div>
+              <div class="border-left oc-stat">
+                <p id="user_hosts_static_sm" class="ocstat-number"></p>
+                <p class="oc-description">Static</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="hoststats" class="panel-body">
-            <canvas id="stats_chart" width="300" height="300"></canvas>
-            <script type="text/javascript">
-                $.get('{% url "core:dashboard_stats" %}', function (data) {
-                    var ctx = $("#stats_chart").get(0).getContext("2d");
-                    new Chart(ctx, {
-                        type: 'line', data: data
-                    });
-                });
-            </script>
+        <div class="col-xs-6">
+          <div class="pc-stat-sm">
+            <h4 class="oc-title">User DNS</h4>
+            <div class="oc-data">
+              <div class="oc-stat">
+                <p id="user_dns_a_sm" class="ocstat-number"></p>
+                <p class="oc-description">A</p>
+              </div>
+              <div class="border-left oc-stat">
+                <p id="user_dns_cname_sm" class="ocstat-number"></p>
+                <p class="oc-description">CNAME</p>
+              </div>
+              <div class="border-left oc-stat">
+                <p id="user_dns_mx_sm" class="ocstat-number"></p>
+                <p class="oc-description">MX</p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+
+
+  <div class="section section-margin">
+    <div class="row">
+
+      <div id="user-card" class="col-lg-2 col-sm-3 hide-below-sm">
+        <div class="card">
+          <div class="p-0 pt-4 text-center">
+            <img src="https://www.gravatar.com/avatar/ac40d7e5a4e07ddbe0c5c1562c6cfea7/?d=mm&size=200"
+              data-src="holder.js/200x200" class="profile-card-img" alt="profile picture">
+            <h2 class="mt-2">{{ user_name }}</h2>
+            <p class="pc-username">{{ user_username }}</p>
+
+            <div class="user-stats">
+              <h4 class="my-3">Hosts</h4>
+              <div class="pcstat-row">
+                <div class="pcstat-col border-right p-0 m-0">
+                  <p id="user_hosts_dynamic" class="pcstat-number"></p>
+                  <p>Dynamic</p>
+                </div>
+                <div class="pcstat-col border-left p-0 m-0">
+                  <p id="user_hosts_static" class="pcstat-number"></p>
+                  <p>Static</p>
+                </div>
+              </div>
+              <h4 class="my-3">DNS</h4>
+              <div class="pcstat-row">
+                <div class="pcstat-col border-right p-0 m-0">
+                  <p id="user_dns_a" class="pcstat-number"></p>
+                  <p>A</p>
+                </div>
+                <div class="pcstat-col border-left p-0 m-0">
+                  <p id="user_dns_cname" class="pcstat-number"></p>
+                  <p>CNAME</p>
+                </div>
+                <div class="pcstat-col border-left p-0 m-0">
+                  <p id="user_dns_mx" class="pcstat-number"></p>
+                  <p>MX</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="data-table" class="col-lg-10 col-sm-9 col-xs-12 mt-3 mt-lg-0">
+        <div class="card bg-light">
+          <div id="dashboard-quick-view">
+            <table id="user-table" class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Hostname</th>
+                  <th>Mac Address</th>
+                  <th>Expiration</th>
+                  <th>Description</th>
+                  <th id="th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for host in hosts %}
+                <tr id="{{ host }}">
+                  <td>{{ host }}</td>
+                  <td>{{ host.mac }}</td>
+                  <td id="expire-{{ host }}" {% if host.expire_days <= 30 %}class="near-exp" {% endif %}>
+                    {% if host.expire_days == 0 %}
+                    Today
+                    {% elif host.expire_days < 0 %}
+                    Expired
+                    {% elif host.expire_days is None %}
+                    None
+                    {% else %}
+                    {{ host.expire_days }} day{% if host.expire_days > 1 %}s{% endif %}
+                    {% endif %}
+                  </td>
+                  <td>{{ host.description }}</td>
+                  <td nowrap="nowrap">
+                    {% if host.is_disabled %}
+                    <strong>Registration Disabled, please contact the Serive Desk.</strong>
+                    {% else %}
+                    <a id="delete-{{ host }}" class="clickable action-hide"
+                      onclick="deleteHost(this.id, '{{ host.mac_stripped }}')">Delete</a>
+                    <a id="renew-{{ host }}" class="clickable action-hide"
+                      onclick="renewHost(this.id, '{{ host.mac_stripped}}')">Renew</a>
+                    <a href="{% url 'hosts:update' pk=host.mac_stripped %}">Edit</a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

@@ -28,13 +28,10 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 
 from django.urls import reverse
-from django.utils import timezone
 
 from openipam.core.models import FeatureRequest, Bookmark
-from openipam.hosts.models import Host
-from openipam.dns.models import DnsRecord
 from openipam.log.models import LeaseLog, EmailLog, UserLog
-from openipam.network.models import Lease, Network, Address
+from openipam.network.models import Network
 from openipam.core.forms import ProfileForm, FeatureRequestForm, BookmarkForm
 
 # from openipam.user.forms import IPAMAuthenticationForm
@@ -147,48 +144,14 @@ def index(request):
         return redirect("core:profile")
     else:
         context = {
+            "user_name": request.user.get_short_name(),
+            "user_username": request.user.username,
             "email": CONFIG.get("EMAIL_ADDRESS"),
             "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         }
 
-        wireless_networks = Network.objects.filter(
-            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
-        )
-        wireless_networks_available_qs = [
-            Q(address__net_contained=network.network) for network in wireless_networks
-        ]
-
-        context.update(
-            {
-                "dynamic_hosts": Host.objects.filter(
-                    pools__isnull=False, expires__gte=timezone.now()
-                ).count(),
-                "static_hosts": Host.objects.filter(
-                    addresses__isnull=False, expires__gte=timezone.now()
-                ).count(),
-                "active_leases": Lease.objects.filter(ends__gte=timezone.now()).count(),
-                "abandoned_leases": Lease.objects.filter(abandoned=True).count(),
-                "total_networks": Network.objects.all().count(),
-                "wireless_networks": wireless_networks.count(),
-                "wireless_addresses_total": Address.objects.filter(
-                    reduce(operator.or_, wireless_networks_available_qs)
-                ).count(),
-                "wireless_addresses_available": Address.objects.filter(
-                    reduce(operator.or_, wireless_networks_available_qs),
-                    leases__ends__lt=timezone.now(),
-                ).count(),
-                "dns_a_records": DnsRecord.objects.filter(
-                    dns_type__name__in=["A", "AAAA"]
-                ).count(),
-                "dns_cname_records": DnsRecord.objects.filter(
-                    dns_type__name="CNAME"
-                ).count(),
-                "dns_mx_records": DnsRecord.objects.filter(dns_type__name="MX").count(),
-                "active_users": User.objects.filter(
-                    last_login__gte=(timezone.now() - datetime.timedelta(days=365))
-                ).count(),
-            }
-        )
+        hosts = request.user.host_set.all()
+        context.update({"hosts": hosts})
 
         return AdminSite().index(request, extra_context=context)
 
