@@ -34,13 +34,9 @@ from openipam.api.permissions import IPAMAPIAdminPermission
 from ipaddress import IPv4Network
 
 
-class RouterUpgrade(APIView):
-
-    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    parser_classes = [FormParser]
-
+class IPAMNetwork(APIView):
     @transaction.atomic
-    def update_vlan(self, vlan_id, building, name, user, networks=None):
+    def create_vlan(self, vlan_id, building, name, user, networks=None):
 
         # Create Vlans and Building to Vlans
         abbrev = building.abbreviation.upper()
@@ -77,6 +73,8 @@ class RouterUpgrade(APIView):
             else:
                 network.shared_network = None
             network.save()
+
+        return vlan
 
     @transaction.atomic
     def create_network(self, network_str, building, name, user, dhcp_group_name=None):
@@ -119,9 +117,50 @@ class RouterUpgrade(APIView):
 
         return network
 
+
+class CreateIPAMNetwork(IPAMNetwork):
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    parser_classes = [FormParser]
+
     @transaction.atomic
     def post(self, request, format=None, **kwargs):
-        serializer = network_serializers.RouterUpgradeSerializer(data=request.data)
+        serializer = network_serializers.IPAMNetworkSerializer(data=request.data)
+        if not serializer.is_valid(raise_exception=True):
+            return Response({"serializer": serializer})
+
+        building = serializer.data["building"]
+        vlan_id = serializer.data["vlan_id"]
+        name = serializer.data["name"]
+        dhcp_group_name = serializer.data["dhcp_group_name"]
+
+        network = self.create_network(
+            network_str=serializer.data["network"],
+            building=building,
+            name=name,
+            user=request.user,
+            dhcp_group_name=dhcp_group_name,
+        )
+
+        # Create Vlans and Building to Vlans
+        self.create_vlan(
+            vlan_id=vlan_id,
+            building=building,
+            user=request.user,
+            networks=[network],
+            name=name,
+        )
+
+        return Response("Ok!")
+
+
+class ConvertIPAMNetwork(IPAMNetwork):
+
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    parser_classes = [FormParser]
+
+    @transaction.atomic
+    def post(self, request, format=None, **kwargs):
+        serializer = network_serializers.ConvertIPAMNetworkSerializer(data=request.data)
         if not serializer.is_valid(raise_exception=True):
             return Response({"serializer": serializer})
 
@@ -131,7 +170,7 @@ class RouterUpgrade(APIView):
 
         # Create Vlans and Building to Vlans
         # Vlan 10 - routable
-        self.update_vlan(
+        self.create_vlan(
             vlan_id="10",
             building=building,
             user=request.user,
@@ -139,7 +178,7 @@ class RouterUpgrade(APIView):
             name="campus_routable",
         )
         # Vlan 20 - non-routable
-        self.update_vlan(
+        self.create_vlan(
             vlan_id="20",
             building=building,
             user=request.user,
@@ -156,7 +195,7 @@ class RouterUpgrade(APIView):
                 user=request.user,
                 dhcp_group_name="restricted",
             )
-            self.update_vlan(
+            self.create_vlan(
                 vlan_id="30",
                 building=building,
                 user=request.user,
@@ -173,7 +212,7 @@ class RouterUpgrade(APIView):
                 user=request.user,
                 dhcp_group_name="restricted",
             )
-            self.update_vlan(
+            self.create_vlan(
                 vlan_id="39",
                 building=building,
                 user=request.user,
@@ -190,7 +229,7 @@ class RouterUpgrade(APIView):
                 user=request.user,
                 dhcp_group_name="usu_shoretel_phones-untagged",
             )
-            self.update_vlan(
+            self.create_vlan(
                 vlan_id="40",
                 building=building,
                 user=request.user,
@@ -205,7 +244,7 @@ class RouterUpgrade(APIView):
             name="management",
             user=request.user,
         )
-        self.update_vlan(
+        self.create_vlan(
             vlan_id="90",
             building=building,
             user=request.user,
