@@ -757,7 +757,7 @@ class Host(DirtyFieldsMixin, models.Model):
                 )
             except ValidationError:
                 raise ValidationError(
-                    "There IP Address %s is not available." % ip_address
+                    "The IP Address %s is not available." % ip_address
                 )
             except Address.DoesNotExist:
                 raise ValidationError(
