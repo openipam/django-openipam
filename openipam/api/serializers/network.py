@@ -40,7 +40,8 @@ class IPAMNetworkSerializer(serializers.Serializer):
     dhcp_group_name = serializers.ChoiceField(
         choices=[
             (dhcp_group.name, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()
-        ]
+        ],
+        required=False,
     )
 
     def validate_building(self, value):
