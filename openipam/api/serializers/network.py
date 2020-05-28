@@ -28,7 +28,33 @@ from netfields.rest_framework import InetAddressField, CidrAddressField
 from ipaddress import IPv4Network
 
 
-class RouterUpgradeSerializer(serializers.Serializer):
+class IPAMNetworkSerializer(serializers.Serializer):
+    building = serializers.ChoiceField(
+        choices=[
+            (building.number, building.number) for building in Building.objects.all()
+        ]
+    )
+    network = serializers.CharField()
+    name = serializers.CharField()
+    vlan_id = serializers.IntegerField()
+    dhcp_group_name = serializers.ChoiceField(
+        choices=[
+            (dhcp_group.name, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()
+        ]
+    )
+
+    def validate_building(self, value):
+        building = Building.objects.get(number__iexact=value)
+        return building
+
+    def validate_network(self, value):
+        try:
+            return IPv4Network(value, False)
+        except Exception as e:
+            raise serializers.ValidationError(e.message)
+
+
+class ConvertIPAMNetworkSerializer(serializers.Serializer):
     routable_networks = serializers.MultipleChoiceField(
         choices=[(network, network) for network in Network.objects.all()]
     )

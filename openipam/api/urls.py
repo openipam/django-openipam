@@ -65,8 +65,13 @@ router.register(r"buildings?tovlans?", views.network.BuildingToVlanViewSet)
 
 urlpatterns = [
     url(
-        r"^network/router_upgrade/$",
-        csrf_exempt(views.network.RouterUpgrade.as_view()),
+        r"^network/create_ipam_network/$",
+        csrf_exempt(views.network.CreateIPAMNetwork.as_view()),
+        name="router_upgrade",
+    ),
+    url(
+        r"^network/convert_ipam_network/$",
+        csrf_exempt(views.network.ConvertIPAMNetwork.as_view()),
         name="router_upgrade",
     ),
     url(r"^", include(router.urls)),
