@@ -214,36 +214,32 @@ class IPAMSearchAutoCompleteView(IPAMBaseAutocompleteView):
 
     def choice_label(self, choice):
         if choice.__class__.__name__ == "User":
-            return "%s | %s | %s" % (
-                choice.__class__.__name__,
-                choice,
-                choice.get_full_name(),
-            )
+            return f"{choice.__class__.__name__} | {choice} | {choice.get_full_name()}"
         elif choice.__class__.__name__ in [
             "StructuredAttributeValue",
             "FreeformAttributeToHost",
         ]:
-            return "%s | %s | %s" % ("Attribute", choice.attribute, choice.value)
+            return f"Attribute | {choice.attribute} | {choice.value}"
         elif choice.__class__.__name__ == "AddressType":
-            return "%s | %s" % ("Address Type", choice)
+            return f"Address Type | {choice}"
         elif choice.__class__.__name__ == "Network":
-            return "%s | %s | %s" % ("Network", choice.name, choice)
+            return f"Network | {choice.name} | {choice}"
         else:
-            return "%s | %s" % (choice.__class__.__name__, choice)
+            return f"{choice.__class__.__name__} | {choice}"
 
     def choice_value(self, choice):
         if choice.__class__.__name__ == "User":
-            return "user:%s" % choice.username
+            return f"user:{choice.username}"
         elif choice.__class__.__name__ == "Group":
-            return "group:%s" % choice.name
+            return f"group:{choice.name}"
         elif choice.__class__.__name__ == "Network":
-            return "net:%s" % choice.network
+            return f"net:{choice.network}"
         elif choice.__class__.__name__ == "StructuredAttributeValue":
-            return "sattr:%s" % choice.value
+            return f"sattr:{choice.value}"
         elif choice.__class__.__name__ == "FreeformAttributeToHost":
-            return "fattr:%s" % choice.value
+            return f"fattr:{choice.value}"
         elif choice.__class__.__name__ == "AddressType":
-            return "atype:%s" % choice.pk
+            return f"atype:{choice.pk}"
 
 
 # class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
