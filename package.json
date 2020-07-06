@@ -17,7 +17,8 @@
     "jquery": "^3.4.1",
     "jquery.cookie": "^1.4.1",
     "nvd3": "^1.8.6",
-    "qtip2": "^3.0.3"
+    "qtip2": "^3.0.3",
+    "select2": "^4.0.13"
   },
   "devDependencies": {},
   "scripts": {
