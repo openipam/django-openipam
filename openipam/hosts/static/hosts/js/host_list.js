@@ -131,6 +131,8 @@ $(function(){
 
 	var asInitVals = new Array();
 
+	let firstLoad = true;
+
 	var results = $("#result_list").DataTable({
 		//"responsive": true,
 		"processing": true,
@@ -149,6 +151,16 @@ $(function(){
 				else {
 					d.owner_filter = sessionStorage.getItem(path + "owner_filter") || "";
 					d.search_filter = sessionStorage.getItem(path + "search_filter") || "";
+				}
+
+				if (d.search_filter && firstLoad) {
+					firstLoad = false;
+					for (let item of d.search_filter.split(",")) {
+						const selected = `<span data-value="${item}" class="hilight">
+											<span class="remove glyphicon glyphicon-remove"></span>${item}
+										</span>`
+						$("#advanced-search-deck").append(selected);
+					}
 				}
 				// We do this to work with the data better.
 				d.json_data = JSON.stringify(d);
@@ -223,31 +235,6 @@ $(function(){
 			}
 		}
 	}).columns.adjust();
-
-	$('#id_search').on('keyup selectChoice', function(){
-		var autocomplete = $(this).yourlabsAutocomplete();
-		autocomplete.input.prop('disabled', false);
-
-		if (autocomplete.data.exclude) {
-			var value = autocomplete.data.exclude.join();
-			//autocomplete.values = value.split(",");
-
-			// var displayFilters = function() {
-			//  var search_values = value.split(",");
-			//  console.log(search_values);
-			//  $("#filters").html('');
-			//  $.each(search_values, function(i, v){
-			//      $("#filters").append('<h4><span class="label label-danger pull-left">' + v + '</span></h4>')
-			//  });
-			// }
-
-			delay(function(){
-				sessionStorage.setItem(path + 'search_filter', value);
-				results.clearPipeline().draw();
-				// displayFilters();
-			}, 300);
-		}
-	});
 
 	$('#changelist-form').on('keyup keypress', function(e) {
 	  var code = e.keyCode || e.which;
@@ -423,8 +410,6 @@ $(function(){
 		var action = $("#host-action").val();
 		var hosts = $(".action-select:checked");
 
-		//$("div.modal input").removeAttr('required');
-
 		if (hosts.length > 0) {
 			if (action == 'add-owners' || action == 'replace-owners' || action == 'remove-owners') {
 				$('#host-owners').modal();
@@ -479,7 +464,7 @@ $(function(){
 
 		return false;
 	});
-	$("#id_search_select").select2({
+	let select2Config = {
 		ajax: {
 			url: "/api/autocomplete/search",
 			dataType: 'json'
@@ -493,17 +478,22 @@ $(function(){
 			return selection
 		},
 		width: "element",
-	}).on("select2:selecting", (e)=>{
+	};
+	$("#id_search_select").select2(
+		select2Config
+	).on("select2:selecting", (e)=>{
 		e.preventDefault();
 		let filter = sessionStorage.getItem(path + "search_filter") || "";
 		if (filter) filter += ",";
 		sessionStorage.setItem(path + "search_filter", filter + e.params.args.data.choiceValue);
 
 		const selected = `<span data-value="${e.params.args.data.choiceValue}" class="hilight">
-			<span style="display: inline-block;" class="remove">ˣ</span>${e.params.args.data.text}
+			<span class="remove glyphicon glyphicon-remove"></span>${e.params.args.data.text}
 		</span>`
 		$("#advanced-search-deck").append(selected);
 
 		results.clearPipeline().draw();
+		$("#id_search_select").select2("destroy");
+		$("#id_search_select").select2(select2Config);
 	});
 });
