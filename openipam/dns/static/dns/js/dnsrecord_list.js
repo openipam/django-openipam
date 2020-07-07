@@ -1,4 +1,5 @@
 $(function(){
+    const path = "/dns/"
     $.getUrlVars = function() {
         var vars = {};
         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -145,8 +146,8 @@ $(function(){
 
                 }
                 else {
-                    d.change_filter = $.cookie('change_filter');
-                    d.search_filter = $.cookie('search_filter');
+                    d.change_filter = sessionStorage.getItem(path + "change_filter") || "";
+                    d.search_filter = sessionStorage.getItem(path + "search_filter") || "";
                 }
 
                 // We do this to work with the data better.
@@ -299,7 +300,7 @@ $(function(){
         var value = $(this).val() ? $(this).val() : '';
 
         delay(function(){
-            $.cookie('search_filter', value, {expires: 1, path: '/dns/'});
+            sessionStorage.setItem(path + "search_filter", value);
             results.clearPipeline().draw();
         }, 300);
     });
@@ -406,7 +407,7 @@ $(function(){
     //Triger filtering on change perms
     $("#filter-change button").on('click', function() {
         if (!$(this).hasClass('btn-primary')) {
-            $.cookie('change_filter', $(this).val(), {expires: 1, path: '/dns/'});
+            sessionStorage.setItem(path + 'change_filter', $(this).val());
 
             if ($.isEmptyObject($.urlVars)) {
                 $("#filter-change button").removeClass('btn-primary');
