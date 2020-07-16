@@ -328,8 +328,7 @@ $(function(){
 			$(".hilight").remove();
 			$("#owner-all").click();
 			$(".search_init").val('');
-			$("#id_search").val('');
-			$(".search_init, #id_search").removeClass('red-highlight');
+			$(".search_init").removeClass('red-highlight');
 			results.clearPipeline().columns().search('').draw();
 		}
 	});
