@@ -435,7 +435,7 @@ $(function(){
     // Clear all filters logic
     $("#clear-filters").on('click', function(e) {
         if ($.isEmptyObject($.urlVars)) {
-            $.removeCookie('search_filter', {path: '/dns/'});
+            sessionStorage.removeItem(path + "search_filter");
 
             $(".search_init").val('');
             $("#id_search").val('');
