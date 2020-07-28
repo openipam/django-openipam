@@ -288,6 +288,11 @@ urlpatterns = [
         name="api_autocomplete_search",
     ),
     path(
+        "autocomplete/user",
+        views.autocomplete.UserAutocomplete.as_view(),
+        name="api_autocomplete_user",
+    ),
+    path(
         "login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     path("login/jwt_token/", views.base.obtain_jwt_token),

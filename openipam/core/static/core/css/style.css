@@ -96,6 +96,11 @@
     float: left;
     margin: 5px 10px 0px 0px;
 }
+#id_mimic_select
+{
+    min-width: 180px;
+    height: 30px;
+}
 #id_search, #id_search_select
 {
     margin-bottom: 0px;

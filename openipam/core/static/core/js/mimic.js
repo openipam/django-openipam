@@ -1,12 +1,15 @@
 $(function() {
     if ($('#id_mimic_select').length > 0) {
-        $('#id_mimic_select').yourlabsAutocomplete({
-            url: '/ac/UserAutocomplete/',
-            choiceSelector: '[data-value]',
-            minimumCharacters: 1,
-            placeholder: 'Mimic User'
-        }).input.bind('selectChoice', function(event, choice, autocomplete) {
-            $("#id_mimic_value").val(choice.attr('data-value'));
+        $('#id_mimic_select').select2({
+            ajax: {
+                url: "/api/autocomplete/user",
+                dataType: "json"
+            },
+            minimumInputLength: 1,
+            placeholder: 'Mimic User',
+            width: "element",
+        }).on('select2:selecting', function(e) {
+            $("#id_mimic_value").val(e.params.args.data.choiceValue);
             $("#mimic_form").submit();
         });
     }

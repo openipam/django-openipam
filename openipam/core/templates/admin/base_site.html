@@ -5,7 +5,6 @@
 
 {% block extrahead %}
 {{ block.super }}
-    <!-- {% include 'autocomplete_light/static.html' %} -->
     <script>
         $(function(){
              // autocomplete_light sets this to true which conflicts with datatables.
@@ -13,10 +12,12 @@
         });
     </script>
     <script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
+    <script src="{% static 'select2/dist/js/select2.full.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
+    <link rel="stylesheet" href="{% static 'select2/dist/css/select2.css' %}">
 {% endblock %}
 
 {% block nav-global %}
@@ -32,7 +33,7 @@
                     {% if request.user.is_ipamadmin and not request.session.mimic_user %}
                         <form id="mimic_form" method="post" action="{% url 'core:mimic' %}">
                             {% csrf_token %}
-                            <input type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm" />
+                            <select type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm"></select>
                             <input type="hidden" id="id_mimic_value" name="mimic_pk" />
                         </form>
                     {% else %}

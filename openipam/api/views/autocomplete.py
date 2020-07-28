@@ -413,19 +413,16 @@ class IPAMSearchAutoCompleteView(IPAMBaseAutocompleteView):
 # al.register(IPAMUserSearchAutoComplete)
 
 
-# class UserAutocomplete(al.AutocompleteModelBase):
-#     search_fields = ["^username", "^first_name", "^last_name", "email"]
-#     attrs = {"placeholder": "Search Users"}
-#     split_words = True
+class UserAutocomplete(IPAMBaseAutocompleteView):
+    choices = (User.objects.all(),)
+    search_fields = (("^username", "^first_name", "^last_name", "email"),)
+    split_words = True
 
-#     def choice_label(self, choice):
-#         if choice.get_full_name():
-#             return "%s | %s" % (choice.username, choice.get_full_name())
-#         else:
-#             return str(choice)
-
-
-# al.register(User, UserAutocomplete)
+    def choice_label(self, choice):
+        if choice.get_full_name():
+            return f"{choice.username} | {choice.get_full_name()}"
+        else:
+            return str(choice)
 
 
 # class UsernameAutocomplete(UserAutocomplete):
