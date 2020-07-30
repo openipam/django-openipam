@@ -72,14 +72,12 @@
 				{% endif %}
 				<div id="advanced-search" class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple" data-widget-bootstrap="normal">
 					<label>
-						<input 
-							type="text" 
+						<select
 							id="id_search"
-							data-autocomplete-choice-selector="[data-value]" 
-							data-autocomplete-url="/ac/IPAMUserSearchAutoComplete/" 
 							placeholder="Search" 
-							class="form-control autocomplete" 
-						/>
+							class="form-control autocomplete"
+							multiple
+						></select>
 					</label>
 				    <div style="margin-top: 5px; margin-right: 10px; z-index: 5;">
 						<span id="advanced-search-deck" class="deck">

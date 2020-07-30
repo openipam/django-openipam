@@ -167,7 +167,7 @@ class UserManagerView(PermissionRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(UserManagerView, self).get_context_data(**kwargs)
-        search_filter = self.request.COOKIES.get("search_filter")
+        search_filter = self.request.GET.get("search_filter")
         search_filter = urlunquote(search_filter).split(",") if search_filter else []
         context["search_filter"] = search_filter
         context["group_form"] = GroupForm()

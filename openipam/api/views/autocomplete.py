@@ -413,7 +413,7 @@ class IPAMSearchAutoCompleteView(IPAMBaseAutocompleteView):
 # al.register(IPAMUserSearchAutoComplete)
 
 
-class UserAutocomplete(IPAMBaseAutocompleteView):
+class MimicUserAutocomplete(IPAMBaseAutocompleteView):
     choices = (User.objects.all(),)
     search_fields = (("^username", "^first_name", "^last_name", "email"),)
     split_words = True
@@ -423,6 +423,30 @@ class UserAutocomplete(IPAMBaseAutocompleteView):
             return f"{choice.username} | {choice.get_full_name()}"
         else:
             return str(choice)
+
+
+class UserAutocomplete(IPAMBaseAutocompleteView):
+    choices = (
+        User.objects.all(),
+        Group.objects.all(),
+    )
+    search_fields = (
+        ("^username", "^first_name", "^last_name", "email"),
+        ("name",),
+    )
+    split_words = True
+
+    def choice_label(self, choice):
+        if choice.__class__.__name__ == "User":
+            return f"{choice.__class__.__name__} | {choice} | {choice.get_full_name()}"
+        else:
+            return f"{choice.__class__.__name__} | {choice}"
+    
+    def choice_value(self, choice):
+        if choice.__class__.__name__ == "User":
+            return f"user:{choice.username}"
+        elif choice.__class__.__name__ == "Group":
+            return f"group:{choice.name}"
 
 
 # class UsernameAutocomplete(UserAutocomplete):

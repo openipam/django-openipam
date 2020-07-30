@@ -288,6 +288,11 @@ urlpatterns = [
         name="api_autocomplete_search",
     ),
     path(
+        "autocomplete/mimicuser",
+        views.autocomplete.MimicUserAutocomplete.as_view(),
+        name="api_autocomplete_mimic_user",
+    ),
+    path(
         "autocomplete/user",
         views.autocomplete.UserAutocomplete.as_view(),
         name="api_autocomplete_user",

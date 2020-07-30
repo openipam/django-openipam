@@ -1,4 +1,5 @@
 $(function(){
+	const path = "/users/"
 	$.getUrlVars = function() {
 		var vars = {};
 		var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -145,7 +146,7 @@ $(function(){
 					d.search_filter = ('q' in $.urlVars) ? $.urlVars['q'] : '';
 				}
 				else {
-					d.search_filter = $.cookie('search_filter');
+					d.search_filter = sessionStorage.getItem(path + 'search_filter') || "";
 				}
 				// We do this to work with the data better.
 				d.json_data = JSON.stringify(d);
@@ -288,7 +289,7 @@ $(function(){
 			// }
 
 			delay(function(){
-				$.cookie('search_filter', value, {expires: 1, path: '/user/'});
+				sessionStorage.setItem(path + 'search_filter', value);
 				results.clearPipeline().draw();
 				// displayFilters();
 			}, 300);
@@ -317,7 +318,7 @@ $(function(){
 	// Clear all filters logic
 	$("#clear-filters").on('click', function(e) {
 		if ($.isEmptyObject($.urlVars)) {
-			$.removeCookie('search_filter', {path: '/user/'});
+			sessionStorage.removeItem(path + 'search_filter');
 
 			$(".hilight").remove();
 			$(".search_init").val('');
@@ -330,13 +331,14 @@ $(function(){
 
 	$('body').on('click', '.autocomplete-light-widget .deck .remove', function() {
 		var value = $(this).parent().attr('data-value');
-		var searchFilter = $.cookie('search_filter').split(',');
+		var searchFilter = (sessionStorage.getItem( path + 'search_filter') || "").split(',');
 		var toRemove = searchFilter.indexOf(value)
 		if (toRemove != -1) {
 			searchFilter.splice(toRemove, 1);
-			$.cookie('search_filter', searchFilter.join(), {expires: 1, path: '/user/'});
+			sessionStorage.setItem(path + 'search_filter', searchFilter.join());
 			results.clearPipeline().draw();
 		}
+		$(this).parent().remove();
 	});
 
 	$(".search_init").on('input', function(e) {
@@ -451,19 +453,36 @@ $(function(){
 
 		return false;
 	});
+	let select2Config = {
+		ajax: {
+			url: "/api/autocomplete/user",
+			dataType: 'json'
+		},
+		// allowClear: true,
+		minimumInputLength: 2,
+		placeholder: "Advanced Search",
+		templateSelection: (state)=>{
+			const selection = document.createElement("span");
+			selection.innerHTML = `<span data-value="${state.choiceValue}">${state.text}</span>`
+			return selection
+		},
+		width: "element",
+	};
+	$("#id_search").select2(
+		select2Config
+	).on("select2:selecting", (e)=>{
+		e.preventDefault();
+		let filter = sessionStorage.getItem(path + "search_filter") || "";
+		if (filter) filter += ",";
+		sessionStorage.setItem(path + "search_filter", filter + e.params.args.data.choiceValue);
 
-	// $("#s_group").chosen();
-	// $("#s_group").ajaxChosen({
-	//     type: 'GET',
-	//     url: '/api/groups/options/',
-	//     dataType: 'json'
-	// }, function (data) {
-	//     var results = [];
+		const selected = `<span data-value="${e.params.args.data.choiceValue}" class="hilight">
+			<span class="remove glyphicon glyphicon-remove"></span>${e.params.args.data.text}
+		</span>`
+		$("#advanced-search-deck").append(selected);
 
-	//     $.each(data, function (i, val) {
-	//         results.push({ value: val.value, text: val.text });
-	//     });
-
-	//     return results;
-	// });
+		results.clearPipeline().draw();
+		$("#id_search").select2("destroy");
+		$("#id_search").select2(select2Config);
+	});
 });

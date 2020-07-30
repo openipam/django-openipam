@@ -2,7 +2,7 @@ $(function() {
     if ($('#id_mimic_select').length > 0) {
         $('#id_mimic_select').select2({
             ajax: {
-                url: "/api/autocomplete/user",
+                url: "/api/autocomplete/mimicuser",
                 dataType: "json"
             },
             minimumInputLength: 1,
