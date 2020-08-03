@@ -415,7 +415,6 @@ $(function(){
 		$("#advanced-search-deck").append(selected);
 
 		results.clearPipeline().draw();
-		$("#id_search").select2("destroy");
-		$("#id_search").select2(select2Config);
+		$("#id_search").select2("close");
 	});
 });
