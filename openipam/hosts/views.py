@@ -911,7 +911,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
         for i in range(len(host)):
             if host[i]:
-                host_vals[fields[i]] = host[i]
+                host_vals[fields[i]] = host[i].strip()
 
         return host_vals
 
@@ -926,6 +926,22 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         csv_file.close()
 
         required_fields = ["hostname", "mac", "expire_days"]
+
+        # Check for unique hostnames and mac addresses
+        macs, hostnames = [], []
+        for host in hosts:
+            hostnames.append(host[0])
+            macs.append(host[1])
+
+        if len(hostnames) != len(set(hostnames)):
+            raise ValidationError(
+                "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
+            )
+
+        if len(macs) != len(set(macs)):
+            raise ValidationError(
+                "Duplicate Mac Addresses detected.  Please make sure all mac addresses are unique."
+            )
 
         error_list = []
         host = {}
