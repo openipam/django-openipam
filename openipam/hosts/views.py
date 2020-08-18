@@ -36,7 +36,7 @@ from openipam.hosts.forms import (
     HostRenameForm,
     HostDhcpGroupForm,
 )
-from openipam.hosts.models import Host, Disabled
+from openipam.hosts.models import Host, Disabled, Attribute, FreeformAttributeToHost
 from openipam.network.models import Address, AddressType
 from openipam.hosts.actions import (
     delete_hosts,
@@ -900,6 +900,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             "dhcp_group",
             "user_owners",
             "group_owners",
+            "location",
         ]
 
         if len(host) < 3:
@@ -1005,11 +1006,24 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         host["group_owners"] = group_owners
 
                     try:
-                        Host.objects.add_or_update_host(self.request.user, **host)
+                        host_location = host["location"]
+                        del host["location"]
+
+                        instance = Host.objects.add_or_update_host(
+                            self.request.user, **host
+                        )
+
+                        # Add location for attributes
+                        FreeformAttributeToHost.objects.create(
+                            host=instance,
+                            attribute=Attribute.objects.get(name="location"),
+                            value=host_location,
+                            changed_by=self.request.user,
+                        )
                     except Exception as e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
-                        raise ValidationError
+                        raise ValidationError("")
 
         except ValidationError as e:
             if hasattr(e, "error_dict"):
