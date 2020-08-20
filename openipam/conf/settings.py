@@ -1,10 +1,23 @@
 from django.urls import reverse_lazy
 from django.contrib.messages import constants as message_constants
 
+
 import hashlib
 import socket
 import datetime
 import os
+
+from types import SimpleNamespace
+
+
+class Config(SimpleNamespace):
+    def __init__(self, dictionary, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                self.__setattr__(key, Config(value))
+            else:
+                self.__setattr__(key, value)
 
 
 # Returns basic building map data. Overwritten in local_settings to get data dynamically.
@@ -41,7 +54,7 @@ DATABASES = locals().pop(
     },
 )
 
-AUTH = locals().pop("AUTH", [])
+AUTH = Config(locals().pop("AUTH", {}))
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
