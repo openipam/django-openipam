@@ -15,11 +15,11 @@ from openipam.hosts.models import (
     FreeformAttributeToHost,
     GulRecentArpByaddress,
     GulRecentArpBymac,
+    Attribute,
 )
 from openipam.hosts.forms import (
     HostOwnerForm,
     HostRenewForm,
-    HostAttributesCreateForm,
     HostAttributesDeleteForm,
     HostRenameForm,
     HostDhcpGroupForm,
@@ -272,7 +272,6 @@ def change_addresses(request, selected_hosts):
 
 def add_attribute_to_hosts(request, selected_hosts):
     user = request.user
-    attribute_form = HostAttributesCreateForm(data=request.POST)
 
     # Must have global change perm or object owner perm
     if not user.has_perm("hosts.change_host") and not change_perms_check(
@@ -284,41 +283,32 @@ def add_attribute_to_hosts(request, selected_hosts):
             "Please contact an IPAM administrator.",
         )
     else:
-        if attribute_form.is_valid():
+        attribute_list = request.POST.getlist("attribute")
+        attribute_choice_list = request.POST.getlist("attribute_choice")
+        attribute_text_list = request.POST.getlist("attribute_text")
+
+        for index, attribute_id in enumerate(attribute_list):
             for host in selected_hosts:
 
-                attribute = attribute_form.cleaned_data["add_attribute"]
+                attribute = Attribute.objects.get(pk=attribute_id)
 
                 if attribute.structured:
                     StructuredAttributeToHost.objects.create(
                         host=host,
-                        structured_attribute_value=attribute_form.cleaned_data[
-                            "choice_value"
-                        ],
+                        structured_attribute_value_id=attribute_choice_list[index],
                         changed_by=user,
                     )
                 else:
-                    FreeformAttributeToHost.objects.create(
+                    FreeformAttributeToHost.objects.update_or_create(
                         host=host,
                         attribute=attribute,
-                        value=attribute_form.cleaned_data["text_value"],
-                        changed_by=user,
+                        defaults={
+                            "value": attribute_text_list[index],
+                            "changed_by": user,
+                        },
                     )
 
-            messages.success(request, "Attributes for selected hosts have been added.")
-
-        else:
-            error_list = []
-            for key, errors in list(attribute_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
-                request,
-                mark_safe(
-                    "There was an error adding attributes to the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
-            )
+        messages.success(request, "Attributes for selected hosts have been added.")
 
 
 def delete_attribute_from_host(request, selected_hosts):

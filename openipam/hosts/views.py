@@ -31,7 +31,6 @@ from openipam.hosts.forms import (
     HostOwnerForm,
     HostRenewForm,
     HostBulkCreateForm,
-    HostAttributesCreateForm,
     HostAttributesDeleteForm,
     HostRenameForm,
     HostDhcpGroupForm,
@@ -548,7 +547,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context["owners_form"] = HostOwnerForm()
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()
-        context["attribute_add_from"] = HostAttributesCreateForm()
+        context["attribute_qs"] = Attribute.objects.all()
         context["dhcp_group_form"] = HostDhcpGroupForm()
         context["attribute_delete_from"] = HostAttributesDeleteForm()
 
