@@ -933,19 +933,20 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             hostnames.append(host[0])
             macs.append(host[1])
 
-        if len(hostnames) != len(set(hostnames)):
-            raise ValidationError(
-                "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
-            )
-
-        if len(macs) != len(set(macs)):
-            raise ValidationError(
-                "Duplicate Mac Addresses detected.  Please make sure all mac addresses are unique."
-            )
-
         error_list = []
         host = {}
         try:
+            if len(hostnames) != len(set(hostnames)):
+                raise ValidationError(
+                    "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
+                )
+
+            mac_dups = set([x for x in macs if macs.count(x) > 1])
+            if mac_dups:
+                raise ValidationError(
+                    f"Duplicate Mac Addresses detected.  ({','.join(mac_dups)})  Please make sure all mac addresses are unique."
+                )
+
             with transaction.atomic():
                 for i in range(len(hosts)):
                     host = self.host_to_dict(hosts[i])
