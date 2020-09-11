@@ -293,6 +293,9 @@ def add_attribute_to_hosts(request, selected_hosts):
                 attribute = Attribute.objects.get(pk=attribute_id)
 
                 if attribute.structured:
+                    StructuredAttributeToHost.objects.filter(
+                        host=host, structured_attribute_value__attribute=attribute
+                    ).delete()
                     StructuredAttributeToHost.objects.create(
                         host=host,
                         structured_attribute_value_id=attribute_choice_list[index],
