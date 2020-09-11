@@ -192,12 +192,12 @@ $(function () {
 			// Set pagination to stick when scrolling
 			var page_bar = $('.paginator')
 			page_bar.removeClass('fixed')
-			if(page_bar.length) {
+			if (page_bar.length) {
 				var height = page_bar[0].offsetTop + page_bar.outerHeight();
-				var onchange = function(){
+				var onchange = function () {
 					var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 					var s = (document.body.scrollTop || document.documentElement.scrollTop) + window.innerHeight;
-					if((s < height) && (!isMobile)) {
+					if ((s < height) && (!isMobile)) {
 						page_bar.addClass('fixed');
 					}
 					else { page_bar.removeClass('fixed'); }
@@ -481,18 +481,29 @@ $(function () {
 		}
 	});
 
-	$("#div_id_text_value, #div_id_choice_value").hide();
+	// Add another attribute for attribute action
+	$("#add-attribute-form").on('click', function () {
+		var thisRow = $("#attribute-form-initial").clone();
+		thisRow.find("div.form-group:not(:first)").hide();
+		thisRow.find(".form-control").val('').end();
+		var newRow = $("<div></div>").append(thisRow);
+		//thisRow.removeClass("extra").find("a.add-record").remove().end().find("a.remove-record").show();
+		newRow.appendTo("#attribute-form");
+	});
 
-	$("#id_add_attribute").on('change', function () {
+	// Display attribute value for attribute action
+	$("#div_id_text_value, #div_id_choice_value").hide();
+	$("#host-add-attributes").on("change", "select[name='attribute']", function () {
+		var thisSelect = $(this);
 		$.get("/api/web/structuredattributevalues/" + $(this).val(), function (data) {
 			if (data.trim()) {
-				$("#id_choice_value").html(data);
-				$("#div_id_text_value").hide();
-				$("#div_id_choice_value").show();
+				thisSelect.parent().parent().parent().find("select[name='attribute_choice']").html(data);
+				thisSelect.parent().parent().parent().find("input[name='attribute_text']").parent().parent().hide();
+				thisSelect.parent().parent().parent().find("select[name='attribute_choice']").parent().parent().show();
 			}
 			else {
-				$("#div_id_choice_value").hide();
-				$("#div_id_text_value").show();
+				thisSelect.parent().parent().parent().find("select[name='attribute_choice']").parent().parent().hide();
+				thisSelect.parent().parent().parent().find("input[name='attribute_text']").parent().parent().show();
 			}
 		});
 	});

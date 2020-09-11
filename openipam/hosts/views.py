@@ -31,7 +31,6 @@ from openipam.hosts.forms import (
     HostOwnerForm,
     HostRenewForm,
     HostBulkCreateForm,
-    HostAttributesCreateForm,
     HostAttributesDeleteForm,
     HostRenameForm,
     HostDhcpGroupForm,
@@ -548,7 +547,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context["owners_form"] = HostOwnerForm()
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()
-        context["attribute_add_from"] = HostAttributesCreateForm()
+        context["attribute_qs"] = Attribute.objects.all()
         context["dhcp_group_form"] = HostDhcpGroupForm()
         context["attribute_delete_from"] = HostAttributesDeleteForm()
 
@@ -934,19 +933,20 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             hostnames.append(host[0])
             macs.append(host[1])
 
-        if len(hostnames) != len(set(hostnames)):
-            raise ValidationError(
-                "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
-            )
-
-        if len(macs) != len(set(macs)):
-            raise ValidationError(
-                "Duplicate Mac Addresses detected.  Please make sure all mac addresses are unique."
-            )
-
         error_list = []
         host = {}
         try:
+            if len(hostnames) != len(set(hostnames)):
+                raise ValidationError(
+                    "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
+                )
+
+            mac_dups = set([x for x in macs if macs.count(x) > 1])
+            if mac_dups:
+                raise ValidationError(
+                    f"Duplicate Mac Addresses detected.  ({','.join(mac_dups)})  Please make sure all mac addresses are unique."
+                )
+
             with transaction.atomic():
                 for i in range(len(hosts)):
                     host = self.host_to_dict(hosts[i])
