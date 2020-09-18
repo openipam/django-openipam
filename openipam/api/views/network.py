@@ -132,6 +132,7 @@ class CreateIPAMNetwork(IPAMNetwork):
         vlan_id = serializer.data["vlan_id"]
         name = serializer.data["name"]
         dhcp_group_name = serializer.data.get("dhcp_group_name", None)
+        downstream_ids = serializers.data.get("downstream_ids", None)
 
         network = self.create_network(
             network_str=serializer.data["network"],
@@ -142,7 +143,7 @@ class CreateIPAMNetwork(IPAMNetwork):
         )
 
         # Create Vlans and Building to Vlans
-        self.create_vlan(
+        vlan, created = self.create_vlan(
             vlan_id=vlan_id,
             building=building,
             user=request.user,
@@ -150,7 +151,13 @@ class CreateIPAMNetwork(IPAMNetwork):
             name=name,
         )
 
-        return Response("Ok!")
+        if downstream_ids:
+            for building in downstream_ids:
+                BuildingToVlan.objects.get_or_create(
+                    building=building, vlan=vlan, changed_by=request.user
+                )
+
+        return Response(network)
 
 
 class ConvertIPAMNetwork(IPAMNetwork):
