@@ -67,6 +67,8 @@ class IPAMNetworkSerializer(serializers.Serializer):
             except Building.DoesNotExist as e:
                 raise serializers.ValidationError(e.message)
 
+            return value
+
 
 class ConvertIPAMNetworkSerializer(serializers.Serializer):
     routable_networks = serializers.MultipleChoiceField(
