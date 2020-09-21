@@ -46,7 +46,9 @@ class IPAMNetwork(APIView):
         vlan, created = Vlan.objects.get_or_create(
             vlan_id=vlan_id, name=vlan_name, defaults={"changed_by": user}
         )
-        BuildingToVlan.objects.create(building=building, vlan=vlan, changed_by=user)
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan, changed_by=user
+        )
 
         if downstream_ids:
             downstream_buildings = Building.objects.filter(number__in=downstream_ids)
@@ -59,7 +61,7 @@ class IPAMNetwork(APIView):
         if not networks:
             networks = []
         else:
-            shared_network = SharedNetwork.objects.create(
+            shared_network, created = SharedNetwork.objects.get_or_create(
                 name=vlan_name, changed_by=user
             )
 
@@ -70,7 +72,7 @@ class IPAMNetwork(APIView):
                 network_to_vlan.changed_by = user
                 network_to_vlan.save()
             else:
-                NetworkToVlan.objects.create(
+                NetworkToVlan.objects.get_or_create(
                     network=network, vlan=vlan, changed_by=user
                 )
             network.name = vlan_name
@@ -94,7 +96,7 @@ class IPAMNetwork(APIView):
         dhcp_group = None
         if dhcp_group_name:
             dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
-        network = Network.objects.create(
+        network, created = Network.objects.get_or_create(
             network=network,
             name=network_name,
             gateway=gateway,
