@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from rest_framework.parsers import FormParser
+from rest_framework.parsers import FormParser, JSONParser
 
 from openipam.network.models import (
     Network,
@@ -36,7 +36,9 @@ from ipaddress import IPv4Network
 
 class IPAMNetwork(APIView):
     @transaction.atomic
-    def create_vlan(self, vlan_id, building, name, user, networks=None):
+    def create_vlan(
+        self, vlan_id, building, name, user, networks=None, downstream_ids=None
+    ):
 
         # Create Vlans and Building to Vlans
         abbrev = building.abbreviation.upper()
@@ -44,13 +46,22 @@ class IPAMNetwork(APIView):
         vlan, created = Vlan.objects.get_or_create(
             vlan_id=vlan_id, name=vlan_name, defaults={"changed_by": user}
         )
-        BuildingToVlan.objects.create(building=building, vlan=vlan, changed_by=user)
+        BuildingToVlan.objects.get_or_create(
+            building=building, vlan=vlan, changed_by=user
+        )
+
+        if downstream_ids:
+            downstream_buildings = Building.objects.filter(number__in=downstream_ids)
+            for building in downstream_buildings:
+                BuildingToVlan.objects.get_or_create(
+                    building=building, vlan=vlan, changed_by=user
+                )
 
         shared_network = None
         if not networks:
             networks = []
         else:
-            shared_network = SharedNetwork.objects.create(
+            shared_network, created = SharedNetwork.objects.get_or_create(
                 name=vlan_name, changed_by=user
             )
 
@@ -61,7 +72,7 @@ class IPAMNetwork(APIView):
                 network_to_vlan.changed_by = user
                 network_to_vlan.save()
             else:
-                NetworkToVlan.objects.create(
+                NetworkToVlan.objects.get_or_create(
                     network=network, vlan=vlan, changed_by=user
                 )
             network.name = vlan_name
@@ -85,7 +96,7 @@ class IPAMNetwork(APIView):
         dhcp_group = None
         if dhcp_group_name:
             dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
-        network = Network.objects.create(
+        network, created = Network.objects.get_or_create(
             network=network,
             name=network_name,
             gateway=gateway,
@@ -120,7 +131,7 @@ class IPAMNetwork(APIView):
 
 class CreateIPAMNetwork(IPAMNetwork):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    parser_classes = [FormParser]
+    parser_classes = [FormParser, JSONParser]
 
     @transaction.atomic
     def post(self, request, format=None, **kwargs):
@@ -132,6 +143,7 @@ class CreateIPAMNetwork(IPAMNetwork):
         vlan_id = serializer.data["vlan_id"]
         name = serializer.data["name"]
         dhcp_group_name = serializer.data.get("dhcp_group_name", None)
+        downstream_ids = serializer.data.get("downstream_ids", None)
 
         network = self.create_network(
             network_str=serializer.data["network"],
@@ -148,6 +160,7 @@ class CreateIPAMNetwork(IPAMNetwork):
             user=request.user,
             networks=[network],
             name=name,
+            downstream_ids=downstream_ids,
         )
 
         return Response("Ok!")
@@ -156,7 +169,7 @@ class CreateIPAMNetwork(IPAMNetwork):
 class ConvertIPAMNetwork(IPAMNetwork):
 
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    parser_classes = [FormParser]
+    parser_classes = [FormParser, JSONParser]
 
     @transaction.atomic
     def post(self, request, format=None, **kwargs):
@@ -456,7 +469,7 @@ class VlanViewSet(viewsets.ModelViewSet):
 
 
 class BuildingViewSet(viewsets.ModelViewSet):
-    queryset = Building.objects.select_related("changed_by").all()
+    queryset = Building.objects.prefetch_related("changed_by", "building_vlans").all()
     filter_fields = ("number", "abbreviation")
     lookup_field = "number"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)

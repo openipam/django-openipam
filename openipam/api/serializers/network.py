@@ -43,6 +43,12 @@ class IPAMNetworkSerializer(serializers.Serializer):
         ],
         required=False,
     )
+    downstream_ids = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(IPAMNetworkSerializer, self).__init__(*args, **kwargs)
 
     def validate_building(self, value):
         building = Building.objects.get(number__iexact=value)
@@ -53,6 +59,15 @@ class IPAMNetworkSerializer(serializers.Serializer):
             return IPv4Network(value, False)
         except Exception as e:
             raise serializers.ValidationError(e.message)
+
+    def validate_downstream_ids(self, value):
+        for building in value:
+            try:
+                Building.objects.get(number__iexact=building)
+            except Building.DoesNotExist as e:
+                raise serializers.ValidationError(e.message)
+
+            return value
 
 
 class ConvertIPAMNetworkSerializer(serializers.Serializer):
