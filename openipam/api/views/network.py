@@ -47,14 +47,14 @@ class IPAMNetwork(APIView):
             vlan_id=vlan_id, name=vlan_name, defaults={"changed_by": user}
         )
         BuildingToVlan.objects.get_or_create(
-            building=building, vlan=vlan, changed_by=user
+            building=building, vlan=vlan, defaults={"changed_by": user}
         )
 
         if downstream_ids:
             downstream_buildings = Building.objects.filter(number__in=downstream_ids)
             for building in downstream_buildings:
                 BuildingToVlan.objects.get_or_create(
-                    building=building, vlan=vlan, changed_by=user
+                    building=building, vlan=vlan, defaults={"changed_by": user}
                 )
 
         shared_network = None
@@ -62,7 +62,7 @@ class IPAMNetwork(APIView):
             networks = []
         else:
             shared_network, created = SharedNetwork.objects.get_or_create(
-                name=vlan_name, changed_by=user
+                name=vlan_name, defaults={"changed_by": user}
             )
 
         for network in networks:
@@ -73,7 +73,7 @@ class IPAMNetwork(APIView):
                 network_to_vlan.save()
             else:
                 NetworkToVlan.objects.get_or_create(
-                    network=network, vlan=vlan, changed_by=user
+                    network=network, vlan=vlan, defaults={"changed_by": user}
                 )
             network.name = vlan_name
             network.description = (
@@ -98,33 +98,43 @@ class IPAMNetwork(APIView):
             dhcp_group = DhcpGroup.objects.filter(name=dhcp_group_name).first()
         network, created = Network.objects.get_or_create(
             network=network,
-            name=network_name,
-            gateway=gateway,
-            dhcp_group=dhcp_group,
-            changed_by=user,
+            defaults={
+                "name": network_name,
+                "gateway": gateway,
+                "dhcp_group": dhcp_group,
+                "changed_by": user,
+            },
         )
 
-        # Create addresses for captive portal network
-        addresses = []
-        for address in network.network:
-            reserved = False
-            if address in (network.gateway, network.network[0], network.network[-1]):
-                reserved = True
-            pool = (
-                DefaultPool.objects.get_pool_default(address) if not reserved else None
-            )
-            addresses.append(
-                # TODO: Need to set pool eventually.
-                Address(
-                    address=address,
-                    network=network,
-                    reserved=reserved,
-                    pool=pool,
-                    changed_by=user,
+        # Create addresses if network was created, otherwise pass.
+        if created:
+            # Create addresses for captive portal network
+            addresses = []
+            for address in network.network:
+                reserved = False
+                if address in (
+                    network.gateway,
+                    network.network[0],
+                    network.network[-1],
+                ):
+                    reserved = True
+                pool = (
+                    DefaultPool.objects.get_pool_default(address)
+                    if not reserved
+                    else None
                 )
-            )
-        if addresses:
-            Address.objects.bulk_create(addresses)
+                addresses.append(
+                    # TODO: Need to set pool eventually.
+                    Address(
+                        address=address,
+                        network=network,
+                        reserved=reserved,
+                        pool=pool,
+                        changed_by=user,
+                    )
+                )
+            if addresses:
+                Address.objects.bulk_create(addresses)
 
         return network
 
