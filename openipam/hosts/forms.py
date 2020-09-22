@@ -807,3 +807,7 @@ class HostDisableForm(forms.ModelForm):
 
 class HostDhcpGroupForm(forms.Form):
     dhcp_group = forms.ModelChoiceField(queryset=DhcpGroup.objects.all())
+
+
+class HostNetworkForm(forms.Form):
+    network = forms.ModelChoiceField(queryset=Network.objects.all())

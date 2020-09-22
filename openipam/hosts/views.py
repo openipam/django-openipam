@@ -34,6 +34,7 @@ from openipam.hosts.forms import (
     HostAttributesDeleteForm,
     HostRenameForm,
     HostDhcpGroupForm,
+    HostNetworkForm,
 )
 from openipam.hosts.models import Host, Disabled, Attribute, FreeformAttributeToHost
 from openipam.network.models import Address, AddressType
@@ -49,6 +50,7 @@ from openipam.hosts.actions import (
     rename_hosts,
     set_dhcp_group_on_host,
     delete_dhcp_group_on_host,
+    change_network_on_host,
 )
 from openipam.conf.ipam_settings import CONFIG
 
@@ -547,6 +549,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context["owners_form"] = HostOwnerForm()
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()
+        context["network_form"] = HostNetworkForm()
         context["attribute_qs"] = Attribute.objects.all()
         context["dhcp_group_form"] = HostDhcpGroupForm()
         context["attribute_delete_from"] = HostAttributesDeleteForm()
@@ -591,6 +594,8 @@ class HostListView(PermissionRequiredMixin, TemplateView):
                 delete_attribute_from_host(request, selected_hosts)
             elif action == "set-dhcpgroup":
                 set_dhcp_group_on_host(request, selected_hosts)
+            elif action == "change-network":
+                change_network_on_host(request, selected_hosts)
             elif action == "delete-dhcpgroup":
                 delete_dhcp_group_on_host(request, selected_hosts)
 

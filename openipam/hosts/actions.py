@@ -23,6 +23,7 @@ from openipam.hosts.forms import (
     HostAttributesDeleteForm,
     HostRenameForm,
     HostDhcpGroupForm,
+    HostNetworkForm,
 )
 
 import csv
@@ -388,6 +389,37 @@ def set_dhcp_group_on_host(request, selected_hosts):
                     "<br/>%s" % "<br />".join(error_list)
                 ),
             )
+
+
+def change_network_on_host(request, selected_hosts):
+    user = request.user
+
+    if not user.is_superuser:
+        messages.error(
+            request,
+            "You do not have permissions to perform this action one or more of the selected hosts. "
+            "Please contact an IPAM administrator.",
+        )
+    else:
+        network_form = HostNetworkForm(data=request.POST)
+
+        if network_form.is_valid():
+            for host in selected_hosts:
+                host.user = user
+                host.network = network_form.cleaned_data["network"]
+                host.set_network_ip_or_pool(delete=True)
+                host.save(force_update=True)
+
+                LogEntry.objects.log_action(
+                    user_id=request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(host).pk,
+                    object_id=host.pk,
+                    object_repr=force_text(host),
+                    action_flag=CHANGE,
+                    change_message=f"Network changed to {host.network}.",
+                )
+
+    messages.success(request, "Network on selected host has been changed to ")
 
 
 def delete_dhcp_group_on_host(request, selected_hosts):
