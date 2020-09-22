@@ -9,4 +9,4 @@ install:
   - pip install pre-commit
 
 script:
-  - pre-commit run --all-files
+  - pre-commit run --all-files && git diff
