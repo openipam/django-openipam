@@ -10,3 +10,4 @@ install:
 
 script:
   - pre-commit run --all-files
+  - git diff

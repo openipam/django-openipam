@@ -74,8 +74,8 @@ def atb_site_name():
 @register.simple_tag
 def bootstrap_page_url(cl, page_num):
     """
-        generates page URL for given page_num, uses for prev and next links
-        django numerates pages from 0
+    generates page URL for given page_num, uses for prev and next links
+    django numerates pages from 0
     """
     return escape(cl.get_query_string({PAGE_VAR: page_num - 1}))
 
@@ -160,15 +160,15 @@ bootstrap_pagination = register.inclusion_tag("admin/pagination.html")(
 # breadcrumbs tag
 class BreadcrumbsNode(template.Node):
     """
-        renders bootstrap breadcrumbs list.
-        usage::
-            {% breadcrumbs %}
-            url1|text1
-            url2|text2
-            text3
-            {% endbreadcrumbs %}
-        | is delimiter by default, you can use {% breadcrumbs delimiter_char %} to change it.
-        lines without delimiters are interpreted as active breadcrumbs
+    renders bootstrap breadcrumbs list.
+    usage::
+        {% breadcrumbs %}
+        url1|text1
+        url2|text2
+        text3
+        {% endbreadcrumbs %}
+    | is delimiter by default, you can use {% breadcrumbs delimiter_char %} to change it.
+    lines without delimiters are interpreted as active breadcrumbs
 
     """
 
