@@ -387,7 +387,7 @@ class AddressList(generics.ListAPIView):
 
 class AddressDetail(generics.RetrieveAPIView):
     """
-        Gets details for an address.
+    Gets details for an address.
     """
 
     queryset = Address.objects.select_related("network").all()

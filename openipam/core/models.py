@@ -41,7 +41,7 @@ class FeatureRequest(models.Model):
 
 class FilteredSelectMultiple(forms.SelectMultiple):
     """
-        removing 2 select fields widget
+    removing 2 select fields widget
     """
 
     def __init__(self, verbose_name, is_stacked, attrs=None, choices=[]):

@@ -49,7 +49,7 @@ class DnsList(generics.ListAPIView):
 
 class DnsDetail(generics.RetrieveAPIView):
     """
-        Gets details for a Dns Record.
+    Gets details for a Dns Record.
     """
 
     queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
@@ -58,26 +58,26 @@ class DnsDetail(generics.RetrieveAPIView):
 
 class DnsCreate(generics.CreateAPIView):
     """
-        Create a Dns Record.
+    Create a Dns Record.
 
-        **Required Arguments**:
+    **Required Arguments**:
 
-        * `name` -- Dns Record name.
-        * `type` -- Dns Record type.
-        * `content` --  Dns Record content.
+    * `name` -- Dns Record name.
+    * `type` -- Dns Record type.
+    * `content` --  Dns Record content.
 
-        **Optional Arguments**:
+    **Optional Arguments**:
 
-        * `ttl` -- Time to live. Defaults to 14400.
+    * `ttl` -- Time to live. Defaults to 14400.
 
-        **Example**:
+    **Example**:
 
-            {
-                "name": "test.me.com",
-                "type": "CNAME",
-                "content": "test.com",
-                "ttl": "14440"
-            }
+        {
+            "name": "test.me.com",
+            "type": "CNAME",
+            "content": "test.com",
+            "ttl": "14440"
+        }
     """
 
     serializer_class = DnsCreateSerializer
@@ -102,9 +102,9 @@ class DnsCreate(generics.CreateAPIView):
 
 class DnsDelete(generics.DestroyAPIView):
     """
-        Delete a Dns Record.
+    Delete a Dns Record.
 
-        All that is required for this to execute is calling it via a POST or DELETE request.
+    All that is required for this to execute is calling it via a POST or DELETE request.
     """
 
     serializer_class = DnsDeleteSerializer
