@@ -508,6 +508,13 @@ $(function () {
 		});
 	});
 
+	$("#network-form-submit").on('click', function () {
+		var res = confirm("Are you sure you want to change the network on these hosts?");
+		if (res == true) {
+			return true;
+		}
+	});
+
 	// Action submit logic
 	$("#action-submit").on('click', function () {
 		var action = $("#host-action").val();
@@ -561,6 +568,9 @@ $(function () {
 				if (res == true) {
 					return true;
 				}
+			}
+			else if (action == 'change-network') {
+				$('#host-change-network').modal({ backdrop: 'static', keyboard: false });
 			}
 		}
 		else {

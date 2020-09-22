@@ -61,6 +61,9 @@
 						<option value="renew">Renew selected hosts</option>
 						<option value="rename">Rename selected hosts</option>
 						<option value="dns">Populate DNS on selected hosts</option>
+						{% if user.is_superuser %}
+						<option value="change-network">Change Network on selected hosts</option>
+						{% endif %}
 						<!--<option value="address">Add/Update addresses on selected hosts</option>-->
 						<option value="">--OWNERSHIP--</option>
 						<option value="add-owners">Add owners on selected hosts</option>
@@ -406,6 +409,25 @@
 					</div>
 					<div class="modal-footer">
 						<button class="btn btn-primary" type="submit">Save</button>
+						<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="host-change-network" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="host-detail-label"
+			aria-hidden="true" style="display: none;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 class="modal-title" id="host-detail-label">Change Network for selected hosts </h3>
+					</div>
+					<div class="modal-body">
+						{{ network_form|crispy }}
+					</div>
+					<div class="modal-footer">
+						<button id="network-form-submit" class="btn btn-primary" type="submit">Save</button>
 						<button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
 					</div>
 				</div>
