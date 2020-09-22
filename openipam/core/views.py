@@ -252,8 +252,7 @@ class FeatureRequestView(CreateView):
 
 
 class LazyEncoder(DjangoJSONEncoder):
-    """Encodes django's lazy i18n strings
-    """
+    """Encodes django's lazy i18n strings"""
 
     def default(self, obj):
         if isinstance(obj, Promise):
@@ -265,13 +264,11 @@ class JSONResponseMixin(object):
     is_clean = False
 
     def render_to_response(self, context):
-        """ Returns a JSON response containing 'context' as payload
-        """
+        """Returns a JSON response containing 'context' as payload"""
         return self.get_json_response(context)
 
     def get_json_response(self, content, **httpresponse_kwargs):
-        """ Construct an `HttpResponse` object.
-        """
+        """Construct an `HttpResponse` object."""
         response = HttpResponse(
             content, content_type="application/json", **httpresponse_kwargs
         )
@@ -325,8 +322,7 @@ class JSONResponseMixin(object):
 
 
 class BaseDatatableView(JSONResponseMixin, TemplateView):
-    """ JSON data for datatables
-    """
+    """JSON data for datatables"""
 
     model = None
     columns = []
@@ -337,18 +333,15 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
         pass
 
     def get_order_columns(self):
-        """ Return list of columns used for ordering
-        """
+        """Return list of columns used for ordering"""
         return self.order_columns
 
     def get_columns(self):
-        """ Returns the list of columns that are returned in the result set
-        """
+        """Returns the list of columns that are returned in the result set"""
         return self.columns
 
     def render_column(self, row, column):
-        """ Renders a column on a row
-        """
+        """Renders a column on a row"""
         if hasattr(row, "get_%s_display" % column):
             # It's a choice field
             text = getattr(row, "get_%s_display" % column)()
@@ -370,8 +363,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
             return text
 
     def ordering(self, qs):
-        """ Get parameters from the request and prepare order by clause
-        """
+        """Get parameters from the request and prepare order by clause"""
         # Number of columns that are used in sorting
         order_data = self.json_data.get("order", [])
 
@@ -389,8 +381,7 @@ class BaseDatatableView(JSONResponseMixin, TemplateView):
         return qs
 
     def paging(self, qs):
-        """ Paging
-        """
+        """Paging"""
         limit = min(int(self.json_data.get("length", 10)), self.max_display_length)
         # if pagination is disabled ("bPaginate": false)
         if limit == -1:

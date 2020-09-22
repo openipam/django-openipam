@@ -48,26 +48,26 @@ class HostCSVRenderer(CSVRenderer):
 
 class HostList(generics.ListAPIView):
     """
-        Lists hosts based on given criteria.
+    Lists hosts based on given criteria.
 
-        **Optional Filters**
+    **Optional Filters**
 
-        * `mac` -- MAC Address contains
-        * `hostname` -- Hostname contains
-        * `hostname_exact` -- Hostname exact
-        * `user` -- Username of a user
-        * `user_with_groups` -- Username of a user.  This will display the users hosts as well as all hosts in the users groups.
-        * `group` -- Group name of a group.  To speficy multiple groups as a union, user a | between group names.
-        * `is_expired` -- 1 or 0 to see expired hosts
-        * `ip_address` -- IP Address to filter on
-        * `attributes` -- 1 or 0 to show attributes on a host.
-        * `attribute` -- Name:Value to filter on attributes
-        * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
-        * `datetime` -- Date/Time of registered device.
+    * `mac` -- MAC Address contains
+    * `hostname` -- Hostname contains
+    * `hostname_exact` -- Hostname exact
+    * `user` -- Username of a user
+    * `user_with_groups` -- Username of a user.  This will display the users hosts as well as all hosts in the users groups.
+    * `group` -- Group name of a group.  To speficy multiple groups as a union, user a | between group names.
+    * `is_expired` -- 1 or 0 to see expired hosts
+    * `ip_address` -- IP Address to filter on
+    * `attributes` -- 1 or 0 to show attributes on a host.
+    * `attribute` -- Name:Value to filter on attributes
+    * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
+    * `datetime` -- Date/Time of registered device.
 
-        **Example**:
+    **Example**:
 
-            /api/hosts/?group=switches&limit=0
+        /api/hosts/?group=switches&limit=0
     """
 
     permission_classes = (IsAuthenticated,)
@@ -132,7 +132,7 @@ class HostNextMac(APIView):
 
 class HostDetail(generics.RetrieveAPIView):
     """
-        Gets details for a host.
+    Gets details for a host.
     """
 
     queryset = Host.objects.prefetch_related("addresses", "leases").all()
@@ -142,28 +142,28 @@ class HostDetail(generics.RetrieveAPIView):
 
 class HostCreate(generics.CreateAPIView):
     """
-        Registers a new host.
+    Registers a new host.
 
-        **Required Arguments**:
+    **Required Arguments**:
 
-        * `mac` -- A MAC Address for the host.
-        * `hostname` -- A unique hostname.
-        * `pool`, `network`, or `ip_address` --  A pool name, network CIDR address, or ip address.
-        * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
+    * `mac` -- A MAC Address for the host.
+    * `hostname` -- A unique hostname.
+    * `pool`, `network`, or `ip_address` --  A pool name, network CIDR address, or ip address.
+    * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
 
-        **Optional Arguments**:
+    **Optional Arguments**:
 
-        * `description` -- A text description of the host.
-        * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
+    * `description` -- A text description of the host.
+    * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
 
-        **Example**:
+    **Example**:
 
-            {
-                "mac": "00:00:00:00:00:00",
-                "hostname": "hostname.usu.edu",
-                "ip_address": "129.123.20.20",
-                "expire_days": "30"
-            }
+        {
+            "mac": "00:00:00:00:00:00",
+            "hostname": "hostname.usu.edu",
+            "ip_address": "129.123.20.20",
+            "expire_days": "30"
+        }
     """
 
     permission_classes = (IsAuthenticated,)
@@ -189,31 +189,31 @@ class HostCreate(generics.CreateAPIView):
 
 class HostUpdate(generics.RetrieveUpdateAPIView):
     """
-        Updates registration for a host.
+    Updates registration for a host.
 
-        **Required Arguments**:
+    **Required Arguments**:
 
 
-        **Optional Arguments**:
+    **Optional Arguments**:
 
-        * `mac` -- A new MAC Address for the host.
-        * `hostname` -- A new unique hostname.
-        * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
-        * `pool`, `network`, or `ip_addresses` --  A pool name, network CIDR address, or ip address(es).
-        * `ip_addresses` -- IP Addresses can be a single IP as a string or multiple IPs as a list.
-        * `description` -- A text description of the host.
-        * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
-        * `user_owners` -- A string or list or usernames to assign as owner to the host.
-        * `group_owners` -- A string or list or group names to assign as owner to the host.
+    * `mac` -- A new MAC Address for the host.
+    * `hostname` -- A new unique hostname.
+    * `expire_days` -- Number of days until expiration.  Choices currently are:  1, 7, 14, 30, 180, 365
+    * `pool`, `network`, or `ip_addresses` --  A pool name, network CIDR address, or ip address(es).
+    * `ip_addresses` -- IP Addresses can be a single IP as a string or multiple IPs as a list.
+    * `description` -- A text description of the host.
+    * `dhcp_group` -- A DHCP Group id for this host.  Administrators Only.
+    * `user_owners` -- A string or list or usernames to assign as owner to the host.
+    * `group_owners` -- A string or list or group names to assign as owner to the host.
 
-        **Example**:
+    **Example**:
 
-            {
-                "mac": "00:00:00:00:00:00",
-                "hostname": "hostname.usu.edu",
-                "ip_address": "129.123.20.20",
-                "expire_days": "30"
-            }
+        {
+            "mac": "00:00:00:00:00:00",
+            "hostname": "hostname.usu.edu",
+            "ip_address": "129.123.20.20",
+            "expire_days": "30"
+        }
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
@@ -255,9 +255,9 @@ class HostRenew(generics.RetrieveUpdateAPIView):
 
 class HostDelete(generics.DestroyAPIView):
     """
-        Delete a host registration.
+    Delete a host registration.
 
-        All that is required for this to execute is calling it via a POST or DELETE request.
+    All that is required for this to execute is calling it via a POST or DELETE request.
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
@@ -283,19 +283,19 @@ class HostOwnerList(generics.RetrieveAPIView):
 
 class HostOwnerAdd(APIView):
     """
-        Adds owners for a host.
+    Adds owners for a host.
 
-        **Arguments**:
+    **Arguments**:
 
-        * `users` -- A list of usernames to add.
-        * `groups` -- A list og group names to add.
+    * `users` -- A list of usernames to add.
+    * `groups` -- A list og group names to add.
 
-        **Example**:
+    **Example**:
 
-            {
-                "users": ["user1", "user2"],
-                "groups": ["group1", "group2"]
-            }
+        {
+            "users": ["user1", "user2"],
+            "groups": ["group1", "group2"]
+        }
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
@@ -330,19 +330,19 @@ class HostOwnerAdd(APIView):
 
 class HostOwnerDelete(APIView):
     """
-        Deletes owners for a host.
+    Deletes owners for a host.
 
-        **Arguments**:
+    **Arguments**:
 
-        * `users` -- A list of usernames to delete.
-        * `groups` -- A list og group names to delete.
+    * `users` -- A list of usernames to delete.
+    * `groups` -- A list og group names to delete.
 
-        **Example**:
+    **Example**:
 
-            {
-                "users": ["user1", "user2"],
-                "groups": ["group1", "group2"]
-            }
+        {
+            "users": ["user1", "user2"],
+            "groups": ["group1", "group2"]
+        }
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
@@ -391,7 +391,7 @@ class StructuredAttributeValueList(generics.ListAPIView):
 
 class HostAttributeList(APIView):
     """
-        Lists attributes for a host.
+    Lists attributes for a host.
     """
 
     def get(self, request, format=None, **kwargs):
@@ -416,20 +416,20 @@ class HostAttributeList(APIView):
 
 class HostAddAttribute(APIView):
     """
-        Adds or updates one or more attributes for a host.
+    Adds or updates one or more attributes for a host.
 
-        **Required arguments:**
+    **Required arguments:**
 
-        `attributes` -- a dictionary of attributes and values
+    `attributes` -- a dictionary of attributes and values
 
-        **Example:**
+    **Example:**
 
-            {
-                "attributes": {
-                    "border-profile": "server",
-                    "location": "some building"
-                }
+        {
+            "attributes": {
+                "border-profile": "server",
+                "location": "some building"
             }
+        }
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
@@ -481,17 +481,17 @@ class HostAddAttribute(APIView):
 
 class HostDeleteAttribute(APIView):
     """
-        Deletes one or more attributes for a host.
+    Deletes one or more attributes for a host.
 
-        **Required arguments:**
+    **Required arguments:**
 
-        `attributes` -- a list of attribute keys
+    `attributes` -- a list of attribute keys
 
-        **Example:**
+    **Example:**
 
-            {
-                "attributes": ["border-profile", "location"]
-            }
+        {
+            "attributes": ["border-profile", "location"]
+        }
     """
 
     permission_classes = (IsAuthenticated, IPAMChangeHostPermission)
