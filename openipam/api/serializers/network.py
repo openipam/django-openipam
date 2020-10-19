@@ -44,7 +44,7 @@ class IPAMNetworkSerializer(serializers.Serializer):
         required=False,
     )
     downstream_ids = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.CharField(required=False), required=False
     )
 
     def __init__(self, *args, **kwargs):
@@ -67,7 +67,7 @@ class IPAMNetworkSerializer(serializers.Serializer):
             except Building.DoesNotExist as e:
                 raise serializers.ValidationError(e.message)
 
-            return value
+        return value
 
 
 class ConvertIPAMNetworkSerializer(serializers.Serializer):
