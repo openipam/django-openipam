@@ -46,6 +46,7 @@ nosetests.xml
 .project
 .pydevproject
 .idea
+.vscode
 *.sublime-project
 *.sublime-workspace
 .vscode

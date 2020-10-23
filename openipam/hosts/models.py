@@ -147,7 +147,7 @@ class GuestTicket(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_column="uid", on_delete=models.CASCADE
     )
-    ticket = models.CharField(max_length=255, unique=True)
+    ticket = models.CharField(max_length=20, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
     description = models.TextField(blank=True, null=True)
@@ -155,7 +155,8 @@ class GuestTicket(models.Model):
     def __str__(self):
         return self.ticket
 
-    def set_ticket(self):
+    @classmethod
+    def generate_ticket(self):
         """Generates a human-readable string for a ticket."""
 
         def generate_random_ticket():
@@ -227,7 +228,7 @@ class GuestTicket(models.Model):
         while GuestTicket.objects.filter(ticket=ticket):
             ticket = generate_random_ticket()
 
-        self.ticket = ticket
+        return ticket
 
     class Meta:
         db_table = "guest_tickets"
@@ -249,7 +250,7 @@ class GulRecentArpByaddress(models.Model):
         db_constraint=False,
         related_name="ip_history",
     )
-    stopstamp = models.DateTimeField()
+    stopstamp = models.DateTimeField(blank=True, null=True)
 
     objects = NetManager()
 
@@ -1029,6 +1030,11 @@ class Host(DirtyFieldsMixin, models.Model):
 
             # Remove all pools
             self.pools.clear()
+            # TODO: Look at delete_dns for a way to only delete dhcp dns records.
+            try:
+                self.dhcpdnsrecord.delete()
+            except ObjectDoesNotExist:
+                pass
 
             # Current IP
             current_ip_address = self.master_ip_address

@@ -270,8 +270,10 @@ class DhcpGroupAdmin(ChangedAdmin):
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):
-    list_display = ("id", "combined_value", "changed", "changed_by")
+    list_display = ("id", "combined_value", "group", "changed", "changed_by")
     search_fields = ("value", "^option__option", "^group__name")
+    list_filter = ("group",)
+
     form = DhcpOptionToDhcpGroupAdminForm
     fields = ("group", "option", "readable_value", "changed", "changed_by")
     readonly_fields = ("changed_by", "changed")

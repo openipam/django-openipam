@@ -8,13 +8,17 @@ from openipam.hosts.models import GuestTicket, Host
 from openipam.network.models import Lease
 from openipam.api.serializers.base import IPAddressField, MACAddressField
 
+from profanity_check import predict as vulgar_check
+
 User = get_user_model()
 
 
 class GuestTicketListCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     user = serializers.CharField(read_only=True)
-    ticket = serializers.CharField(read_only=True)
+    ticket = serializers.CharField(
+        default=GuestTicket.generate_ticket, allow_blank=True
+    )
     starts = serializers.DateField(format=None)
     ends = serializers.DateField(format=None)
     description = serializers.CharField(required=False)
@@ -26,6 +30,22 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_ticket(self, value):
+        if not value:
+            return GuestTicket.generate_ticket()
+        if not value.isalnum():
+            raise serializers.ValidationError("Must only contain letters and numbers")
+        if len(value) > 20:
+            raise serializers.ValidationError("Sponsor Code cannot be longer than 20")
+        if GuestTicket.objects.filter(ticket=value):
+            raise serializers.ValidationError("Sponsor Code already taken: %s" % value)
+        if vulgar_check([value]):
+            raise serializers.ValidationError(
+                "Vulgarity Detected: Choose a different code"
+            )
+
+        return value
+
     def create(self, validated_data):
         instance = GuestTicket()
         instance.user = User.objects.get(
@@ -34,7 +54,8 @@ class GuestTicketListCreateSerializer(serializers.ModelSerializer):
         instance.starts = validated_data.get("starts")
         instance.ends = validated_data.get("ends")
         instance.description = validated_data.get("description")
-        instance.set_ticket()
+        instance.ticket = validated_data.get("ticket")
+
         instance.save()
 
         return instance

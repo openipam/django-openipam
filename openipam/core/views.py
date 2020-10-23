@@ -27,22 +27,27 @@ from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 
+# from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
 from openipam.core.models import FeatureRequest, Bookmark
+from openipam.core.forms import ProfileForm, FeatureRequestForm
+
+# from openipam.user.forms import IPAMAuthenticationForm
+from openipam.conf.ipam_settings import CONFIG
+from openipam.dns.models import DnsRecord
+from openipam.hosts.models import Host
 from openipam.log.models import LeaseLog, EmailLog, UserLog
 from openipam.network.models import Network
 from openipam.core.forms import ProfileForm, FeatureRequestForm, BookmarkForm
 
 # from openipam.user.forms import IPAMAuthenticationForm
-from openipam.conf.ipam_settings import CONFIG
 
 import qsstats
 from chartjs.views.lines import BaseLineChartView
 from chartjs.colors import next_color
-
 import duo_web
-
 from functools import reduce
 import os
 import random
@@ -50,8 +55,11 @@ import sys
 import json
 import datetime
 import operator
-
 import logging
+
+# from django_cas_ng.views import login as cas_login, logout as cas_logout
+# from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
+
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +167,9 @@ def index(request):
 # @csrf_exempt
 # @require_http_methods(["GET", "POST"])
 # def login(request, internal=False, **kwargs):
+#     # if CONFIG.get("CAS_LOGIN") and internal is False:
+#     #     return cas_login(request, **kwargs)
+#     # else:
 #     return auth_login_view(
 #         request, authentication_form=IPAMAuthenticationForm, **kwargs
 #     )
@@ -166,7 +177,30 @@ def index(request):
 
 # @require_http_methods(["GET"])
 # def logout(request, next_page=None, **kwargs):
-#     return auth_logout_view(request, next_page="login", **kwargs)
+
+
+# backend = request.session.get("_auth_user_backend", "").split(".")[-1]
+
+# if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
+#     cas_logout(request, next_page, **kwargs)
+
+#     next_page = next_page or get_redirect_url(request)
+#     if settings.CAS_LOGOUT_COMPLETELY:
+#         protocol = get_protocol(request)
+#         host = request.get_host()
+#         redirect_url = urllib_parse.urlunparse(
+#             (protocol, host, next_page, "", "", "")
+#         )
+#         client = get_cas_client()
+#         client.server_url = settings.CAS_SERVER_URL[:-3]
+#         return HttpResponseRedirect(client.get_logout_url(redirect_url))
+#     else:
+#         # This is in most cases pointless if not CAS_RENEW is set. The user will
+#         # simply be logged in again on next request requiring authorization.
+#         return HttpResponseRedirect(next_page)
+# else:
+# next_page = "internal_login" if CONFIG.get("CAS_LOGIN") else "login"
+# return auth_logout_view(request, next_page="login", **kwargs)
 
 
 def mimic(request):
