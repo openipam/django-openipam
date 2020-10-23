@@ -1,0 +1,272 @@
+* {
+  box-sizing: border-box;
+}
+
+p h1 h2 h3 h4 h5 h6 {
+  font-family: 'Montserrat', sans-serif;
+}
+
+#user-card {
+  display: flex;
+  padding-right: 0;
+}
+
+/* Expiration */
+#data-table td:nth-child(3), 
+#data-table th:nth-child(3) {
+  min-width: 99px;
+}
+
+/* Description */
+#data-table td:nth-child(4),
+#data-table th:nth-child(4) {
+  min-width: 108px;
+}
+
+/* Actions */
+#data-table td:nth-child(5),
+#data-table th:nth-child(5) {
+  min-width: 85px;
+}
+
+.border {
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgray;
+}
+
+.border-left {
+  border-width: 0 0 0 1px;
+  border-style: solid;
+  border-color: lightgray;
+}
+
+.border-right {
+  border-width: 0 1px 0 0;
+  border-style: solid;
+  border-color: lightgray;
+}
+
+.card {
+  padding: 2rem;
+  border: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.center {
+  text-align: center;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.no-display {
+  display: none;
+}
+
+.nav-picture {
+  width: 40px;
+}
+
+.oc-stat {
+  flex: 1 1 0px;
+  padding: 0 1rem 0 1rem;
+  text-align: center;
+}
+
+.ocstat-number {
+  font-size: 24px;
+  font-family: 'Montserrat', sans-serif;
+  margin: 0px;
+  margin-bottom: -8px;
+}
+
+.oc-data {
+  display: flex;
+  justify-content: center;
+}
+
+.oc-description {
+  font-size: 14px;
+  color: grey;
+  margin-bottom: .5rem;
+}
+
+.oc-title {
+  margin: 1rem 1rem .75rem 1rem;
+}
+
+.overview-card {
+  border: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  text-align: center;
+  padding: 0;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  margin-right: 1rem;
+}
+
+.overview-card-row {
+  width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  display: inline-flex;
+  float: none;
+} 
+
+.profile-card-sm {
+  flex: 0 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  text-align: center;
+  padding: .5rem 1rem .5rem 1rem;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  height: 121px;
+}
+
+.pc-img-sm {
+  height: 75%;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.pc-info-sm {
+  padding-left: 1rem;
+  text-align: left;
+}
+
+.pc-row-sm {
+  height: 150px;
+}
+
+.pc-sm {
+  margin: 1rem 0 0 0;
+}
+
+.pc-stat-sm {
+  border: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  text-align: center;
+  padding: .5rem 1rem .5rem 1rem;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+.pc-username {
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+
+.pcstat-number {
+  font-size: 36px;
+  font-family: 'Montserrat', sans-serif;
+  margin: 0px;
+  margin-bottom: -10px;
+}
+
+.pcstat-col {
+  width: 50%;
+  padding: 0 4px 0 4px;
+}
+
+.pcstat-row {
+  width: 100%;
+  display: inline-flex;
+}
+
+.profile-card-img {
+  width: 50%;
+  border-radius: 50%;
+}
+
+.profile-card-stat {
+  height: 76px;
+}
+
+.section {
+  padding: 1.5rem;
+  border: 2px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.section-margin {
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 600px) {
+  .action-hide {
+    display: none;
+  }
+  /* Actions */
+  #data-table td:nth-child(5),
+  #data-table th:nth-child(5) {
+    min-width: 64px;
+  }
+  
+  #data-table {
+    overflow: auto;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .hide-below-sm {
+    display: none !important;
+  }
+  .show-below-sm {
+    display: block;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  #data-table td:nth-child(3), /* Expiration */
+  #data-table th:nth-child(3) {/* Expiration */
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  #data-table td:nth-child(4), /* Description */
+  #data-table th:nth-child(4){ /* Description */
+    display: none;
+  }
+}
+
+@media screen and (min-width: 1350px) {
+  .ocstat-number {
+    font-size: 24px;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0px;
+    margin-bottom: -8px;
+  }
+
+  .oc-description {
+    font-size: 16px;
+    color: grey;
+    margin-bottom: .5rem;
+  }
+  
+  .oc-data {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .overview-card {
+    border: 1px;
+    border-style: solid;
+    border-color: lightgray;
+    text-align: center;
+    padding: .5rem 1rem .5rem 1rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    margin-right: 2rem;
+  }
+}

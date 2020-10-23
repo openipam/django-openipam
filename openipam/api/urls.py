@@ -283,6 +283,11 @@ urlpatterns = [
         r"^address(es)?/$", views.network.AddressList.as_view(), name="api_address_list"
     ),
     path(
+        "base/overview/",
+        views.base.OverviewStatsAPI.as_view(),
+        name="api_overview_stats",
+    ),
+    path(
         "login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     path("login/jwt_token/", views.base.obtain_jwt_token),
