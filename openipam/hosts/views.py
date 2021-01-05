@@ -1011,20 +1011,21 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         host["group_owners"] = group_owners
 
                     try:
-                        host_location = host["location"]
-                        del host["location"]
+                        if "location" in host:
+                            host_location = host["location"]
+                            del host["location"]
 
-                        instance = Host.objects.add_or_update_host(
-                            self.request.user, **host
-                        )
+                            instance = Host.objects.add_or_update_host(
+                                self.request.user, **host
+                            )
 
-                        # Add location for attributes
-                        FreeformAttributeToHost.objects.create(
-                            host=instance,
-                            attribute=Attribute.objects.get(name="location"),
-                            value=host_location,
-                            changed_by=self.request.user,
-                        )
+                            # Add location for attributes
+                            FreeformAttributeToHost.objects.create(
+                                host=instance,
+                                attribute=Attribute.objects.get(name="location"),
+                                value=host_location,
+                                changed_by=self.request.user,
+                            )
                     except Exception as e:
                         error_list.append("Error adding host from row %s" % (i + 1))
                         error_list.append(str(e))
