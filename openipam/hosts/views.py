@@ -952,7 +952,6 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                     f"Duplicate Mac Addresses detected.  ({','.join(mac_dups)})  Please make sure all mac addresses are unique."
                 )
 
-
             with transaction.atomic():
                 for i in range(len(hosts)):
                     try:
@@ -991,7 +990,9 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                             user_owners = [user.upper() for user in user_owners]
                             users_check = [
                                 user.username
-                                for user in User.objects.filter(username__in=user_owners)
+                                for user in User.objects.filter(
+                                    username__in=user_owners
+                                )
                             ]
                             users_diff = set(user_owners) - set(users_check)
                             if users_diff:
