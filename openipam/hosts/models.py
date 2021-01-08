@@ -25,6 +25,7 @@ from openipam.core.mixins import DirtyFieldsMixin
 from openipam.hosts.validators import validate_hostname
 from openipam.hosts.managers import HostManager, HostQuerySet
 from openipam.user.signals import remove_obj_perms_connected_with_user
+from openipam.dns.models import DhcpDnsRecord
 
 from datetime import datetime, timedelta
 
@@ -840,10 +841,9 @@ class Host(DirtyFieldsMixin, models.Model):
 
             if delete_dchpdns:
                 # Delete DHCP DNS records for dynamics if they exist.
-                try:
-                    self.dhcpdnsrecord.delete()
-                except ObjectDoesNotExist:
-                    pass
+                DhcpDnsRecord.objects.filter(
+                    host__hostname=self.original_hostname
+                ).delete()
 
             if not addresses or self.master_ip_address in [
                 str(address.address) for address in addresses
