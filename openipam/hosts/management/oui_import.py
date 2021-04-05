@@ -14,7 +14,7 @@ maxbits = 48
 def generate_mask(bits):
     if bits > 48:
         raise Exception("bits: %d" % bits)
-    shift = maxbits - bits
+    shift = int(maxbits - bits)
     mask = (maxmask >> shift) << shift
     return mask
 
