@@ -166,7 +166,7 @@ def duo_auth(request):
             if authenticated_username:
                 duo_authenticate(request)
                 redirect_val = request.GET.get("next", "admin:index")
-                if redirect_val == None:
+                if redirect_val is None:
                     return redirect("admin:index")
                 return redirect(redirect_val)
 
