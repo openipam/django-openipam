@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 
 from openipam.network.models import DhcpGroup, Pool, Network
 from openipam.conf.ipam_settings import CONFIG
+from openipam.conf.settings import HOSTNAME_VALIDATION_REGEX
 
 from six import string_types
 
@@ -22,6 +23,7 @@ from guardian.shortcuts import (
 # from netfields import NetManager
 
 import operator
+import re
 
 
 class HostQuerySet(QuerySet):
@@ -234,6 +236,9 @@ class HostManager(Manager):
         instance.user = instance.changed_by = user
 
         if hostname:
+            # Check hostname agains RFC 1123
+            if not re.match(HOSTNAME_VALIDATION_REGEX, hostname):
+                raise ValidationError("Invalid hostname")
             instance.set_hostname(hostname)
 
         if description is not None:
