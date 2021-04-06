@@ -293,8 +293,12 @@ class WeatherMapView(APIView):
             for key, value in list(data.items()):
                 for portid in value["id"]:
                     if port.port == portid:
-                        value["A"] = value.get("A", 0) + port.ifoutoctets_rate * 8
-                        value["Z"] = value.get("Z", 0) + port.ifinoctets_rate * 8
+                        value["A"] = value.get("A", 0)
+                        value["Z"] = value.get("Z", 0)
+                        if port.ifoutoctets_rate:
+                            value["A"] += port.ifoutoctets_rate * 8
+                        if port.ifinoctets_rate:
+                            value["Z"] += port.ifinoctets_rate * 8
                         value["speed"] = (
                             value.get("speed", 0) + port.ifspeed if port.ifspeed else 0
                         )
