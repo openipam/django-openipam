@@ -1,5 +1,5 @@
 from django_filters import FilterSet, CharFilter
-from openipam.network.models import Network
+from openipam.network.models import Network, Lease
 
 
 class NetworkFilter(FilterSet):
@@ -9,3 +9,13 @@ class NetworkFilter(FilterSet):
     class Meta:
         model = Network
         fields = ["name", "shared_network"]
+
+
+class LeaseFilter(FilterSet):
+    address = CharFilter(field_name="pk")
+    host = CharFilter(field_name="host_id")
+    ip = CharFilter(field_name="pk")
+    mac = CharFilter(field_name="host_id")
+
+    model = Lease
+    fields = ["address", "host"]

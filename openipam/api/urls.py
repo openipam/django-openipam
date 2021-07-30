@@ -62,6 +62,7 @@ router.register(r"defaultpools?", views.network.DefaultPoolViewSet)
 router.register(r"vlans?", views.network.VlanViewSet)
 router.register(r"buildings?", views.network.BuildingViewSet)
 router.register(r"buildings?tovlans?", views.network.BuildingToVlanViewSet)
+router.register(r"leases?", views.network.LeaseViewSet)
 
 urlpatterns = [
     url(

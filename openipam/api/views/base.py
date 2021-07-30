@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import pagination
+from rest_framework import mixins
+from rest_framework import viewsets
 
 from rest_framework_jwt.views import ObtainJSONWebToken, jwt_response_payload_handler
 
@@ -52,6 +54,35 @@ class APIMaxPagination(pagination.LimitOffsetPagination):
         if ret == 0:
             return self.max_limit
         return ret
+
+
+class ListRetrieveDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    A viewset that provides `retrieve`, `destroy`, and `list` actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+    pass
+
+
+class ListDestroyViewSet(
+    mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+):
+    """
+    A viewset that provides `destroy`, and `list` actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+    pass
 
 
 class TokenAuthenticationView(ObtainJSONWebToken):

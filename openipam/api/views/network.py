@@ -21,14 +21,15 @@ from openipam.network.models import (
     Vlan,
     NetworkRange,
     NetworkToVlan,
+    Lease,
     Pool,
     DefaultPool,
     Building,
     BuildingToVlan,
 )
-from openipam.api.views.base import APIPagination
+from openipam.api.views.base import APIPagination, ListDestroyViewSet
 from openipam.api.serializers import network as network_serializers
-from openipam.api.filters.network import NetworkFilter
+from openipam.api.filters.network import NetworkFilter, LeaseFilter
 from openipam.api.permissions import IPAMAPIAdminPermission
 
 from ipaddress import IPv4Network
@@ -367,7 +368,9 @@ class NetworkRangeViewSet(viewsets.ModelViewSet):
 
 
 class NetworkToVlanViewSet(viewsets.ModelViewSet):
-    queryset = NetworkToVlan.objects.all()
+    queryset = NetworkToVlan.objects.select_related(
+        "network", "vlan", "changed_by"
+    ).all()
     lookup_field = "network"
     lookup_value_regex = r"([0-9a-fA-F]{1,4}[\.\:]?){3,4}(\:?\/[0-9]+)?"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
@@ -455,7 +458,7 @@ class DhcpOptionToDhcpGroupViewSet(viewsets.ModelViewSet):
 
 
 class SharedNetworkViewSet(viewsets.ModelViewSet):
-    queryset = SharedNetwork.objects.all()
+    queryset = SharedNetwork.objects.select_related("changed_by").all()
     filter_fields = ("id", "name")
     lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
@@ -467,7 +470,11 @@ class SharedNetworkViewSet(viewsets.ModelViewSet):
 
 
 class VlanViewSet(viewsets.ModelViewSet):
-    queryset = Vlan.objects.all()
+    queryset = (
+        Vlan.objects.select_related("changed_by")
+        .prefetch_related("vlan_networks", "buildings")
+        .all()
+    )
     filter_fields = ("name", "vlan_id", "id")
     lookup_field = "id"
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
@@ -514,6 +521,18 @@ class PoolViewSet(viewsets.ModelViewSet):
         if self.action == "destroy":
             return network_serializers.PoolDeleteSerializer
         return network_serializers.PoolSerializer
+
+
+class LeaseViewSet(ListDestroyViewSet):
+    queryset = Lease.objects.all()
+    filter_class = LeaseFilter
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    pagination_class = APIPagination
+
+    def get_serializer_class(self):
+        if self.action == "destroy":
+            return network_serializers.LeaseDeleteSerializer
+        return network_serializers.LeaseSerializer
 
 
 class DefaultPoolViewSet(viewsets.ModelViewSet):
