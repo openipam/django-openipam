@@ -911,6 +911,10 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             raise ValidationError(
                 "CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days."
             )
+        elif len(host) > len(fields):
+            raise ValidationError(
+                f"CSV File needs at most {len(fields)} columns: {fields}"
+            )
 
         host_vals = collections.OrderedDict()
 
