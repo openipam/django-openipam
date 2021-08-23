@@ -17,5 +17,6 @@ class LeaseFilter(FilterSet):
     ip = CharFilter(field_name="pk")
     mac = CharFilter(field_name="host_id")
 
-    model = Lease
-    fields = ["address", "host"]
+    class Meta:
+        model = Lease
+        fields = ["address", "host"]
