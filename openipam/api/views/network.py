@@ -526,7 +526,7 @@ class PoolViewSet(viewsets.ModelViewSet):
 class LeaseViewSet(ListDestroyViewSet):
     queryset = Lease.objects.all()
     filter_class = LeaseFilter
-    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+    permission_classes = (IsAuthenticated,)
     pagination_class = APIPagination
 
     def get_serializer_class(self):
