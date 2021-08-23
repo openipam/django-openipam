@@ -158,7 +158,7 @@ class IPAMSearchAutoComplete(al.AutocompleteGenericBase):
     search_fields = (
         ("network", "name"),
         ("username", "^first_name", "^last_name"),
-        ("name",),
+        ("^name",),
         ("attribute__name", "value"),
         ("attribute__name", "value"),
         ("name", "description"),

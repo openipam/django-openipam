@@ -9,6 +9,7 @@ from openipam.network.models import (
     DhcpOption,
     DhcpOptionToDhcpGroup,
     Pool,
+    Lease,
     SharedNetwork,
     DefaultPool,
     Vlan,
@@ -504,6 +505,31 @@ class PoolDeleteSerializer(serializers.ModelSerializer):
         model = Pool
         fields = ("name",)
         read_only_fields = ("name",)
+
+
+class LeaseSerializer(serializers.ModelSerializer):
+    address = serializers.SerializerMethodField()
+    host = serializers.SerializerMethodField()
+
+    def get_address(self, obj):
+        return str(obj.pk)
+
+    def get_host(self, obj):
+        if obj.host_id:
+            return str(obj.host_id)
+        else:
+            return None
+
+    class Meta:
+        model = Lease
+        fields = "__all__"
+
+
+class LeaseDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lease
+        fields = ("address",)
+        read_only_fields = ("address",)
 
 
 class DefaultPoolSerializer(serializers.ModelSerializer):
