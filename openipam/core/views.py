@@ -165,7 +165,10 @@ def duo_auth(request):
             )
             if authenticated_username:
                 duo_authenticate(request)
-                return redirect(request.GET.get("next", "admin:index"))
+                redirect_val = request.GET.get("next", "admin:index")
+                if redirect_val is None:
+                    return redirect("admin:index")
+                return redirect(redirect_val)
 
     sig_request = duo_web.sign_request(
         duo_settings.get("IKEY"),
