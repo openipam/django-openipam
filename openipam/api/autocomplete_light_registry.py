@@ -459,7 +459,7 @@ class DomainAutocomplete(al.AutocompleteModelBase):
     limit_choices = 10
 
     def choices_for_request(self):
-        if not self.request.user.get("is_ipamadmin", False):
+        if not self.request.user.is_anonymous() and not self.request.user.is_ipamadmin:
             self.choices = get_objects_for_user(
                 self.request.user,
                 [

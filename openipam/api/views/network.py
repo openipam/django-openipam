@@ -30,7 +30,7 @@ from openipam.network.models import (
 from openipam.api.views.base import APIPagination, ListDestroyViewSet
 from openipam.api.serializers import network as network_serializers
 from openipam.api.filters.network import NetworkFilter, LeaseFilter
-from openipam.api.permissions import IPAMAPIAdminPermission
+from openipam.api.permissions import IPAMAPIAdminPermission, IPAMAPIPermission
 
 from ipaddress import IPv4Network
 
@@ -526,7 +526,7 @@ class PoolViewSet(viewsets.ModelViewSet):
 class LeaseViewSet(ListDestroyViewSet):
     queryset = Lease.objects.all()
     filter_class = LeaseFilter
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
     pagination_class = APIPagination
 
     def get_serializer_class(self):
