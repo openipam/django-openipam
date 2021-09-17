@@ -254,7 +254,7 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
 
     search_fields = (
         ("username", "^first_name", "^last_name", "email"),
-        ("name",),
+        ("^name",),
         ("object_pk", "permission__name", "permission__codename"),
         ("object_pk", "permission__name", "permission__codename"),
     )
@@ -283,7 +283,7 @@ class IPAMUserSearchAutoComplete(al.AutocompleteGenericBase):
                 )
             elif choice_q == "group":
                 self.choices = (Group.objects.all(),)
-                self.search_fields = (("name",),)
+                self.search_fields = (("^name",),)
             elif choice_q == "perm":
                 self.choices = (
                     GroupObjectPermission.objects.filter(
