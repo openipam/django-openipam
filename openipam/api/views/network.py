@@ -32,7 +32,7 @@ from openipam.api.serializers import network as network_serializers
 from openipam.api.filters.network import NetworkFilter, LeaseFilter
 from openipam.api.permissions import IPAMAPIAdminPermission, IPAMAPIPermission
 
-from ipaddress import IPv4Network
+from ipaddress import IPv4Network, ip_interface
 
 
 class IPAMNetwork(APIView):
@@ -186,25 +186,26 @@ class ConvertIPAMNetwork(IPAMNetwork):
     def post(self, request, format=None, **kwargs):
         serializer = network_serializers.ConvertIPAMNetworkSerializer(data=request.data)
         if not serializer.is_valid(raise_exception=True):
-            return Response({"serializer": serializer})
+           return Response({"serializer": serializer})
 
         building = serializer.data["building"]
-        vlan_nets = serializers.data["vlan_nets"]
+        vlan_nets = request.data["vlan_nets"]
 
         # Loop and create the vlans
         for net in vlan_nets:
-            self.create_network(
-                network_str=serializer.data["captive_network"],
-                building=building,
-                name=net["name"],
-                user=request.user,
-                dhcp_group_name=net["dhcp_group_name"],
-            )
+            for address in net["addresses"]:
+                self.create_network(
+                    network_str=str(ip_interface(address).network),
+                    building=building,
+                    name=net["name"],
+                    user=request.user,
+                    dhcp_group_name=net["dhcp_group_name"],
+                )
             self.create_vlan(
                 vlan_id=net["vlan_id"],
                 building=building,
                 user=request.user,
-                networks=net["addresses"],
+                networks=[Network.objects.get(network=str(ip_interface(address).network))for address in net["addresses"]],
                 name=net["name"],
             )      
 

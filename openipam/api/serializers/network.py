@@ -19,7 +19,7 @@ from openipam.network.models import (
     BuildingToVlan,
 )
 from openipam.hosts.models import Host
-from openipam.api.serializers.base import ChangedBySerializer
+from openipam.api.serializers.base import ChangedBySerializer, ListOrItemField
 
 from netaddr import EUI, AddrFormatError
 
@@ -72,52 +72,16 @@ class IPAMNetworkSerializer(serializers.Serializer):
 
 
 class ConvertIPAMNetworkSerializer(serializers.Serializer):
-    routable_networks = serializers.MultipleChoiceField(
-        choices=[(network, network) for network in Network.objects.all()]
-    )
-    non_routable_networks = serializers.MultipleChoiceField(
-        choices=[(network, network) for network in Network.objects.all()]
-    )
     building = serializers.ChoiceField(
         choices=[
             (building.number, building.number) for building in Building.objects.all()
         ]
     )
-    campus_lab_networks = serializers.MultipleChoiceField(
-        choices=[(network, network) for network in Network.objects.all()],
-        required=False,
-    )
-    captive_network = serializers.CharField(required=False)
-    captive_housing_network = serializers.CharField(required=False)
-    phone_network = serializers.CharField(required=False)
-    management_network = serializers.CharField()
+    #vlan_nets = ListOrItemField(serializers.CharField(required=True), required=True)
 
     def validate_building(self, value):
         building = Building.objects.get(number__iexact=value)
         return building
-
-    def validate_captive_network(self, value):
-        try:
-            return IPv4Network(value, False)
-        except Exception as e:
-            raise serializers.ValidationError(e.message)
-
-    validate_phone_network = (
-        validate_management_network
-    ) = validata_captive_housing_network = validate_captive_network
-
-    # def validate_phone_network(self, value):
-    #     try:
-    #         return IPv4Network(value, False)
-    #     except Exception as e:
-    #         raise serializers.ValidationError(e.message)
-
-    # def validate_management_network(self, value):
-    #     try:
-    #         return IPv4Network(value, False)
-    #     except Exception as e:
-    #         raise serializers.ValidationError(e.message)
-
 
 class NetworkVlanSerializer(serializers.ModelSerializer):
     class Meta:
