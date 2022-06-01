@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
@@ -5,6 +6,12 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from openipam.dns.models import Domain, DnsRecord, DnsType
+from openipam.dns.validators import (
+    validate_fqdn,
+    validate_srv_content,
+    validate_soa_content,
+    validate_sshfp_content,
+)
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -92,16 +99,46 @@ class DnsCreateSerializer(serializers.ModelSerializer):
         )
         return self.instance
 
-    def validate_dns_type(self, value):
-        if value:
-            dns_type = DnsType.objects.filter(name__iexact=value).first()
+    def validate(self, data):
+        if data["dns_type"]:
+            dns_type = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
 
             if not dns_type:
                 raise serializers.ValidationError(
                     "The Dns Type selected is not valid.  Please enter a valid type (https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
 
-        return dns_type
+            if data["content"]:
+                try:
+                    if dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
+                        validate_fqdn(data["content"])
+
+                    elif dns_type.is_soa_record:
+                        validate_soa_content(data["content"])
+
+                    elif dns_type.is_srv_record:
+                        validate_srv_content(data["content"])
+
+                    elif dns_type.is_sshfp_record:
+                        validate_sshfp_content(data["content"])
+
+                    elif dns_type.is_a_record:
+                        raise serializers.ValidationError(
+                            "Content should not be added with A records."
+                        )
+                except ValidationError as e:
+                    raise serializers.ValidationError({"content": e.messages})
+
+        return data
+
+    def validate_name(self, value):
+        if value:
+            try:
+                validate_fqdn(value)
+            except ValidationError:
+                raise serializers.ValidationError(
+                    "The Dns Name is not fully qualified domain name.  Please try again."
+                )
 
     class Meta:
         model = DnsRecord
