@@ -554,7 +554,9 @@ class Supermaster(models.Model):
 
 
 class PdnsZoneXfer(models.Model):
-    domain_id = models.ForeignKey("Domain")
+    domain = models.ForeignKey(
+        "Domain",
+    )
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10)
     content = models.CharField(max_length=65535)
@@ -574,7 +576,7 @@ class PdnsZoneXfer(models.Model):
 
 
 class Record(models.Model):
-    domain_id = models.IntegerField(null=True, blank=True)
+    domain = models.IntegerField(null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     type = models.CharField(max_length=32, blank=True)
     content = models.TextField(blank=True)
