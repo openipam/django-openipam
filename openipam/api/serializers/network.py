@@ -19,7 +19,7 @@ from openipam.network.models import (
     BuildingToVlan,
 )
 from openipam.hosts.models import Host
-from openipam.api.serializers.base import ChangedBySerializer, ListOrItemField
+from openipam.api.serializers.base import ChangedBySerializer
 
 from netaddr import EUI, AddrFormatError
 
@@ -77,11 +77,12 @@ class ConvertIPAMNetworkSerializer(serializers.Serializer):
             (building.number, building.number) for building in Building.objects.all()
         ]
     )
-    #vlan_nets = ListOrItemField(serializers.CharField(required=True), required=True)
+    # vlan_nets = ListOrItemField(serializers.CharField(required=True), required=True)
 
     def validate_building(self, value):
         building = Building.objects.get(number__iexact=value)
         return building
+
 
 class NetworkVlanSerializer(serializers.ModelSerializer):
     class Meta:

@@ -40,8 +40,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"openIPAM"
-copyright = u"2014, Eldon Koyle, Jay McEntire, Mike Fotinakis"
+project = "openIPAM"
+copyright = "2014, Eldon Koyle, Jay McEntire, Mike Fotinakis"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -194,8 +194,8 @@ latex_documents = [
     (
         "index",
         "openIPAM.tex",
-        u"openIPAM Documentation",
-        u"Eldon Koyle, Jay McEntire, Mike Fotinakis",
+        "openIPAM Documentation",
+        "Eldon Koyle, Jay McEntire, Mike Fotinakis",
         "manual",
     )
 ]
@@ -229,8 +229,8 @@ man_pages = [
     (
         "index",
         "openipam",
-        u"openIPAM Documentation",
-        [u"Eldon Koyle, Jay McEntire, Mike Fotinakis"],
+        "openIPAM Documentation",
+        ["Eldon Koyle, Jay McEntire, Mike Fotinakis"],
         1,
     )
 ]
@@ -248,8 +248,8 @@ texinfo_documents = [
     (
         "index",
         "openIPAM",
-        u"openIPAM Documentation",
-        u"Eldon Koyle, Jay McEntire, Mike Fotinakis",
+        "openIPAM Documentation",
+        "Eldon Koyle, Jay McEntire, Mike Fotinakis",
         "openIPAM",
         "One line description of project.",
         "Miscellaneous",
