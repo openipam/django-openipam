@@ -186,7 +186,7 @@ class ConvertIPAMNetwork(IPAMNetwork):
     def post(self, request, format=None, **kwargs):
         serializer = network_serializers.ConvertIPAMNetworkSerializer(data=request.data)
         if not serializer.is_valid(raise_exception=True):
-           return Response({"serializer": serializer})
+            return Response({"serializer": serializer})
 
         building = serializer.data["building"]
         vlan_nets = request.data["vlan_nets"]
@@ -205,9 +205,12 @@ class ConvertIPAMNetwork(IPAMNetwork):
                 vlan_id=net["vlan_id"],
                 building=building,
                 user=request.user,
-                networks=[Network.objects.get(network=str(ip_interface(address).network))for address in net["addresses"]],
+                networks=[
+                    Network.objects.get(network=str(ip_interface(address).network))
+                    for address in net["addresses"]
+                ],
                 name=net["name"],
-            )      
+            )
 
         # routable_networks = serializer.data["routable_networks"]
         # non_routable_networks = serializer.data["non_routable_networks"]
