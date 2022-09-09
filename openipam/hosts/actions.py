@@ -6,15 +6,14 @@ from django.utils.safestring import mark_safe
 from django.core import serializers
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 
 from openipam.hosts.models import (
     Host,
     Disabled,
+    HostGroupView,
+    HostUserView,
     StructuredAttributeToHost,
     FreeformAttributeToHost,
-    GulRecentArpByaddress,
-    GulRecentArpBymac,
     Attribute,
 )
 from openipam.hosts.forms import (
@@ -493,34 +492,77 @@ def export_csv(request, selected_hosts):
             "Mac Last Seen",
             "IP Last Seen",
             "Users",
-            "User Emails",
+            "Groups",
             "Description",
         ]
     )
 
-    for host in selected_hosts:
-        owners = host.get_owners(ids_only=True)
-        users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
-        usernames = ",".join(set([user.username for user in users]))
-        emails = ",".join(set([user.email or "" for user in users]))
+    host_values = selected_hosts.order_by("mac").values(
+        "mac",
+        "hostname",
+        "expires",
+        "description",
+        "addresses__address",
+        "ip_history__stopstamp",
+        "mac_history__stopstamp",
+        # "hostuserview__user__username",
+        # "hostuserview__user__email",
+        # "hostgroupview__group_name",
+    )
+    host_macs = [host["mac"] for host in host_values]
 
-        gul_by_address = GulRecentArpByaddress.objects.filter(host=host).first()
-        gul_by_mac = GulRecentArpBymac.objects.filter(host=host).first()
+    # gul_by_address = GulRecentArpByaddress.objects.filter(
+    #     address__in=[host.master_ip_address for host in selected_hosts]
+    # )
+    # gul_by_mac = GulRecentArpBymac.objects.filter(address__in=[host.master_ip_address for host in selected_hosts])
+    host_users = list(
+        HostUserView.objects.filter(host_id__in=host_macs).values(
+            "user__username", "user__email", "host"
+        )
+    )
+    host_groups = HostGroupView.objects.filter(host_id__in=host_macs).values(
+        "group_name", "host"
+    )
 
-        ip_history = gul_by_address.stopstamp if gul_by_address else None
-        mac_history = gul_by_mac.stopstamp if gul_by_mac else None
+    for host in host_values:
+        # owners = host.get_owners(ids_only=True)
+        # users = User.objects.filter(Q(pk__in=owners[0]) | Q(groups__pk__in=owners[1]))
+        # usernames = ",".join(set([user.username for user in users]))
+        # emails = ",".join(set([user.email or "" for user in users]))
+
+        # ip_history = list(
+        #     filter(lambda a: a.stopstamp if a.address == host.master_ip_address else None, gul_by_address)
+        # )
+        # mac_history = list(filter(lambda m: m.stopstamp if m.address == host.master_ip_address else None, gul_by_mac))
+
+        users_str, groups_str = "", ""
+        users = filter(lambda u: u["host"] == host["mac"], host_users)
+        if users:
+            user_list = []
+            for user in users:
+                if user["user__email"]:
+                    user_list.append(
+                        f"{user['user__username']} <{user['user__email']}>"
+                    )
+                else:
+                    user_list.append(f"{user['user__username']}")
+            if user_list:
+                users_str = ",".join(user_list)
+        groups = filter(lambda g: g["host"] == host["mac"], host_groups)
+        if groups:
+            groups_str = ",".join([group["group_name"] for group in groups])
 
         writer.writerow(
             [
-                host.hostname,
-                host.mac,
-                host.expires,
-                host.master_ip_address,
-                mac_history,
-                ip_history,
-                usernames,
-                emails,
-                host.description,
+                host["hostname"],
+                host["mac"],
+                host["expires"],
+                host["addresses__address"],
+                host["mac_history__stopstamp"],
+                host["ip_history__stopstamp"],
+                users_str,
+                groups_str,
+                host["description"],
             ]
         )
 
