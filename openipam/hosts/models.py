@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -34,6 +33,8 @@ import random
 
 from six import string_types
 
+User = get_user_model()
+
 
 class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -43,7 +44,7 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(User, db_column="changed_by")
 
     def __str__(self):
         return self.name
@@ -76,7 +77,7 @@ class Disabled(models.Model):
     # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column="disabled")
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="disabled_by")
+    changed_by = models.ForeignKey(User, db_column="disabled_by")
 
     def __init__(self, *args, **kwargs):
         # Initialize setters
@@ -125,7 +126,7 @@ class FreeformAttributeToHost(models.Model):
     attribute = models.ForeignKey("Attribute", db_column="aid")
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(User, db_column="changed_by")
 
     def __str__(self):
         return "%s %s %s" % (self.pk, self.attribute.name, self.value)
@@ -135,7 +136,7 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="uid")
+    user = models.ForeignKey(User, db_column="uid")
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -247,6 +248,7 @@ class GulRecentArpByaddress(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_byaddress"
+        managed = False
 
 
 class GulRecentArpBymac(models.Model):
@@ -274,6 +276,43 @@ class GulRecentArpBymac(models.Model):
 
     class Meta:
         db_table = "gul_recent_arp_bymac"
+        managed = False
+
+
+class HostUserView(models.Model):
+    user = models.ForeignKey(
+        User, primary_key=True, db_column="user", on_delete=models.DO_NOTHING
+    )
+    host = models.ForeignKey(
+        "Host",
+        db_column="mac",
+        on_delete=models.DO_NOTHING,
+    )
+
+    class Meta:
+        unique_together = (("user", "host"),)
+        managed = False
+        db_table = "hosts_to_auth_users_v"
+
+
+class HostGroupView(models.Model):
+    group_id = models.ForeignKey(
+        "auth.Group",
+        primary_key=True,
+        db_column="auth_group",
+        on_delete=models.DO_NOTHING,
+    )
+    group_name = models.CharField(max_length=80, db_column="auth_group_name")
+    host = models.ForeignKey(
+        "Host",
+        db_column="mac",
+        on_delete=models.DO_NOTHING,
+    )
+
+    class Meta:
+        unique_together = (("group_id", "group_name", "host"),)
+        managed = False
+        db_table = "hosts_to_auth_groups_v"
 
 
 class Host(DirtyFieldsMixin, models.Model):
@@ -306,7 +345,7 @@ class Host(DirtyFieldsMixin, models.Model):
     )
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(User, db_column="changed_by")
     last_notified = models.DateTimeField(blank=True, null=True)
 
     objects = HostManager.from_queryset(HostQuerySet)()
@@ -454,7 +493,6 @@ class Host(DirtyFieldsMixin, models.Model):
         #        groups.append(group)
 
         if users_only:
-            User = get_user_model()
             users_from_groups = [
                 user for user in User.objects.filter(groups__in=groups)
             ]
@@ -1258,7 +1296,7 @@ class StructuredAttributeValue(models.Model):
     value = models.TextField()
     is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(User, db_column="changed_by")
 
     def __str__(self):
         return self.value
@@ -1276,7 +1314,7 @@ class StructuredAttributeToHost(models.Model):
         "StructuredAttributeValue", db_column="avid"
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(User, db_column="changed_by")
 
     def __str__(self):
         return "%s %s" % (self.host.hostname, self.structured_attribute_value)
