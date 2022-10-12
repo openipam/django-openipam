@@ -19,7 +19,6 @@ import datetime
 
 from six import string_types
 
-
 class IPAMTestCase(TestCase):
     user = {
         "username": "admin",
