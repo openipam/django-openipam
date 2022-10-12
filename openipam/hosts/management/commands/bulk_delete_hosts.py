@@ -6,6 +6,7 @@ import os
 from openipam.hosts.models import Host, User
 from django.db import transaction
 
+
 class Command(BaseCommand):
     MAC_ADDR_REGEX = "^([0-9A-Fa-f]{2}[:.-]?){5}[0-9A-Fa-f]{2}$"
 
