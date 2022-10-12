@@ -7,7 +7,7 @@ from openipam.hosts.models import Host, User
 from django.db import transaction
 
 class Command(BaseCommand):
-    MAC_ADDR_REGEX = "^([0-9A-Za-z]{2}[:.-]?){5}[0-9A-Za-z]{2}$"
+    MAC_ADDR_REGEX = "^([0-9A-Fa-f]{2}[:.-]?){5}[0-9A-Fa-f]{2}$"
 
     CYAN_ANSI_SEQ = "\033[96m"
     RED_ANSI_SEQ = "\033[91m"
