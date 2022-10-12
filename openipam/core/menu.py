@@ -14,6 +14,7 @@ from admin_tools.menu import items, Menu
 
 from openipam.conf.ipam_settings import CONFIG
 
+
 class IPAMMenu(Menu):
     """
     Custom Menu for openipam admin site.
@@ -178,15 +179,26 @@ class IPAMMenu(Menu):
             self.children.append(
                 items.MenuItem(
                     "Reports",
-                    children=
-                        [
-                            items.MenuItem(title="openIPAM Stats", url=reverse("reports_dashboard")),
-                            items.MenuItem(title="Hardcoded Disabled Hosts", url=reverse("reports_disabled")),
-                            items.MenuItem(title="Server Profile Hosts", url=reverse("reports_server_hosts")),
-                            items.MenuItem(title="Host with no DNS Records", url=reverse("reports_host_dns")),
-                            items.MenuItem(title="Broken PTR Recordss", url=reverse("reports_ptr_dns"))
-                        ],
-                    
+                    children=[
+                        items.MenuItem(
+                            title="openIPAM Stats", url=reverse("reports_dashboard")
+                        ),
+                        items.MenuItem(
+                            title="Hardcoded Disabled Hosts",
+                            url=reverse("reports_disabled"),
+                        ),
+                        items.MenuItem(
+                            title="Server Profile Hosts",
+                            url=reverse("reports_server_hosts"),
+                        ),
+                        items.MenuItem(
+                            title="Host with no DNS Records",
+                            url=reverse("reports_host_dns"),
+                        ),
+                        items.MenuItem(
+                            title="Broken PTR Recordss", url=reverse("reports_ptr_dns")
+                        ),
+                    ],
                     # icon='icon-user icon-white'
                 )
             )
