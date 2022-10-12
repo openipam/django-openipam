@@ -4,6 +4,7 @@ import re
 import os
 
 from openipam.hosts.models import Host, User
+from django.db import transaction
 
 
 class Command(BaseCommand):
@@ -32,15 +33,19 @@ class Command(BaseCommand):
             "-uid", "--user-id", help="User id to delete mac addresses with"
         )
 
+    @transaction.atomic
     def handle(self, *args, **options):
         if not bool(options["user"]) != bool(options["user_id"]):
             raise Exception("Must specify, exclusively, username or user id")
 
         user = (
-            User.objects.get(username=options["user"])
-            if "user" in options
-            else User.objects.get(pk=options["user_id"])
+            User.objects.filter(username=options["user"]).first()
+            if options["user"]
+            else User.objects.filter(pk=options["user_id"]).first()
         )
+
+        if not user:
+            raise Exception("User does not exist")
 
         lines = []
 
@@ -48,8 +53,8 @@ class Command(BaseCommand):
             lines += sys.stdin.readlines()
 
         if options["file"]:
-            with open(options["file"], "r").readlines() as file_lines:
-                lines += file_lines
+            with open(options["file"], "r") as file:
+                lines += file.readlines()
 
         mac_addrs = set(
             filter(
