@@ -193,5 +193,7 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
         }
 
         context["host_types"] = host_types
+        context["static_mac_addrs"] = [str(host.mac) for host in host_types["static"]]
+        context["dynamic_mac_addrs"] = [str(host.mac) for host in host_types["dynamic"]]
 
         return context

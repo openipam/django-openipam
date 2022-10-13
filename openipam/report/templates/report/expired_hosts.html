@@ -12,6 +12,60 @@
 
 {% endblock %} {% block content %}
 
+<div
+  id="confirm-modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-hidden="true"
+  style="display: none"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-hidden="true"
+        >
+          &times;
+        </button>
+        <h3 class="modal-title">
+          <span class="oaction"></span> Confirm Deletion
+        </h3>
+      </div>
+      <div class="modal-body">
+        <div class="clear">
+          <p>
+            Are you sure you want to delete <span id="mac-count">0</span> mac
+            addresses?
+          </p>
+          <div class="alert alert-danger" role="alert" id="deletion-error">
+            <span
+              class="glyphicon glyphicon-exclamation-sign"
+              aria-hidden="true"
+            ></span>
+            <span class="sr-only">Error:</span>
+            <div id="deletion-error-message"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="confirm-delete">Yes</button>
+        <button
+          class="btn btn-default"
+          data-dismiss="modal"
+          aria-hidden="true"
+          id="cancel-delete"
+        >
+          No
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="content">
   <h1>Expired Hosts</h1>
   <p>
@@ -21,53 +75,126 @@
   </p>
 
   <div class="row">
+    {% if host_types.static or host_types.dynamic %}
     <div class="col-lg-12">
+      {% if host_types.static %}
       <h2>Static Hosts - ({{host_types.static|length}})</h2>
-      <button class="btn btn-danger m-b-md">
-        <span class="glyphicon glyphicon-trash"></span> Delete All
-      </button>
-      <table class="table table-striped table-condensed table-bordered">
-        <thead>
-          <tr>
-            <th>Host</th>
-            <th>Mac Address</th>
-            <th>Expired</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for host in host_types.static %}
-          <tr>
-            <td>{{ host.hostname }}</td>
-            <td>{{ host.mac }}</td>
-            <td>{{ host.expires }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+      <form method="post" action="/api/hosts/bulk_delete/" id="static_hosts">
+        {% csrf_token %}
+        <button class="btn btn-danger m-b-md" id="delete-static">
+          <span class="glyphicon glyphicon-trash"></span> Delete Selected
+        </button>
+        <table class="table table-striped table-condensed table-bordered">
+          <thead>
+            <tr>
+              <td>Delete</td>
+              <th>Host</th>
+              <th>Mac Address</th>
+              <th>Expired</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for host in host_types.static %}
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="mac_addr[]"
+                  value="{{host.mac}}"
+                  checked
+                />
+              </td>
+              <td>{{ host.hostname }}</td>
+              <td>{{ host.mac }}</td>
+              <td>{{ host.expires }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+      {% endif %} {% if host_types.dynamic %}
       <h2>Dynamic Hosts - ({{host_types.dynamic|length}})</h2>
-      <button class="btn btn-danger m-b-md">
-        <span class="glyphicon glyphicon-trash"></span> Delete All
-      </button>
-      <table class="table table-striped table-condensed table-bordered">
-        <thead>
-          <tr>
-            <th>Host</th>
-            <th>Mac Address</th>
-            <th>Expired</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for host in host_types.dynamic %}
-          <tr>
-            <td>{{ host.hostname }}</td>
-            <td>{{ host.mac }}</td>
-            <td>{{ host.expires }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <form method="post" action="/api/hosts/bulk_delete/" id="dynamic_hosts">
+        {% csrf_token %}
+        <button class="btn btn-danger m-b-md" id="delete-dynamic">
+          <span class="glyphicon glyphicon-trash"></span> Delete Selected
+        </button>
+        <table class="table table-striped table-condensed table-bordered">
+          <thead>
+            <tr>
+              <td>Delete</td>
+              <th>Host</th>
+              <th>Mac Address</th>
+              <th>Expired</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for host in host_types.dynamic %}
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="mac_addr[]"
+                  value="{{host.mac}}"
+                  checked
+                />
+              </td>
+              <td>{{ host.hostname }}</td>
+              <td>{{ host.mac }}</td>
+              <td>{{ host.expires }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+
+      {% endif %}
     </div>
+    {% else %}
+    <p>No expired hosts! :)</p>
+    {% endif %}
   </div>
 </div>
 
+<script>
+  const hideError = () => {
+    $("#deletion-error").hide();
+    $("#deletion-error-message").text("");
+    $("#confirm-delete").prop("disabled", false);
+  };
+  $("#delete-static").on("click", hideError);
+  $("#delete-dynamic").on("click", hideError);
+
+  const formSubmit = function (e) {
+    e.preventDefault();
+
+    $("#mac-count").text(
+      $(this)
+        .serializeArray()
+        .filter((input) => input.name === "mac_addr[]").length
+    );
+
+    $("#confirm-modal").modal();
+
+    $("#confirm-delete").on("click", function () {
+      $(this).prop("disabled", true);
+      $.ajax({
+        url: $(this).attr("action"),
+        type: "POST",
+        data: $(this).serialize(),
+        success: () => window.location.reload(),
+        error: (e) => {
+          $("#deletion-error").show();
+          $("#deletion-error-message").text(e.responseJSON);
+        },
+      });
+    });
+
+    return false;
+  };
+
+  $("#static_hosts").on("submit", formSubmit);
+  $("#dynamic_hosts").on("submit", formSubmit);
+</script>
 {% endblock %}
