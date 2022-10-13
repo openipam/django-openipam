@@ -166,3 +166,32 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
 
         context["rogue_ptrs"] = rogue_ptrs
         return context
+
+
+class ExpiredHostsView(GroupRequiredMixin, TemplateView):
+    group_required = "ipam_admins"
+    template_name = "report/expired_hosts.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ExpiredHostsView, self).get_context_data(**kwargs)
+
+        host_types = {
+            "static": Host.objects.select_related("mac_history")
+            .filter(
+                pools__isnull=False,
+                expires__lte=timezone.now() - timedelta(weeks=260),
+                mac_history__host__isnull=True,
+            )
+            .order_by("-expires"),
+            "dynamic": Host.objects.select_related("mac_history")
+            .filter(
+                pools__isnull=True,
+                expires__lte=timezone.now() - timedelta(weeks=104),
+                mac_history__host__isnull=True,
+            )
+            .order_by("-expires"),
+        }
+
+        context["host_types"] = host_types
+
+        return context
