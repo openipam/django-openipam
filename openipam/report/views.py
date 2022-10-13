@@ -19,11 +19,11 @@ import operator
 User = get_user_model()
 
 
-class DashboardView(TemplateView):
-    template_name = "report/dashboard.html"
+class IpamStatsView(TemplateView):
+    template_name = "report/ipam_stats.html"
 
     def get_context_data(self, **kwargs):
-        context = super(DashboardView, self).get_context_data(**kwargs)
+        context = super(IpamStatsView, self).get_context_data(**kwargs)
 
         context["dynamic_hosts"] = Host.objects.filter(
             pools__isnull=False, expires__gte=timezone.now()
@@ -63,30 +63,6 @@ class DashboardView(TemplateView):
             last_login__gte=(timezone.now() - timedelta(days=365))
         ).count()
 
-        return context
-
-
-class LeaseUsageView(TemplateView):
-    template_name = "report/lease_usage.html"
-
-
-class WeatherMapView(TemplateView):
-    template_name = "report/weather_map.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(WeatherMapView, self).get_context_data(**kwargs)
-        popup = self.request.GET.get("_popup", None)
-        context["is_popup"] = True if popup else False
-        return context
-
-
-class BuildingMapView(TemplateView):
-    template_name = "report/building_map.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(BuildingMapView, self).get_context_data(**kwargs)
-        popup = self.request.GET.get("_popup", None)
-        context["is_popup"] = True if popup else False
         return context
 
 
