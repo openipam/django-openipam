@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model
 
 from datetime import timedelta
+from openipam.conf.ipam_settings import CONFIG_DEFAULTS
 
 from openipam.hosts.models import GulRecentArpBymac, Host
 from openipam.network.models import Address, Lease, Network
@@ -179,14 +180,20 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
             "static": Host.objects.select_related("mac_history")
             .filter(
                 pools__isnull=False,
-                expires__lte=timezone.now() - timedelta(weeks=260),
+                expires__lte=timezone.now()
+                - timedelta(
+                    weeks=CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                ),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
             "dynamic": Host.objects.select_related("mac_history")
             .filter(
                 pools__isnull=True,
-                expires__lte=timezone.now() - timedelta(weeks=104),
+                expires__lte=timezone.now()
+                - timedelta(
+                    weeks=CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                ),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
