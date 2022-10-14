@@ -84,7 +84,7 @@
       {% if host_types.static %}
       <h2>Static Hosts - ({{host_types.static|length}})</h2>
 
-      <form method="post" action="/api/hosts/bulk_delete/" id="static_hosts">
+      <form method="post" action="/api/hosts/bulk_delete/" id="static_hosts" autocomplete="off">
         {% csrf_token %}
         <button class="btn btn-danger m-b-md" id="delete-static">
           <span class="glyphicon glyphicon-trash"></span> Delete Selected
@@ -119,7 +119,7 @@
       </form>
       {% endif %} {% if host_types.dynamic %}
       <h2>Dynamic Hosts - ({{host_types.dynamic|length}})</h2>
-      <form method="post" action="/api/hosts/bulk_delete/" id="dynamic_hosts">
+      <form method="post" action="/api/hosts/bulk_delete/" id="dynamic_hosts" autocomplete="off">
         {% csrf_token %}
         <button class="btn btn-danger m-b-md" id="delete-dynamic">
           <span class="glyphicon glyphicon-trash"></span> Delete Selected
@@ -181,7 +181,7 @@
 
     $("#confirm-modal").modal();
 
-    $("#confirm-delete").on("click", function () {
+    $("#confirm-delete").on("click", () => {
       $(this).prop("disabled", true);
       $.ajax({
         url: $(this).attr("action"),

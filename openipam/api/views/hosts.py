@@ -275,21 +275,26 @@ class HostDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         instance.delete(user=self.request.user)
 
+
 class HostBulkDelete(APIView):
     """
     Delete hosts from a from a list of mac addresses (mac_addr[])
     """
+
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def post(self, request, *args, **kwargs):
-        if not 'mac_addr[]' in request.data:
-            return Response("No mac addresses(es) specified", status=status.HTTP_400_BAD_REQUEST)
+        if not "mac_addr[]" in request.data:
+            return Response(
+                "No mac addresses(es) specified", status=status.HTTP_400_BAD_REQUEST
+            )
 
-        mac_addrs = request.data.getlist('mac_addr[]')
+        Host.objects.filter(pk__in=request.data.getlist("mac_addr[]")).delete(
+            request.user
+        )
 
-        Host.objects.filter(mac__in=set(mac_addrs)).delete(request.user)
-        
         return Response(status=status.HTTP_200_OK)
+
 
 class HostOwnerList(generics.RetrieveAPIView):
     serializer_class = host_serializers.HostOwnerSerializer
