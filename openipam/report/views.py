@@ -72,6 +72,7 @@ class DisabledHostsView(GroupRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DisabledHostsView, self).get_context_data(**kwargs)
+
         hardcoded = (
             GulRecentArpBymac.objects.select_related("host")
             .filter(
