@@ -283,10 +283,11 @@ class HostBulkDelete(APIView):
 
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         if "mac_addr[]" not in request.data:
             return Response(
-                "No mac addresses(es) specified", status=status.HTTP_400_BAD_REQUEST
+                "No host mac addresses(es) specified",
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         Host.objects.filter(pk__in=request.data.getlist("mac_addr[]")).delete(
