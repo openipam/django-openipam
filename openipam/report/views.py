@@ -84,11 +84,12 @@ class DisabledHostsView(GroupRequiredMixin, TemplateView):
             .exclude(host__leases__ends__lt=timezone.now())
             .extra(
                 where=[
-                    "NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')",
+                    #    "NOT (gul_recent_arp_bymac.address <<= '172.16.0.0/16' OR gul_recent_arp_bymac.address <<= '172.18.0.0/16')",
                     "gul_recent_arp_bymac.mac IN (SELECT mac from disabled)",
                 ]
             )
         )
+
         context["hardcoded"] = hardcoded
         return context
 
