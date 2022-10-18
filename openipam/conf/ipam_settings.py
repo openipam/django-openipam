@@ -33,6 +33,9 @@ CONFIG_DEFAULTS = {
     "DUO_LOGIN": False,
     "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},
     "WEATHERMAP_DATA": {"data": {}, "config": {}},
+    "STATIC_HOST_EXPIRY_THRESHOLD_WEEKS": 5 * 52,
+    "DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS": 2 * 52,
+    "NAC_PROFILE_IS_SERVER_PREFIX": "expose_",
 }
 
 USER_CONFIG = getattr(settings, "OPENIPAM", {})

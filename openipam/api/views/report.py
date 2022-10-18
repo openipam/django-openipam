@@ -24,7 +24,7 @@ from openipam.report.models import Ports
 from openipam.report.models import database_connect, database_close
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
-from openipam.conf.ipam_settings import CONFIG
+from openipam.conf.ipam_settings import CONFIG, CONFIG_DEFAULTS
 from openipam.conf.settings import get_buildingmap_data
 
 from functools import reduce
@@ -436,8 +436,10 @@ class ServerHostView(APIView):
 
     def get(self, request, format=None, **kwargs):
         hosts = Host.objects.prefetch_related("addresses").filter(
-            structured_attributes__structured_attribute_value__attribute__name="border-profile",
-            structured_attributes__structured_attribute_value__value="server",
+            structured_attributes__structured_attribute_value__attribute__name="nac-profile",
+            structured_attributes__structured_attribute_value__value__startswith=CONFIG_DEFAULTS[
+                "NAC_PROFILE_IS_SERVER_PREFIX"
+            ],
         )
 
         user_perms_prefetch = UserObjectPermission.objects.select_related(
