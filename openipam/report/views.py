@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model
 
 from datetime import timedelta
+from openipam.conf.ipam_settings import CONFIG_DEFAULTS
 
 from openipam.hosts.models import GulRecentArpBymac, Host
 from openipam.network.models import Address, Lease, Network
@@ -165,4 +166,41 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
         )
 
         context["rogue_ptrs"] = rogue_ptrs
+        return context
+
+
+class ExpiredHostsView(GroupRequiredMixin, TemplateView):
+    group_required = "ipam_admins"
+    template_name = "report/expired_hosts.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ExpiredHostsView, self).get_context_data(**kwargs)
+
+        host_types = {
+            "static": Host.objects.select_related("mac_history")
+            .filter(
+                pools__isnull=False,
+                expires__lte=timezone.now()
+                - timedelta(
+                    weeks=CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                ),
+                mac_history__host__isnull=True,
+            )
+            .order_by("-expires"),
+            "dynamic": Host.objects.select_related("mac_history")
+            .filter(
+                pools__isnull=True,
+                expires__lte=timezone.now()
+                - timedelta(
+                    weeks=CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                ),
+                mac_history__host__isnull=True,
+            )
+            .order_by("-expires"),
+        }
+
+        context["host_types"] = host_types
+        context["static_mac_addrs"] = [str(host.mac) for host in host_types["static"]]
+        context["dynamic_mac_addrs"] = [str(host.mac) for host in host_types["dynamic"]]
+
         return context

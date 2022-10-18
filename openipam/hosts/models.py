@@ -633,12 +633,19 @@ class Host(DirtyFieldsMixin, models.Model):
 
     @property
     def mac_last_seen(self):
-        gul_mac = GulRecentArpBymac.objects.filter(mac=self.mac).order_by("-stopstamp")
+        gul_mac = GulRecentArpBymac.objects.filter(pk=self.mac).order_by("-stopstamp")
 
         if gul_mac:
             return gul_mac[0].stopstamp
         else:
             return None
+
+    @property
+    def mac_last_seen_by_host(self):
+        gul_mac = GulRecentArpBymac.objects.filter(host=self).order_by("-stopstamp")
+
+        print(gul_mac)
+        return gul_mac[0].stopstamp if gul_mac else None
 
     @property
     def oui(self):
