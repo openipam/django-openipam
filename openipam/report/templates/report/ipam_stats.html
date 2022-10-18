@@ -50,12 +50,17 @@
 			display: grid;
 			place-items: center;
 		}
+
+		.content {
+			margin: 30px;
+		}
 	</style>
 {% endblock %}
 
 {% block content %}
+<div class="content">
 	<div class="row">
-		<div class="col-lg-4">
+		<div class="col-lg-4 col-md-6">
 			<div class="panel panel-default">
 				<div class="panel-heading">Host Updated</div>
 				<div class="panel-body">
@@ -69,7 +74,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-lg-4">
+		<div class="col-lg-4 col-md-6">
 			<div class="panel panel-default">
 				<div class="panel-heading">DNS Records Updated</div>
 				<div class="panel-body">
@@ -84,7 +89,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-lg-4">
+		<div class="col-lg-4 col-md-6">
 			<div class="panel panel-default">
 				<div class="panel-heading">Snapshot</div>
 					<table id="dashboard-stats" class="table table-default">
@@ -138,5 +143,6 @@
 			</div>
 		</div>
 	</div>
+</div>
 
 {% endblock %}

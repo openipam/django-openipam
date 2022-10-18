@@ -181,7 +181,7 @@ class IPAMMenu(Menu):
                     "Reports",
                     children=[
                         items.MenuItem(
-                            title="openIPAM Stats", url=reverse("reports_dashboard")
+                            title="openIPAM Stats", url=reverse("reports_ipam_stats")
                         ),
                         items.MenuItem(
                             title="Hardcoded Disabled Hosts",

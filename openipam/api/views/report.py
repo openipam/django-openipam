@@ -16,7 +16,7 @@ from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone
 
 from openipam.hosts.models import Host
@@ -435,11 +435,19 @@ class ServerHostView(APIView):
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer, ServerHostCSVRenderer)
 
     def get(self, request, format=None, **kwargs):
-        hosts = Host.objects.prefetch_related("addresses").filter(
-            structured_attributes__structured_attribute_value__attribute__name="nac-profile",
-            structured_attributes__structured_attribute_value__value__startswith=CONFIG_DEFAULTS[
-                "NAC_PROFILE_IS_SERVER_PREFIX"
-            ],
+        hosts = (
+            Host.objects.prefetch_related("addresses")
+            .filter(
+                structured_attributes__structured_attribute_value__attribute__name="nac-profile",
+                structured_attributes__structured_attribute_value__value__startswith=CONFIG_DEFAULTS[
+                    "NAC_PROFILE_IS_SERVER_PREFIX"
+                ],
+            )
+            .annotate(
+                nac_profile=F(
+                    "structured_attributes__structured_attribute_value__value"
+                ),
+            )
         )
 
         user_perms_prefetch = UserObjectPermission.objects.select_related(
@@ -474,6 +482,7 @@ class ServerHostView(APIView):
                     else None,
                     "user_owners": ", ".join(owners[0]),
                     "group_owners": ", ".join(owners[1]),
+                    "nac_profile": host.nac_profile,
                 }
             )
 
