@@ -4,9 +4,14 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 
-from openipam.hosts.models import Host
+from openipam.hosts.models import GulRecentArpByaddress, GulRecentArpBymac, Host
 
-from django_filters import FilterSet, CharFilter, NumberFilter
+from django_filters import (
+    FilterSet,
+    CharFilter,
+    NumberFilter,
+    IsoDateTimeFromToRangeFilter,
+)
 
 import re
 
@@ -151,3 +156,21 @@ class HostFilter(FilterSet):
         model = Host
         # TODO: This is dumb, django-filter 0.14 needs docs and bug fixes
         fields = ["hostname"]
+
+
+class RecentGulFilter(FilterSet):
+    mac = CharFilter(field_name="host__mac")
+    address = CharFilter()
+    stopstamp = IsoDateTimeFromToRangeFilter()
+
+
+class RecentGulArpByAddressFilter(RecentGulFilter):
+    class Meta:
+        model = GulRecentArpByaddress
+        fields = ("mac", "address", "stopstamp")
+
+
+class RecentGulArpByMacFilter(RecentGulFilter):
+    class Meta:
+        model = GulRecentArpBymac
+        fields = ("mac", "address", "stopstamp")

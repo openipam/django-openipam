@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -16,6 +17,8 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework_csv.renderers import CSVRenderer
 
 from openipam.hosts.models import (
+    GulRecentArpByaddress,
+    GulRecentArpBymac,
     Host,
     StructuredAttributeToHost,
     FreeformAttributeToHost,
@@ -26,8 +29,17 @@ from openipam.hosts.models import (
 from openipam.network.models import Lease
 from openipam.api.views.base import APIPagination, APIMaxPagination
 from openipam.api.serializers import hosts as host_serializers
-from openipam.api.filters.hosts import HostFilter
-from openipam.api.permissions import IPAMChangeHostPermission, IPAMAPIAdminPermission
+from openipam.api.filters.hosts import (
+    HostFilter,
+    RecentGulArpByAddressFilter,
+    RecentGulArpByMacFilter,
+    RecentGulFilter,
+)
+from openipam.api.permissions import (
+    IPAMAPIPermission,
+    IPAMChangeHostPermission,
+    IPAMAPIAdminPermission,
+)
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -572,3 +584,21 @@ class DisabledHostDelete(generics.DestroyAPIView):
 
     def post(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class RecentGulMacEntries(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    serializer_class = host_serializers.RecentGulMacEntriesSerializer
+    queryset = GulRecentArpBymac.objects.all()
+
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = RecentGulArpByMacFilter
+
+
+class RecentGulAddressEntries(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    serializer_class = host_serializers.RecentGulAddressEntriesSerializer
+    queryset = GulRecentArpByaddress.objects.all()
+
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = RecentGulArpByAddressFilter
