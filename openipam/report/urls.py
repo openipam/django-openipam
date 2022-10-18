@@ -16,4 +16,5 @@ urlpatterns = [
     url(r"^host_dns/$", views.HostDNSView.as_view(), name="reports_host_dns"),
     url(r"^ptr_dns/$", views.PTRDNSView.as_view(), name="reports_ptr_dns"),
     url(r"^$", views.DashboardView.as_view(), name="reports_dashboard"),
+    url(r"^expired_hosts", views.ExpiredHostsView.as_view(), name="expired_hosts"),
 ]

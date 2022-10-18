@@ -196,7 +196,10 @@ class IPAMMenu(Menu):
                             url=reverse("reports_host_dns"),
                         ),
                         items.MenuItem(
-                            title="Broken PTR Recordss", url=reverse("reports_ptr_dns")
+                            title="Broken PTR Records", url=reverse("reports_ptr_dns")
+                        ),
+                        items.MenuItem(
+                            title="Expired Hosts", url=reverse("expired_hosts")
                         ),
                     ],
                     # icon='icon-user icon-white'
