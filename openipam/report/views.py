@@ -93,9 +93,9 @@ class DisabledHostsView(GroupRequiredMixin, TemplateView):
         return context
 
 
-class ServerHostsView(GroupRequiredMixin, TemplateView):
+class ExposedHostsView(GroupRequiredMixin, TemplateView):
     group_required = "ipam_admins"
-    template_name = "report/server_hosts.html"
+    template_name = "report/exposed_hosts.html"
 
 
 class HostDNSView(GroupRequiredMixin, TemplateView):
