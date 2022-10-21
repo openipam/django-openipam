@@ -1,5 +1,11 @@
-{% extends "report/base.html" %} {% block page_title %}Disabled Hosts Report{%
-endblock %} {% block extrahead %} {{ block.super }}
+{% extends "report/base.html" %} 
+{% load staticfiles %}
+{% block page_title %}
+Hosts Missing DNS
+{% endblock %} 
+
+{% block extrahead %}
+{{ block.super }}
 <style type="text/css">
   #content {
     background: #fff;
@@ -14,50 +20,92 @@ endblock %} {% block extrahead %} {{ block.super }}
   });
 </script>
 {% endblock %} {% block content %}
-<h4>Host with no DNS Records</h4>
+<div
+  id="confirm-modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-hidden="true"
+  style="display: none"
+></div>
+
+<h4>Hosts with no DNS Records</h4>
 <p>
-  Hosts that appear not have the required A and/or PTR records or Hosts that
-  just dont have a Foreign Key to DnsRecord.
+  Hosts that appear not have the required A and/or PTR records or that
+  don't have a DnsRecord referencing its' mac address.
 </p>
-<table
-  id="result_list"
-  class="table table-striped table-condensed table-bordered"
->
-  <tr>
-    <thead>
-      <th>Host</th>
-      <th>Mac Address</th>
-      <th>IP Addresses</th>
-      <th>DNS Records</th>
-    </thead>
-  </tr>
-  <tbody>
-    {% if hosts %} {% for host in hosts %}
+<form method="post" action="/api/hosts/bulk_repopulate_dns/" id="dnsless_hosts" autocomplete="off">
+  {% csrf_token %}
+  <button class="btn btn-primary" id="toggle-checks" type="button">
+    <span class="glyphicon glyphicon-check"></span>
+    Toggle All Checkboxes
+  </button>
+  <button class="btn btn-success">
+    <span class="glyphicon glyphicon-tags"></span> Repopulate Selected Hosts' A/PTR Records
+  </button>
+  <br>
+  <br>
+  <table
+    id="result_list"
+    class="table table-striped table-condensed table-bordered"
+  >
     <tr>
-      <td nowrap="nowrap">
-        <a href="{% url 'update_host' pk=host.mac_stripped %}"
-          >{{ host.hostname }}</a
-        >
-      </td>
-      <td>{{ host.mac }}</td>
-      <td>{{ host.ip_addresses|join:", " }}</td>
-      <td>
-        <table class="table table-striped table-condensed table-bordered">
-          {% for record in host.get_dns_records %}
-          <tr>
-            <td>{{ record.name }}</td>
-            <td>{{ record.dns_type }}</td>
-            <td>{{ record.content }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </td>
+      <thead>
+        <th>Repopulate</th>
+        <th>Host</th>
+        <th>Mac Address</th>
+        <th>IP Addresses</th>
+        <th>DNS Records</th>
+      </thead>
     </tr>
-    {% endfor %} {% else %}
-    <tr>
-      <td colspan="4" class="warning">No Records... ;)</td>
-    </tr>
-    {% endif %}
-  </tbody>
-</table>
+    <tbody>
+      {% if hosts %} {% for host in hosts %}
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            name="mac_addr[]"
+            value="{{host.mac}}"
+          />
+        </td>
+        <td nowrap="nowrap">
+          <a href="{% url 'update_host' pk=host.mac_stripped %}"
+            >{{ host.hostname }}</a
+          >
+        </td>
+        <td>{{ host.mac }}</td>
+        <td>{{ host.ip_addresses|join:", " }}</td>
+        <td>
+          <table class="table table-striped table-condensed table-bordered">
+            {% for record in host.get_dns_records %}
+            <tr>
+              <td>{{ record.name }}</td>
+              <td>{{ record.dns_type }}</td>
+              <td>{{ record.content }}</td>
+            </tr>
+            {% endfor %}
+          </table>
+        </td>
+      </tr>
+      {% endfor %} {% else %}
+      <tr>
+        <td colspan="4" class="warning">No Records... ;)</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</form>
+
+<script type="text/javascript" src="{% static 'report/js/host/confirm_modal.js' %}"></script>
+<script type="text/javascript" src="{% static 'report/js/host/multiselect_host_form.js' %}" defer></script>
+<script>
+  $("#dnsless_hosts").on("submit", function(e) {
+    e.preventDefault();
+    $("#confirm-modal").confirmHostsModal("Repopulate DNS Records", `Are you sure you want to attempt to repopulate A/PTR records on ${macCount(this)} static hosts?`,
+      () => submitForm(this),
+      () => window.location.reload(), 
+    );
+    return false;
+  });
+</script>
 {% endblock %}

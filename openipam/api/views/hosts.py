@@ -14,6 +14,8 @@ from rest_framework import status
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from rest_framework_csv.renderers import CSVRenderer
+from openipam.dns.models import DnsType
+from openipam.hosts.actions import populate_primary_dns
 
 from openipam.hosts.models import (
     Host,
@@ -284,9 +286,11 @@ class HostBulkDelete(APIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
 
     def post(self, request):
-        if "mac_addr[]" not in request.data:
+        if "mac_addr[]" not in request.data or not len(
+            list(filter(lambda x: x, request.data.getlist("mac_addr[]")))
+        ):
             return Response(
-                "No host mac addresses(es) specified",
+                {"error": "No host mac addresses(es) specified"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -294,7 +298,51 @@ class HostBulkDelete(APIView):
             request.user
         )
 
-        return Response(status=status.HTTP_200_OK)
+        return Response({"success": True}, status=status.HTTP_200_OK)
+
+
+class BulkFixHostDNSRecords(APIView):
+    """
+    Attempts to re-populate a list of hosts' DNS records from their mac addresses (mac_addr[])
+    """
+
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    def post(self, request):
+        if "mac_addr[]" not in request.data or not len(
+            list(filter(lambda x: x, request.data.getlist("mac_addr[]")))
+        ):
+            return Response(
+                {"error": "Must specify mac addresses of hosts to populate"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        hosts = Host.objects.filter(
+            pk__in=request.data.getlist("mac_addr[]"),
+            dns_records__isnull=True,
+        )
+
+        populate_record_status = []
+        for host in hosts:
+            try:
+                dns_records = host.get_dns_records()
+                if dns_records:
+                    for record in dns_records:
+                        record.host = host
+                        record.changed_by = request.user
+                        record.save()
+                    continue
+
+                host.delete_dns_records(user=request.user)
+                host.add_dns_records(user=request.user)
+
+                populate_record_status.append({"mac": str(host.mac), "success": True})
+            except Exception as e:
+                populate_record_status.append(
+                    {"mac": str(host.mac), "success": False, "error": e}
+                )
+
+        return Response(populate_record_status, status=status.HTTP_200_OK)
 
 
 class HostOwnerList(generics.RetrieveAPIView):

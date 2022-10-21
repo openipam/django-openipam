@@ -202,9 +202,14 @@ urlpatterns = [
         name="api_host_delete",
     ),
     url(
-        "hosts/bulk_delete/",
+        r"^hosts/bulk_delete/$",
         views.hosts.HostBulkDelete.as_view(),
         name="api_host_bulk_delete",
+    ),
+    url(
+        r"^hosts/bulk_repopulate_dns/$",
+        views.hosts.BulkFixHostDNSRecords.as_view(),
+        name="api_bulk_repopulate_host_dns_records",
     ),
     url(
         r"^hosts?/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/$",
