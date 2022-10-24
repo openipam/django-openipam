@@ -9,7 +9,14 @@ from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import serializers
 
-from openipam.hosts.models import Host, Attribute, StructuredAttributeValue, Disabled
+from openipam.hosts.models import (
+    GulRecentArpByaddress,
+    GulRecentArpBymac,
+    Host,
+    Attribute,
+    StructuredAttributeValue,
+    Disabled,
+)
 from openipam.network.models import Network, Address, Pool, DhcpGroup
 from openipam.api.serializers.base import (
     MACAddressField,
@@ -609,3 +616,25 @@ class DisabledHostDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Disabled
         fields = ("mac",)
+
+
+class RecentGulEntriesSerializer(serializers.ModelSerializer):
+    mac = serializers.SerializerMethodField()
+    address = serializers.IPAddressField()
+    stopstamp = serializers.DateTimeField()
+
+    def get_mac(self, obj):
+        if hasattr(obj, "host"):
+            return str(obj.host.mac)
+
+
+class RecentGulMacEntriesSerializer(RecentGulEntriesSerializer):
+    class Meta:
+        model = GulRecentArpBymac
+        fields = ("mac", "address", "stopstamp")
+
+
+class RecentGulAddressEntriesSerializer(RecentGulEntriesSerializer):
+    class Meta:
+        model = GulRecentArpByaddress
+        fields = ("mac", "address", "stopstamp")

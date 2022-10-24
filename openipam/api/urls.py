@@ -302,6 +302,14 @@ urlpatterns = [
         r"^address(es)?/$", views.network.AddressList.as_view(), name="api_address_list"
     ),
     url(
+        r"^addresses/recent/$",
+        views.hosts.RecentGulAddressEntries.as_view(),
+        name="api_gul_addresses",
+    ),
+    url(
+        r"^mac/recent/$", views.hosts.RecentGulMacEntries.as_view(), name="api_gul_macs"
+    ),
+    url(
         r"^login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"
     ),
     url(r"^login/jwt_token/", views.base.obtain_jwt_token),
