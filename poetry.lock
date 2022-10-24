@@ -198,17 +198,19 @@ python-ldap = ">=3.1"
 
 [[package]]
 name = "django-autocomplete-light"
-version = "2.3.3"
+version = "3.9.4"
 description = "Fresh autocompletes for Django"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-six = ">=1.4"
+six = "*"
 
 [package.extras]
-"generic m2m" = ["django-generic-m2m"]
+genericm2m = ["django-generic-m2m"]
+gfk = ["django-querysetsequence (>=0.11)"]
+nested = ["django-nested-admin (>=3.0.21)"]
 tags = ["django-taggit"]
 
 [[package]]
@@ -1091,7 +1093,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">3.7"
-content-hash = "674bdc96f9e4d8a6f7e195eaccc65c3b43f3c3c1991295fb61c8230144eda480"
+content-hash = "8242e36d563365ab9321a7bda0177941cddd02867f198c48d84a75b48c929f0c"
 
 [metadata.files]
 appdirs = [
@@ -1168,7 +1170,7 @@ django-auth-ldap = [
     {file = "django_auth_ldap-2.1.0-py3-none-any.whl", hash = "sha256:4d68d21058bd57a316a9e1fcd7a36d0f25d054d4d9d9ec85f766a4991176b454"},
 ]
 django-autocomplete-light = [
-    {file = "django-autocomplete-light-2.3.3.tar.gz", hash = "sha256:e8a8d868b3cfd7abb0ff064159491a8ecc6796392a834176247011d45d81ea0f"},
+    {file = "django-autocomplete-light-3.9.4.tar.gz", hash = "sha256:0f6da75c1c7186698b867a467a8cdb359f0513fdd8e09288a0c2fb018ae3d94e"},
 ]
 django-bower = [
     {file = "django-bower-5.2.0.tar.gz", hash = "sha256:3ab5699b782d63d1aa8e5d61f9bdcdb8d29137e7ba6f19d094d566241afee0f2"},
