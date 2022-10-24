@@ -28,7 +28,7 @@ from guardian.models import UserObjectPermission, GroupObjectPermission
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
 
-from autocomplete_light import shortcuts as al
+# from autocomplete_light import shortcuts as al
 
 
 class IPAMAdminFilter(SimpleListFilter):
@@ -355,7 +355,8 @@ class AuthUserAdmin(UserAdmin):
 
 
 class TokenAdmin(TokenAdmin):
-    form = al.modelform_factory(Token, fields=("user",))
+    #form = al.modelform_factory(Token, fields=("user",))
+    form = None
 
 
 class AuthGroupSourceInline(admin.StackedInline):

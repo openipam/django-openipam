@@ -36,7 +36,7 @@ from openipam.network.forms import (
 )
 from openipam.core.admin import ChangedAdmin, custom_titled_filter
 
-from autocomplete_light import shortcuts as al
+#from autocomplete_light import shortcuts as al
 
 
 class NetworkAdmin(ChangedAdmin):
@@ -49,7 +49,7 @@ class NetworkAdmin(ChangedAdmin):
         "changed",
     )
     list_filter = (("tags__name", custom_titled_filter("Tags")), "shared_network__name")
-    form = al.modelform_factory(Network, exclude=("changed,"))
+    #form = al.modelform_factory(Network, exclude=("changed,"))
     search_fields = ("^network", "^name", "^shared_network__name")
     actions = ["tag_network", "resize_network", "release_abandoned_leases"]
 
@@ -252,7 +252,7 @@ class DhcpOptionAdmin(admin.ModelAdmin):
 class DhcpGroupAdmin(ChangedAdmin):
     list_display = ("name", "description", "changed_by", "changed")
     search_fields = ("^name",)
-    form = al.modelform_factory(DhcpGroup, exclude=("changed",))
+    #form = al.modelform_factory(DhcpGroup, exclude=("changed",))
 
 
 class DhcpOptionToDhcpGroupAdmin(ChangedAdmin):

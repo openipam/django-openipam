@@ -6,7 +6,7 @@ from openipam.core.admin import ChangedAdmin
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
-from autocomplete_light import shortcuts as al
+#from autocomplete_light import shortcuts as al
 
 
 class ObjectPermissionAdmin(admin.ModelAdmin):
@@ -57,7 +57,7 @@ class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
         "changed_by",
         "changed",
     )
-    form = al.modelform_factory(Domain, exclude=("changed",))
+    #form = al.modelform_factory(Domain, exclude=("changed",))
     search_fields = ("name",)
 
 
@@ -73,7 +73,7 @@ class DnsRecordAdmin(ChangedAdmin):
         "edit_link",
     )
     list_filter = ("dns_type", "dns_view", "priority", "domain")
-    form = al.modelform_factory(DnsRecord, exclude=("changed",))
+    #form = al.modelform_factory(DnsRecord, exclude=("changed",))
     list_editable = ("name", "dns_type", "text_content")
     list_display_links = ("edit_link",)
     # list_select_related = True

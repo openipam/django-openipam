@@ -6,11 +6,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 
-from autocomplete_light import shortcuts as al
+#from autocomplete_light import shortcuts as al
 
 from openipam.core.views import server_error, page_not_found
 
-al.autodiscover()
+#al.autodiscover()
 
 admin.autodiscover()
 

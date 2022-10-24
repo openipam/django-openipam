@@ -13,7 +13,7 @@ from rest_framework.authtoken.models import Token
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
 
-from autocomplete_light import shortcuts as al
+#from autocomplete_light import shortcuts as al
 
 from functools import reduce
 
@@ -41,10 +41,10 @@ class AuthUserCreateAdminForm(UserCreationForm):
 
 
 class AuthUserChangeAdminForm(UserChangeForm):
-    groups = al.ModelMultipleChoiceField("GroupFilterAutocomplete", required=False)
-    user_permissions = al.ModelMultipleChoiceField(
-        "PermissionAutocomplete", required=False
-    )
+    #groups = al.ModelMultipleChoiceField("GroupFilterAutocomplete", required=False)
+    #user_permissions = al.ModelMultipleChoiceField(
+    #    "PermissionAutocomplete", required=False
+    #)
 
     def clean_username(self):
         username = self.cleaned_data["username"]
@@ -61,7 +61,7 @@ class AuthUserChangeAdminForm(UserChangeForm):
 
 
 class AuthGroupAdminForm(forms.ModelForm):
-    permissions = al.ModelMultipleChoiceField("PermissionAutocomplete", required=False)
+    # permissions = al.ModelMultipleChoiceField("PermissionAutocomplete", required=False)
     # def clean_name(self):
     #     name = self.cleaned_data['name'].lower()
 
@@ -95,7 +95,7 @@ class PermissionModelChoiceField(forms.ModelChoiceField):
 
 
 class UserObjectPermissionAdminForm(forms.ModelForm):
-    user = al.ModelChoiceField("UserAutocomplete")
+    # user = al.ModelChoiceField("UserAutocomplete")
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related("content_type").filter(
             reduce(operator.or_, PERMISSION_FILTER)
@@ -103,9 +103,9 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
         label="Permission",
         empty_label="Select A Permssion",
     )
-    object_id = forms.CharField(
-        widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
-    )
+    #object_id = forms.CharField(
+    #    widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
+    #)
 
     def __init__(self, *args, **kwargs):
         super(UserObjectPermissionAdminForm, self).__init__(*args, **kwargs)
@@ -121,7 +121,7 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 
 
 class GroupObjectPermissionAdminForm(forms.ModelForm):
-    group = al.ModelChoiceField("GroupAutocomplete")
+    # group = al.ModelChoiceField("GroupAutocomplete")
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related("content_type").filter(
             reduce(operator.or_, PERMISSION_FILTER)
@@ -129,9 +129,9 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
         label="Permission",
         empty_label="Select A Permssion",
     )
-    object_id = forms.CharField(
-        widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
-    )
+    #object_id = forms.CharField(
+    #    widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
+    #)
 
     def __init__(self, *args, **kwargs):
         super(GroupObjectPermissionAdminForm, self).__init__(*args, **kwargs)
@@ -180,7 +180,8 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
 
 
 class GroupForm(forms.Form):
-    groups = al.ModelMultipleChoiceField("GroupAutocomplete")
+    #groups = al.ModelMultipleChoiceField("GroupAutocomplete")
+    groups = None
 
 
 class UserObjectPermissionForm(forms.ModelForm):
@@ -191,9 +192,9 @@ class UserObjectPermissionForm(forms.ModelForm):
         label="Permission",
         empty_label="Select A Permssion",
     )
-    object_id = forms.CharField(
-        widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
-    )
+    #object_id = forms.CharField(
+    #    widget=al.ChoiceWidget("IPAMObjectsAutoComplete"), label="Object"
+    #)
 
     class Meta:
         model = UserObjectPermission
@@ -201,7 +202,7 @@ class UserObjectPermissionForm(forms.ModelForm):
 
 
 class TokenForm(forms.ModelForm):
-    user = al.ModelChoiceField("UserAutocomplete")
+    #user = al.ModelChoiceField("UserAutocomplete")
 
     class Meta:
         model = Token
