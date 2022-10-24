@@ -1,6 +1,8 @@
 {% extends "report/base.html" %}
 {% load static nvd3_tags %}
 
+{% block page_title %}Stats{%endblock %}
+
 {% block extrahead %}
 	{{ block.super }}
 	<link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
