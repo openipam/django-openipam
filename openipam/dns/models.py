@@ -33,7 +33,9 @@ class Domain(models.Model):
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     description = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        "user.User", db_column="changed_by", on_delete=models.PROTECT
+    )
 
     objects = DomainQuerySet.as_manager()
 
@@ -49,9 +51,16 @@ class Domain(models.Model):
 
 
 class DnsRecord(models.Model):
-    domain = models.ForeignKey("Domain", db_column="did", verbose_name="Domain")
+    domain = models.ForeignKey(
+        "Domain", db_column="did", verbose_name="Domain", on_delete=models.PROTECT
+    )
     host = models.ForeignKey(
-        "hosts.Host", db_column="mac", related_name="dns_records", blank=True, null=True
+        "hosts.Host",
+        db_column="mac",
+        related_name="dns_records",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     dns_type = models.ForeignKey(
         "DnsType",
@@ -59,9 +68,15 @@ class DnsRecord(models.Model):
         verbose_name="Type",
         related_name="records",
         error_messages={"blank": "Type fields for DNS records cannot be blank."},
+        on_delete=models.CASCADE,
     )
     dns_view = models.ForeignKey(
-        "DnsView", db_column="vid", verbose_name="View", blank=True, null=True
+        "DnsView",
+        db_column="vid",
+        verbose_name="View",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
     name = models.CharField(
         max_length=255,
@@ -75,11 +90,14 @@ class DnsRecord(models.Model):
         blank=True,
         null=True,
         related_name="arecords",
+        on_delete=models.PROTECT,
     )
     ttl = models.IntegerField(default=14400, blank=True, null=True)
     priority = models.IntegerField(verbose_name="Priority", blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        "user.User", db_column="changed_by", on_delete=models.PROTECT
+    )
 
     objects = DnsManager.from_queryset(DNSQuerySet)()
 
@@ -477,10 +495,16 @@ class DnsRecordMunged(models.Model):
 
 
 class DhcpDnsRecord(models.Model):
-    domain = models.ForeignKey("Domain", db_column="did")
-    host = models.OneToOneField("hosts.Host", db_column="name", to_field="hostname")
+    domain = models.ForeignKey("Domain", db_column="did", on_delete=models.DO_NOTHING)
+    host = models.OneToOneField(
+        "hosts.Host", db_column="name", to_field="hostname", on_delete=models.DO_NOTHING
+    )
     ip_content = models.ForeignKey(
-        "network.Address", null=True, db_column="ip_content", blank=True
+        "network.Address",
+        null=True,
+        db_column="ip_content",
+        blank=True,
+        on_delete=models.DO_NOTHING,
     )
     ttl = models.IntegerField(default=-1, blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
@@ -544,7 +568,9 @@ class Supermaster(models.Model):
     nameserver = models.CharField(max_length=255)
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey("user.User", db_column="changed_by")
+    changed_by = models.ForeignKey(
+        "user.User", db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.ip
@@ -554,9 +580,7 @@ class Supermaster(models.Model):
 
 
 class PdnsZoneXfer(models.Model):
-    domain = models.ForeignKey(
-        "Domain",
-    )
+    domain = models.ForeignKey("Domain", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10)
     content = models.CharField(max_length=65535)

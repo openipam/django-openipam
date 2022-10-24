@@ -35,7 +35,11 @@ import binascii
 
 class Lease(models.Model):
     address = models.OneToOneField(
-        "Address", primary_key=True, db_column="address", related_name="leases"
+        "Address",
+        primary_key=True,
+        db_column="address",
+        related_name="leases",
+        on_delete=models.CASCADE,
     )
     host = models.ForeignKey(
         "hosts.Host",
@@ -43,6 +47,7 @@ class Lease(models.Model):
         db_constraint=False,
         related_name="leases",
         null=True,
+        on_delete=models.DO_NOTHING,
     )
     abandoned = models.BooleanField(default=False)
     server = models.CharField(max_length=255, blank=True, null=True)
@@ -94,7 +99,11 @@ class Pool(models.Model):
     lease_time = models.IntegerField()
     assignable = models.BooleanField(default=False)
     dhcp_group = models.ForeignKey(
-        "DhcpGroup", null=True, db_column="dhcp_group", blank=True
+        "DhcpGroup",
+        null=True,
+        db_column="dhcp_group",
+        blank=True,
+        on_delete=models.PROTECT,
     )
 
     objects = PoolManager()
@@ -109,7 +118,11 @@ class Pool(models.Model):
 
 class DefaultPool(models.Model):
     pool = models.ForeignKey(
-        "Pool", related_name="pool_defaults", blank=True, null=True
+        "Pool",
+        related_name="pool_defaults",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     cidr = CidrAddressField(unique=True)
 
@@ -127,7 +140,9 @@ class DhcpGroup(models.Model):
     description = models.TextField(blank=True, null=True)
     dhcp_options = models.ManyToManyField("DhcpOption", through="DhcpOptionToDhcpGroup")
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     objects = DhcpGroupManager()
 
@@ -160,6 +175,7 @@ class DhcpOptionToDhcpGroup(models.Model):
         db_column="gid",
         blank=True,
         related_name="option_values",
+        on_delete=models.CASCADE,
     )
     option = models.ForeignKey(
         "DhcpOption",
@@ -167,10 +183,13 @@ class DhcpOptionToDhcpGroup(models.Model):
         db_column="oid",
         blank=True,
         related_name="group_values",
+        on_delete=models.PROTECT,
     )
     value = models.BinaryField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     @staticmethod
     def is_displayable_byte(byte):
@@ -223,11 +242,19 @@ class DhcpOptionToDhcpGroup(models.Model):
 
 class HostToPool(models.Model):
     host = models.ForeignKey(
-        "hosts.Host", db_column="mac", db_index=True, related_name="host_pools"
+        "hosts.Host",
+        db_column="mac",
+        db_index=True,
+        related_name="host_pools",
+        on_delete=models.CASCADE,
     )
-    pool = models.ForeignKey("Pool", db_index=True, related_name="host_pools")
+    pool = models.ForeignKey(
+        "Pool", db_index=True, related_name="host_pools", on_delete=models.CASCADE
+    )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s" % (self.host.hostname, self.pool.name)
@@ -240,7 +267,9 @@ class SharedNetwork(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.name
@@ -250,7 +279,7 @@ class SharedNetwork(models.Model):
 
 
 class TaggedNetworks(TaggedItemBase):
-    content_object = models.ForeignKey("Network")
+    content_object = models.ForeignKey("Network", on_delete=models.CASCADE)
 
 
 class Network(models.Model):
@@ -262,13 +291,23 @@ class Network(models.Model):
         "Vlan", through="NetworkToVlan", related_name="vlan_networks"
     )
     dhcp_group = models.ForeignKey(
-        "DhcpGroup", db_column="dhcp_group", blank=True, null=True
+        "DhcpGroup",
+        db_column="dhcp_group",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
     shared_network = models.ForeignKey(
-        "SharedNetwork", db_column="shared_network", blank=True, null=True
+        "SharedNetwork",
+        db_column="shared_network",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     search_index = VectorField()
 
@@ -320,7 +359,9 @@ class Vlan(models.Model):
         "Building", through="BuildingToVlan", related_name="building_vlans"
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s" % (self.vlan_id, self.name)
@@ -330,10 +371,14 @@ class Vlan(models.Model):
 
 
 class NetworkToVlan(models.Model):
-    network = models.OneToOneField("Network", primary_key=True, db_column="network")
-    vlan = models.ForeignKey("Vlan", db_column="vlan")
+    network = models.OneToOneField(
+        "Network", primary_key=True, db_column="network", on_delete=models.CASCADE
+    )
+    vlan = models.ForeignKey("Vlan", db_column="vlan", on_delete=models.CASCADE)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s" % (self.network, self.vlan)
@@ -349,7 +394,9 @@ class Building(models.Model):
     city = models.CharField(max_length=255, blank=True)
     description = models.TextField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s - %s" % (self.number, self.name)
@@ -359,11 +406,15 @@ class Building(models.Model):
 
 
 class BuildingToVlan(models.Model):
-    building = models.ForeignKey("Building", db_column="building")
-    vlan = models.ForeignKey("Vlan", db_column="vlan")
+    building = models.ForeignKey(
+        "Building", db_column="building", on_delete=models.CASCADE
+    )
+    vlan = models.ForeignKey("Vlan", db_column="vlan", on_delete=models.CASCADE)
     tagged = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     class Meta:
         db_table = "buildings_to_vlans"
@@ -387,10 +438,15 @@ class Address(models.Model):
     reserved = models.BooleanField(default=False)
     # Do we want to allow deletion of a network with addresses referencing it?
     network = models.ForeignKey(
-        "Network", db_column="network", related_name="net_addresses"
+        "Network",
+        db_column="network",
+        related_name="net_addresses",
+        on_delete=models.CASCADE,
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     # objects = AddressQuerySet.as_manager()
     objects = AddressManager.from_queryset(AddressQuerySet)()
@@ -449,7 +505,7 @@ class AddressType(models.Model):
     ranges = models.ManyToManyField(
         "NetworkRange", related_name="address_ranges", blank=True
     )
-    pool = models.ForeignKey("Pool", blank=True, null=True)
+    pool = models.ForeignKey("Pool", blank=True, null=True, on_delete=models.SET_NULL)
     is_default = models.BooleanField(default=False)
 
     objects = AddressTypeManager()
