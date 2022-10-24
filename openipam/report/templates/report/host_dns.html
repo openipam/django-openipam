@@ -31,8 +31,8 @@ Hosts Missing DNS
 
 <h4>Hosts with no DNS Records</h4>
 <p>
-  Hosts that appear not have the required A and/or PTR records or that
-  don't have a DnsRecord referencing its' mac address.
+  Hosts that appear to not have the required A/PTR records, or that
+  don't have a DnsRecord referencing its mac address.
 </p>
 <form method="post" action="/api/hosts/bulk_repopulate_dns/" id="dnsless_hosts" autocomplete="off">
   {% csrf_token %}
