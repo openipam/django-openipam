@@ -2,7 +2,7 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
@@ -24,7 +24,7 @@ from django.views.generic.base import TemplateView
 from django.db.utils import DataError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm

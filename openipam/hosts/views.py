@@ -3,7 +3,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, CreateView, FormView
 from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView, View
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe

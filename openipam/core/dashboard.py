@@ -11,7 +11,7 @@ And to activate the app index dashboard::
 """
 
 from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.db.models.aggregates import Count
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
