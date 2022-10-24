@@ -7,6 +7,9 @@ from rest_framework.routers import SimpleRouter, Route
 from openipam.api import views
 
 
+app_name = "api"
+
+
 class OPENIPAMAPIRouter(SimpleRouter):
     """
     A router to match existing url patterns
