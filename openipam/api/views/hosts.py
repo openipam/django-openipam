@@ -14,8 +14,6 @@ from rest_framework import status
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from rest_framework_csv.renderers import CSVRenderer
-from openipam.dns.models import DnsType
-from openipam.hosts.actions import populate_primary_dns
 
 from openipam.hosts.models import (
     GulRecentArpByaddress,
