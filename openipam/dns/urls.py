@@ -3,6 +3,9 @@ from django.views.generic.base import RedirectView
 
 from openipam.dns import views
 
+
+app_name = "dns"
+
 urlpatterns = [
     path("", views.DNSListView.as_view(), name="list_dns"),
     path("add/", views.DNSCreateUpdateView.as_view(), name="add_dns"),

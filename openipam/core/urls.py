@@ -19,6 +19,8 @@ from openipam.core import views
  PARKER
 """
 
+app_name = "core"
+
 urlpatterns = [
     path("", views.index, name="index"),
     # Accounts URLs

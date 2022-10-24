@@ -3,6 +3,7 @@ from django.views.generic.base import RedirectView
 
 from openipam.report import views
 
+app_name = "report"
 
 urlpatterns = [
     path("", RedirectView.as_view(url=reverse_lazy("reports_ipam_stats"))),

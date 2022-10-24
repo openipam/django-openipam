@@ -4,6 +4,8 @@ from django.views.generic.base import RedirectView
 from openipam.hosts import views
 
 
+app_name = "hosts"
+
 urlpatterns = [
     path("", views.HostListView.as_view(), name="list_hosts"),
     path("host/add/", RedirectView.as_view(url=reverse_lazy("add_hosts"))),

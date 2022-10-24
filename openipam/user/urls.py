@@ -3,6 +3,8 @@ from django.urls import path
 
 from openipam.user import views
 
+app_name = "users"
+
 urlpatterns = [
     path("manager/", views.UserManagerView.as_view(), name="user_manager"),
     path("manager/data/", views.UserManagerJson.as_view(), name="json_hosts"),
