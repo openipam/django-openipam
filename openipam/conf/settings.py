@@ -175,7 +175,7 @@ WSGI_APPLICATION = "openipam.wsgi.application"
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
 LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", [])
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     # openIPAM Apps
     "openipam.core",
     "openipam.user",
@@ -215,7 +215,7 @@ INSTALLED_APPS = (
     "django.contrib.admin",
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-) + LOCAL_INSTALLED_APPS
+] + LOCAL_INSTALLED_APPS
 
 BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
 BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
@@ -234,11 +234,11 @@ BOWER_INSTALLED_APPS = (
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
 LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", [])
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "openipam.core.backends.CaseInsensitiveModelBackend",
     "guardian.backends.ObjectPermissionBackend",
-) + LOCAL_AUTHENTICATION_BACKENDS
+] + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
 
