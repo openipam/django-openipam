@@ -133,7 +133,7 @@ urlpatterns = [
         name="api_reports_chart_stats",
     ),
     path(
-        "reports/dashboard/$",
+        "reports/dashboard/",
         views.report.DashboardAPIView.as_view(),
         name="api_reports_dashboard",
     ),
