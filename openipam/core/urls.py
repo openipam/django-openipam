@@ -12,6 +12,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     # API
     path("api/", include("openipam.api.urls")),
+    path("autocomplete/", include("openipam.autocomplete.urls")),
     # Hosts
     path("hosts/", include("openipam.hosts.urls")),
     # DNS
@@ -19,7 +20,7 @@ urlpatterns = [
     # User
     path("user/", include("openipam.user.urls")),
     # USU Reports and Tools
-    path("reports/", include(("openipam.report.urls", "report"), namespace="report")),
+    path("reports/", include(("openipam.report.urls", "report"))),
     # Duo Auth
     path("duo/auth/", views.duo_auth, name="duo_auth"),
     # Account URLS

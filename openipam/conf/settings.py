@@ -184,6 +184,7 @@ INSTALLED_APPS = [
     "openipam.network",
     "openipam.dns",
     "openipam.log",
+    "openipam.autocomplete",
     # openIPAM reports
     "openipam.report",
     # Firewall

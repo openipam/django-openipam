@@ -1,0 +1,13 @@
+from django.urls import path
+
+from openipam.autocomplete import views
+
+app_name = "autocomplete"
+
+urlpatterns = [
+    path(
+        "user-autocomplete/",
+        views.UserAutocomplete.as_view(),
+        name="user_autocomplete",
+    )
+]

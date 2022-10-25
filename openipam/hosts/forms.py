@@ -722,13 +722,16 @@ class HostOwnerForm(forms.Form):
     user_owners = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:user_autocomplete"
+        ),
     )
-    group_owners = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
-    )
+    #    group_owners = forms.ModelMultipleChoiceField(
+    #        queryset=Group.objects.all()[0:10],
+    #        required=False,
+    #        widget=forms.CheckboxSelectMultiple
+    #        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+    #    )
 
     def clean(self):
         cleaned_data = super(HostOwnerForm, self).clean()
