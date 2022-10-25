@@ -6,7 +6,7 @@ from openipam.report import views
 app_name = "report"
 
 urlpatterns = [
-    path("", RedirectView.as_view(url=reverse_lazy("reports_ipam_stats"))),
+    path("", RedirectView.as_view(url=reverse_lazy("core:report:reports_ipam_stats"))),
     path("disabled/", views.DisabledHostsView.as_view(), name="reports_disabled"),
     path(
         "exposed_hosts/",

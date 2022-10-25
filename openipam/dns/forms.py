@@ -3,9 +3,11 @@ from django.contrib.auth.models import Permission
 from django.forms.models import BaseModelFormSet
 from django.utils.functional import cached_property
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.db.models import Q
 
-from openipam.dns.models import DnsRecord, DnsType, DhcpDnsRecord
+from openipam.dns.models import DnsRecord, DnsType, DhcpDnsRecord, Domain
+from openipam.hosts.models import Host
 from openipam.core.forms import (
     BaseGroupObjectPermissionForm,
     BaseUserObjectPermissionForm,
@@ -15,7 +17,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from crispy_forms.helper import FormHelper
 
-# from autocomplete_light import shortcuts as al
+from dal import autocomplete
 
 
 User = get_user_model()
@@ -30,12 +32,18 @@ class DNSSearchForm(forms.Form):
 
 
 class DNSListForm(forms.Form):
-    #host = al.ModelChoiceField("HostFilterAutocomplete")
-    #groups = al.ModelChoiceField("GroupFilterAutocomplete")
-    #users = al.ModelChoiceField("UserFilterAutocomplete")
-    host = None
-    groups = None
-    users = None
+    host = forms.ModelChoiceField(
+        queryset=Host.objects.all(),
+        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+    )
+    groups = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+    )
+    users = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    )
 
 
 class BaseDNSUpdateFormset(BaseModelFormSet):
@@ -85,8 +93,10 @@ class DNSUpdateForm(forms.ModelForm):
 
         # data = self.cleaned_data
         # if data['text_content'] and self.instance.ip_content:
-        #     raise ValidationError('Content for DNS entry %s cannot be added because'
-        #                           ' it has IP Content of %s' % (self.instance.name, self.instance.ip_content))
+        #     raise ValidationError(
+        #       'Content for DNS entry %s ''cannot be added because'
+        #       ' it has IP Content of %s' %
+        #       (self.instance.name, self.instance.ip_content))
 
         return super(DNSUpdateForm, self).clean(*args, **kwargs)
 
@@ -94,10 +104,6 @@ class DNSUpdateForm(forms.ModelForm):
         # Make the dns_type from the hacked form field.
         self.instance.dns_type_id = self.cleaned_data["dns_types"]
         return super(DNSUpdateForm, self).save(*args, **kwargs)
-
-        # assert False, dns_type_queryset
-        # if dns_type_queryset:
-        #     self.fields['dns_type'] = forms.ModelChoiceField(queryset=dns_type_queryset)
 
     class Meta:
         model = DnsRecord
@@ -131,7 +137,10 @@ class DSNCreateFrom(forms.Form):
 
 
 class DhcpDnsRecordForm(forms.ModelForm):
-    #domain = al.ModelChoiceField("DomainAutocomplete")
+    domain = forms.ModelChoiceField(
+        queryset=Domain.objects.all(),
+        widget=autocomplete.ModelSelect2(url="domain_autocomplete"),
+    )
     host = forms.CharField()
 
     class Meta:

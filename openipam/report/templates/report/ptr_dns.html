@@ -42,9 +42,9 @@
 			{% if rogue_ptrs %}
 				{% for ptr in rogue_ptrs %}
 				<tr>
-					<td nowrap="nowrap"><a href="{% url 'edit_dns' pk=ptr.pk %}">{{ ptr.pk }}</a></td>
+					<td nowrap="nowrap"><a href="{% url 'core:dns:edit_dns' pk=ptr.pk %}">{{ ptr.pk }}</a></td>
 					<td>{{ ptr.name }}</td>
-					<td><a href="{% url 'list_dns' host=ptr.text_content %}">{{ ptr.text_content }}</a></td>
+					<td><a href="{% url 'core:dns:list_dns' host=ptr.text_content %}">{{ ptr.text_content }}</a></td>
 					<td><a href="{% url 'admin:network_address_change' ptr.address %}">{{ ptr.address }}</a></td>
 					<td>{{ ptr.arecord }}</td>
 					<td>{{ ptr.arecord_host }}</td>

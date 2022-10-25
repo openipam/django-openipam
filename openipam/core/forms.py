@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+
 from openipam.core.models import FeatureRequest
-#from autocomplete_light import shortcuts as al
+
+from dal import autocomplete
 
 User = get_user_model()
 
@@ -20,9 +23,14 @@ class FeatureRequestForm(forms.ModelForm):
 
 class BaseUserObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
-    #user = al.ModelChoiceField("UserAutocomplete")
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+    )
 
 
 class BaseGroupObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
-    #group = al.ModelChoiceField("GroupAutocomplete")
+    group = forms.ModelChoiceField(
+        Group.objects.all(), widget=autocomplete.ModelSelect2(url="group_autocomplete")
+    )

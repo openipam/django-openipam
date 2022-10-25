@@ -188,4 +188,4 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        db_table = "auth_sources"
+        db_table = "auth_sources_log"

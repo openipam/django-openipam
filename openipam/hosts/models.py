@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -45,7 +46,7 @@ class Attribute(models.Model):
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(
-        User, db_column="changed_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
     )
 
     def __str__(self):
@@ -76,11 +77,10 @@ class AttributeToHost(models.Model):
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
-    # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column="disabled")
     changed_by = models.ForeignKey(
-        User, db_column="disabled_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="disabled_by", on_delete=models.PROTECT
     )
 
     def __init__(self, *args, **kwargs):
@@ -136,7 +136,7 @@ class FreeformAttributeToHost(models.Model):
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(
-        User, db_column="changed_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
     )
 
     def __str__(self):
@@ -147,7 +147,9 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    user = models.ForeignKey(User, db_column="uid", on_delete=models.PROTECT)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="uid", on_delete=models.CASCADE
+    )
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -342,22 +344,18 @@ class Host(DirtyFieldsMixin, models.Model):
     pools = models.ManyToManyField(
         "network.Pool", through="network.HostToPool", related_name="pool_hosts"
     )
-    # freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
-    #                                             related_name='freeform_hosts',  blank=True, null=True)
-    # structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
-    #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey(
         "network.DhcpGroup",
         db_column="dhcp_group",
         verbose_name="DHCP Group",
         blank=True,
         null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.PROTECT,  # This was SET_NULL before, wrong?
     )
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(
-        User, db_column="changed_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
     )
     last_notified = models.DateTimeField(blank=True, null=True)
 
@@ -706,7 +704,8 @@ class Host(DirtyFieldsMixin, models.Model):
 
         address = None
 
-        # Check to see if hostname already taken for any hosts other then the current one if being updated.
+        # Check to see if hostname already taken for any
+        # hosts other then the current one if being updated.
         used_hostname = (
             DnsRecord.objects.filter(
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA], name=hostname
@@ -1319,7 +1318,7 @@ class StructuredAttributeValue(models.Model):
     is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(
-        User, db_column="changed_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
     )
 
     def __str__(self):
@@ -1342,7 +1341,7 @@ class StructuredAttributeToHost(models.Model):
     )
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(
-        User, db_column="changed_by", on_delete=models.PROTECT
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
     )
 
     def __str__(self):

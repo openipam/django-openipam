@@ -17,7 +17,7 @@ urlpatterns = [
     ),
     path(
         "user/",
-        RedirectView.as_view(pattern_name="user_manager"),
+        RedirectView.as_view(pattern_name="core:users:user_manager"),
         name="user_manager_redirect",
     ),
 ]

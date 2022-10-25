@@ -33,11 +33,11 @@
 {% block object-tools %}
 <div class="pull-right object-tools">
 	{% block object-tools-items %}
-	<a href="{% url 'add_hosts' %}" class="btn btn-primary">
+	<a href="{% url 'core:hosts:add_hosts' %}" class="btn btn-primary">
 		<i class="icon-plus icon-white"></i>
 		Add Host
 	</a>
-	<a href="{% url 'add_hosts_bulk' %}" class="btn btn-primary">
+	<a href="{% url 'core:hosts:add_hosts_bulk' %}" class="btn btn-primary">
 		<i class="icon-plus icon-white"></i>
 		Add Hosts from (CSV)
 	</a>
@@ -143,7 +143,7 @@
 				</span>
 			</div>
 			<a id="clear-filters" class="pull-left btn btn-default"
-				href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'list_hosts' %}{% endif %}"
+				href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'core:hosts:list_hosts' %}{% endif %}"
 				stlye="margin-left: 10px;">Clear</a>
 		</div>
 		<div id="search-help" class="help-content">

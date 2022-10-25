@@ -1,12 +1,11 @@
 from django.contrib import admin
+from django.forms import modelform_factory
 
 from openipam.dns.models import DnsRecord, DnsType, Domain, DnsView, DhcpDnsRecord
 from openipam.dns.forms import DhcpDnsRecordForm
 from openipam.core.admin import ChangedAdmin
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
-
-#from autocomplete_light import shortcuts as al
 
 
 class ObjectPermissionAdmin(admin.ModelAdmin):
@@ -57,7 +56,7 @@ class DomainAdmin(ObjectPermissionAdmin, ChangedAdmin):
         "changed_by",
         "changed",
     )
-    #form = al.modelform_factory(Domain, exclude=("changed",))
+    form = modelform_factory(Domain, exclude=("changed",))
     search_fields = ("name",)
 
 
@@ -73,7 +72,7 @@ class DnsRecordAdmin(ChangedAdmin):
         "edit_link",
     )
     list_filter = ("dns_type", "dns_view", "priority", "domain")
-    #form = al.modelform_factory(DnsRecord, exclude=("changed",))
+    form = modelform_factory(DnsRecord, exclude=("changed",))
     list_editable = ("name", "dns_type", "text_content")
     list_display_links = ("edit_link",)
     # list_select_related = True

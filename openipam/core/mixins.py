@@ -1,3 +1,12 @@
+# .rel attribute is now deprecated, using remote_field instead if not .rel
+def get_rel(field):
+    if hasattr(field, "rel") and field.rel:
+        return field.rel
+    elif hasattr(field, "remote_field") and field.remote_field:
+        return field.remote_field
+    return None
+
+
 class DirtyFieldsMixin(object):
     def __init__(self, *args, **kwargs):
         super(DirtyFieldsMixin, self).__init__(*args, **kwargs)
@@ -8,9 +17,8 @@ class DirtyFieldsMixin(object):
     def _as_dict(self):
         return dict(
             [
-                (
-                    f.name + "_id" if f.rel else f.name,
-                    f.to_python(getattr(self, f.name + "_id" if f.rel else f.name)),
+                (lambda fname: (fname, f.to_python(getattr(self, fname))))(
+                    f.name + "_id" if get_rel(f) else f.name
                 )
                 for f in self._meta.local_fields
             ]

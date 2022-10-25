@@ -5,34 +5,31 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
-from django.contrib.auth.views import password_change as auth_password_change
+from django.contrib.auth.views import PasswordChangeView
 from django.contrib.admin.sites import AdminSite
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
-from django.contrib.auth.views import (
-    login as auth_login_view,
-    logout as auth_logout_view,
-)
+
+# from django.contrib.auth.views import (
+#     login as auth_login_view,
+#     logout as auth_logout_view,
+# )
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.functional import Promise
 from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
-from openipam.user.forms import IPAMAuthenticationForm
-from openipam.conf.ipam_settings import CONFIG
 
-# from django_cas_ng.views import login as cas_login, logout as cas_logout
-# from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
+# from openipam.user.forms import IPAMAuthenticationForm
+from openipam.conf.ipam_settings import CONFIG
 
 import duo_web
 
@@ -50,53 +47,15 @@ User = get_user_model()
 
 def index(request):
     if CONFIG.get("DUO_LOGIN") and not is_duo_authenticated(request):
-        return redirect("duo_auth")
+        return redirect("core:duo_auth")
     if not request.user.get_full_name() or not request.user.email:
-        return redirect("profile")
+        return redirect("core:profile")
     else:
         context = {
             "email": CONFIG.get("EMAIL_ADDRESS"),
             "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         }
         return AdminSite().index(request, extra_context=context)
-
-
-@csrf_exempt
-@require_http_methods(["GET", "POST"])
-def login(request, internal=False, **kwargs):
-    # if CONFIG.get("CAS_LOGIN") and internal is False:
-    #     return cas_login(request, **kwargs)
-    # else:
-    return auth_login_view(
-        request, authentication_form=IPAMAuthenticationForm, **kwargs
-    )
-
-
-@require_http_methods(["GET"])
-def logout(request, next_page=None, **kwargs):
-
-    # backend = request.session.get("_auth_user_backend", "").split(".")[-1]
-
-    # if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
-    #     cas_logout(request, next_page, **kwargs)
-
-    #     next_page = next_page or get_redirect_url(request)
-    #     if settings.CAS_LOGOUT_COMPLETELY:
-    #         protocol = get_protocol(request)
-    #         host = request.get_host()
-    #         redirect_url = urllib_parse.urlunparse(
-    #             (protocol, host, next_page, "", "", "")
-    #         )
-    #         client = get_cas_client()
-    #         client.server_url = settings.CAS_SERVER_URL[:-3]
-    #         return HttpResponseRedirect(client.get_logout_url(redirect_url))
-    #     else:
-    #         # This is in most cases pointless if not CAS_RENEW is set. The user will
-    #         # simply be logged in again on next request requiring authorization.
-    #         return HttpResponseRedirect(next_page)
-    # else:
-    next_page = "internal_login" if CONFIG.get("CAS_LOGIN") else "login"
-    return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
 def mimic(request):
@@ -106,13 +65,13 @@ def mimic(request):
             try:
                 mimic_user = User.objects.get(pk=mimic_pk)
             except User.DoesNotExist:
-                return redirect("index")
+                return redirect("core:index")
             request.session["mimic_user"] = mimic_user.pk
     else:
         if "mimic_user" in request.session:
             del request.session["mimic_user"]
 
-    return redirect("index")
+    return redirect("core:index")
 
 
 def profile(request):
@@ -136,7 +95,7 @@ def profile(request):
         form.save()
 
         messages.add_message(request, messages.INFO, "Your profile has been updated.")
-        return redirect("profile")
+        return redirect("core:profile")
 
     context = {
         "title": "Profile for %s" % request.user.get_full_name(),
@@ -149,7 +108,7 @@ def profile(request):
 
 def duo_auth(request):
     if is_duo_authenticated(request):
-        return redirect("index")
+        return redirect("core:index")
 
     sig_request = None
     duo_settings = CONFIG.get("DUO_SETTINGS", {})
@@ -193,21 +152,27 @@ def duo_authenticate(request):
     request.session["duo_authenticated"] = request.user.username
 
 
-def password_change(request, *args, **kwargs):
-    if request.user.has_usable_password():
-        return auth_password_change(request, *args, **kwargs)
-    else:
-        return redirect("admin:index")
+class IPAMPasswordChangeView(PasswordChangeView):
+    def get_form_kwargs(self):
+        if self.request.user.has_usable_password():
+            return super().get_form_kwargs()
+        else:
+            return redirect("admin:index")
 
 
 @requires_csrf_token
-def page_denied(request):
-    return page_error(request, template_name="403.html")
+def bad_request(request, exception):
+    return page_error(request, exception=exception, template_name="400.html")
 
 
 @requires_csrf_token
-def page_not_found(request):
-    return page_error(request, template_name="404.html")
+def page_denied(request, exception):
+    return page_error(request, exception=exception, template_name="403.html")
+
+
+@requires_csrf_token
+def page_not_found(request, exception):
+    return page_error(request, exception=exception, template_name="404.html")
 
 
 @requires_csrf_token
@@ -215,7 +180,7 @@ def server_error(request):
     return page_error(request, template_name="500.html")
 
 
-def page_error(request, template_name, extra_context=None):
+def page_error(request, template_name, exception=None, extra_context=None):
     kitty_dir = (
         os.path.dirname(os.path.realpath(__file__)) + "/static/core/img/error_cats"
     )
@@ -227,10 +192,10 @@ def page_error(request, template_name, extra_context=None):
         "request_path": request.path,
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
-        "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         "error_type": error_type.__name__,
         "error_value": error_value,
         "traceback": traceback,
+        "exception": exception,
     }
     if extra_context:
         context.update(extra_context)
@@ -241,7 +206,7 @@ def page_error(request, template_name, extra_context=None):
 class FeatureRequestView(CreateView):
     form_class = FeatureRequestForm
     model = FeatureRequest
-    success_url = reverse_lazy("feature_request_complete")
+    success_url = reverse_lazy("core:feature_request_complete")
 
     def form_valid(self, form):
         self.object = form.save(commit=False)

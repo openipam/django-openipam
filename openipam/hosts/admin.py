@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.forms import modelform_factory
 
 from openipam.hosts.models import (
     Host,
@@ -12,7 +13,7 @@ from openipam.hosts.models import (
 from openipam.hosts.forms import ExpirationTypeAdminForm, HostDisableForm
 from openipam.core.admin import ChangedAdmin
 
-#from autocomplete_light import shortcuts as al
+from dal import autocomplete
 
 from guardian.admin import GuardedModelAdmin
 
@@ -80,9 +81,11 @@ class GuestTicketAdmin(admin.ModelAdmin):
     list_display = ("ticket", "user", "starts", "ends")
     list_filter = ("starts", "ends")
     search_fields = ("user__username", "ticket")
-    #form = al.modelform_factory(
-    #    GuestTicket, fields=("user", "ticket", "starts", "ends", "description")
-    #)
+    form = modelform_factory(
+        GuestTicket,
+        fields=("user", "ticket", "starts", "ends", "description"),
+        widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+    )
 
 
 class AttributeAdmin(ChangedAdmin):

@@ -483,8 +483,12 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 change_permissions = True
             else:
                 change_permissions = False
-            host_view_href = reverse_lazy("view_host", args=(slugify(host["mac"]),))
-            host_edit_href = reverse_lazy("update_host", args=(slugify(host["mac"]),))
+            host_view_href = reverse_lazy(
+                "core:hosts:view_host", args=(slugify(host["mac"]),)
+            )
+            host_edit_href = reverse_lazy(
+                "core:hosts:update_host", args=(slugify(host["mac"]),)
+            )
             host_ips = get_ips(host)
             expires = get_expires(host["expires"])
             last_mac_stamp = get_last_mac_stamp(host)
@@ -516,7 +520,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     render_cell(last_mac_stamp, is_flagged, is_disabled),
                     render_cell(last_ip_stamp, is_flagged, is_disabled),
                     '<a href="%s?q=host:%s">DNS Records</a>'
-                    % (reverse_lazy("list_dns"), host["hostname"]),
+                    % (reverse_lazy("core:dns:list_dns"), host["hostname"]),
                     '<a href="%s">%s</a>'
                     % (
                         host_edit_href if change_permissions else host_view_href,
@@ -530,7 +534,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 class HostRedirectView(RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         pk = "".join(re.split("[^a-zA-Z0-9]*", kwargs["pk"]))
-        self.url = reverse_lazy("update_host", kwargs={"pk": pk})
+        self.url = reverse_lazy("core:hosts:update_host", kwargs={"pk": pk})
         return super(HostRedirectView, self).get_redirect_url(*args, **kwargs)
 
 
@@ -602,7 +606,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         if response:
             return response
         else:
-            return redirect("list_hosts")
+            return redirect("core:hosts:list_hosts")
 
 
 class HostDetailView(PermissionRequiredMixin, DetailView):
@@ -653,7 +657,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
 class HostUpdateCreateMixin(object):
     model = Host
     form_class = HostForm
-    success_url = reverse_lazy("list_hosts")
+    success_url = reverse_lazy("core:hosts:list_hosts")
 
     def get_form(self, form_class=None):
         if form_class is None:
@@ -729,7 +733,9 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy("update_host", args=[self.object.mac_stripped]),
+                    reverse_lazy(
+                        "core:hosts:update_host", args=[self.object.mac_stripped]
+                    ),
                     self.object.hostname,
                 )
             ),
@@ -737,7 +743,9 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
 
         if self.request.POST.get("_continue"):
             return redirect(
-                reverse_lazy("update_host", kwargs={"pk": slugify(self.object.pk)})
+                reverse_lazy(
+                    "core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}
+                )
             )
 
         return valid_form
@@ -762,7 +770,9 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy("update_host", args=[self.object.mac_stripped]),
+                    reverse_lazy(
+                        "core:hosts:update_host", args=[self.object.mac_stripped]
+                    ),
                     self.object.hostname,
                 )
             ),
@@ -770,12 +780,14 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
 
         if self.request.POST.get("_continue"):
             return redirect(
-                reverse_lazy("update_host", kwargs={"pk": slugify(self.object.pk)})
+                reverse_lazy(
+                    "core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}
+                )
             )
         elif self.request.POST.get("_add"):
             # Get fields that would carry over
             self.request.session["host_form_add"] = form.data
-            return redirect(reverse_lazy("add_hosts_new"))
+            return redirect(reverse_lazy("core:hosts:add_hosts_new"))
 
         return valid_form
 
@@ -788,7 +800,7 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.is_static is False:
-            return redirect("update_host", pk=self.object.mac_stripped)
+            return redirect("core:hosts:update_host", pk=self.object.mac_stripped)
         return super(HostAddressCreateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -875,12 +887,12 @@ class HostAddressDeleteView(SuperuserRequiredMixin, View):
                 # Release address and delete DSN records.
                 host.delete_ip_address(user=request.user, address=address)
             except ValidationError:
-                return redirect("add_addresses_host", pk=host.mac_stripped)
+                return redirect("core:hosts:add_addresses_host", pk=host.mac_stripped)
 
             messages.info(
                 request, "Address %s has been removed and released." % address
             )
-        return redirect("add_addresses_host", pk=host.mac_stripped)
+        return redirect("core:hosts:add_addresses_host", pk=host.mac_stripped)
 
     def post(self, request, *args, **kwargs):
         return self.get(request, *args, **kwargs)
@@ -1055,11 +1067,11 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
             error_list.append("Please try again.")
             messages.error(self.request, mark_safe("<br />".join(error_list)))
-            return redirect("add_hosts_bulk")
+            return redirect("core:hosts:add_hosts_bulk")
             # return render(self.request, self.template_name)
 
         messages.info(self.request, "Hosts from CSV have been added.")
-        return redirect("list_hosts")
+        return redirect("core:hosts:list_hosts")
 
 
 def change_owners(request):

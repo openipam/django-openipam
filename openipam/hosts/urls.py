@@ -8,7 +8,7 @@ app_name = "hosts"
 
 urlpatterns = [
     path("", views.HostListView.as_view(), name="list_hosts"),
-    path("host/add/", RedirectView.as_view(url=reverse_lazy("add_hosts"))),
+    path("host/add/", RedirectView.as_view(url=reverse_lazy("core:hosts:add_hosts"))),
     path("data/", views.HostListJson.as_view(), name="json_hosts"),
     path("add/bulk/", views.HostBulkCreateView.as_view(), name="add_hosts_bulk"),
     path("add/", views.HostCreateView.as_view(), name="add_hosts"),
@@ -20,7 +20,9 @@ urlpatterns = [
         name="add_hosts_new",
     ),
     re_path(r"^host/(?P<pk>[0-9a-fA-F:_.-]+)$", views.HostRedirectView.as_view()),
-    re_path(r"^host/.*$", RedirectView.as_view(url=reverse_lazy("list_hosts"))),
+    re_path(
+        r"^host/.*$", RedirectView.as_view(url=reverse_lazy("core:hosts:list_hosts"))
+    ),
     re_path(
         r"^(?P<pk>([0-9a-fA-F]{2}){5}[0-9a-fA-F]{2})/addresses/remove/$",
         views.HostAddressDeleteView.as_view(),

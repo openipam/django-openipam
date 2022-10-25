@@ -69,7 +69,7 @@ Hosts Missing DNS
           />
         </td>
         <td nowrap="nowrap">
-          <a href="{% url 'update_host' pk=host.mac_stripped %}"
+          <a href="{% url 'core:hosts:update_host' pk=host.mac_stripped %}"
             >{{ host.hostname }}</a
           >
         </td>

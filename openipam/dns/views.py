@@ -278,11 +278,11 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                     name_list[i] = ""
             name_list = [name for name in name_list if name]
             href = ".".join(name_list)
-            return reverse_lazy("list_dns", args=(href,))
+            return reverse_lazy("core:dns:list_dns", args=(href,))
 
         def get_dns_host_href(dns_record):
             return '<a href="%s">Host</a>' % reverse_lazy(
-                "view_host", args=(dns_record.host.mac_stripped,)
+                "core:hosts:view_host", args=(dns_record.host.mac_stripped,)
             )
 
         # prepare list with output column data
@@ -374,7 +374,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             response.set_cookie(
                 "search_filter",
                 "host:%s" % self.kwargs["host"],
-                path=reverse_lazy("list_dns"),
+                path=reverse_lazy("core:dns:list_dns"),
             )
         return response
 
@@ -396,7 +396,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             if action == "delete":
                 delete_records(request, selected_records)
 
-            return redirect("list_dns")
+            return redirect("core:dns:list_dns")
         else:
             # Permission checks are done inside add_or_update_record
             # New records
@@ -457,7 +457,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                 messages.success(
                     self.request, "Selected DNS records have been updated."
                 )
-                return redirect("list_dns")
+                return redirect("core:dns:list_dns")
 
         return self.get(request, *args, **kwargs)
 
@@ -466,7 +466,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
     permission_required = "dns.add_dnsrecord"
     template_name = "dns/dnsrecord_form.html"
     form_class = DSNCreateFrom
-    success_url = reverse_lazy("list_dns")
+    success_url = reverse_lazy("core:dns:list_dns")
     record = None
 
     def get_context_data(self, **kwargs):
@@ -527,8 +527,8 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                 else:
                     messages.success(self.request, "DNS record has been added.")
                 if request.POST.get("_add"):
-                    return redirect("add_dns")
+                    return redirect("core:dns:add_dns")
                 else:
-                    return redirect("list_dns")
+                    return redirect("core:dns:list_dns")
         else:
             return self.form_invalid(form)

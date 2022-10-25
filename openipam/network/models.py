@@ -520,8 +520,8 @@ class AddressType(models.Model):
             )
             if default_exists:
                 raise ValidationError(
-                    "Default already assined to '%s'. There can only be one default Address Type"
-                    % default_exists.name
+                    "Default already assined to '%s'. "
+                    "There can only be one default Address Type" % default_exists.name
                 )
 
     class Meta:

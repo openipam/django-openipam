@@ -85,11 +85,11 @@ class IPAMIndexDashboard(Dashboard):
                 </ul>
             """
                 % {
-                    "url_hosts": reverse_lazy("list_hosts"),
-                    "url_add_hosts": reverse_lazy("add_hosts"),
-                    "url_dns": reverse_lazy("list_dns"),
-                    "url_feature_request": reverse_lazy("feature_request"),
-                    "url_profile": reverse_lazy("profile"),
+                    "url_hosts": reverse_lazy("core:hosts:list_hosts"),
+                    "url_add_hosts": reverse_lazy("core:hosts:add_hosts"),
+                    "url_dns": reverse_lazy("core:dns:list_dns"),
+                    "url_feature_request": reverse_lazy("core:feature_request"),
+                    "url_profile": reverse_lazy("core:profile"),
                 },
             )
         )
