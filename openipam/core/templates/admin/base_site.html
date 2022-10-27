@@ -5,8 +5,6 @@
 
 {% block extrahead %}
 {{ block.super }}
-{# {% include 'autocomplete_light/static.html' %} #}
-<script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -24,11 +22,7 @@
                 {% block mimic-user %}
                 <li class="navbar-form">
                     {% if request.user.is_ipamadmin and not request.session.mimic_user %}
-                        <form id="mimic_form" method="post" action="{% url 'core:mimic' %}">
-                            {% csrf_token %}
-                            <input type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm" />
-                            <input type="hidden" id="id_mimic_value" name="mimic_pk" />
-                        </form>
+                        {% mimic_user_form %}
                     {% else %}
                         {% if request.session.mimic_user %}
                             <div class="btn-group">

@@ -6,6 +6,8 @@ from django.contrib.admin.views.main import PAGE_VAR, ALL_VAR
 from django.conf import settings
 from django.template.loader import get_template
 
+from openipam.core.forms import MimicUserForm
+
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -279,6 +281,11 @@ def admin_filter_selected(cl, spec):
 
     return tpl.render({"title": spec.title.capitalize(), "value": value, "href": href})
 
+@register.inclusion_tag('admin/mimic_user.html')
+def mimic_user_form():
+    return {
+        'mimic_user_form': MimicUserForm()
+    }
 
 @register.filter
 def replace(string, args):
