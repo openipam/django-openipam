@@ -9,5 +9,10 @@ urlpatterns = [
         "user-autocomplete/",
         views.UserAutocomplete.as_view(),
         name="user_autocomplete",
+    ),
+    path(
+      "group-autocomplete/",
+      views.GroupAutocomplete.as_view(),
+      name="group_autocomplete",
     )
 ]

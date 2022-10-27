@@ -1,15 +1,21 @@
 from openipam.user.models import User
+from django.contrib.auth.models import Group
 
 from dal import autocomplete
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return User.objects.none()
+    search_fields = ["^username", "^first_name", "^last_name", "email"]
+    attrs = {"placeholder": "Search Users"}
+    split_words = True
+    model = User
 
-        qs = User.objects.all()
-        if self.q:
-            qs = qs.filter(username__istartswith=self.q)
+    def get_result_label(self, result):
+        if result.get_full_name():
+            return f"{result.username} | {result.get_full_name()}"
+        return str(result)
 
-        return qs
+class GroupAutocomplete(autocomplete.Select2QuerySetView):
+    search_fields = ["name"]
+    attrs = {"placeholder": "Search Groups"}
+    model = Group
