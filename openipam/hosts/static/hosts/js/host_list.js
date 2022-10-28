@@ -44,8 +44,8 @@ $(function () {
 			}
 			else if (JSON.stringify(request.order).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.order).replace(/(<([^>]+)>)/ig, "") ||
 				JSON.stringify(request.columns).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.columns).replace(/(<([^>]+)>)/ig, "") ||
-				JSON.stringify(request.search).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.search.replace(/(<([^>]+)>)/ig, "")
-				) {
+				JSON.stringify(request.search).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.search).replace(/(<([^>]+)>)/ig, "")
+			) {
 				// properties changed (ordering, columns, searching)
 				ajax = true;
 			}
