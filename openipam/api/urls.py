@@ -202,9 +202,14 @@ urlpatterns = [
         name="api_host_delete",
     ),
     url(
-        "hosts/bulk_delete/",
+        r"^hosts/bulk_delete/$",
         views.hosts.HostBulkDelete.as_view(),
         name="api_host_bulk_delete",
+    ),
+    url(
+        r"^hosts/bulk_repopulate_dns/$",
+        views.hosts.BulkFixHostDNSRecords.as_view(),
+        name="api_bulk_repopulate_host_dns_records",
     ),
     url(
         r"^hosts?/(?P<pk>([0-9a-fA-F]{2}[:-]?){5}[0-9a-fA-F]{2})/$",
@@ -295,6 +300,14 @@ urlpatterns = [
     ),
     url(
         r"^address(es)?/$", views.network.AddressList.as_view(), name="api_address_list"
+    ),
+    url(
+        r"^addresses/recent/$",
+        views.hosts.RecentGulAddressEntries.as_view(),
+        name="api_gul_addresses",
+    ),
+    url(
+        r"^mac/recent/$", views.hosts.RecentGulMacEntries.as_view(), name="api_gul_macs"
     ),
     url(
         r"^login/has_auth/", views.base.UserAuthenticated.as_view(), name="api_has_auth"

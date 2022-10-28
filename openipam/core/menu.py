@@ -188,8 +188,8 @@ class IPAMMenu(Menu):
                             url=reverse("reports_disabled"),
                         ),
                         items.MenuItem(
-                            title="Server Profile Hosts",
-                            url=reverse("reports_server_hosts"),
+                            title="Exposed Hosts",
+                            url=reverse("reports_exposed_hosts"),
                         ),
                         items.MenuItem(
                             title="Host with no DNS Records",
