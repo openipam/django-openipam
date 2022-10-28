@@ -42,10 +42,10 @@ $(function () {
 				// outside cached data - need to make a request
 				ajax = true;
 			}
-			else if (JSON.stringify(request.order) !== JSON.stringify(cacheLastRequest.order) ||
-				JSON.stringify(request.columns) !== JSON.stringify(cacheLastRequest.columns) ||
-				JSON.stringify(request.search) !== JSON.stringify(cacheLastRequest.search)
-			) {
+			else if (JSON.stringify(request.order).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.order).replace(/(<([^>]+)>)/ig, "") ||
+				JSON.stringify(request.columns).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.columns).replace(/(<([^>]+)>)/ig, "") ||
+				JSON.stringify(request.search).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.search.replace(/(<([^>]+)>)/ig, "")
+				) {
 				// properties changed (ordering, columns, searching)
 				ajax = true;
 			}
@@ -150,7 +150,7 @@ $(function () {
 					d.search_filter = $.cookie('search_filter');
 				}
 				// We do this to work with the data better.
-				d.json_data = JSON.stringify(d);
+				d.json_data = JSON.stringify(d).replace(/(<([^>]+)>)/ig, "");
 			}
 			//type: "POST"
 		}),
