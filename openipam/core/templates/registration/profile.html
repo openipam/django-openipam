@@ -1,6 +1,8 @@
 {% extends "core/base.html" %}
 {% load i18n openipam widget_tweaks %}
 
+{% block page_title %} {{request.user.get_full_name}}'s Profile {% endblock %}
+
 {% block breadcrumbs %}
     {% if not is_popup %}
         ../../|{% trans "Home" %}
@@ -35,7 +37,7 @@
                       <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
                     </a>
                 </div>
-                <div class="pull-left form-inline" style="min-width: 400px; margin-top: 20px;">
+                <div id="profile-customization" class="pull-left form-inline" style="min-width: 400px; margin-top: 20px;">
                 {% for field in form %}
                     <div class="pull-left" style="width: 110px; line-height: 30px;">
                         {{ field|label_with_classes:"control-label" }}
@@ -60,15 +62,20 @@
                 </div>
             {% endif %}
 
+            {% if request.user.is_superuser %}
             <div class="form-group well">
                 <div class="pull-right">
-                    {% if request.user.is_superuser %}
-                        <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
-                    {% endif %}
-                    <input type="submit" value="Save" class="default btn btn-success" name="save" />
+                    <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
                 </div>
                 <div class="clear"><!-- --></div>
             </div>
+            {% endif %}
         </form>
     </div>
+
+    <script>
+        $(document).ready(() => {
+            $("#profile-customization input").attr('disabled', true)
+        })
+    </script>
 {% endblock %}
