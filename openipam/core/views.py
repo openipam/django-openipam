@@ -131,6 +131,18 @@ def profile(request):
     #         else:
     #             profile_complete = True
 
+    # Disallow users to change their own profile for now, because XSS
+
+    # if form.is_valid():
+    #     instance = form.save(commit=False)
+    #     instance.first_name = escape(instance.first_name)
+    #     instance.last_name = escape(instance.last_name)
+    #     instance.email = escape(instance.email)
+    #     instance.save()
+
+    #     messages.add_message(request, messages.INFO, "Your profile has been updated.")
+    #     return redirect("profile")
+
     context = {
         "title": "Profile for %s" % request.user.get_full_name(),
         "groups": groups,
