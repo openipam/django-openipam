@@ -3,8 +3,6 @@
 
 {% block page_title %} {{request.user.get_full_name}}'s Profile {% endblock %}
 
-{% block page_title %} {{request.user.get_full_name}}'s Profile {% endblock %}
-
 {% block breadcrumbs %}
     {% if not is_popup %}
         ../../|{% trans "Home" %}
@@ -62,28 +60,6 @@
             </div>
         {% endif %}
 
-            {% if groups %}
-                <div class="module aligned wide form-group well">
-                    <h4>Groups</h4>
-                    <div style="max-width: 500px;">
-                        {% for group in groups %}
-                            <h4 style="display: inline-block;">
-                                <span class="label label-primary" style="margin: 3px;">{{ group }}</span>
-                            </h4>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            {% if request.user.is_superuser %}
-            <div class="form-group well">
-                <div class="pull-right">
-                    <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
-                </div>
-                <div class="clear"><!-- --></div>
-            </div>
-            {% endif %}
-        </form>
         {% if request.user.is_superuser %}
         <div class="form-group well">
             <div class="pull-right">
