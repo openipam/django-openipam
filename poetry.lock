@@ -345,7 +345,7 @@ python-versions = "*"
 
 [[package]]
 name = "djangorestframework"
-version = "3.11.0"
+version = "3.11.2"
 description = "Web APIs for Django, made easy."
 category = "main"
 optional = false
@@ -1036,7 +1036,7 @@ testing = ["func-timeout", "jaraco.itertools"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">3.7"
-content-hash = "0c25c4094c902492ef9777ec6fe916f924670406d7fa3228a931c966043d2a64"
+content-hash = "d316d147cfe95827e060e005d66bc4e035d0a4fe7a9a9458ead9574a95ccd090"
 
 [metadata.files]
 appdirs = [
@@ -1163,8 +1163,8 @@ django-widget-tweaks = [
     {file = "django_widget_tweaks-1.4.5-py2.py3-none-any.whl", hash = "sha256:65c960f3d75008a285e4b10f4d21f9eae4160fd77a0f6097ad545185f8648bd6"},
 ]
 djangorestframework = [
-    {file = "djangorestframework-3.11.0-py3-none-any.whl", hash = "sha256:05809fc66e1c997fd9a32ea5730d9f4ba28b109b9da71fccfa5ff241201fd0a4"},
-    {file = "djangorestframework-3.11.0.tar.gz", hash = "sha256:e782087823c47a26826ee5b6fa0c542968219263fb3976ec3c31edab23a4001f"},
+    {file = "djangorestframework-3.11.2-py3-none-any.whl", hash = "sha256:5cc724dc4b076463497837269107e1995b1fbc917468d1b92d188fd1af9ea789"},
+    {file = "djangorestframework-3.11.2.tar.gz", hash = "sha256:a5967b68a04e0d97d10f4df228e30f5a2d82ba63b9d03e1759f84993b7bf1b53"},
 ]
 djangorestframework-csv = [
     {file = "djangorestframework-csv-2.1.0.tar.gz", hash = "sha256:2f008b20a44f2d3c37835ea5b5ddfe19f54394f07b9cb267c616a917a7f7e27c"},
