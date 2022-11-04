@@ -2,11 +2,11 @@ from django.contrib import messages
 from django.contrib.admin.models import LogEntry, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
-from django.utils.safestring import mark_safe
 from django.core import serializers
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 
+from openipam.core.utils.messages import process_errors
 from openipam.hosts.models import (
     Host,
     Disabled,
@@ -77,16 +77,10 @@ def assign_owner_hosts(request, selected_hosts, add_only=False):
             messages.success(request, "Ownership for selected hosts has been updated.")
 
         else:
-            error_list = []
-            for key, errors in list(owner_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error updating the ownership of the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=owner_form,
+                base_msg="There was an error updating the ownership of the selected hosts.",
             )
 
 
@@ -132,16 +126,10 @@ def remove_owner_hosts(request, selected_hosts):
             messages.success(request, "Ownership for selected hosts has been updated.")
 
         else:
-            error_list = []
-            for key, errors in list(owner_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error updating the ownership of the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=owner_form,
+                base_msg="There was an error updating the ownership of the selected hosts.",
             )
 
 
@@ -214,16 +202,10 @@ def renew_hosts(request, selected_hosts):
             )
 
         else:
-            error_list = []
-            for key, errors in list(renew_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error renewing the expiration of the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=renew_form,
+                base_msg="There was an error renewing the expiration of the selected hosts.",
             )
 
 
@@ -253,16 +235,10 @@ def rename_hosts(request, selected_hosts):
             messages.success(request, "Renaming for selected hosts have been applied.")
 
         else:
-            error_list = []
-            for key, errors in list(rename_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error renaming the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=rename_form,
+                base_msg="There was an error renaming the selected hosts.",
             )
 
 
@@ -377,16 +353,10 @@ def set_dhcp_group_on_host(request, selected_hosts):
             messages.success(request, "DHCP Groups for selected hosts have been set.")
 
         else:
-            error_list = []
-            for key, errors in list(dhcp_group_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error setting the DHCP group to the selected hosts. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=dhcp_group_form,
+                base_msg="There was an error setting the DHCP group to the selected hosts.",
             )
 
 

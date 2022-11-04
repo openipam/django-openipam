@@ -2,8 +2,8 @@ from django.contrib import messages
 from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
-from django.utils.safestring import mark_safe
 
+from openipam.core.utils.messages import process_errors
 from openipam.user.forms import GroupForm
 from openipam.user.utils.user_utils import populate_user_from_ldap
 
@@ -42,16 +42,10 @@ def action_assign_groups(request, selected_users):
             messages.success(request, "Groups for selected users has been added.")
 
         else:
-            error_list = []
-            for key, errors in list(group_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error updating the groups of the selected users. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=group_form,
+                base_msg="There was an error updating the ownership of the selected hosts.",
             )
 
 
@@ -89,16 +83,10 @@ def action_remove_groups(request, selected_users):
             messages.success(request, "Groups for selected users has been removed.")
 
         else:
-            error_list = []
-            for key, errors in list(group_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error updating the groups of the selected users. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=group_form,
+                base_msg="There was an error updating the ownership of the selected hosts.",
             )
 
 
@@ -136,16 +124,10 @@ def action_assign_perms(request, selected_users):
             messages.success(request, "Groups for selected users has been removed.")
 
         else:
-            error_list = []
-            for key, errors in list(group_form.errors.items()):
-                for error in errors:
-                    error_list.append(error)
-            messages.error(
+            process_errors(
                 request,
-                mark_safe(
-                    "There was an error updating the groups of the selected users. "
-                    "<br/>%s" % "<br />".join(error_list)
-                ),
+                form=group_form,
+                base_msg="There was an error updating the ownership of the selected hosts.",
             )
 
 
