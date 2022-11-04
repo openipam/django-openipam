@@ -1,6 +1,8 @@
 {% extends "core/base.html" %}
 {% load i18n openipam widget_tweaks %}
 
+{% block page_title %} {{request.user.get_full_name}}'s Profile {% endblock %}
+
 {% block breadcrumbs %}
     {% if not is_popup %}
         ../../|{% trans "Home" %}
@@ -26,49 +28,51 @@
         </h4>
     {% endif %}
     <div>
-        <form method="post" >
-            {% csrf_token %}
+        <div class="module aligned wide form-group well">
+            <h4>Personal Info</h4>
+            <div class="pull-left" style="margin-right: 20px;">
+                <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
+                    <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
+                </a>
+            </div>
+            <div id="profile-customization" class="pull-left form-inline" style="min-width: 400px; margin-top: 20px;">
+            {% for field in form %}
+                <div class="pull-left" style="width: 110px; line-height: 30px;">
+                    {{ field|label_with_classes:"control-label" }}
+                </div>
+                {{ field|add_class:"form-control bottom10 min300" }}
+            <div class="clear"><!-- --></div>
+            {% endfor %}
+            </div>
+            <div class="clear"><!-- --></div>
+        </div>
+
+        {% if groups %}
             <div class="module aligned wide form-group well">
-                <h4>Personal Info</h4>
-                <div class="pull-left" style="margin-right: 20px;">
-                    <a href="http://en.gravatar.com/profiles/edit/" class="thumbnail">
-                      <img src="{{ gravatar }}?d=mm&amp;size=200"  data-src="holder.js/200x200" alt="{{ request.user }}" style="width: 200px; height: 200px;" />
-                    </a>
+                <h4>Groups</h4>
+                <div style="max-width: 500px;">
+                    {% for group in groups %}
+                        <h4 style="display: inline-block;">
+                            <span class="label label-primary" style="margin: 3px;">{{ group }}</span>
+                        </h4>
+                    {% endfor %}
                 </div>
-                <div class="pull-left form-inline" style="min-width: 400px; margin-top: 20px;">
-                {% for field in form %}
-                    <div class="pull-left" style="width: 110px; line-height: 30px;">
-                        {{ field|label_with_classes:"control-label" }}
-                    </div>
-                    {{ field|add_class:"form-control bottom10 min300" }}
-                <div class="clear"><!-- --></div>
-                {% endfor %}
-                </div>
-                <div class="clear"><!-- --></div>
             </div>
+        {% endif %}
 
-            {% if groups %}
-                <div class="module aligned wide form-group well">
-                    <h4>Groups</h4>
-                    <div style="max-width: 500px;">
-                        {% for group in groups %}
-                            <h4 style="display: inline-block;">
-                                <span class="label label-primary" style="margin: 3px;">{{ group }}</span>
-                            </h4>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <div class="form-group well">
-                <div class="pull-right">
-                    {% if request.user.is_superuser %}
-                        <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
-                    {% endif %}
-                    <input type="submit" value="Save" class="default btn btn-success" name="save" />
-                </div>
-                <div class="clear"><!-- --></div>
+        {% if request.user.is_superuser %}
+        <div class="form-group well">
+            <div class="pull-right">
+                <input type="button" value="Edit User" class="btn btn-info" name="save" onclick="javascript:location.href='{% url 'admin:user_user_change' request.user.pk %}';" />
             </div>
-        </form>
+            <div class="clear"><!-- --></div>
+        </div>
+        {% endif %}
     </div>
+
+    <script>
+        $(document).ready(() => {
+            $("#profile-customization input").attr('disabled', true)
+        })
+    </script>
 {% endblock %}
