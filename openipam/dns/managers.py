@@ -186,8 +186,12 @@ class DnsManager(Manager):
     ):
         from openipam.network.models import Address
         from openipam.hosts.models import Host
+        from openipam.dns.validators import validate_fqdn
 
         try:
+            if name:
+                validate_fqdn(name)
+
             if record:
                 created = False
                 if isinstance(record, self.model):
