@@ -235,7 +235,10 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 s_content = content
 
             if not has_change_permission:
-                return '<span title="%s">%s</span>' % (content, s_content)
+                return '<span title="%s">%s</span>' % (
+                    conditional_escape(content),
+                    conditional_escape(s_content),
+                )
             else:
                 return """
                 <span title="%s">%s</span>
