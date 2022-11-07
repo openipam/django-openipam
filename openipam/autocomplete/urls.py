@@ -14,5 +14,10 @@ urlpatterns = [
       "group-autocomplete/",
       views.GroupAutocomplete.as_view(),
       name="group_autocomplete",
+    ),
+    path(
+      "ipam-autocomplete/",
+      views.IPAMSearchAutoComplete.as_view(),
+      name="ipam_autocomplete"
     )
 ]

@@ -202,6 +202,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "dal",
     "dal_select2",
+    "dal_queryset_sequence",
     "rest_framework",
     "rest_framework.authtoken",
     "guardian",
