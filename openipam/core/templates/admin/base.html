@@ -78,9 +78,39 @@
             <div class="main-container">
                 {% block messages %}
                     {% if messages %}
+                        <div id="messages-alert" class="alert alert-danger" data-alert="alert" style="display: none;">
+                            <a class="close" href="#" data-dismiss="alert">&times;</a>
                             {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}" data-alert="alert"><a class="close" href="#" data-dismiss="alert">&times;</a>{{ message }}</div>
+                                    {% if message.tags == 'danger' %}
+                                        {{ message }} <br />
+                                    {% endif %}
                             {% endfor %}
+                        </div>
+                        <div id="messages-success" class="alert alert-success" data-alert="alert" style="display: none;">
+                            <a class="close" href="#" data-dismiss="alert">&times;</a>
+                            {% for message in messages %}
+                                    {% if message.tags == 'success' %}
+                                        {{ message }} <br />
+                                    {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div id="messages-info" class="alert alert-info" data-alert="alert" style="display: none;">
+                            <a class="close" href="#" data-dismiss="alert">&times;</a>
+                            {% for message in messages %}
+                                    {% if message.tags == 'info' %}
+                                        {{ message }} <br />
+                                    {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% for message in messages %}
+                            <script>
+                                $(function() {
+                                    {% if message.tags == 'danger' %}$("#messages-alert").show();{% endif %}
+                                    {% if message.tags == 'success' %}$("#messages-sucess").show();{% endif %}
+                                    {% if message.tags == 'info' %}$("#messages-info").show();{% endif %}
+                                });
+                            </script>
+                        {% endfor %}
                     {% endif %}
                 {% endblock %}
 

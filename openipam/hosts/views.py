@@ -24,6 +24,7 @@ from django.core import serializers
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList, ErrorDict
 
+from openipam.core.utils.messages import process_errors
 from openipam.core.views import BaseDatatableView
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import (
@@ -345,11 +346,15 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             c.execute(
                 """
                 SELECT
-                    hosts.mac, hosts.hostname, hosts.expires, disabled.mac AS disabled, array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
+                    hosts.mac, hosts.hostname, hosts.expires, disabled.mac AS disabled,
+                    array_agg(host(addresses.address)) AS address, array_agg(host(leases.address)) AS lease,
                     coalesce(min(addresses.address), min(leases.address)) as first_address,
                     array_agg(leases.ends) AS ends, array_agg(gul_recent_arp_byaddress.stopstamp) AS ip_stamp,
-                    (SELECT ouis.shortname from ouis WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop ORDER BY ouis.id DESC LIMIT 1) AS vendor,
-                    (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
+                    (SELECT ouis.shortname from ouis
+                        WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop
+                        ORDER BY ouis.id DESC LIMIT 1) AS vendor,
+                    (SELECT MAX(stopstamp) FROM gul_recent_arp_bymac
+                        WHERE hosts.mac = gul_recent_arp_bymac.mac) AS mac_stamp
                 FROM hosts
                     LEFT OUTER JOIN addresses ON hosts.mac = addresses.mac
                     LEFT OUTER JOIN gul_recent_arp_byaddress ON addresses.address = gul_recent_arp_byaddress.address
@@ -854,9 +859,8 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
                         error_list.append(str(error))
             else:
                 error_list.append(str(e.message))
-
             error_list.append("Please try again.")
-            messages.error(request, mark_safe("<br />".join(error_list)))
+            process_errors(request, error_list=error_list)
             return render(request, self.template_name, context)
 
         return redirect("add_addresses_host", pk=host.mac_stripped)
@@ -953,7 +957,8 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             mac_dups = set([x for x in macs if macs.count(x) > 1])
             if mac_dups:
                 raise ValidationError(
-                    f"Duplicate Mac Addresses detected.  ({','.join(mac_dups)})  Please make sure all mac addresses are unique."
+                    f"Duplicate Mac Addresses detected.  ({','.join(mac_dups)})  "
+                    "Please make sure all mac addresses are unique."
                 )
 
             with transaction.atomic():
@@ -1054,7 +1059,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
             error_list.append("values: " + ", ".join(pretty_print))
 
             error_list.append("Please try again.")
-            messages.error(self.request, mark_safe("<br />".join(error_list)))
+            process_errors(self.request, error_list=error_list)
             return redirect("add_hosts_bulk")
             # return render(self.request, self.template_name)
 
