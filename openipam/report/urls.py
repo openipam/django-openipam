@@ -17,4 +17,5 @@ urlpatterns = [
     path("ptr_dns/", views.PTRDNSView.as_view(), name="reports_ptr_dns"),
     path("ipam_stats/", views.IpamStatsView.as_view(), name="reports_ipam_stats"),
     path("expired_hosts/", views.ExpiredHostsView.as_view(), name="expired_hosts"),
+    path("orphaned_dns/", views.OrphanedDNSView.as_view(), name="orphaned_dns"),
 ]

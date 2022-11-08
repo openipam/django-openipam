@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.utils.http import urlunquote
-from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from django.db.utils import DatabaseError
 from django.contrib import messages
 from django.forms.utils import ErrorList
@@ -18,6 +18,7 @@ from openipam.dns.forms import DSNCreateFrom
 from openipam.dns.models import DnsRecord, DnsType
 from openipam.dns.actions import delete_records
 from openipam.core.views import BaseDatatableView
+from openipam.core.utils.messages import process_errors
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -165,27 +166,25 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         )
         global_delete_permission = self.request.user.has_perm("dns.change_dnsrecord")
 
-        dns_types = get_objects_for_user(
-            self.request.user,
-            ["dns.add_records_to_dnstype", "dns.change_dnstype"],
-            any_perm=True,
-            use_groups=True,
-            with_superuser=True,
-        )
+        # Currently un-used
+        # dns_types = get_objects_for_user(
+        #     self.request.user,
+        #     ["dns.add_records_to_dnstype", "dns.change_dnstype"],
+        #     any_perm=True,
+        #     use_groups=True,
+        #     with_superuser=True,
+        # )
 
-        def get_dns_types(dtype):
-            types_html = []
-            for dns_type in dns_types:
-                if dns_type == dtype:
-                    types_html.append(
-                        '<option selected="selected" value="%s">%s</option>'
-                        % (dns_type.pk, dns_type.name)
-                    )
-                else:
-                    types_html.append(
-                        '<option value="%s">%s</option>' % (dns_type.pk, dns_type.name)
-                    )
-            return "".join(types_html)
+        # def get_dns_types(dtype):
+        #     types_html = []
+        #     for dns_type in dns_types:
+        #         if dns_type == dtype:
+        #             types_html.append(
+        #                 '<option selected="selected" value="%s">%s</option>' % (dns_type.pk, dns_type.name)
+        #             )
+        #         else:
+        #             types_html.append('<option value="%s">%s</option>' % (dns_type.pk, dns_type.name))
+        #     return "".join(types_html)
 
         def get_name(dns_record, has_change_permission):
             html = """
@@ -202,15 +201,17 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 html
                 % {
                     "id": dns_record.pk,
-                    "name": dns_record.name,
-                    "view_href": dns_view_href,
+                    "name": conditional_escape(dns_record.name),
+                    "view_href": conditional_escape(dns_view_href),
                 },
             )
 
         def get_type(dns_record, has_change_permission):
             # Disabling dns_type edits per ekoyle
             # if not has_change_permission:
-            return '<span id="dns_type">%s</span>' % dns_record.dns_type.name
+            return '<span id="dns_type">%s</span>' % conditional_escape(
+                dns_record.dns_type.name
+            )
             # else:
             #     return '''
             #         <span>%s</span>
@@ -234,16 +235,19 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 s_content = content
 
             if not has_change_permission:
-                return '<span title="%s">%s</span>' % (content, s_content)
+                return '<span title="%s">%s</span>' % (
+                    conditional_escape(content),
+                    conditional_escape(s_content),
+                )
             else:
                 return """
                 <span title="%s">%s</span>
                 <input type="text" class="input-content dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
             """ % (
-                    content,
-                    s_content,
+                    conditional_escape(content),
+                    conditional_escape(s_content),
                     dns_record.pk,
-                    content,
+                    conditional_escape(content),
                 )
 
         def get_ttl(dns_record, has_change_permission):
@@ -452,7 +456,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             if error_list:
                 error_list = list(set(error_list))
                 error_list.append("Please try again.")
-                messages.error(self.request, mark_safe("<br />".join(error_list)))
+                process_errors(request, error_list=error_list)
             else:
                 messages.success(
                     self.request, "Selected DNS records have been updated."

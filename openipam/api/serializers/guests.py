@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 
 from rest_framework import serializers
 
@@ -65,11 +64,11 @@ class GuestRegisterSerializer(serializers.Serializer):
             lease = Lease.objects.filter(address=data.get("ip_address")).first()
             if not lease:
                 raise serializers.ValidationError(
-                    mark_safe(
-                        "The MAC Address for this guest could not be found. <br />"
+                    [
+                        "The MAC Address for this guest could not be found.",
                         "Ticket: %s, IP: %s"
-                        % (data.get("ticket"), data.get("ip_address"))
-                    )
+                        % (data.get("ticket"), data.get("ip_address")),
+                    ]
                 )
             else:
                 data["mac_address"] = lease.host_id
@@ -79,10 +78,10 @@ class GuestRegisterSerializer(serializers.Serializer):
             ).first()
             if host_exists:
                 raise serializers.ValidationError(
-                    mark_safe(
-                        "The MAC Address for this guest is already registered on the network. <br />"
-                        "MAC: %s, IP: %s" % (mac_address, data.get("ip_address"))
-                    )
+                    [
+                        "The MAC Address for this guest is already registered on the network.",
+                        "MAC: %s, IP: %s" % (mac_address, data.get("ip_address")),
+                    ]
                 )
         return data
 

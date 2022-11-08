@@ -204,6 +204,9 @@ class IPAMMenu(Menu):
                             title="Expired Hosts",
                             url=reverse("core:report:expired_hosts"),
                         ),
+                        items.MenuItem(
+                            title="Orphaned DNS", url=reverse("orphaned_dns")
+                        ),
                     ],
                     # icon='icon-user icon-white'
                 )

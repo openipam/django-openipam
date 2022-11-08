@@ -1,7 +1,7 @@
-$(function(){
-    $.getUrlVars = function() {
+$(function () {
+    $.getUrlVars = function () {
         var vars = {};
-        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
             vars[key] = value;
         });
         return vars;
@@ -11,13 +11,13 @@ $(function(){
     //
     // Pipelining function for DataTables. To be used to the `ajax` option of DataTables
     //
-    $.fn.dataTable.pipeline = function(opts) {
+    $.fn.dataTable.pipeline = function (opts) {
         // Configuration options
         var conf = $.extend({
             pages: 5,     // number of pages to cache
             url: '',      // script url
             data: null,   // function or object with parameters to send to the server
-                          // matching how `ajax.data` works in DataTables
+            // matching how `ajax.data` works in DataTables
             method: 'GET' // Ajax HTTP method
         }, opts);
 
@@ -28,10 +28,10 @@ $(function(){
         var cacheLastJson = null;
 
         return function (request, drawCallback, settings) {
-            var ajax          = false;
-            var requestStart  = request.start;
+            var ajax = false;
+            var requestStart = request.start;
             var requestLength = request.length;
-            var requestEnd    = requestStart + requestLength;
+            var requestEnd = requestStart + requestLength;
 
             if (settings.clearCache) {
                 // API requested that the cache be cleared
@@ -42,23 +42,23 @@ $(function(){
                 // outside cached data - need to make a request
                 ajax = true;
             }
-            else if ( JSON.stringify( request.order )   !== JSON.stringify( cacheLastRequest.order ) ||
-                      JSON.stringify( request.columns ) !== JSON.stringify( cacheLastRequest.columns ) ||
-                      JSON.stringify( request.search )  !== JSON.stringify( cacheLastRequest.search )
+            else if (JSON.stringify(request.order).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.order).replace(/(<([^>]+)>)/ig, "") ||
+                JSON.stringify(request.columns).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.columns).replace(/(<([^>]+)>)/ig, "") ||
+                JSON.stringify(request.search).replace(/(<([^>]+)>)/ig, "") !== JSON.stringify(cacheLastRequest.search).replace(/(<([^>]+)>)/ig, "")
             ) {
                 // properties changed (ordering, columns, searching)
                 ajax = true;
             }
 
             // Store the request for checking next time around
-            cacheLastRequest = $.extend( true, {}, request );
+            cacheLastRequest = $.extend(true, {}, request);
 
-            if ( ajax ) {
+            if (ajax) {
                 // Need data from the server
-                if ( requestStart < cacheLower ) {
-                    requestStart = requestStart - (requestLength*(conf.pages-1));
+                if (requestStart < cacheLower) {
+                    requestStart = requestStart - (requestLength * (conf.pages - 1));
 
-                    if ( requestStart < 0 ) {
+                    if (requestStart < 0) {
                         requestStart = 0;
                     }
                 }
@@ -67,46 +67,46 @@ $(function(){
                 cacheUpper = requestStart + (requestLength * conf.pages);
 
                 request.start = requestStart;
-                request.length = requestLength*conf.pages;
+                request.length = requestLength * conf.pages;
 
                 // Provide the same `data` options as DataTables.
-                if ( $.isFunction ( conf.data ) ) {
+                if ($.isFunction(conf.data)) {
                     // As a function it is executed with the data object as an arg
                     // for manipulation. If an object is returned, it is used as the
                     // data object to submit
-                    var d = conf.data( request );
-                    if ( d ) {
-                        $.extend( request, d );
+                    var d = conf.data(request);
+                    if (d) {
+                        $.extend(request, d);
                     }
                 }
-                else if ( $.isPlainObject( conf.data ) ) {
+                else if ($.isPlainObject(conf.data)) {
                     // As an object, the data given extends the default
-                    $.extend( request, conf.data );
+                    $.extend(request, conf.data);
                 }
 
-                settings.jqXHR = $.ajax( {
-                    "type":     conf.method,
-                    "url":      conf.url,
-                    "data":     request,
+                settings.jqXHR = $.ajax({
+                    "type": conf.method,
+                    "url": conf.url,
+                    "data": request,
                     "dataType": "json",
-                    "cache":    false,
-                    "success":  function ( json ) {
+                    "cache": false,
+                    "success": function (json) {
                         cacheLastJson = $.extend(true, {}, json);
 
-                        if ( cacheLower != requestStart ) {
-                            json.data.splice( 0, requestStart-cacheLower );
+                        if (cacheLower != requestStart) {
+                            json.data.splice(0, requestStart - cacheLower);
                         }
-                        json.data.splice( requestLength, json.data.length );
+                        json.data.splice(requestLength, json.data.length);
 
-                        drawCallback( json );
+                        drawCallback(json);
                     }
-                } );
+                });
             }
             else {
-                json = $.extend( true, {}, cacheLastJson );
+                json = $.extend(true, {}, cacheLastJson);
                 json.draw = request.draw; // Update the echo for each response
-                json.data.splice( 0, requestStart-cacheLower );
-                json.data.splice( requestLength, json.data.length );
+                json.data.splice(0, requestStart - cacheLower);
+                json.data.splice(requestLength, json.data.length);
 
                 drawCallback(json);
             }
@@ -115,17 +115,17 @@ $(function(){
 
     // Register an API method that will empty the pipelined data, forcing an Ajax
     // fetch on the next draw (i.e. `table.clearPipeline().draw()`)
-    $.fn.dataTable.Api.register('clearPipeline()', function() {
-        return this.iterator('table', function(settings) {
+    $.fn.dataTable.Api.register('clearPipeline()', function () {
+        return this.iterator('table', function (settings) {
             settings.clearCache = true;
         });
     });
 
-    var delay = (function(){
+    var delay = (function () {
         var timer = 0;
-        return function(callback, ms){
-          clearTimeout (timer);
-          timer = setTimeout(callback, ms);
+        return function (callback, ms) {
+            clearTimeout(timer);
+            timer = setTimeout(callback, ms);
         };
     })();
 
@@ -135,9 +135,9 @@ $(function(){
         "ajax": $.fn.dataTable.pipeline({
             "url": "/dns/data/",
             "pages": 5,
-            "data": function(d) {
+            "data": function (d) {
                 if (!$.isEmptyObject($.urlVars)) {
-                    $.each(d.columns, function(key, obj){
+                    $.each(d.columns, function (key, obj) {
                         obj.search.value = (obj.name in $.urlVars) ? $.urlVars[obj.name] : '';
                     })
                     d.change_filter = ('mine' in $.urlVars) ? $.urlVars['mine'] : '';
@@ -150,7 +150,7 @@ $(function(){
                 }
 
                 // We do this to work with the data better.
-                d.json_data = JSON.stringify(d);
+                d.json_data = JSON.stringify(d).replace(/(<([^>]+)>)/ig, "");
             }
             //type: "POST"
         }),
@@ -160,7 +160,7 @@ $(function(){
         "autoWidth": false,
         "stateSave": true,
         "dom": '<"header well well-sm"r>t<"paginator well well-sm"lpi<"clear">>',
-        "order": [[ 1, "asc" ]],
+        "order": [[1, "asc"]],
         "language": {
             "lengthMenu": "Show _MENU_ records",
             "search": ""
@@ -172,31 +172,31 @@ $(function(){
             $("#content-search").val(data.columns[4].search.search);
         },
         "columns": [
-            { "name": "select", "orderable": false, "searchable": false  },
+            { "name": "select", "orderable": false, "searchable": false },
             { "name": "name", "orderable": true },
             { "name": "ttl", "orderable": false, "searchable": false },
             { "name": "ttl", "orderable": true },
             { "name": "content", "orderable": true },
-            { "name": "host", "orderable": false, "searchable": false  },
-            { "name": "view", "orderable": false, "searchable": false  },
-            { "name": "edit", "orderable": false, "searchable": false  },
+            { "name": "host", "orderable": false, "searchable": false },
+            { "name": "view", "orderable": false, "searchable": false },
+            { "name": "edit", "orderable": false, "searchable": false },
         ],
-        "initComplete": function() {
+        "initComplete": function () {
 
         },
-        "drawCallback": function(settings) {
+        "drawCallback": function (settings) {
             // Reset Edit all.
             $("a.edit-all").prop('rel', 'edit').html('Edit All');
             $("#action-toggle").removeAttr('checked');
 
             if ($.selectedRecords && $.formData) {
-                $.each($.selectedRecords, function(index, value) {
-                    $("a.edit-dns[rel='"+ value +"']").click();
-                    $("a.edit-dns[rel='"+ value +"']").parents('tr').removeClass('info').addClass('error');
-                    $("input[name='name-"+ value +"'").val($.formData['name-'+ value]);
-                    $("input[name='ttl-"+ value +"'").val($.formData['ttl-'+ value]);
-                    $("input[name='content-"+ value +"'").val($.formData['content-'+ value]);
-                    $("input[name='type-"+ value +"'").val($.formData['type-'+ value]);
+                $.each($.selectedRecords, function (index, value) {
+                    $("a.edit-dns[rel='" + value + "']").click();
+                    $("a.edit-dns[rel='" + value + "']").parents('tr').removeClass('info').addClass('error');
+                    $("input[name='name-" + value + "'").val($.formData['name-' + value]);
+                    $("input[name='ttl-" + value + "'").val($.formData['ttl-' + value]);
+                    $("input[name='content-" + value + "'").val($.formData['content-' + value]);
+                    $("input[name='type-" + value + "'").val($.formData['type-' + value]);
                 });
             }
 
@@ -207,26 +207,26 @@ $(function(){
             // Set pagination to stick when scrolling
             var page_bar = $('.paginator');
             page_bar.removeClass('fixed');
-            if(page_bar.length) {
-                var height=page_bar[0].offsetTop + page_bar.outerHeight();
-                var onchange = function(){
+            if (page_bar.length) {
+                var height = page_bar[0].offsetTop + page_bar.outerHeight();
+                var onchange = function () {
                     var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
-                    var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
-                    if((s < height) && (!isMobile)) {
+                    var s = (document.body.scrollTop || document.documentElement.scrollTop) + window.innerHeight;
+                    if ((s < height) && (!isMobile)) {
                         page_bar.addClass('fixed');
                     }
-                    else{page_bar.removeClass('fixed');}
+                    else { page_bar.removeClass('fixed'); }
                 }
-                window.onscroll=onchange;
+                window.onscroll = onchange;
                 onchange();
             }
 
             formActionCheck();
         },
-        "infoCallback": function(settings, start, end, max, total, pre) {
-            if (total < max){
+        "infoCallback": function (settings, start, end, max, total, pre) {
+            if (total < max) {
                 $("#filtered-label").show();
-                $(".search_init, #id_search").each(function(){
+                $(".search_init, #id_search").each(function () {
                     if ($(this).val() != '') {
                         $(this).addClass('red-highlight');
                     }
@@ -246,7 +246,7 @@ $(function(){
     //     else{page_bar.removeClass('fixed');}
     // }
 
-    var formActionCheck = function() {
+    var formActionCheck = function () {
         var selectedRecords = $.selectedRecords ? $.selectedRecords : []
         var anyEditable = $("a.cancel-dns:visible")
 
@@ -262,11 +262,11 @@ $(function(){
         url: '/api/web/IPAMSearchAutoComplete',
         choiceSelector: '[data-value]',
         minimumCharacters: 2,
-        getQuery: function() {
+        getQuery: function () {
             var value = this.input.val();
             return value;
         },
-        refresh: function() {
+        refresh: function () {
             var value = this.input.val();
             var current_search = value.substr(value.lastIndexOf(':') + 1);
             this.search_type = value.split(" ");
@@ -290,30 +290,30 @@ $(function(){
                 current_search < this.minimumCharacters ? this.hide() : this.fetch();
             }
         },
-    }).input.bind('selectChoice', function(event, choice, autocomplete) {
+    }).input.bind('selectChoice', function (event, choice, autocomplete) {
         var value = choice.attr('data-value');
         this.value = value;
     });
 
-    $('#id_search').on('input selectChoice', function(){
+    $('#id_search').on('input selectChoice', function () {
         var value = $(this).val() ? $(this).val() : '';
 
-        delay(function(){
-            $.cookie('search_filter', value, {expires: 1, path: '/dns/'});
+        delay(function () {
+            $.cookie('search_filter', value, { expires: 1, path: '/dns/' });
             results.clearPipeline().draw();
         }, 300);
     });
 
-    $('#changelist-form').on("keyup keypress", function(e) {
-      var code = e.keyCode || e.which;
-      if (code  == 13) {
-        e.preventDefault();
-        return false;
-      }
+    $('#changelist-form').on("keyup keypress", function (e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            e.preventDefault();
+            return false;
+        }
     });
 
     // Edit DNS record for a row
-    $("#result_list").on('click', 'a.edit-dns', function() {
+    $("#result_list").on('click', 'a.edit-dns', function () {
         var row = $(this).parents('tr');
         row.addClass('info').find("input[type='text'], select").show();
         row.find('input.action-select').prop('checked', 'checked');
@@ -327,7 +327,7 @@ $(function(){
 
 
     // Cancel DNS reocrd edit for a row
-    $("#result_list").on('click', 'a.cancel-dns', function() {
+    $("#result_list").on('click', 'a.cancel-dns', function () {
         var row = $(this).parents('tr');
         var actionSelect = row.find('input.action-select');
         row.removeClass('info error').find("input[type='text'], select").hide();
@@ -343,7 +343,7 @@ $(function(){
     });
 
     // Cancel selection and form fields
-    $("#result_list").on('click', '.action-select', function(){
+    $("#result_list").on('click', '.action-select', function () {
         $(this).parents('tr').toggleClass('info');
         if (!$(this).is(':checked')) {
             $(this).parents('tr').find('a.cancel-dns').click();
@@ -351,7 +351,7 @@ $(function(){
     });
 
     // Add another row to table when add record is clicked
-    $("#result_list").on('click', "a.add-record", function() {
+    $("#result_list").on('click', "a.add-record", function () {
         var thisRow = $(this).parents('tr');
         var newRow = thisRow.clone().find("input").val('').end().find('.dns-ttl').val('14400').end();
         thisRow.removeClass("extra").find("a.add-record").remove().end().find("a.remove-record").show();
@@ -359,17 +359,17 @@ $(function(){
     });
 
     // Remove row from table
-    $("#result_list").on('click', "a.remove-record", function() {
+    $("#result_list").on('click', "a.remove-record", function () {
         $(this).parents('tr').remove();
         formActionCheck();
     });
 
-    $("#result_list").on('change', ".add-row input, .add-row select", function() {
+    $("#result_list").on('change', ".add-row input, .add-row select", function () {
         $("#form-actions").show();
     });
 
     // Call edit all for all records
-    $("a.edit-all").on('click', function() {
+    $("a.edit-all").on('click', function () {
         if ($(this).prop('rel') == 'edit') {
             $(this).prop('rel', 'cancel');
             $(this).html('Cancel');
@@ -384,7 +384,7 @@ $(function(){
     });
 
     // Cancel edit of all records
-    $("#cancel-edit").on('click', function() {
+    $("#cancel-edit").on('click', function () {
         $("a.cancel-dns").click();
         $("#form-actions").hide();
         $("#action-toggle").removeAttr('checked');
@@ -393,20 +393,20 @@ $(function(){
     });
 
 
-    $("#changelist-filters-toggle").on('click', function() {
+    $("#changelist-filters-toggle").on('click', function () {
         $("#changelist-filter-actions").toggle();
         $(this).toggleClass('btn-inverse');
     });
 
 
-    $("#filter-close").on('click', function() {
+    $("#filter-close").on('click', function () {
         $("#changelist-filters-toggle").click();
     });
 
     //Triger filtering on change perms
-    $("#filter-change button").on('click', function() {
+    $("#filter-change button").on('click', function () {
         if (!$(this).hasClass('btn-primary')) {
-            $.cookie('change_filter', $(this).val(), {expires: 1, path: '/dns/'});
+            $.cookie('change_filter', $(this).val(), { expires: 1, path: '/dns/' });
 
             if ($.isEmptyObject($.urlVars)) {
                 $("#filter-change button").removeClass('btn-primary');
@@ -432,9 +432,9 @@ $(function(){
     $(".paginator").append("<div style='clear: both;'><!-- --></div>");
 
     // Clear all filters logic
-    $("#clear-filters").on('click', function(e) {
+    $("#clear-filters").on('click', function (e) {
         if ($.isEmptyObject($.urlVars)) {
-            $.removeCookie('search_filter', {path: '/dns/'});
+            $.removeCookie('search_filter', { path: '/dns/' });
 
             $(".search_init").val('');
             $("#id_search").val('');
@@ -444,34 +444,34 @@ $(function(){
         }
     });
 
-    $(".search_init").on('input', function() {
+    $(".search_init").on('input', function () {
         var self = this;
-        delay(function(){
+        delay(function () {
             results.column($(self).attr('rel')).search($(self).val()).draw();
         }, 300);
     });
 
-    $(".filter_init").on('change', function() {
+    $(".filter_init").on('change', function () {
         /* Filter on the column (the index) of this element */
         var self = this;
-        delay(function(){
+        delay(function () {
             results.column($(self).attr('rel')).search($(self).val()).draw();
         }, 300);
 
     });
 
-    $("#search-help-button").on('click', function(){
+    $("#search-help-button").on('click', function () {
         $("#search-help").toggle();
         return false;
     });
 
-    $("#search-info-close").on('click', function() {
+    $("#search-info-close").on('click', function () {
         $("#search-help").hide();
     });
 
     // Toggle all select for checkboxes
-    $("#action-toggle").on('click', function() {
-        $.each($(".action-select"), function(key, selector){
+    $("#action-toggle").on('click', function () {
+        $.each($(".action-select"), function (key, selector) {
             if ($("#action-toggle").is(':checked') && !$(selector).is(':checked')) {
                 selector.click();
             }
@@ -482,7 +482,7 @@ $(function(){
     });
 
     // Action submit logic
-    $("#action-submit").on('click', function() {
+    $("#action-submit").on('click', function () {
         var action = $("#dns-action").val();
         var records = $(".action-select:checked");
 
