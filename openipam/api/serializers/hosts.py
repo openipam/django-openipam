@@ -624,8 +624,7 @@ class RecentGulEntriesSerializer(serializers.ModelSerializer):
     stopstamp = serializers.DateTimeField()
 
     def get_mac(self, obj):
-        if hasattr(obj, "host"):
-            return str(obj.host.mac)
+        return str(obj.pk)
 
 
 class RecentGulMacEntriesSerializer(RecentGulEntriesSerializer):

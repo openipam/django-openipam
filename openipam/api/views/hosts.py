@@ -631,18 +631,26 @@ class DisabledHostDelete(generics.DestroyAPIView):
 
 
 class RecentGulMacEntries(generics.ListAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.RecentGulMacEntriesSerializer
     queryset = GulRecentArpBymac.objects.all()
+
+    pagination_class = APIMaxPagination
+    page_size = 1000
+    max_page_size = 10000
 
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecentGulArpByMacFilter
 
 
 class RecentGulAddressEntries(generics.ListAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.RecentGulAddressEntriesSerializer
     queryset = GulRecentArpByaddress.objects.all()
+
+    pagination_class = APIMaxPagination
+    page_size = 1000
+    max_page_size = 10000
 
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecentGulArpByAddressFilter
