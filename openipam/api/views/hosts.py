@@ -34,7 +34,6 @@ from openipam.api.filters.hosts import (
     RecentGulArpByMacFilter,
 )
 from openipam.api.permissions import (
-    IPAMAPIPermission,
     IPAMChangeHostPermission,
     IPAMAPIAdminPermission,
 )
@@ -630,20 +629,23 @@ class DisabledHostDelete(generics.DestroyAPIView):
         return self.destroy(request, *args, **kwargs)
 
 
-class RecentGulMacEntries(generics.ListAPIView):
+class RecentGulEntries(generics.ListAPIView):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
-    serializer_class = host_serializers.RecentGulMacEntriesSerializer
-    queryset = GulRecentArpBymac.objects.all()
 
     pagination_class = APIMaxPagination
     page_size = 1000
     max_page_size = 10000
 
     filter_backends = (DjangoFilterBackend,)
+
+
+class RecentGulMacEntries(RecentGulEntries):
+    serializer_class = host_serializers.RecentGulMacEntriesSerializer
+    queryset = GulRecentArpBymac.objects.all()
     filter_class = RecentGulArpByMacFilter
 
 
-class RecentGulAddressEntries(generics.ListAPIView):
+class RecentGulAddressEntries(RecentGulEntries):
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.RecentGulAddressEntriesSerializer
     queryset = GulRecentArpByaddress.objects.all()
