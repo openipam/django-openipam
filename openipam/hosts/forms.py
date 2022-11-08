@@ -724,7 +724,9 @@ class HostOwnerForm(forms.Form):
     group_owners = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="core:autocomplete:group_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:group_autocomplete"
+        ),
     )
 
     def clean(self):

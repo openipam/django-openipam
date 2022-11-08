@@ -11,13 +11,13 @@ urlpatterns = [
         name="user_autocomplete",
     ),
     path(
-      "group-autocomplete/",
-      views.GroupAutocomplete.as_view(),
-      name="group_autocomplete",
+        "group-autocomplete/",
+        views.GroupAutocomplete.as_view(),
+        name="group_autocomplete",
     ),
     path(
-      "ipam-autocomplete/",
-      views.IPAMSearchAutoComplete.as_view(),
-      name="ipam_autocomplete"
-    )
+        "ipam-autocomplete/",
+        views.IPAMSearchAutoComplete.as_view(),
+        name="ipam_autocomplete",
+    ),
 ]

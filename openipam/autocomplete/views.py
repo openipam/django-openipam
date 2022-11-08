@@ -17,26 +17,30 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
             return f"{result.username} | {result.get_full_name()}"
         return str(result)
 
+
 class GroupAutocomplete(autocomplete.Select2QuerySetView):
     search_fields = ["name"]
     attrs = {"placeholder": "Search Groups"}
     model = Group
 
+
 class IPAMSearchAutoComplete(autocomplete.Select2QuerySetSequenceView):
     split_words = True
-    
+
     attrs = {"minimum_characters": 2, "placeholder": "Advanced Search"}
 
     def get_queryset(self):
-        return self.mixup_querysets(autocomplete.QuerySetSequence(
-            Network.objects.all(),
-            User.objects.all(),
-            Group.objects.all(),
-            StructuredAttributeValue.objects.all(),
-            FreeformAttributeToHost.objects.all(),
-            AddressType.objects.all(),
-        ))
-    
+        return self.mixup_querysets(
+            autocomplete.QuerySetSequence(
+                Network.objects.all(),
+                User.objects.all(),
+                Group.objects.all(),
+                StructuredAttributeValue.objects.all(),
+                FreeformAttributeToHost.objects.all(),
+                AddressType.objects.all(),
+            )
+        )
+
     search_fields = [
         ("network", "name"),
         ("username", "^first_name", "^last_name"),
