@@ -159,7 +159,7 @@ class HostFilter(FilterSet):
 
 
 class RecentGulFilter(FilterSet):
-    mac = CharFilter(field_name="host__mac")
+    mac = CharFilter(field_name="pk")
     address = CharFilter()
     stopstamp = IsoDateTimeFromToRangeFilter()
 
