@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, prefetch_related_objects
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model
 
@@ -105,12 +105,37 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HostDNSView, self).get_context_data(**kwargs)
-        hosts = Host.objects.filter(
+        hosts = Host.objects.prefetch_related("addresses").filter(
             dns_records__isnull=True,
             addresses__isnull=False,
             expires__gte=timezone.now(),
         )
+
+        # # TODO: Make this a manager function
+        addresses = Address.objects.filter(host__in=hosts)
+
+        a_record_names = (
+            DnsRecord.objects.select_related("ip_content", "host", "dns_type")
+            .filter(ip_content__in=addresses)
+            .values_list("name")
+        )
+
+        dns_records_for_hosts = (
+            DnsRecord.objects.select_related("ip_content", "host", "dns_type")
+            .filter(
+                Q(text_content__in=a_record_names)
+                | Q(name__in=a_record_names)
+                | Q(ip_content__in=addresses)
+                | Q(host__in=hosts)
+                | Q(
+                    text_content__in=[host.hostname for host in hosts]
+                )  # For dynamic hosts
+            )
+            .order_by("dns_type__name")
+        )
+
         context["hosts"] = hosts
+        context["dns_records_for_hosts"] = dns_records_for_hosts
         return context
 
 
@@ -121,8 +146,9 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(PTRDNSView, self).get_context_data(**kwargs)
 
-        rogue_ptrs = DnsRecord.objects.raw(
-            r"""
+        rogue_ptrs = list(
+            DnsRecord.objects.raw(
+                r"""
             SELECT d.*, a.address as address, d3.name as arecord, a.mac as arecord_host
             FROM dns_records AS d
                 LEFT JOIN addresses AS a ON (
@@ -141,7 +167,10 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
             ORDER BY d.changed DESC
                 --AND d.text_content != d2.name
         """
+            )
         )
+
+        prefetch_related_objects(rogue_ptrs, "changed_by")
 
         context["rogue_ptrs"] = rogue_ptrs
         return context

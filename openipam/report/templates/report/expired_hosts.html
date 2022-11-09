@@ -2,7 +2,12 @@
 
 {% block page_title %}Expired Hosts Report{% endblock %}
 
-{% load staticfiles %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% trans "Expired Hosts" %}
+{% endblock %}
 
 {% block extrahead %}
 
