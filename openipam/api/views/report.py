@@ -442,10 +442,10 @@ class ServerHostView(APIView):
         cursor.execute(
             """
             SELECT hosts.hostname AS hostname,
-                   hosts.mac AS mac, 
-                   hosts.description AS description, 
-                   STRING_AGG(DISTINCT((SELECT CAST(addresses.address AS VARCHAR))), ', ') AS addresses, 
-                   STRING_AGG(DISTINCT(users.username), ', ') AS users, 
+                   hosts.mac AS mac,
+                   hosts.description AS description,
+                   STRING_AGG(DISTINCT((SELECT CAST(addresses.address AS VARCHAR))), ', ') AS addresses,
+                   STRING_AGG(DISTINCT(users.username), ', ') AS users,
                    STRING_AGG(DISTINCT(groups.name), ', ') AS groups,
                    STRING_AGG(DISTINCT(host_attr_vals.value), ', ') AS nac_profiles
             FROM hosts 
