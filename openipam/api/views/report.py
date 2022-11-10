@@ -448,7 +448,7 @@ class ServerHostView(APIView):
                    STRING_AGG(DISTINCT(users.username), ', ') AS users,
                    STRING_AGG(DISTINCT(groups.name), ', ') AS groups,
                    STRING_AGG(DISTINCT(host_attr_vals.value), ', ') AS nac_profiles
-            FROM hosts 
+            FROM hosts
                 JOIN structured_attributes_to_hosts AS host_attrs ON hosts.mac=host_attrs.mac
                 JOIN structured_attribute_values AS host_attr_vals ON host_attrs.avid=host_attr_vals.id
                 LEFT JOIN guardian_userobjectpermission AS uop ON uop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND uop.permission_id = %s
