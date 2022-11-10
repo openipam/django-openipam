@@ -14,7 +14,6 @@ from rest_framework_csv.renderers import CSVRenderer
 from django.db import connection
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.apps import apps
@@ -30,8 +29,6 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.conf.settings import get_buildingmap_data
 
 from functools import reduce
-
-from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import copy
 
