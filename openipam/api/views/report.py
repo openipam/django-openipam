@@ -11,25 +11,24 @@ from rest_framework.decorators import api_view, renderer_classes, permission_cla
 
 from rest_framework_csv.renderers import CSVRenderer
 
+from django.db import connection
 from django.db.models.aggregates import Count
 from django.http import HttpResponse
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.apps import apps
-from django.db.models import Q, F
+from django.db.models import Q
 from django.utils import timezone
 
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, Attribute
 from openipam.report.models import Ports
 from openipam.report.models import database_connect, database_close
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
-from openipam.conf.ipam_settings import CONFIG, CONFIG_DEFAULTS
+from openipam.conf.ipam_settings import CONFIG
 from openipam.conf.settings import get_buildingmap_data
 
 from functools import reduce
-
-from guardian.models import UserObjectPermission, GroupObjectPermission
 
 import copy
 
@@ -424,9 +423,10 @@ class ServerHostCSVRenderer(CSVRenderer):
         "hostname",
         "mac",
         "description",
-        "master_ip_address",
+        "addresses",
         "user_owners",
         "group_owners",
+        "nac_profiles",
     ]
 
 
@@ -435,56 +435,43 @@ class ServerHostView(APIView):
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer, ServerHostCSVRenderer)
 
     def get(self, request, format=None, **kwargs):
-        hosts = (
-            Host.objects.prefetch_related("addresses")
-            .filter(
-                structured_attributes__structured_attribute_value__attribute__name="nac-profile",
-                structured_attributes__structured_attribute_value__value__startswith=CONFIG_DEFAULTS[
-                    "NAC_PROFILE_IS_SERVER_PREFIX"
-                ],
-            )
-            .annotate(
-                nac_profile=F(
-                    "structured_attributes__structured_attribute_value__value"
-                ),
-            )
+        nac_profile_attribute = Attribute.objects.get(name="nac-profile")
+        host_owner_permission = Permission.objects.get(codename="is_owner_host")
+
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT hosts.hostname AS hostname,
+                   hosts.mac AS mac,
+                   hosts.description AS description,
+                   STRING_AGG(DISTINCT((SELECT CAST(addresses.address AS VARCHAR))), ', ') AS addresses,
+                   STRING_AGG(DISTINCT(users.username), ', ') AS users,
+                   STRING_AGG(DISTINCT(groups.name), ', ') AS groups,
+                   STRING_AGG(DISTINCT(host_attr_vals.value), ', ') AS nac_profiles
+            FROM hosts
+                JOIN structured_attributes_to_hosts AS host_attrs ON hosts.mac=host_attrs.mac
+                JOIN structured_attribute_values AS host_attr_vals ON host_attrs.avid=host_attr_vals.id
+                LEFT JOIN guardian_userobjectpermission AS uop ON uop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND uop.permission_id = %s
+                LEFT JOIN guardian_groupobjectpermission AS gop ON gop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND gop.permission_id=%s
+                LEFT JOIN addresses ON hosts.mac=addresses.mac
+                LEFT JOIN users ON uop.user_id=users.id
+                LEFT JOIN groups ON gop.group_id=groups.id
+            WHERE host_attr_vals.aid = %s
+            AND STARTS_WITH(host_attr_vals.value, %s)
+            GROUP BY hosts.mac, hosts.hostname, hosts.description
+            """,
+            [
+                host_owner_permission.id,
+                host_owner_permission.id,
+                nac_profile_attribute.id,
+                CONFIG["NAC_PROFILE_IS_SERVER_PREFIX"],
+            ],
         )
 
-        user_perms_prefetch = UserObjectPermission.objects.select_related(
-            "permission", "user"
-        ).filter(
-            content_type=ContentType.objects.get_for_model(Host),
-            object_pk__in=[str(host.mac) for host in hosts],
-            permission__codename="is_owner_host",
-        )
-        group_perms_prefetch = GroupObjectPermission.objects.select_related(
-            "permission", "group"
-        ).filter(
-            content_type=ContentType.objects.get_for_model(Host),
-            object_pk__in=[str(host.mac) for host in hosts],
-            permission__codename="is_owner_host",
-        )
-
-        data = []
-        for host in hosts:
-            owners = host.get_owners(
-                name_only=True,
-                user_perms_prefetch=user_perms_prefetch,
-                group_perms_prefetch=group_perms_prefetch,
-            )
-            data.append(
-                {
-                    "hostname": host.hostname,
-                    "mac": str(host.mac),
-                    "description": host.description,
-                    "master_ip_address": host.ip_addresses[0]
-                    if host.ip_addresses
-                    else None,
-                    "user_owners": ", ".join(owners[0]),
-                    "group_owners": ", ".join(owners[1]),
-                    "nac_profile": host.nac_profile,
-                }
-            )
+        data = [
+            dict(zip([col[0] for col in cursor.description], row))
+            for row in cursor.fetchall()
+        ]
 
         if request.accepted_renderer.format == "json":
             return Response({"data": data}, status=status.HTTP_200_OK)
