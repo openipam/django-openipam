@@ -6,11 +6,11 @@
 {% block extrahead %}
 	{{ block.super }}
 	<link media="all" href="{% static 'nvd3/src/nv.d3.css' %}" type="text/css" rel="stylesheet" />
+
 	<script type="text/javascript" src='{% static 'd3/d3.min.js' %}'></script>
 	<script type="text/javascript" src='{% static 'nvd3/nv.d3.min.js' %}'></script>
 	<script>
 		$(function(){
-
 			var start = new Date;
 			var updatePage = function() {
 
@@ -25,16 +25,15 @@
 				});
 				$.get('/api/reports/chartstats/?app=user&model=User&column=last_login', function(data){
 					$("#userstats").html(data);
-				});				
-				$.getJSON('/api/reports/dashboard/', function(data){
+				});
+				$.getJSON('/api/reports/dashboard/', (data) => {
 					$("#dashboard-stats").empty();
-					$.each(data, function(index){
-						var name = index;
-						var value = data[index];
-						$("#dashboard-stats").append("<tr><td>" + name + "</td><td align='right'>" + value + "</td></tr>");
-						
+
+					data.forEach(({name, count, tip}) => {
+						$('#dashboard-stats').append(`<tr><td>${name}</td><td align='auto'>${count}</td><td> <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="left" title="${tip}"></i></td> </tr>`);
+						$('[data-toggle="tooltip"]').tooltip();
 					});
-				});		
+				})
 				start = new Date;	
 			}
 			var updateTime = function() {
@@ -61,6 +60,9 @@
 
 {% block content %}
 <div class="content">
+
+	<i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Tooltip message is here."></i>
+
 	<div class="row">
 		<div class="col-lg-4 col-md-6">
 			<div class="panel panel-default">
@@ -95,7 +97,7 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Snapshot</div>
 					<table id="dashboard-stats" class="table table-default">
-						<!--<tr>
+						<!-- <tr>
 							<td>Active Dynamic Hosts: </td>
 							<td align="right">{{ dynamic_hosts }}</td>
 						</tr>				
@@ -138,8 +140,7 @@
 						<tr>
 							<td>Active Users within 1 year:</td>
 							<td align="right">{{ active_users }}</td>
-						</tr>-->
-		
+						</tr> -->
 					</table>
 				</div>
 			</div>

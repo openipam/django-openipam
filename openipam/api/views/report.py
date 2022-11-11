@@ -366,54 +366,78 @@ class DashboardAPIView(APIView):
         ]
 
         data = (
-            (
-                "Static Hosts",
-                "%s"
-                % Host.objects.filter(
+            {
+                "name": "All Hosts",
+                "count": Host.objects.all().count(),
+                "tip": "All hosts in openIPAM.",
+            },
+            {
+                "name": "Expired Hosts",
+                "count": Host.objects.filter(expires__lte=timezone.now()).count(),
+                "tip": "All hosts who's expiry date is before today's date.",
+            },
+            {
+                "name": "Static Hosts",
+                "count": Host.objects.filter(
                     addresses__isnull=False, expires__gte=timezone.now()
                 ).count(),
-            ),
-            (
-                "Dynamic Hosts",
-                "%s"
-                % Host.objects.filter(
-                    pools__isnull=False, expires__gte=timezone.now()
+                "tip": "Static hosts which are not expired.",
+            },
+            {
+                "name": "Dynamic Hosts",
+                "count": Host.objects.filter(
+                    pools__isnull=True, expires__gte=timezone.now()
                 ).count(),
-            ),
-            (
-                "Active Leases",
-                "%s" % Lease.objects.filter(ends__gte=timezone.now()).count(),
-            ),
-            ("Abandoned Leases", "%s" % Lease.objects.filter(abandoned=True).count()),
-            (
-                "Networks: (Total / Wireless)",
-                "%s / %s" % (Network.objects.all().count(), wireless_networks.count()),
-            ),
-            (
-                "Available Wireless Addresses",
-                Address.objects.filter(
+                "tip": "Dynamic hosts which are not expired.",
+            },
+            {
+                "name": "Active Leases",
+                "count": Lease.objects.filter(ends__gte=timezone.now()).count(),
+                "tip": "All leases who end in the future.",
+            },
+            {
+                "name": "Abandoned Leases",
+                "count": Lease.objects.filter(abandoned=True).count(),
+                "tip": "Leases that have been abandoned.",
+            },
+            {
+                "name": "Networks: (Total / Wireless)",
+                "count": f"{Network.objects.all().count()} / {wireless_networks.count()}",
+                "tip": "A total of all networks / wireless networks.",
+            },
+            {
+                "name": "Available Wireless Addresses",
+                "count": Address.objects.filter(
                     reduce(operator.or_, wireless_networks_available_qs),
                     leases__ends__lt=timezone.now(),
                 ).count(),
-            ),
-            (
-                "DNS A Records",
-                DnsRecord.objects.filter(dns_type__name__in=["A", "AAAA"]).count(),
-            ),
-            (
-                "DNS CNAME Records",
-                DnsRecord.objects.filter(dns_type__name="CNAME").count(),
-            ),
-            ("DNS MX Records", DnsRecord.objects.filter(dns_type__name="MX").count()),
-            (
-                "Active Users Within 1 Year",
-                User.objects.filter(
+                "tip": "A total of wireless addresses available.",
+            },
+            {
+                "name": "DNS A Records",
+                "count": DnsRecord.objects.filter(
+                    dns_type__name__in=["A", "AAAA"]
+                ).count(),
+                "tip": "Total of all A records.",
+            },
+            {
+                "name": "DNS CNAME Records",
+                "count": DnsRecord.objects.filter(dns_type__name="CNAME").count(),
+                "tip": "Total of all CNAME records.",
+            },
+            {
+                "name": "DNS MX Records",
+                "count": DnsRecord.objects.filter(dns_type__name="MX").count(),
+                "tip": "Total of all MX records.",
+            },
+            {
+                "name": "Active Users Within 1 Year",
+                "count": User.objects.filter(
                     last_login__gte=(timezone.now() - timedelta(days=365))
                 ).count(),
-            ),
+                "tip": "Active Users within the last year.",
+            },
         )
-
-        data = OrderedDict(data)
 
         return Response(data, status=status.HTTP_200_OK)
 
