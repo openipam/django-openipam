@@ -105,13 +105,14 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HostDNSView, self).get_context_data(**kwargs)
+
         hosts = Host.objects.prefetch_related("addresses").filter(
             dns_records__isnull=True,
             addresses__isnull=False,
             expires__gte=timezone.now(),
         )
-
-        # # TODO: Make this a manager function
+        
+        # Possibly make this a manager function in the future
         addresses = Address.objects.filter(host__in=hosts)
 
         a_record_names = (
@@ -133,7 +134,7 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
             )
             .order_by("dns_type__name")
         )
-
+        
         context["hosts"] = hosts
         context["dns_records_for_hosts"] = dns_records_for_hosts
         return context
@@ -209,5 +210,19 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
         context["host_types"] = host_types
         context["static_mac_addrs"] = [str(host.mac) for host in host_types["static"]]
         context["dynamic_mac_addrs"] = [str(host.mac) for host in host_types["dynamic"]]
+
+        return context
+
+
+class OrphanedDNSView(GroupRequiredMixin, TemplateView):
+    group_required = "ipam_admins"
+    template_name = "report/orphaned_dns.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(OrphanedDNSView, self).get_context_data(**kwargs)
+
+        context["orphaned_records"] = DnsRecord.objects.select_related(
+            "dns_type", "ip_content", "changed_by"
+        ).filter(host__isnull=True, dns_type__name="A")
 
         return context

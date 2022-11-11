@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
-from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.timezone import localtime, utc
 
@@ -508,9 +507,7 @@ class HostForm(forms.ModelForm):
             host_exists = Host.objects.filter(mac=mac)
         except IndexError:
             raise ValidationError(
-                mark_safe(
-                    "The mac address entered is invalid: %s." % self.data["mac_address"]
-                )
+                "The mac address entered is invalid: %s." % self.data["mac_address"]
             )
         if self.instance.pk:
             host_exists = host_exists.exclude(mac=self.instance.pk)
@@ -520,10 +517,8 @@ class HostForm(forms.ModelForm):
                 host_exists[0].delete(user=self.user)
             else:
                 raise ValidationError(
-                    mark_safe(
-                        "The mac address entered already exists for host: %s."
-                        % host_exists[0].hostname
-                    )
+                    "The mac address entered already exists for host: %s."
+                    % host_exists[0].hostname
                 )
         return mac
 
@@ -594,11 +589,11 @@ class HostForm(forms.ModelForm):
             )
             if not user_nets.filter(network=network.network):
                 raise ValidationError(
-                    mark_safe(
-                        "You do not have access to assign this host to the "
-                        "network specified: %s.<br />Please contact an IPAM Administrator."
-                        % network
-                    )
+                    [
+                        "You do not have access to assign this host to the network specified: %s."
+                        % network,
+                        "Please contact an IPAM Administrator.",
+                    ]
                 )
 
             address = Address.objects.filter(
@@ -613,10 +608,11 @@ class HostForm(forms.ModelForm):
 
             if not address:
                 raise ValidationError(
-                    mark_safe(
-                        "There is no addresses available from the network specified: %s.<br />"
-                        "Please contact an IPAM Administrator." % network
-                    )
+                    [
+                        "There is no addresses available from the network specified: %s."
+                        % network,
+                        "Please contact an IPAM Administrator.",
+                    ]
                 )
         return network
 
