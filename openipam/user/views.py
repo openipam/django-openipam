@@ -77,10 +77,12 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
             if username_search:
                 qs = qs.filter(username__istartswith=username_search)
             if fullname_search:
-                qs = qs.filter(
-                    Q(first_name__icontains=fullname_search)
-                    | Q(last_name__icontains=fullname_search)
-                )
+                fullname_search_query = Q()
+                for partial_name in fullname_search.split():
+                    fullname_search_query &= Q(first_name__icontains=partial_name) | Q(
+                        last_name__icontains=partial_name
+                    )
+                qs = qs.filter(fullname_search_query)
             if email_search:
                 qs = qs.filter(email__icontains=email_search)
             if staff_search:
