@@ -111,7 +111,7 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
             addresses__isnull=False,
             expires__gte=timezone.now(),
         )
-        
+
         # Possibly make this a manager function in the future
         addresses = Address.objects.filter(host__in=hosts)
 
@@ -134,7 +134,7 @@ class HostDNSView(GroupRequiredMixin, TemplateView):
             )
             .order_by("dns_type__name")
         )
-        
+
         context["hosts"] = hosts
         context["dns_records_for_hosts"] = dns_records_for_hosts
         return context
