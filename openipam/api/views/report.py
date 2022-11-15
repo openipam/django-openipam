@@ -446,26 +446,26 @@ class ServerHostView(APIView):
                    hosts.description AS description,
                    STRING_AGG(DISTINCT((SELECT CAST(addresses.address AS VARCHAR))), ', ') AS addresses,
                    STRING_AGG(DISTINCT(users.username), ', ') AS users,
-                   STRING_AGG(DISTINCT(groups.name), ', ') AS groups,
+                   STRING_AGG(DISTINCT(auth_group.name), ', ') AS groups,
                    STRING_AGG(DISTINCT(host_attr_vals.value), ', ') AS nac_profiles
             FROM hosts
-                JOIN structured_attributes_to_hosts AS host_attrs ON hosts.mac=host_attrs.mac
-                JOIN structured_attribute_values AS host_attr_vals ON host_attrs.avid=host_attr_vals.id
+                JOIN structured_attributes_to_hosts AS host_attrs ON hosts.mac = host_attrs.mac
+                JOIN structured_attribute_values AS host_attr_vals ON host_attrs.avid = host_attr_vals.id
                 LEFT JOIN guardian_userobjectpermission AS uop ON uop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND uop.permission_id = %s
-                LEFT JOIN guardian_groupobjectpermission AS gop ON gop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND gop.permission_id=%s
-                LEFT JOIN addresses ON hosts.mac=addresses.mac
-                LEFT JOIN users ON uop.user_id=users.id
-                LEFT JOIN groups ON gop.group_id=groups.id
+                LEFT JOIN guardian_groupobjectpermission AS gop ON gop.object_pk=(SELECT CAST(hosts.mac AS VARCHAR)) AND gop.permission_id = %s
+                LEFT JOIN addresses ON hosts.mac = addresses.mac
+                LEFT JOIN users ON uop.user_id = users.id
+                LEFT JOIN auth_group ON gop.group_id = auth_group.id
             WHERE host_attr_vals.aid = %s
-            AND STARTS_WITH(host_attr_vals.value, %s)
+            AND host_attr_vals.value LIKE %s || '%%'
             GROUP BY hosts.mac, hosts.hostname, hosts.description
             """,
-            [
+            (
                 host_owner_permission.id,
                 host_owner_permission.id,
                 nac_profile_attribute.id,
-                CONFIG["NAC_PROFILE_IS_SERVER_PREFIX"],
-            ],
+                CONFIG.get("NAC_PROFILE_IS_SERVER_PREFIX"),
+            ),
         )
 
         data = [
