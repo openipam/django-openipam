@@ -82,12 +82,19 @@ class HostList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer)
     queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
-    serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filter_class = HostFilter
     ordering_fields = ("expires", "changed")
     ordering = ("expires",)
+
+    def get_serializer_class(self):
+        # Only spend the time to serialize related fields if get_related is not
+        # "False"
+        do_prefetch = not (self.request.GET.get("get_related", "True") == "False")
+        if do_prefetch:
+            return host_serializers.HostListSerializer
+        return host_serializers.HostBasicListSerializer
 
     # def get_paginate_by(self, queryset=None):
     #     param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
