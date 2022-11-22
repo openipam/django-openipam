@@ -90,9 +90,8 @@ class HostList(generics.ListAPIView):
 
     def get_serializer_class(self):
         # Only spend the time to serialize related fields if get_related is not
-        # "False"
-        do_prefetch = not (self.request.GET.get("get_related", "True") == "False")
-        if do_prefetch:
+        # False
+        if not (self.request.GET.get("skip_related", False)):
             return host_serializers.HostListSerializer
         return host_serializers.HostBasicListSerializer
 
