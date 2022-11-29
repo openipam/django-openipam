@@ -36,6 +36,19 @@ class HostMacSerializer(serializers.ModelSerializer):
         read_only_fields = ("mac",)
 
 
+class HostBasicListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Host
+        fields = (
+            "mac",
+            "hostname",
+            "expires",
+            "expire_days",
+            "description",
+            "is_dynamic",
+        )
+
+
 class HostListSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
