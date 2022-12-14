@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, renderer_classes, permission_classes
 
 from rest_framework_csv.renderers import CSVRenderer
+from rest_framework.exceptions import ParseError, ValidationError
 
 from django.db import connection
 from django.db.models.aggregates import Count
@@ -45,6 +46,8 @@ import itertools
 from tempfile import TemporaryFile
 
 from datetime import datetime, timedelta
+
+import dateutil.parser
 
 from collections import OrderedDict
 
@@ -315,19 +318,44 @@ class WeatherMapView(APIView):
 
 class StatsAPIView(APIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (TemplateHTMLRenderer,)
+    renderer_classes = (TemplateHTMLRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
         app = request.GET.get("app")
         model = request.GET.get("model")
         column = request.GET.get("column")
+        start = request.GET.get("start")
+        end = request.GET.get("end")
 
         model_klass = apps.get_model(app_label=app, model_name=model)
         queryset = model_klass.objects.all()
         qs_stats = qsstats.QuerySetStats(queryset, column, aggregate=Count("pk"))
 
-        xdata = ["Today", "This Week", "This Month"]
-        ydata = [qs_stats.this_day(), qs_stats.this_week(), qs_stats.this_month()]
+        time_series = []
+        if start and end:
+            try:
+                start = dateutil.parser.parse(start)
+                end = dateutil.parser.parse(end)
+            except ValueError:
+                raise ParseError("'start' and 'end' must be ISO date strings")
+            if start >= end:
+                raise ValidationError("'start' must be less than 'end'")
+            if start - end > timedelta(days=31):
+                raise ValidationError(
+                    "'start' and 'end' must be less than or equal to 31 days apart"
+                )
+            time_series = qs_stats.time_series(start, end)
+
+        xdata = (
+            ["Today", "This Week", "This Month"]
+            if not (start and end)
+            else [int(x[0].timestamp()) for x in time_series]
+        )
+        ydata = (
+            [qs_stats.this_day(), qs_stats.this_week(), qs_stats.this_month()]
+            if not (start and end)
+            else [x[1] for x in time_series]
+        )
 
         extra_serie1 = {
             "tooltip": {
