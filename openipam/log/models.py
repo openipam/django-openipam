@@ -31,7 +31,10 @@ class HostLog(BaseLog):
     expires = models.DateTimeField()
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     def __str__(self):
@@ -126,7 +129,10 @@ class DnsRecordsLog(BaseLog):
     priority = models.IntegerField(null=True, blank=True)
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     @cached_property
@@ -146,7 +152,10 @@ class AddressLog(BaseLog):
     network = models.TextField(blank=True)  # This field type is a guess.
     changed = models.DateTimeField(null=True, blank=True)
     changed_by = models.ForeignKey(
-        "user.User", db_constraint=False, db_column="changed_by"
+        "user.User",
+        db_constraint=False,
+        db_column="changed_by",
+        on_delete=models.DO_NOTHING,
     )
 
     @cached_property
@@ -179,4 +188,4 @@ class AuthSource(models.Model):
         return self.name
 
     class Meta:
-        db_table = "auth_sources"
+        db_table = "auth_sources_log"

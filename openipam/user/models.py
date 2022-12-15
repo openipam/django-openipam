@@ -41,7 +41,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
-    source = models.ForeignKey("AuthSource", db_column="source", blank=True, null=True)
+    source = models.ForeignKey(
+        "AuthSource",
+        db_column="source",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
 
     objects = IPAMUserManager()
 
@@ -154,9 +160,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class GroupSource(models.Model):
-    group = models.OneToOneField(AuthGroup, primary_key=True, related_name="source")
+    group = models.OneToOneField(
+        AuthGroup, primary_key=True, related_name="source", on_delete=models.CASCADE
+    )
     source = models.ForeignKey(
-        "AuthSource", db_column="source", default=1, related_name="group"
+        "AuthSource",
+        db_column="source",
+        default=1,
+        related_name="group",
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):

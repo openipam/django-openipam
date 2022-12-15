@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -44,7 +45,9 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(User, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.name
@@ -74,10 +77,11 @@ class AttributeToHost(models.Model):
 
 class Disabled(models.Model):
     mac = MACAddressField(primary_key=True)
-    # host = models.OneToOneField('Host', primary_key=True, db_column='mac', db_constraint=False, related_name='disabled_host', on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True, db_column="disabled")
-    changed_by = models.ForeignKey(User, db_column="disabled_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="disabled_by", on_delete=models.PROTECT
+    )
 
     def __init__(self, *args, **kwargs):
         # Initialize setters
@@ -121,12 +125,19 @@ class ExpirationType(models.Model):
 
 class FreeformAttributeToHost(models.Model):
     host = models.ForeignKey(
-        "Host", db_column="mac", related_name="freeform_attributes"
+        "Host",
+        db_column="mac",
+        related_name="freeform_attributes",
+        on_delete=models.CASCADE,
     )
-    attribute = models.ForeignKey("Attribute", db_column="aid")
+    attribute = models.ForeignKey(
+        "Attribute", db_column="aid", on_delete=models.PROTECT
+    )
     value = models.TextField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(User, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s %s" % (self.pk, self.attribute.name, self.value)
@@ -136,7 +147,9 @@ class FreeformAttributeToHost(models.Model):
 
 
 class GuestTicket(models.Model):
-    user = models.ForeignKey(User, db_column="uid")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="uid", on_delete=models.CASCADE
+    )
     ticket = models.CharField(max_length=255, unique=True)
     starts = models.DateTimeField()
     ends = models.DateTimeField()
@@ -331,21 +344,19 @@ class Host(DirtyFieldsMixin, models.Model):
     pools = models.ManyToManyField(
         "network.Pool", through="network.HostToPool", related_name="pool_hosts"
     )
-    # freeform_attributes = models.ManyToManyField('Attribute', through='FreeformAttributeToHost',
-    #                                             related_name='freeform_hosts',  blank=True, null=True)
-    # structured_attributes = models.ManyToManyField('Attribute', through='StructuredAttributeToHost',
-    #                                               related_name='structured_hosts',  blank=True, null=True)
     dhcp_group = models.ForeignKey(
         "network.DhcpGroup",
         db_column="dhcp_group",
         verbose_name="DHCP Group",
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,  # This was SET_NULL before, wrong?
     )
     expires = models.DateTimeField()
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(User, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
     last_notified = models.DateTimeField(blank=True, null=True)
 
     objects = HostManager.from_queryset(HostQuerySet)()
@@ -693,7 +704,8 @@ class Host(DirtyFieldsMixin, models.Model):
 
         address = None
 
-        # Check to see if hostname already taken for any hosts other then the current one if being updated.
+        # Check to see if hostname already taken for any
+        # hosts other then the current one if being updated.
         used_hostname = (
             DnsRecord.objects.filter(
                 dns_type__in=[DnsType.objects.A, DnsType.objects.AAAA], name=hostname
@@ -1299,11 +1311,15 @@ class Notification(models.Model):
 
 
 class StructuredAttributeValue(models.Model):
-    attribute = models.ForeignKey("Attribute", db_column="aid", related_name="choices")
+    attribute = models.ForeignKey(
+        "Attribute", db_column="aid", related_name="choices", on_delete=models.CASCADE
+    )
     value = models.TextField()
     is_default = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(User, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return self.value
@@ -1315,13 +1331,18 @@ class StructuredAttributeValue(models.Model):
 
 class StructuredAttributeToHost(models.Model):
     host = models.ForeignKey(
-        "Host", db_column="mac", related_name="structured_attributes"
+        "Host",
+        db_column="mac",
+        related_name="structured_attributes",
+        on_delete=models.CASCADE,
     )
     structured_attribute_value = models.ForeignKey(
-        "StructuredAttributeValue", db_column="avid"
+        "StructuredAttributeValue", db_column="avid", on_delete=models.CASCADE
     )
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(User, db_column="changed_by")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "%s %s" % (self.host.hostname, self.structured_attribute_value)

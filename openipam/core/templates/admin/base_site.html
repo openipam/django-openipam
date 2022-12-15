@@ -5,8 +5,6 @@
 
 {% block extrahead %}
 {{ block.super }}
-{% include 'autocomplete_light/static.html' %}
-<script type="text/javascript" src="{% static 'core/js/mimic.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -24,16 +22,12 @@
                 {% block mimic-user %}
                 <li class="navbar-form">
                     {% if request.user.is_ipamadmin and not request.session.mimic_user %}
-                        <form id="mimic_form" method="post" action="{% url 'mimic' %}">
-                            {% csrf_token %}
-                            <input type="text" placeholder="Mimic User" id="id_mimic_select" class="form-control input-sm" />
-                            <input type="hidden" id="id_mimic_value" name="mimic_pk" />
-                        </form>
+                        {% mimic_user_form %}
                     {% else %}
                         {% if request.session.mimic_user %}
                             <div class="btn-group">
                                 <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
-                                <a href="{% url 'mimic' %}" class="btn btn-primary dropdown-toggle"><span class="glyphicon glyphicon-remove icon-white"></span></a>
+                                <a href="{% url 'core:mimic' %}" class="btn btn-primary dropdown-toggle"><span class="glyphicon glyphicon-remove icon-white"></span></a>
                             </div>
                         {% endif %}
                     {% endif %}
@@ -74,21 +68,21 @@
                         <ul class="dropdown-menu dropdown-menu-right">
                             {% block userlinks %}
                             <li>
-                                <a href="{% url 'profile' %}">
+                                <a href="{% url 'core:profile' %}">
                                     <i class="icon-user"></i>
                                     Profile
                                 </a>
                             </li>
                             {% if request.user.has_usable_password %}
                             <li>
-                                <a href="{% url 'password_change' %}">
+                                <a href="{% url 'core:password_change' %}">
                                     <i class="icon-lock"></i>
                                     {% trans 'Change password' %}
                                 </a>
                             </li>
                             {% endif %}
                             <li>
-                                <a href="{% url 'logout' %}">
+                                <a href="{% url 'core:logout' %}">
                                     <i class="icon-off"></i>
                                     {% trans 'Log out' %}
                                 </a>

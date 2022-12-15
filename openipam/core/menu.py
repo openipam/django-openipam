@@ -6,7 +6,7 @@ To activate your custom menu add the following to your settings.py::
     ADMIN_TOOLS_MENU = 'openipam.menu.CustomMenu'
 """
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 
@@ -68,12 +68,12 @@ class IPAMMenu(Menu):
             host_models = items.ModelList("", ["openipam.hosts.*"])
             dns_models = items.ModelList("", ["openipam.dns.*"])
 
-            host_items = items.MenuItem("Hosts", url=reverse("list_hosts"))
-            dns_items = items.MenuItem("DNS", url=reverse("list_dns"))
+            host_items = items.MenuItem("Hosts", url=reverse("core:hosts:list_hosts"))
+            dns_items = items.MenuItem("DNS", url=reverse("core:hosts:list_dns"))
 
             if len(dns_models._visible_models(context["request"])) > 1:
                 dns_items.children = [
-                    items.MenuItem("DNS", url=reverse("list_dns")),
+                    items.MenuItem("DNS", url=reverse("core:dns:list_dns")),
                     items.ModelList(
                         "",
                         ["openipam.dns.*"],
@@ -83,7 +83,7 @@ class IPAMMenu(Menu):
 
             if len(host_models._visible_models(context["request"])) > 1:
                 host_items.children = [
-                    items.MenuItem("Hosts", url=reverse("list_hosts")),
+                    items.MenuItem("Hosts", url=reverse("core:hosts:list_hosts")),
                     items.ModelList(
                         "",
                         models=["openipam.hosts.*"],
@@ -94,8 +94,8 @@ class IPAMMenu(Menu):
             core_menus = [host_items, dns_items]
         else:
             core_menus = [
-                items.MenuItem("Hosts", url=reverse("list_hosts")),
-                items.MenuItem("DNS", url=reverse("list_dns")),
+                items.MenuItem("Hosts", url=reverse("core:hosts:list_hosts")),
+                items.MenuItem("DNS", url=reverse("core:dns:list_dns")),
             ]
 
         self.children += [
@@ -181,28 +181,32 @@ class IPAMMenu(Menu):
                     "Reports",
                     children=[
                         items.MenuItem(
-                            title="openIPAM Stats", url=reverse("reports_ipam_stats")
+                            title="openIPAM Stats",
+                            url=reverse("core:report:reports_ipam_stats"),
                         ),
                         items.MenuItem(
                             title="Hardcoded Disabled Hosts",
-                            url=reverse("reports_disabled"),
+                            url=reverse("core:report:reports_disabled"),
                         ),
                         items.MenuItem(
                             title="Exposed Hosts",
-                            url=reverse("reports_exposed_hosts"),
+                            url=reverse("core:report:reports_exposed_hosts"),
                         ),
                         items.MenuItem(
                             title="Host with no DNS Records",
-                            url=reverse("reports_host_dns"),
+                            url=reverse("core:report:reports_host_dns"),
                         ),
                         items.MenuItem(
-                            title="Broken PTR Records", url=reverse("reports_ptr_dns")
+                            title="Broken PTR Records",
+                            url=reverse("core:report:reports_ptr_dns"),
                         ),
                         items.MenuItem(
-                            title="Expired Hosts", url=reverse("expired_hosts")
+                            title="Expired Hosts",
+                            url=reverse("core:report:expired_hosts"),
                         ),
                         items.MenuItem(
-                            title="Orphaned DNS", url=reverse("orphaned_dns")
+                            title="Orphaned DNS",
+                            url=reverse("core:report:orphaned_dns"),
                         ),
                     ],
                     # icon='icon-user icon-white'

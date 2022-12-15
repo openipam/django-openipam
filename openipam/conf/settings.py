@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.contrib.messages import constants as message_constants
 
 import hashlib
@@ -31,13 +31,12 @@ DATABASES = locals().pop(
     "DATABASES",
     {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            "NAME": "%s/development.db"
-            % BASE_DIR,  # Or path to database file if using sqlite3.
-            "USER": "",  # Not used with sqlite3.
-            "PASSWORD": "",  # Not used with sqlite3.
-            "HOST": "",  # Set to empty string for localhost. Not used with sqlite3.
-            "PORT": "",  # Set to empty string for default. Not used with sqlite3.
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": "%s/development.db" % BASE_DIR,
+            "USER": "",
+            "PASSWORD": "",
+            "HOST": "",
+            "PORT": "",
         }
     },
 )
@@ -175,8 +174,8 @@ WSGI_APPLICATION = "openipam.wsgi.application"
 
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
-LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", ())
-INSTALLED_APPS = (
+LOCAL_INSTALLED_APPS = locals().pop("LOCAL_INSTALLED_APPS", [])
+INSTALLED_APPS = [
     # openIPAM Apps
     "openipam.core",
     "openipam.user",
@@ -185,6 +184,7 @@ INSTALLED_APPS = (
     "openipam.network",
     "openipam.dns",
     "openipam.log",
+    "openipam.autocomplete",
     # openIPAM reports
     "openipam.report",
     # Firewall
@@ -200,13 +200,14 @@ INSTALLED_APPS = (
     "widget_tweaks",
     "django_filters",
     "crispy_forms",
-    "autocomplete_light",
+    "dal",
+    "dal_select2",
+    "dal_queryset_sequence",
     "rest_framework",
     "rest_framework.authtoken",
     "guardian",
     "netfields",
     "taggit",
-    "django_cas_ng",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -216,7 +217,7 @@ INSTALLED_APPS = (
     "django.contrib.admin",
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-) + LOCAL_INSTALLED_APPS
+] + LOCAL_INSTALLED_APPS
 
 BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
 BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
@@ -234,19 +235,14 @@ BOWER_INSTALLED_APPS = (
 
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
-LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", ())
-AUTHENTICATION_BACKENDS = (
-    # 'django.contrib.auth.backends.ModelBackend',
+LOCAL_AUTHENTICATION_BACKENDS = locals().pop("LOCAL_AUTHENTICATION_BACKENDS", [])
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
     "openipam.core.backends.CaseInsensitiveModelBackend",
-    # "openipam.core.backends.IPAMCASBackend",
-    # 'django_cas_ng.backends.CASBackend',
     "guardian.backends.ObjectPermissionBackend",
-) + LOCAL_AUTHENTICATION_BACKENDS
+] + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
-
-# CAS_SERVER_URL = locals().pop("CAS_SERVER_URL", "https://login.usu.edu/cas/p3/")
-# CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
@@ -255,13 +251,12 @@ LOGIN_EXEMPT_URLS = (
     "logout/",
     "api/?.*",
     "reports/?.*",
-    # "cas/?.*",
     # 'reports/weathermap/',
     # 'reports/leases/usage/',
 )
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = reverse_lazy("index")
-LOGOUT_URL = reverse_lazy("logout")
+LOGIN_REDIRECT_URL = reverse_lazy("core:index")
+LOGOUT_URL = reverse_lazy("core:logout")
 
 REST_FRAMEWORK = {
     "PAGINATE_BY": 25,

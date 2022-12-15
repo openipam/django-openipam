@@ -192,7 +192,7 @@ class UserManagerView(PermissionRequiredMixin, TemplateView):
             if action:
                 getattr(user_actions, "action_%s" % action)(request, selected_users)
 
-        return redirect("user_manager")
+        return redirect("core:users:user_manager")
 
 
 @permission_required("user.view_user")

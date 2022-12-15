@@ -33,7 +33,6 @@ INTERNAL_IPS = ("127.0.0.1",)
 # OPENIPAM Settings, see openipam/conf/ipam_settings.py
 # OPENIPAM = {
 #     'GUEST_HOSTNAME_FORMAT': ['g-', '.guests.company.com'],
-#     'CAS_LOGIN': False,
 #     'DUO_LOGIN': True,
 # }
 

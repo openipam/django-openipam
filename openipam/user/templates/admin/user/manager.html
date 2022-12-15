@@ -93,7 +93,7 @@
 				        ˣ
 				    </span>
 				</div>
-				<a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'user_manager' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
+				<a id="clear-filters" class="pull-right btn btn-default" href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'core:users:user_manager' %}{% endif %}" stlye="margin-left: 10px;">Clear</a>
 
 			</div>
 			<div id="search-help" class="help-content">
