@@ -6,7 +6,6 @@ from openipam.core.utils.django_fk_hack import get_sql
 
 
 def hack_django_fk_constraints(apps, schema_editor):
-
     cursor = schema_editor.connection.cursor()
 
     # not managed# migrations.RunSQL(get_sql('hosts_to_groups', 'hosts', 'mac')),
@@ -17,7 +16,6 @@ def hack_django_fk_constraints(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0004_auto_20140811_1110")]
 
     operations = [migrations.RunPython(hack_django_fk_constraints)]

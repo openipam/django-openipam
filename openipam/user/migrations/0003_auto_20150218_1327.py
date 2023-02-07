@@ -6,7 +6,6 @@ from django.conf import settings
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("user", "0002_populate_permissions")]
 
     operations = [

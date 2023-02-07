@@ -95,7 +95,6 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
             ctype = ContentType.objects.get_for_model(queryset.model).pk
 
             try:
-
                 ids = [
                     x.split("-")[1]
                     for x in self.values

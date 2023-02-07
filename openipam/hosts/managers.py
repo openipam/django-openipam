@@ -103,7 +103,6 @@ class HostQuerySet(QuerySet):
                 return qs
 
     def by_expiring(self, ids_only=False, omit_guests=False):
-
         cursor = connection.cursor()
         try:
             cursor.execute(

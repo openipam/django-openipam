@@ -8,7 +8,6 @@ import netfields.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0011_auto_20150309_1518")]
 
     operations = [

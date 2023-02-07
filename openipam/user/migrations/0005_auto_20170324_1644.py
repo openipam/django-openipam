@@ -7,7 +7,6 @@ import openipam.user.managers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("user", "0004_populate_authsource")]
 
     operations = [

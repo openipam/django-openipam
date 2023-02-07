@@ -6,7 +6,6 @@ from django.conf import settings
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("dns", "0001_initial"),
         ("hosts", "0001_initial"),

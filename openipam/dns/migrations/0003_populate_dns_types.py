@@ -30,7 +30,6 @@ def populate_none_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("dns", "0002_auto_20140807_1624"),
         ("user", "0002_populate_permissions"),

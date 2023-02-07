@@ -7,7 +7,6 @@ import netfields.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0005_hack_django_fk")]
 
     operations = [
