@@ -5,7 +5,6 @@ from django.db import models, migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("dns", "0004_add_cascade_update_dns_records")]
 
     operations = [

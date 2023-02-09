@@ -73,7 +73,6 @@ def login(request, internal=False, **kwargs):
 
 @require_http_methods(["GET"])
 def logout(request, next_page=None, **kwargs):
-
     # backend = request.session.get("_auth_user_backend", "").split(".")[-1]
 
     # if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":

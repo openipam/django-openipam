@@ -38,7 +38,6 @@ class IPAMIndexDashboard(Dashboard):
     title = ""
 
     def init_with_context(self, context):
-
         self.site_name = get_admin_site_name(context)
         request = context["request"]
 
@@ -167,7 +166,6 @@ class IPAMIndexDashboard(Dashboard):
 
 
 class IPAMAppList(modules.AppList):
-
     template = "admin_tools/dashboard/modules/ipam_app_list.html"
 
     def init_with_context(self, context):

@@ -8,7 +8,6 @@ from django.conf import settings
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user", "0001_initial"),
         ("network", "0001_initial"),

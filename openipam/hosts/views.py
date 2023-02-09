@@ -85,7 +85,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         column_data = self.json_data.get("columns", [])
 
         try:
-
             host_search = column_data[1]["search"]["value"].strip()
             mac_search = column_data[2]["search"]["value"].strip()
             expired_search = column_data[3]["search"]["value"]
@@ -566,7 +565,6 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-
         action = request.POST.get("action", None)
         selected_hosts = request.POST.getlist("selected_hosts", [])
         response = None

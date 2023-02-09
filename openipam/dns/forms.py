@@ -79,7 +79,6 @@ class DNSUpdateForm(forms.ModelForm):
             self.fields["dns_types"].initial = self.instance.dns_type.pk
 
     def clean(self, *args, **kwargs):
-
         # data = self.cleaned_data
         # if data['text_content'] and self.instance.ip_content:
         #     raise ValidationError('Content for DNS entry %s cannot be added because'

@@ -41,6 +41,5 @@ def validate_soa_content(value):
 
 
 def validate_sshfp_content(value):
-
     if not re.match("(?i)^[12] 1 [0-9A-F]{40}", value):
         raise ValidationError("Invalid SSHFP content: %s" % value)

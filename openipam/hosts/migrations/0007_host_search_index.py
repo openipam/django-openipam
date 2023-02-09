@@ -6,7 +6,6 @@ import djorm_pgfulltext.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0006_auto_20150218_1326")]
 
     operations = [

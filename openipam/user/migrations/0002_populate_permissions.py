@@ -13,7 +13,6 @@ def populate_none_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("user", "0001_initial")]
 
     operations = [migrations.RunPython(populate_none_permission)]
