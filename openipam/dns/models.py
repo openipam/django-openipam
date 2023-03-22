@@ -407,7 +407,22 @@ class DnsRecord(models.Model):
                     .order_by("-length")
                     .first()
                 )
-                if domain:
+
+                if (
+                    domain
+                    and self.dns_type
+                    and self.dns_type.is_cname_record
+                    and domain.name == self.name
+                ):
+                    raise ValidationError(
+                        {
+                            "name": [
+                                "Cannot create CNAME record with name equivalent to existing domain "
+                                + domain.name
+                            ]
+                        }
+                    )
+                elif domain:
                     self.domain = domain
                 else:
                     raise ValidationError(
