@@ -11,7 +11,6 @@ from django.utils.timezone import localtime, utc
 
 from functools import reduce
 
-from openipam.dns.models import Domain
 from openipam.network.models import (
     Address,
     AddressType,
