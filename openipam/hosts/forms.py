@@ -11,6 +11,7 @@ from django.utils.timezone import localtime, utc
 
 from functools import reduce
 
+from openipam.dns.models import Domain
 from openipam.network.models import (
     Address,
     AddressType,
@@ -56,6 +57,7 @@ NET_IP_CHOICES = (("0", "Network"), ("1", "IP"))
 class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
     hostname = forms.CharField(
+        required=True,
         validators=[validate_hostname],
         widget=forms.TextInput(attrs={"placeholder": "Enter a FQDN for this host"}),
     )
