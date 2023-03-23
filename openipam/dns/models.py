@@ -365,9 +365,7 @@ class DnsRecord(models.Model):
                 )
 
             if self.dns_type.is_cname_record:
-                records = DnsRecord.objects.filter(
-                    name=self.name, dns_type=self.dns_type
-                ).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name).exclude(pk=self.pk)
                 if records:
                     error_list.append(
                         "Trying to create CNAME record while other records exist: %s"
