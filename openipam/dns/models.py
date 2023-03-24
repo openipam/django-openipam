@@ -365,9 +365,7 @@ class DnsRecord(models.Model):
                 )
 
             if self.dns_type.is_cname_record:
-                records = DnsRecord.objects.filter(
-                    name=self.name, dns_type=self.dns_type
-                ).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name).exclude(pk=self.pk)
                 if records:
                     error_list.append(
                         "Trying to create CNAME record while other records exist: %s"
@@ -407,7 +405,22 @@ class DnsRecord(models.Model):
                     .order_by("-length")
                     .first()
                 )
-                if domain:
+
+                if (
+                    domain
+                    and self.dns_type
+                    and self.dns_type.is_cname_record
+                    and domain.name == self.name
+                ):
+                    raise ValidationError(
+                        {
+                            "name": [
+                                "Cannot create CNAME record with name equivalent to existing domain "
+                                + domain.name
+                            ]
+                        }
+                    )
+                elif domain:
                     self.domain = domain
                 else:
                     raise ValidationError(
