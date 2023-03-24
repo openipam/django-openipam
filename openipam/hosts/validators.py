@@ -5,6 +5,8 @@ import re
 
 def validate_hostname(value):
     allowed = re.compile(r"(?i)^(([a-z0-9-]+\.)?[a-z0-9][a-z0-9-]*\.)+[a-z]{2,6}$")
+    if value.startswith("."):
+        raise ValidationError("Hostname cannot start with .")
     if not allowed.match(value):
         raise ValidationError(
             "Hostname not valid. Please use only numbers, letters, and dashes when creating hostnames."
