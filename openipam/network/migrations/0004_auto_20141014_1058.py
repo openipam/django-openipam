@@ -5,7 +5,6 @@ from django.db import models, migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("taggit", "0001_initial"), ("network", "0003_auto_20140814_1541")]
 
     operations = [

@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0009_auto_20150306_1720")]
 
     operations = [migrations.AlterModelTable(name="oui", table="ouis")]

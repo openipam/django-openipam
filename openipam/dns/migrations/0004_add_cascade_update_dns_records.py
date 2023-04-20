@@ -11,7 +11,6 @@ def hack_django_fk_constraints(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("dns", "0003_populate_dns_types")]
 
     operations = [migrations.RunPython(hack_django_fk_constraints)]

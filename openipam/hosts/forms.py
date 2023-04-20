@@ -56,6 +56,7 @@ NET_IP_CHOICES = (("0", "Network"), ("1", "IP"))
 class HostForm(forms.ModelForm):
     mac_address = MACAddressFormField()
     hostname = forms.CharField(
+        required=True,
         validators=[validate_hostname],
         widget=forms.TextInput(attrs={"placeholder": "Enter a FQDN for this host"}),
     )
@@ -414,7 +415,6 @@ class HostForm(forms.ModelForm):
         self.helper.layout = Layout(Accordion(*accordion_groups))
 
     def save(self, *args, **kwargs):
-
         # Call manager function for adding and updating hosts.
         # All host creation should run through this function now.
         user_owners = self.cleaned_data["user_owners"] or None

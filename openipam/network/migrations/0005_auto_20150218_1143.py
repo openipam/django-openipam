@@ -8,7 +8,6 @@ import djorm_pgfulltext.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("taggit", "0001_initial"), ("network", "0004_auto_20141014_1058")]
 
     operations = [

@@ -11,7 +11,6 @@ def hack_django_fk_constraints(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("network", "0002_auto_20140811_1110")]
 
     operations = [migrations.RunPython(hack_django_fk_constraints)]

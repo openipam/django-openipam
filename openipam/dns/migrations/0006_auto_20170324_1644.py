@@ -7,7 +7,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("dns", "0005_auto_20150218_1327")]
 
     operations = [

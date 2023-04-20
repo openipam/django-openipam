@@ -6,7 +6,6 @@ import netfields.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("hosts", "0007_host_search_index")]
 
     operations = [

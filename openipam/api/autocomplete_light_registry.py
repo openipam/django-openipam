@@ -95,7 +95,6 @@ class IPAMObjectsAutoComplete(al.AutocompleteGenericBase):
             ctype = ContentType.objects.get_for_model(queryset.model).pk
 
             try:
-
                 ids = [
                     x.split("-")[1]
                     for x in self.values
@@ -460,16 +459,7 @@ class DomainAutocomplete(al.AutocompleteModelBase):
 
     def choices_for_request(self):
         if not self.request.user.is_anonymous() and not self.request.user.is_ipamadmin:
-            self.choices = get_objects_for_user(
-                self.request.user,
-                [
-                    "dns.add_records_to_domain",
-                    "dns.is_owner_domain",
-                    "dns.change_domain",
-                ],
-                klass=Domain,
-                any_perm=True,
-            )
+            self.choices = Domain.objects.by_dns_change_perms(self.request.user)
         return super(DomainAutocomplete, self).choices_for_request()
 
 
