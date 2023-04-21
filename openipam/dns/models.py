@@ -67,7 +67,7 @@ class DnsRecord(models.Model):
         max_length=255,
         error_messages={"blank": "Name fields for DNS records cannot be blank."},
     )
-    text_content = models.CharField(max_length=255, blank=True, null=True)
+    text_content = models.CharField(max_length=1000, blank=True, null=True)
     ip_content = models.ForeignKey(
         "network.Address",
         db_column="ip_content",
@@ -314,6 +314,7 @@ class DnsRecord(models.Model):
                     name=self.name,
                     dns_type=self.dns_type,
                     text_content=self.text_content,
+                    domain=self.domain,
                 ).exclude(pk=self.pk)
                 if dns_exists:
                     raise ValidationError(
@@ -397,7 +398,6 @@ class DnsRecord(models.Model):
             while names:
                 names_list.append(Q(name=".".join(names)))
                 names.pop(0)
-
             if names_list:
                 domain = (
                     Domain.objects.filter(reduce(operator.or_, names_list))

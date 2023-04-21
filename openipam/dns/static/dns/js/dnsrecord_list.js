@@ -166,7 +166,6 @@ $(function () {
             "search": ""
         },
         "stateLoaded": function (settings, data) {
-            console.log(data.columns[1]);
             $("#name-search").val(data.columns[1].search.search);
             $("#type-filter").val(data.columns[3].search.search);
             $("#content-search").val(data.columns[4].search.search);
@@ -178,7 +177,6 @@ $(function () {
             { "name": "ttl", "orderable": true },
             { "name": "content", "orderable": true },
             { "name": "host", "orderable": false, "searchable": false },
-            { "name": "view", "orderable": false, "searchable": false },
             { "name": "edit", "orderable": false, "searchable": false },
         ],
         "initComplete": function () {
@@ -198,6 +196,10 @@ $(function () {
                     $("input[name='content-" + value + "'").val($.formData['content-' + value]);
                     $("input[name='type-" + value + "'").val($.formData['type-' + value]);
                 });
+            }
+
+            if ($.showAdminEdit == true) {
+                $("a.edita-dns").show();
             }
 
             // Clone html for add row and attach it to datatable
@@ -315,25 +317,28 @@ $(function () {
     // Edit DNS record for a row
     $("#result_list").on('click', 'a.edit-dns', function () {
         var row = $(this).parents('tr');
+        var value = $(this).attr("rel");
         row.addClass('info').find("input[type='text'], select").show();
         row.find('input.action-select').prop('checked', 'checked');
         row.find("span[id!='dns_type']").hide();
         // Disabling dns_type edits per ekoyle
         //row.find("span").hide();
         $(this).hide();
-        row.find('a.cancel-dns').show();
+        $("a.edita-dns[rel='" + value + "']").hide();
+        row.find("a.cancel-dns").show();
         $("#form-actions").show();
     });
-
 
     // Cancel DNS reocrd edit for a row
     $("#result_list").on('click', 'a.cancel-dns', function () {
         var row = $(this).parents('tr');
+        var value = $(this).attr("rel");
         var actionSelect = row.find('input.action-select');
         row.removeClass('info error').find("input[type='text'], select").hide();
         actionSelect.removeAttr('checked');
         row.find("span").show();
         $(this).hide();
+        $("a.edita-dns[rel='" + value + "']").show();
         row.find('a.edit-dns').show();
 
         if ($.selectedRecords) {

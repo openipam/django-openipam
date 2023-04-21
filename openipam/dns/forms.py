@@ -119,11 +119,17 @@ class DSNCreateFrom(forms.Form):
 
         # Disabling dns_type edits per ekoyle
         if self.initial.get("dns_type"):
-            self.fields["dns_type"].disabled = True
+            self.fields["dns_type"].widget.attrs["readonly"] = True
 
         self.helper = FormHelper()
         self.helper.label_class = "col-sm-2 col-md-2 col-lg-2"
         self.helper.field_class = "col-sm-6 col-md-6 col-lg-6"
+
+    def clean_dns_type(self):
+        if self.initial.get("dns_type"):
+            return self.initial.get("dns_type")
+        else:
+            return self.cleaned_data["dns_type"]
 
 
 class DhcpDnsRecordForm(forms.ModelForm):

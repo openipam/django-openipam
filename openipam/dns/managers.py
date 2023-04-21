@@ -182,7 +182,15 @@ class DNSQuerySet(QuerySet):
 
 class DnsManager(Manager):
     def add_or_update_record(
-        self, user, name, content, dns_type=None, host=None, ttl=None, record=None
+        self,
+        user,
+        name,
+        content,
+        dns_type=None,
+        host=None,
+        ttl=None,
+        record=None,
+        domain=None,
     ):
         from openipam.network.models import Address
         from openipam.hosts.models import Host
@@ -241,7 +249,10 @@ class DnsManager(Manager):
 
             dns_record.name = name
             dns_record.set_priority()
-            dns_record.set_domain_from_name()
+            if domain:
+                dns_record.domain = domain
+            else:
+                dns_record.set_domain_from_name()
 
             dns_record.full_clean()
 
