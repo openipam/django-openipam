@@ -44,10 +44,6 @@ class AttributeCategory(models.Model):
     def __str__(self):
         return self.name
 
-    def __hash__(self):
-        # Hash on pk
-        return hash(self.pk)
-
     class Meta:
         db_table = "attribute_categories"
 
