@@ -184,13 +184,19 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ExpiredHostsView, self).get_context_data(**kwargs)
 
-        expiry_threshold_static = int(self.request.GET.get(
-            "expiry_threshold_static", CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
-        ))
+        expiry_threshold_static = int(
+            self.request.GET.get(
+                "expiry_threshold_static",
+                CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"],
+            )
+        )
 
-        expiry_threshold_dynamic = int(self.request.GET.get(
-            "expiry_threshold_dynamic", CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
-        ))
+        expiry_threshold_dynamic = int(
+            self.request.GET.get(
+                "expiry_threshold_dynamic",
+                CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"],
+            )
+        )
 
         limit = self.request.GET.get("limit", None)
         if limit == "all":
@@ -204,20 +210,14 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
             "static": Host.objects.select_related("mac_history")
             .filter(
                 pools__isnull=False,
-                expires__lte=timezone.now()
-                - timedelta(
-                    weeks=expiry_threshold_static
-                ),
+                expires__lte=timezone.now() - timedelta(weeks=expiry_threshold_static),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
             "dynamic": Host.objects.select_related("mac_history")
             .filter(
                 pools__isnull=True,
-                expires__lte=timezone.now()
-                - timedelta(
-                    weeks=expiry_threshold_dynamic
-                ),
+                expires__lte=timezone.now() - timedelta(weeks=expiry_threshold_dynamic),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
