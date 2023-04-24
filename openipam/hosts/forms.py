@@ -36,7 +36,7 @@ from openipam.core.forms import (
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, HTML
-from crispy_forms.bootstrap import Accordion, AccordionGroup, PrependedText
+from crispy_forms.bootstrap import Accordion, AccordionGroup, PrependedText, TabHolder, Tab
 
 from netfields.forms import MACAddressFormField
 from netfields.mac import mac_unix_common
@@ -431,8 +431,14 @@ class HostForm(forms.ModelForm):
         accordion_groups.append(AccordionGroup("Owners", "user_owners", "group_owners"))
 
         # Add attributes sections
-        for keys in self.attribute_field_keys.values():
-            accordion_groups.append(AccordionGroup(*keys))
+        if len(self.attribute_field_keys) > 1:
+            attributes = []
+            for keys in self.attribute_field_keys.values():
+                attributes.append(Tab(*keys))
+            accordion_groups.append(AccordionGroup("Attributes", TabHolder(*attributes)))
+        else:
+            for keys in self.attribute_field_keys.values():
+                accordion_groups.append(AccordionGroup("Attributes", *(keys[1:])))
 
 #        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
 
