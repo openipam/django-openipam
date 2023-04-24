@@ -44,6 +44,10 @@ class AttributeCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def __hash__(self):
+        # Hash on pk
+        return hash(self.pk)
+
     class Meta:
         db_table = "attribute_categories"
 
@@ -56,7 +60,7 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     category = models.ForeignKey(
-        "AttributeCategory", db_column="category", blank=True, null=True
+        AttributeCategory, db_column="category", blank=True, null=True, related_name="attributes"
     )
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(User, db_column="changed_by")
@@ -67,7 +71,6 @@ class Attribute(models.Model):
     class Meta:
         db_table = "attributes"
 
-        
 
 class AttributeToHost(models.Model):
     attribute = models.IntegerField(null=True, blank=True, db_column="aid")

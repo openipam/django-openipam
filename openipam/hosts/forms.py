@@ -23,6 +23,7 @@ from openipam.hosts.models import (
     Host,
     ExpirationType,
     Attribute,
+    AttributeCategory,
     StructuredAttributeValue,
     FreeformAttributeToHost,
     StructuredAttributeToHost,
@@ -70,6 +71,7 @@ class HostForm(forms.ModelForm):
         widget=forms.RadioSelect,
         label="Please select a network or enter in an IP address",
     )
+    attribute_field_keys = {}
     network = forms.ModelChoiceField(required=False, queryset=Network.objects.all())
     ip_address = forms.CharField(label="IP Address", required=False)
     description = forms.CharField(required=False, widget=forms.Textarea())
@@ -242,7 +244,28 @@ class HostForm(forms.ModelForm):
             )
 
     def _init_attributes(self):
-        attribute_fields = Attribute.objects.all()
+
+        # Break attributes according to attributecategory.
+        attribute_categories = AttributeCategory.objects.all()
+
+        # Get all attributes, broken down by category plus uncategorized.
+        uncategorized_attributes = Attribute.objects.filter(
+            category__isnull=True
+        )
+
+        if len(uncategorized_attributes) > 0:
+            self._init_attribute_category("Uncategorized", uncategorized_attributes)
+
+        categorized_attributes = {
+            category: Attribute.objects.filter(category=category)
+            for category in attribute_categories
+        }
+
+        for category, attributes in categorized_attributes.items():
+            if len(attributes) > 0:
+                self._init_attribute_category(category.name.title(), attributes)
+
+    def _init_attribute_category(self, category: str, attribute_fields):
 
         attribute_initials = []
         if self.instance.pk:
@@ -252,10 +275,12 @@ class HostForm(forms.ModelForm):
             attribute_initials += self.instance.freeform_attributes.values_list(
                 "attribute", "value"
             )
-        self.attribute_field_keys = ["Attributes"]
+        # Set dynamic attribute fields
+        attribute_field_keys = [f"{category} Attributes"]
+        self.attribute_field_keys[category.lower()] = attribute_field_keys
         for attribute_field in attribute_fields:
             attribute_field_key = slugify(attribute_field.name)
-            self.attribute_field_keys.append(attribute_field_key)
+            attribute_field_keys.append(attribute_field_key)
             if attribute_field.structured:
                 attribute_choices_qs = StructuredAttributeValue.objects.filter(
                     attribute=attribute_field.id
@@ -405,8 +430,11 @@ class HostForm(forms.ModelForm):
         # Add owners and groups section
         accordion_groups.append(AccordionGroup("Owners", "user_owners", "group_owners"))
 
-        # Add attributes section
-        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
+        # Add attributes sections
+        for keys in self.attribute_field_keys.values():
+            accordion_groups.append(AccordionGroup(*keys))
+
+#        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
 
         self.helper = FormHelper()
         self.helper.form_tag = False
