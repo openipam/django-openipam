@@ -184,13 +184,29 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ExpiredHostsView, self).get_context_data(**kwargs)
 
+        expiry_threshold_static = int(self.request.GET.get(
+            "expiry_threshold_static", CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+        ))
+
+        expiry_threshold_dynamic = int(self.request.GET.get(
+            "expiry_threshold_dynamic", CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+        ))
+
+        limit = self.request.GET.get("limit", None)
+        if limit == "all":
+            limit = None
+        if limit:
+            limit = int(limit)
+
+        print(f"{expiry_threshold_static=} {expiry_threshold_dynamic=}")
+
         host_types = {
             "static": Host.objects.select_related("mac_history")
             .filter(
                 pools__isnull=False,
                 expires__lte=timezone.now()
                 - timedelta(
-                    weeks=CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                    weeks=expiry_threshold_static
                 ),
                 mac_history__host__isnull=True,
             )
@@ -200,16 +216,23 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
                 pools__isnull=True,
                 expires__lte=timezone.now()
                 - timedelta(
-                    weeks=CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                    weeks=expiry_threshold_dynamic
                 ),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
         }
 
+        if limit:
+            host_types["static"] = host_types["static"][:limit]
+            host_types["dynamic"] = host_types["dynamic"][:limit]
+
         context["host_types"] = host_types
         context["static_mac_addrs"] = [str(host.mac) for host in host_types["static"]]
         context["dynamic_mac_addrs"] = [str(host.mac) for host in host_types["dynamic"]]
+        context["expiry_threshold_static"] = expiry_threshold_static
+        context["expiry_threshold_dynamic"] = expiry_threshold_dynamic
+        context["limit"] = limit if limit else "all"
 
         return context
 
