@@ -36,7 +36,13 @@ from openipam.core.forms import (
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, HTML
-from crispy_forms.bootstrap import Accordion, AccordionGroup, PrependedText, TabHolder, Tab
+from crispy_forms.bootstrap import (
+    Accordion,
+    AccordionGroup,
+    PrependedText,
+    TabHolder,
+    Tab,
+)
 
 from netfields.forms import MACAddressFormField
 from netfields.mac import mac_unix_common
@@ -244,14 +250,11 @@ class HostForm(forms.ModelForm):
             )
 
     def _init_attributes(self):
-
         # Break attributes according to attributecategory.
         attribute_categories = AttributeCategory.objects.all()
 
         # Get all attributes, broken down by category plus uncategorized.
-        uncategorized_attributes = Attribute.objects.filter(
-            category__isnull=True
-        )
+        uncategorized_attributes = Attribute.objects.filter(category__isnull=True)
 
         if len(uncategorized_attributes) > 0:
             self._init_attribute_category("Uncategorized", uncategorized_attributes)
@@ -266,7 +269,6 @@ class HostForm(forms.ModelForm):
                 self._init_attribute_category(category.name.title(), attributes)
 
     def _init_attribute_category(self, category: str, attribute_fields):
-
         attribute_initials = []
         if self.instance.pk:
             attribute_initials += self.instance.structured_attributes.values_list(
@@ -435,12 +437,14 @@ class HostForm(forms.ModelForm):
             attributes = []
             for keys in self.attribute_field_keys.values():
                 attributes.append(Tab(*keys))
-            accordion_groups.append(AccordionGroup("Attributes", TabHolder(*attributes)))
+            accordion_groups.append(
+                AccordionGroup("Attributes", TabHolder(*attributes))
+            )
         else:
             for keys in self.attribute_field_keys.values():
                 accordion_groups.append(AccordionGroup("Attributes", *(keys[1:])))
 
-#        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
+        #        accordion_groups.append(AccordionGroup(*self.attribute_field_keys))
 
         self.helper = FormHelper()
         self.helper.form_tag = False

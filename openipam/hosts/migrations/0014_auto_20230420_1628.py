@@ -8,69 +8,110 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('auth', '0008_alter_user_username_max_length'),
+        ("auth", "0008_alter_user_username_max_length"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('user', '0005_auto_20170324_1644'),
-        ('hosts', '0013_attribute_multiple'),
+        ("user", "0005_auto_20170324_1644"),
+        ("hosts", "0013_attribute_multiple"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='HostGroupView',
+            name="HostGroupView",
             fields=[
-                ('group_id', models.ForeignKey(db_column='auth_group', on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, serialize=False, to='auth.Group')),
-                ('group_name', models.CharField(db_column='auth_group_name', max_length=80)),
+                (
+                    "group_id",
+                    models.ForeignKey(
+                        db_column="auth_group",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        serialize=False,
+                        to="auth.Group",
+                    ),
+                ),
+                (
+                    "group_name",
+                    models.CharField(db_column="auth_group_name", max_length=80),
+                ),
             ],
             options={
-                'db_table': 'hosts_to_auth_groups_v',
-                'managed': False,
+                "db_table": "hosts_to_auth_groups_v",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='HostUserView',
+            name="HostUserView",
             fields=[
-                ('user', models.ForeignKey(db_column='user', on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        db_column="user",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'hosts_to_auth_users_v',
-                'managed': False,
+                "db_table": "hosts_to_auth_users_v",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='AttributeCategory',
+            name="AttributeCategory",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'attribute_categories',
+                "db_table": "attribute_categories",
             },
         ),
         migrations.AlterModelOptions(
-            name='gulrecentarpbyaddress',
-            options={'managed': False},
+            name="gulrecentarpbyaddress",
+            options={"managed": False},
         ),
         migrations.AlterModelOptions(
-            name='gulrecentarpbymac',
-            options={'managed': False},
+            name="gulrecentarpbymac",
+            options={"managed": False},
         ),
         migrations.RemoveField(
-            model_name='notification',
-            name='min_permissions',
+            model_name="notification",
+            name="min_permissions",
         ),
         migrations.AlterField(
-            model_name='expirationtype',
-            name='min_permissions',
+            model_name="expirationtype",
+            name="min_permissions",
             field=models.CharField(max_length=8),
         ),
         migrations.AddField(
-            model_name='attribute',
-            name='category',
-            field=models.ForeignKey(blank=True, db_column='category', null=True, on_delete=django.db.models.deletion.CASCADE, to='hosts.AttributeCategory'),
+            model_name="attribute",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                db_column="category",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="hosts.AttributeCategory",
+            ),
         ),
     ]

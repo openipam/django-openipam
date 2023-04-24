@@ -89,8 +89,10 @@ class GuestTicketAdmin(admin.ModelAdmin):
 class AttributeAdmin(ChangedAdmin):
     pass
 
+
 class AttributeCategoryAdmin(ChangedAdmin):
     list_display = ("name", "changed_by", "changed")
+
 
 class ExpirationTypeAdmin(GuardedModelAdmin):
     form = ExpirationTypeAdminForm

@@ -35,6 +35,7 @@ from six import string_types
 
 User = get_user_model()
 
+
 class AttributeCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -47,7 +48,7 @@ class AttributeCategory(models.Model):
     class Meta:
         db_table = "attribute_categories"
 
-        
+
 class Attribute(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -56,7 +57,11 @@ class Attribute(models.Model):
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
     category = models.ForeignKey(
-        AttributeCategory, db_column="category", blank=True, null=True, related_name="attributes"
+        AttributeCategory,
+        db_column="category",
+        blank=True,
+        null=True,
+        related_name="attributes",
     )
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(User, db_column="changed_by")
