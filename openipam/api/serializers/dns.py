@@ -8,6 +8,7 @@ from rest_framework import serializers
 from openipam.dns.models import Domain, DnsRecord, DnsType
 from openipam.dns.validators import (
     validate_fqdn,
+    validate_mx_content,
     validate_srv_content,
     validate_soa_content,
     validate_sshfp_content,
@@ -76,6 +77,7 @@ class DnsCreateSerializer(serializers.ModelSerializer):
             use_groups=True,
             with_superuser=True,
         )
+        self.fields["name"] = serializers.CharField(required=True)
         self.fields["dns_type"] = serializers.ChoiceField(
             required=True,
             choices=blank_choice
@@ -102,16 +104,19 @@ class DnsCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data["dns_type"]:
             dns_type = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
-
             if not dns_type:
                 raise serializers.ValidationError(
                     "The Dns Type selected is not valid.  Please enter a valid type (https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
+            data["dns_type"] = dns_type
 
             if data["content"]:
                 try:
-                    if dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
+                    if dns_type.name in ["NS", "CNAME", "PTR"]:
                         validate_fqdn(data["content"])
+
+                    elif dns_type.name == "MX":
+                        validate_mx_content(data["content"])
 
                     elif dns_type.is_soa_record:
                         validate_soa_content(data["content"])
@@ -139,6 +144,7 @@ class DnsCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "The Dns Name is not fully qualified domain name.  Please try again."
                 )
+            return value
 
     class Meta:
         model = DnsRecord
