@@ -26,16 +26,12 @@ def validate_mx_content(value):
 
     components = value.split(" ")
     if len(components) != 2:
-        raise serializers.ValidationError(
-            "MX records must have a priority and a value."
-        )
+        raise ValidationError("MX records must have a priority and a value.")
     try:
         if int(components[0]) < 0:
-            raise serializers.ValidationError(
-                "The priority must be a positive integer."
-            )
+            raise ValidationError("The priority must be a positive integer.")
     except ValueError:
-        raise serializers.ValidationError("The priority must be an integer.")
+        raise ValidationError("The priority must be an integer.")
     validate_fqdn(components[1])
 
 
