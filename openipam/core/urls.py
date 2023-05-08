@@ -22,10 +22,6 @@ urlpatterns = [
     url(r"^user/", include("openipam.user.urls")),
     # USU Reports and Tools
     url(r"^reports/", include("openipam.report.urls")),
-    # CAS Login
-    # url(r"^cas/login$", cas_login, name="cas_ng_login"),
-    # url(r"^cas/logout$", cas_logout, name="cas_ng_logout"),
-    # url(r'^cas/callback$', callback, name='cas_ng_proxy_callback'),
     # Duo Auth
     url(r"^duo/auth$", views.duo_auth, name="duo_auth"),
     # Account URLS
