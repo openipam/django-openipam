@@ -206,7 +206,6 @@ INSTALLED_APPS = (
     "guardian",
     "netfields",
     "taggit",
-    "django_cas_ng",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -239,14 +238,10 @@ AUTHENTICATION_BACKENDS = (
     # 'django.contrib.auth.backends.ModelBackend',
     "openipam.core.backends.CaseInsensitiveModelBackend",
     # "openipam.core.backends.IPAMCASBackend",
-    # 'django_cas_ng.backends.CASBackend',
     "guardian.backends.ObjectPermissionBackend",
 ) + LOCAL_AUTHENTICATION_BACKENDS
 
 AUTH_USER_MODEL = "user.User"
-
-# CAS_SERVER_URL = locals().pop("CAS_SERVER_URL", "https://login.usu.edu/cas/p3/")
-# CAS_VERSION = 3
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
@@ -255,9 +250,6 @@ LOGIN_EXEMPT_URLS = (
     "logout/",
     "api/?.*",
     "reports/?.*",
-    # "cas/?.*",
-    # 'reports/weathermap/',
-    # 'reports/leases/usage/',
 )
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = reverse_lazy("index")
