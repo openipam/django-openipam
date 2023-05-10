@@ -50,7 +50,7 @@ def validate_soa_content(value):
     """Validate an soa record's content field"""
 
     re_soa = re.compile(
-        r"(?i)^%s [A-Z0-9._%%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$" % FQDN
+        r"(?i)^%s [A-Z0-9._%%+-]+\.[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$" % FQDN
     )
     if not re_soa.search(value):
         raise ValidationError("Invalid SOA Content: %s" % value)
