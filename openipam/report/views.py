@@ -204,8 +204,6 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
         if limit:
             limit = int(limit)
 
-        print(f"{expiry_threshold_static=} {expiry_threshold_dynamic=}")
-
         host_types = {
             "static": Host.objects.select_related("mac_history")
             .filter(
