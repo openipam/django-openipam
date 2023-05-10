@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_ipv4_address
 
 from openipam.hosts.models import GulRecentArpByaddress, GulRecentArpBymac, Host
 
@@ -105,7 +106,14 @@ class IPFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
-                qs = qs.filter(
+                maybe_subnet = value.split("/")
+                if len(maybe_subnet) == 2 and maybe_subnet[1].isnumeric():
+                    validate_ipv4_address(maybe_subnet[0])
+                    return qs.filter(
+                        Q(addresses__address__net_contained_or_equal=value)
+                        | Q(leases__address__address__net_contained_or_equal=value)
+                    ).distinct()
+                return qs.filter(
                     Q(addresses__address=value) | Q(leases__address__address=value)
                 ).distinct()
             except ValidationError:

@@ -73,6 +73,7 @@ class HostList(generics.ListAPIView):
     * `attribute` -- Name:Value to filter on attributes
     * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
     * `datetime` -- Date/Time of registered device.
+    * `skip_related` -- speed up serialization when only basic host data is required, for faster responses, when set to any non-null value
 
     **Example**:
 
@@ -81,16 +82,18 @@ class HostList(generics.ListAPIView):
 
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer)
-    queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
     pagination_class = APIMaxPagination
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filter_class = HostFilter
     ordering_fields = ("expires", "changed")
     ordering = ("expires",)
 
+    def get_queryset(self):
+        if not (self.request.GET.get("skip_related", False)):
+            return Host.objects.prefetch_related("addresses", "leases", "pools").all()
+        return Host.objects.all()
+
     def get_serializer_class(self):
-        # Only spend the time to serialize related fields if get_related is not
-        # False
         if not (self.request.GET.get("skip_related", False)):
             return host_serializers.HostListSerializer
         return host_serializers.HostBasicListSerializer
