@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 from django.contrib.auth.views import password_change_done
 from django.views.generic import TemplateView
 
-from openipam.core import views
+from openipam.core import views, auth
 
 
 urlpatterns = [
@@ -22,6 +22,9 @@ urlpatterns = [
     url(r"^user/", include("openipam.user.urls")),
     # USU Reports and Tools
     url(r"^reports/", include("openipam.report.urls")),
+    # SAML2 Auth
+    url(r"^acs/$", auth.acs, name="acs"),
+    url(r"^denied/$", auth.denied, name="denied"),
     # Duo Auth
     url(r"^duo/auth$", views.duo_auth, name="duo_auth"),
     # Account URLS

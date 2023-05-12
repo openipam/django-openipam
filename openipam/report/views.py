@@ -4,8 +4,8 @@ from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model
 
 from datetime import timedelta
-from openipam.conf.ipam_settings import CONFIG_DEFAULTS
 
+from openipam.conf.ipam_settings import CONFIG_DEFAULTS
 from openipam.hosts.models import GulRecentArpBymac, Host
 from openipam.network.models import Address, Lease, Network
 from openipam.dns.models import DnsRecord

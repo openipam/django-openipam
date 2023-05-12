@@ -27,11 +27,9 @@ from django.core.urlresolvers import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
+from openipam.core.auth import signin as saml2_signin
 from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
-
-# from django_cas_ng.views import login as cas_login, logout as cas_logout
-# from django_cas_ng.utils import get_cas_client, get_protocol, get_redirect_url
 
 import duo_web
 
@@ -63,12 +61,20 @@ def index(request):
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def login(request, internal=False, **kwargs):
-    # if CONFIG.get("CAS_LOGIN") and internal is False:
-    #     return cas_login(request, **kwargs)
-    # else:
-    return auth_login_view(
-        request, authentication_form=IPAMAuthenticationForm, **kwargs
-    )
+    if CONFIG.get("SAML2_LOGIN") and internal is False:
+        if request.POST:
+            return saml2_signin(request, **kwargs)
+        else:
+            context = {
+                "use_saml2": True,
+                "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
+                "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
+            }
+            return render(request, "admin/login.html", context)
+    else:
+        return auth_login_view(
+            request, authentication_form=IPAMAuthenticationForm, **kwargs
+        )
 
 
 @require_http_methods(["GET"])
@@ -232,7 +238,7 @@ def page_error(request, template_name, extra_context=None):
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
         "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
-        "error_type": error_type.__name__,
+        "error_type": getattr(error_type, "__name__", None),
         "error_value": error_value,
         "traceback": traceback,
     }
