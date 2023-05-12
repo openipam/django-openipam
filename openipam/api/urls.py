@@ -99,31 +99,6 @@ urlpatterns = [
         name="api_reports_server_hosts",
     ),
     url(
-        r"^reports/leaseusage/$",
-        views.report.LeaseUsageView.as_view(),
-        name="api_reports_lease_usage",
-    ),
-    url(
-        r"^reports/leasegraph/(?P<network>.*)/$",
-        views.report.LeaseGraphView.as_view(),
-        name="api_reports_lease_graph",
-    ),
-    url(
-        r"^reports/weathermap/$",
-        views.report.WeatherMapView.as_view(),
-        name="api_reports_weather_map",
-    ),
-    url(
-        r"^reports/weathermap/config\.json$",
-        views.report.weathermap_config,
-        name="api_reports_weather_map_config",
-    ),
-    url(
-        r"^reports/buildingmap/config\.json$",
-        views.report.buildingmap_config,
-        name="api_reports_buildingmap_config",
-    ),
-    url(
         r"^reports/chartstats/$",
         views.report.StatsAPIView.as_view(),
         name="api_reports_chart_stats",

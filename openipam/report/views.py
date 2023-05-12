@@ -12,7 +12,6 @@ from openipam.dns.models import DnsRecord
 
 from functools import reduce
 
-
 from braces.views import GroupRequiredMixin
 
 import operator
