@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import password_change as auth_password_change
 from django.contrib.admin.sites import AdminSite
+from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
@@ -72,6 +73,14 @@ def login(request, internal=False, **kwargs):
             }
             return render(request, "admin/login.html", context)
     else:
+        if request.POST and internal:
+            try:
+                User.objects.get(
+                    username=request.POST.get("username"), source__name="INTERNAL"
+                )
+            except User.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "User not allowed.")
+                return redirect("internal_login")
         return auth_login_view(
             request, authentication_form=IPAMAuthenticationForm, **kwargs
         )
@@ -79,27 +88,7 @@ def login(request, internal=False, **kwargs):
 
 @require_http_methods(["GET"])
 def logout(request, next_page=None, **kwargs):
-    # backend = request.session.get("_auth_user_backend", "").split(".")[-1]
-
-    # if CONFIG.get("CAS_LOGIN") and backend == "IPAMCASBackend":
-    #     cas_logout(request, next_page, **kwargs)
-
-    #     next_page = next_page or get_redirect_url(request)
-    #     if settings.CAS_LOGOUT_COMPLETELY:
-    #         protocol = get_protocol(request)
-    #         host = request.get_host()
-    #         redirect_url = urllib_parse.urlunparse(
-    #             (protocol, host, next_page, "", "", "")
-    #         )
-    #         client = get_cas_client()
-    #         client.server_url = settings.CAS_SERVER_URL[:-3]
-    #         return HttpResponseRedirect(client.get_logout_url(redirect_url))
-    #     else:
-    #         # This is in most cases pointless if not CAS_RENEW is set. The user will
-    #         # simply be logged in again on next request requiring authorization.
-    #         return HttpResponseRedirect(next_page)
-    # else:
-    next_page = "internal_login" if CONFIG.get("CAS_LOGIN") else "login"
+    next_page = "login"
     return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
