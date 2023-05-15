@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
-from openipam.core.backends import IPAMLDAPBackend
+from openipam.user.utils.user_utils import populate_user_from_ldap
 
 User = get_user_model()
 
@@ -179,7 +179,7 @@ def acs(r):
     target_user = None
 
     if use_ldap_groups:
-        target_user = IPAMLDAPBackend.populate_user(username=user_name)
+        target_user = populate_user_from_ldap(username=user_name)
     else:
         try:
             target_user = User.objects.get(username=user_name)

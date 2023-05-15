@@ -31,7 +31,7 @@ CONFIG_DEFAULTS = {
     "DISABLED_HOSTS_WEBSITE": "https://usu.service-now.com/services/disabled.do",
     "SAML2_LOGIN": False,
     "SAML2_LOGIN_TEXT": "Login via SAML2",
-    "SAML2_LOGIN_IMAGE": "https://monocle.usu.edu/_next/image?url=%2Fimages%2Fbrand%2Fusu-logo-vertical-blue_x256.png&w=256&q=75",
+    "SAML2_LOGIN_IMAGE": "",
     "CAS_LOGIN": False,
     "DUO_LOGIN": False,
     "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},
