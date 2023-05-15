@@ -32,9 +32,10 @@ CONFIG_DEFAULTS = {
     "SAML2_LOGIN": False,
     "SAML2_LOGIN_TEXT": "Login via SAML2",
     "SAML2_LOGIN_IMAGE": "",
-    "CAS_LOGIN": False,
-    "DUO_LOGIN": False,
-    "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},
+    "INTERNAL_LOGIN_SUBNET_RESTRICT": "0.0.0.0/0",
+    "CAS_LOGIN": False,  # TODO: remove
+    "DUO_LOGIN": False,  # TODO: remove
+    "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},  # TODO: remove
     "WEATHERMAP_DATA": {"data": {}, "config": {}},
     "STATIC_HOST_EXPIRY_THRESHOLD_WEEKS": 5 * 52,
     "DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS": 2 * 52,

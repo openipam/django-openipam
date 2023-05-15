@@ -38,6 +38,7 @@ import os
 import random
 import sys
 import json
+import ipaddress
 
 import logging
 
@@ -74,6 +75,10 @@ def login(request, internal=False, **kwargs):
             return render(request, "admin/login.html", context)
     else:
         if request.POST and internal:
+            ip = ipaddress.ip_address(request.META.get("REMOTE_ADDR"))
+            if ip not in ipaddress.ip_network(CONFIG["INTERNAL_LOGIN_SUBNET_RESTRICT"]):
+                messages.add_message(request, messages.ERROR, "IP not allowed.")
+                return redirect("internal_login")
             try:
                 User.objects.get(
                     username=request.POST.get("username"), source__name="INTERNAL"
