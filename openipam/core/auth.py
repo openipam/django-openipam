@@ -9,9 +9,10 @@ from saml2.config import Config as Saml2Config
 from django import get_version
 from pkg_resources import parse_version
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.contrib.auth import login, logout, get_user_model
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
@@ -34,12 +35,12 @@ def _default_next_url():
     return get_reverse("admin:index")
 
 
-def get_current_domain(r):
+def get_current_domain(request):
     if "ASSERTION_URL" in settings.SAML2_AUTH:
         return settings.SAML2_AUTH["ASSERTION_URL"]
     return "{scheme}://{host}".format(
-        scheme="https" if r.is_secure() else "http",
-        host=r.get_host(),
+        scheme="https" if request.is_secure() else "http",
+        host=request.get_host(),
     )
 
 
@@ -57,10 +58,7 @@ def get_reverse(objs):
             return reverse(obj)
         except Exception:
             pass
-    raise Exception(
-        "We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new"
-        % str(objs)
-    )
+    raise Exception("We got a URL reverse issue." % str(objs))
 
 
 def _get_metadata():
@@ -114,8 +112,9 @@ def _get_saml_client(domain):
     return saml_client
 
 
-def denied(r):
-    return render(r, "core/denied.html")
+def denied(request):
+    messages.add_message(request, messages.ERROR, "Authentication unsuccessful.")
+    return redirect("login")
 
 
 def _create_new_user(username, email, firstname, lastname):
@@ -144,10 +143,10 @@ def _create_new_user(username, email, firstname, lastname):
 
 
 @csrf_exempt
-def acs(r):
-    saml_client = _get_saml_client(get_current_domain(r))
-    resp = r.POST.get("SAMLResponse", None)
-    next_url = r.session.get("login_next_url", _default_next_url())
+def acs(request):
+    saml_client = _get_saml_client(get_current_domain(request))
+    resp = request.POST.get("SAMLResponse", None)
+    next_url = request.session.get("login_next_url", _default_next_url())
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, "denied", "core:denied"]))
@@ -202,21 +201,21 @@ def acs(r):
                     get_reverse([denied, "denied", "core:denied"])
                 )
 
-    r.session.flush()
+    request.session.flush()
 
     if target_user.is_active:
-        login(r, target_user, backend=settings.AUTHENTICATION_BACKENDS[0])
+        login(request, target_user, backend=settings.AUTHENTICATION_BACKENDS[0])
     else:
         return HttpResponseRedirect(get_reverse([denied, "denied", "core:denied"]))
 
     return HttpResponseRedirect(next_url)
 
 
-def signin(r):
+def signin(request):
     import urllib.parse as _urlparse
     from urllib.parse import unquote
 
-    next_url = r.GET.get("next", _default_next_url())
+    next_url = request.GET.get("next", _default_next_url())
 
     try:
         if "next=" in unquote(next_url):
@@ -224,7 +223,7 @@ def signin(r):
                 "next"
             ][0]
     except Exception:
-        next_url = r.GET.get("next", _default_next_url())
+        next_url = request.GET.get("next", _default_next_url())
 
     # Only permit signin requests where the next_url is a safe URL
     if parse_version(get_version()) >= parse_version("2.0"):
@@ -235,9 +234,9 @@ def signin(r):
     if not url_ok:
         return HttpResponseRedirect(get_reverse([denied, "denied", "core:denied"]))
 
-    r.session["login_next_url"] = next_url
+    request.session["login_next_url"] = next_url
 
-    saml_client = _get_saml_client(get_current_domain(r))
+    saml_client = _get_saml_client(get_current_domain(request))
     _, info = saml_client.prepare_for_authenticate()
 
     redirect_url = None
@@ -250,6 +249,6 @@ def signin(r):
     return HttpResponseRedirect(redirect_url)
 
 
-def signout(r):
-    logout(r)
+def signout(request):
+    logout(request)
     return redirect("logout")
