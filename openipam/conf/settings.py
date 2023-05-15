@@ -233,6 +233,7 @@ LOGIN_EXEMPT_URLS = (
     "static/?.*",
     "password/forgot/",
     "logout/",
+    "acs/",
     "api/?.*",
     "reports/?.*",
 )
