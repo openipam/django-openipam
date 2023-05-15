@@ -44,3 +44,12 @@ class MimicUserForm(forms.Form):
             attrs={"data-placeholder": "Mimic User..."},
         ),
     )
+
+
+class AdvancedSearchForm(forms.Form):
+    advanced_search = forms.ChoiceField(
+        widget=autocomplete.ListSelect2(
+            url="core:autocomplete:ipam_autocomplete",
+            attrs={"data-placeholder": "Advanced Search..."},
+        ),
+    )

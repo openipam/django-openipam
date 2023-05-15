@@ -26,6 +26,7 @@ from django.forms.utils import ErrorList, ErrorDict
 
 from openipam.core.utils.messages import process_errors
 from openipam.core.views import BaseDatatableView
+from openipam.core.forms import AdvancedSearchForm
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import (
     HostForm,
@@ -85,7 +86,6 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         column_data = self.json_data.get("columns", [])
 
         try:
-
             host_search = column_data[1]["search"]["value"].strip()
             mac_search = column_data[2]["search"]["value"].strip()
             expired_search = column_data[3]["search"]["value"]
@@ -549,12 +549,14 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
+        print(self.request.GET)
 
         owner_filter = self.request.COOKIES.get("owner_filter", None)
         context["owner_filter"] = self.request.GET.get("mine", owner_filter)
         search_filter = self.request.COOKIES.get("search_filter")
         search_filter = urlunquote(search_filter).split(",") if search_filter else []
         context["search_filter"] = search_filter
+        context["advanced_search_form"] = AdvancedSearchForm()
         context["owners_form"] = HostOwnerForm()
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()
@@ -570,7 +572,6 @@ class HostListView(PermissionRequiredMixin, TemplateView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-
         action = request.POST.get("action", None)
         selected_hosts = request.POST.getlist("selected_hosts", [])
         response = None

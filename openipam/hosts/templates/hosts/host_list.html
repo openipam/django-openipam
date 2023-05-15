@@ -119,10 +119,12 @@
 				class="pull-left {% if request.GET|length != 0 %}hide{% endif %} autocomplete-light-widget multiple"
 				data-widget-bootstrap="normal">
 				<label>
-					<input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]"
-								 multiple="multiple" data-autocomplete-url="/autocomplete/ipam-autocomplete/"
-						placeholder="Advanced Search" class="form-control autocomplete" />
-					{# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #}
+					<!-- Import advanced_search template -->
+					{% include "hosts/advanced_search.html" %}
+					<!-- <input type="text" id="id_search" data-autocomplete-choice-selector="[data-value]"
+							 multiple="multiple" data-autocomplete-url="/autocomplete/ipam-autocomplete/"
+							 placeholder="Advanced Search" class="form-control autocomplete" />
+							 {# <input type="text" id="id_search" placeholder="Advanced Search" class="form-control" value="{{ search_filter }}" /> #} -->
 				</label>
 				<div style="margin-right: 10px; z-index: 5;">
 					<span id="advanced-search-deck" class="deck">
@@ -142,8 +144,8 @@
 				</span>
 			</div>
 			<a id="clear-filters" class="pull-left btn btn-default"
-				href="{% if request.GET|length == 0 %}javascript:void(0);{% else %}{% url 'core:hosts:list_hosts' %}{% endif %}"
-				stlye="margin-left: 10px;">Clear</a>
+
+				style="margin-left: 10px;">Clear</a>
 		</div>
 		<div id="search-help" class="help-content">
 			<div id="search-info-close" href="javascript:void(0);" class="glyphicon glyphicon-remove pull-right"></div>

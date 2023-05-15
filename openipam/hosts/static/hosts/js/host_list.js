@@ -254,6 +254,9 @@ $(function () {
     })
     .columns.adjust();
 
+  // Shove results into a global variable so we can access it in other scripts.
+  window.results = results;
+
   // var pageOnchange = function() {
   // 	var isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
   // 	var s=(document.body.scrollTop||document.documentElement.scrollTop) + window.innerHeight;
@@ -461,6 +464,7 @@ $(function () {
   // Clear all filters logic
   $("#clear-filters").on("click", function (e) {
     if ($.isEmptyObject($.urlVars)) {
+      console.log("clearing");
       $.removeCookie("search_filter", { path: "/hosts/" });
       $.removeCookie("owner_filter", { path: "/hosts/" });
 
