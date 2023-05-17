@@ -129,8 +129,8 @@
 				<div style="margin-right: 10px; z-index: 5;">
 					<span id="advanced-search-deck" class="deck">
 						{% for value in search_filter %}
-						<span data-value="{{ value }}" class="hilight">
-							{{ value }}
+						<span data-value="{{ value.0 }}" class="hilight search-term" style="mouse: pointer;" >
+							{{ value.1 }}
 						</span>
 						{% endfor %}
 					</span>

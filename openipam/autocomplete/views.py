@@ -55,8 +55,10 @@ class IPAMSearchAutoComplete(View):
     _id_generators = {
         User: lambda x: f"user:{x.username}",
         Group: lambda x: f"group:{x.name}",
-        Network: lambda x: f"network:{x.network}",
+        Network: lambda x: f"net:{x.network}",
         StructuredAttributeValue: lambda x: f"sattr:{x.value}",
+        AddressType: lambda x: f"atype:{x.pk}",
+        FreeformAttributeToHost: lambda x: f"fattr:{x.value}",
     }
 
     _models_to_search = []
