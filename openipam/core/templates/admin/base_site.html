@@ -26,7 +26,7 @@
                     {% else %}
                         {% if request.session.mimic_user %}
                             <div class="btn-group">
-                                <button class="btn btn-primary">Mimicing User: {{ request.user.username }}</button>
+                                <button class="btn btn-primary">Mimicing User: {{ request.user.username|safe }}</button>
                                 <a href="{% url 'core:mimic' %}" class="btn btn-primary dropdown-toggle"><span class="glyphicon glyphicon-remove icon-white"></span></a>
                             </div>
                         {% endif %}

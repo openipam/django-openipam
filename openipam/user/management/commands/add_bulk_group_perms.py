@@ -18,7 +18,6 @@ class Command(BaseCommand):
         parser.add_argument("--cidr", nargs="?")
 
     def handle(self, *args, **options):
-
         self.stdout.write("Adding default permissions to ipam-users group...")
         perm = options["perm"]
         group = Group.objects.get(name__iexact=options["group"])

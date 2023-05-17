@@ -3,8 +3,7 @@ from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneV
 from django.views.generic import TemplateView
 from django.urls import path
 
-from openipam.core import views
-from openipam.user.forms import IPAMAuthenticationForm
+from openipam.core import views, auth
 
 app_name = "core"
 
@@ -21,6 +20,8 @@ urlpatterns = [
     path("user/", include("openipam.user.urls")),
     # USU Reports and Tools
     path("reports/", include(("openipam.report.urls", "report"))),
+    # SAML2 Auth
+    path("acs/", auth.acs, name="acs"),
     # Duo Auth
     path("duo/auth/", views.duo_auth, name="duo_auth"),
     # Account URLS

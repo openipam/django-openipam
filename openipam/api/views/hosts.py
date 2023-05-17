@@ -34,7 +34,6 @@ from openipam.api.filters.hosts import (
     RecentGulArpByMacFilter,
 )
 from openipam.api.permissions import (
-    IPAMAPIPermission,
     IPAMChangeHostPermission,
     IPAMAPIAdminPermission,
 )
@@ -74,6 +73,7 @@ class HostList(generics.ListAPIView):
     * `attribute` -- Name:Value to filter on attributes
     * `limit` -- Number to enforce limit of records, default is 50, 0 shows all records (up to max of 5000).
     * `datetime` -- Date/Time of registered device.
+    * `skip_related` -- speed up serialization when only basic host data is required, for faster responses, when set to any non-null value
 
     **Example**:
 
@@ -82,13 +82,21 @@ class HostList(generics.ListAPIView):
 
     permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, HostCSVRenderer)
-    queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
-    serializer_class = host_serializers.HostListSerializer
     pagination_class = APIMaxPagination
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filter_class = HostFilter
     ordering_fields = ("expires", "changed")
     ordering = ("expires",)
+
+    def get_queryset(self):
+        if not (self.request.GET.get("skip_related", False)):
+            return Host.objects.prefetch_related("addresses", "leases", "pools").all()
+        return Host.objects.all()
+
+    def get_serializer_class(self):
+        if not (self.request.GET.get("skip_related", False)):
+            return host_serializers.HostListSerializer
+        return host_serializers.HostBasicListSerializer
 
     # def get_paginate_by(self, queryset=None):
     #     param = self.request.QUERY_PARAMS.get(self.paginate_by_param)
@@ -630,19 +638,30 @@ class DisabledHostDelete(generics.DestroyAPIView):
         return self.destroy(request, *args, **kwargs)
 
 
-class RecentGulMacEntries(generics.ListAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
-    serializer_class = host_serializers.RecentGulMacEntriesSerializer
-    queryset = GulRecentArpBymac.objects.all()
+class RecentGulEntries(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
+
+    pagination_class = APIMaxPagination
+    page_size = 1000
+    max_page_size = 10000
 
     filter_backends = (DjangoFilterBackend,)
+
+
+class RecentGulMacEntries(RecentGulEntries):
+    serializer_class = host_serializers.RecentGulMacEntriesSerializer
+    queryset = GulRecentArpBymac.objects.all()
     filter_class = RecentGulArpByMacFilter
 
 
-class RecentGulAddressEntries(generics.ListAPIView):
-    permission_classes = (IsAuthenticated, IPAMAPIPermission)
+class RecentGulAddressEntries(RecentGulEntries):
+    permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     serializer_class = host_serializers.RecentGulAddressEntriesSerializer
     queryset = GulRecentArpByaddress.objects.all()
+
+    pagination_class = APIMaxPagination
+    page_size = 1000
+    max_page_size = 10000
 
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecentGulArpByAddressFilter

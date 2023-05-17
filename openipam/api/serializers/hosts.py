@@ -36,6 +36,19 @@ class HostMacSerializer(serializers.ModelSerializer):
         read_only_fields = ("mac",)
 
 
+class HostBasicListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Host
+        fields = (
+            "mac",
+            "hostname",
+            "expires",
+            "expire_days",
+            "description",
+            "is_dynamic",
+        )
+
+
 class HostListSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
@@ -624,8 +637,7 @@ class RecentGulEntriesSerializer(serializers.ModelSerializer):
     stopstamp = serializers.DateTimeField()
 
     def get_mac(self, obj):
-        if hasattr(obj, "host"):
-            return str(obj.host.mac)
+        return str(obj.pk)
 
 
 class RecentGulMacEntriesSerializer(RecentGulEntriesSerializer):

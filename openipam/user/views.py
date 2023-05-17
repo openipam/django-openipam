@@ -52,7 +52,6 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
         column_data = self.json_data.get("columns", [])
 
         try:
-
             username_search = column_data[1]["search"]["value"].strip()
             fullname_search = column_data[2]["search"]["value"].strip()
             email_search = column_data[3]["search"]["value"].strip()
@@ -77,10 +76,12 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
             if username_search:
                 qs = qs.filter(username__istartswith=username_search)
             if fullname_search:
-                qs = qs.filter(
-                    Q(first_name__icontains=fullname_search)
-                    | Q(last_name__icontains=fullname_search)
-                )
+                fullname_search_query = Q()
+                for partial_name in fullname_search.split():
+                    fullname_search_query &= Q(first_name__icontains=partial_name) | Q(
+                        last_name__icontains=partial_name
+                    )
+                qs = qs.filter(fullname_search_query)
             if email_search:
                 qs = qs.filter(email__icontains=email_search)
             if staff_search:
@@ -180,7 +181,6 @@ class UserManagerView(PermissionRequiredMixin, TemplateView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-
         action = request.POST.get("action", None)
         selected_users = request.POST.getlist("selected_users", [])
 

@@ -130,7 +130,6 @@ class DnsRecordsLogAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "name",
-        "dns_type",
         "ttl",
         "priority",
         "ip_content",

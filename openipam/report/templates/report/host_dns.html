@@ -82,15 +82,17 @@ Hosts Missing DNS
               >
             </td>
             <td>{{ host.mac }}</td>
-            <td>{{ host.ip_addresses|join:", " }}</td>
+            <td>{{ host.addresses.all|join:", " }}</td>
             <td>
               <table class="table table-striped table-condensed table-bordered">
-                {% for record in host.get_dns_records %}
-                <tr>
-                  <td>{{ record.name }}</td>
-                  <td>{{ record.dns_type }}</td>
-                  <td>{{ record.content }}</td>
-                </tr>
+                {% for record in dns_records_for_hosts %}
+                  {% if record.name == host.hostname or record.content == host.hostname %}
+                  <tr>
+                    <td>{{ record.name }}</td>
+                    <td>{{ record.dns_type }}</td>
+                    <td>{{ record.content }}</td>
+                  </tr>
+                  {% endif %}
                 {% endfor %}
               </table>
             </td>

@@ -19,6 +19,8 @@
 <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
 
 <script type="text/javascript">
+  const escapeHtml = (t) => $('<div />').text(t).html();  
+
   $(function () {
     $("#server_link").addClass("active");
     $("#reports_dropdown").addClass("active");
@@ -26,29 +28,34 @@
     $("#result_list").DataTable({
       ajax: "/api/reports/serverhosts?format=json",
       columns: [{
-          data: "hostname"
+          data: "hostname",
+          orderable: true,
         },
         {
-          data: "mac"
+          data: "mac",
+          orderable: true,
+          render: (t) => `<a href="/hosts/${escapeHtml(t).replace(/\:/g, "")}/detail">${escapeHtml(t)}</a>`,
         },
         {
           data: "description",
-          orderable: false
+          orderable: false,
+          render: escapeHtml,
         },
         {
-          data: "master_ip_address"
+          data: "addresses",
+          orderable: true,
         },
         {
-          data: "user_owners",
-          orderable: false
+          data: "users",
+          orderable: false,
         },
         {
-          data: "group_owners",
-          orderable: false
+          data: "groups",
+          orderable: false,
         },
         {
-          data: "nac_profile",
-          orderable: false
+          data: "nac_profiles",
+          orderable: false,
         },
       ],
       paging: false,
@@ -72,10 +79,10 @@
           <th scope="col">Host</th>
           <th scope="col">Mac Address</th>
           <th scope="col">Description</th>
-          <th scope="col">IP Address</th>
-          <th scope="col">User Owners</th>
-          <th scope="col">Group Owners</th>
-          <th scope="col">NAC Profile</th>
+          <th scope="col">IP Address(es)</th>
+          <th scope="col">User Owner(s)</th>
+          <th scope="col">Group Owner(s)</th>
+          <th scope="col">NAC Profile(s)</th>
         </thead>
       </tr>
       <tbody></tbody>

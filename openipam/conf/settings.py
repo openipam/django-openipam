@@ -5,12 +5,8 @@ import hashlib
 import socket
 import datetime
 import os
-
-
-# Returns basic building map data. Overwritten in local_settings to get data dynamically.
-def get_buildingmap_data():
-    return OPENIPAM["BUILDINGMAP_DATA"]
-
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 DEBUG = True
 
@@ -23,9 +19,26 @@ MANAGERS = ADMINS
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 try:
     from .local_settings import *  # noqa: F403,F401
-    from .local_settings import OPENIPAM
+    from .local_settings import OPENIPAM  # noqa: F403,F401
 except ImportError:
     pass
+
+SENTRY_DSN = locals().pop("SENTRY_DSN", "")
+SENTRY_ENVIRONMENT = locals().pop("SENTRY_ENVIRONMENT", "development")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production,
+        traces_sample_rate=1.0,
+        environment=SENTRY_ENVIRONMENT,
+        integrations=[
+            DjangoIntegration(
+                transaction_style="url",
+            ),
+        ],
+    )
 
 DATABASES = locals().pop(
     "DATABASES",
@@ -41,51 +54,27 @@ DATABASES = locals().pop(
     },
 )
 
-OBSERVIUM_AUTH = ("openipam", "N6pZUgcaPwGNrECPaXGkmM7jDzo7i0F3")
-
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# In a Windows environment this must be set to your system time zone.
 TIME_ZONE = "America/Denver"
 
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = "en-us"
 
 SITE_ID = 1
 
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
 USE_I18N = True
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
 USE_L10N = True
 
-# If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = "%s/media/" % BASE_DIR
 
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 MEDIA_URL = "/media/"
 
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = "%s/static/" % BASE_DIR
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/static/"
 
-# Additional locations of static files
+# Fixme: Remove bowser and just use nmp
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
@@ -95,8 +84,6 @@ STATICFILES_DIRS = (
     "%s/components/static_components" % BASE_DIR,
 )
 
-# List of finder classes that know how to find static files in
-# various locations.
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
@@ -105,7 +92,6 @@ STATICFILES_FINDERS = (
 
 FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
 
-# Make this unique, and don't share it with anybody.
 SECRET_KEY = locals().pop(
     "LOCAL_SECRET_KEY",
     hashlib.md5(
@@ -169,7 +155,6 @@ MIDDLEWARE = (
 
 ROOT_URLCONF = "openipam.urls"
 
-# Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = "openipam.wsgi.application"
 
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
@@ -219,9 +204,9 @@ INSTALLED_APPS = [
     # 'django.contrib.admindocs',
 ] + LOCAL_INSTALLED_APPS
 
+# Fixme:  Remove and use npm
 BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
 BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
-
 BOWER_INSTALLED_APPS = (
     "jquery#2.1.4",
     "jquer-ui#1.11.4",
@@ -246,13 +231,12 @@ AUTH_USER_MODEL = "user.User"
 
 ANONYMOUS_USER_ID = -1
 LOGIN_EXEMPT_URLS = (
-    "static/?.*",
+    "favicon.ico" "static/?.*",
     "password/forgot/",
     "logout/",
+    "acs/",
     "api/?.*",
     "reports/?.*",
-    # 'reports/weathermap/',
-    # 'reports/leases/usage/',
 )
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = reverse_lazy("core:index")
@@ -265,7 +249,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
-        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
+        "openipam.api.authentication.IPAMJSONWebTokenAuthentication",
+        # "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",

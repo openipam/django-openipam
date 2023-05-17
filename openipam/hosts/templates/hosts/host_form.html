@@ -51,22 +51,10 @@
             $('#id_hostname').yourlabsAutocomplete({
                 url: '/api/web/DomainAutocomplete/',
                 choiceSelector: '[data-value]',
-                minimumCharacters: 1,
+                minimumCharacters: 0,
                 getQuery: function() {
                     var value = this.input.val();
                     return value.substr(value.indexOf('.') + 1)
-                },
-                refresh: function() {
-                    if (this.input.val().indexOf('.') == -1){
-                        this.hide();
-                    }
-                    else {
-                        // Set the new current value.
-                        this.value = this.getQuery();
-
-                        // If the input doesn't contain enought characters then abort, else fetch.
-                        this.value.length < this.minimumCharacters ? this.hide() : this.fetch();
-                    }
                 }
             }).input.bind('selectChoice', function(event, choice, autocomplete) {
                 var value = choice.text();

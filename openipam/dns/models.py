@@ -83,7 +83,7 @@ class DnsRecord(models.Model):
         max_length=255,
         error_messages={"blank": "Name fields for DNS records cannot be blank."},
     )
-    text_content = models.CharField(max_length=255, blank=True, null=True)
+    text_content = models.CharField(max_length=1000, blank=True, null=True)
     ip_content = models.ForeignKey(
         "network.Address",
         db_column="ip_content",
@@ -336,6 +336,7 @@ class DnsRecord(models.Model):
                     name=self.name,
                     dns_type=self.dns_type,
                     text_content=self.text_content,
+                    domain=self.domain,
                 ).exclude(pk=self.pk)
                 if dns_exists:
                     raise ValidationError(
@@ -388,9 +389,7 @@ class DnsRecord(models.Model):
                 )
 
             if self.dns_type.is_cname_record:
-                records = DnsRecord.objects.filter(
-                    name=self.name, dns_type=self.dns_type
-                ).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name).exclude(pk=self.pk)
                 if records:
                     error_list.append(
                         "Trying to create CNAME record while other records exist: %s"
@@ -422,7 +421,6 @@ class DnsRecord(models.Model):
             while names:
                 names_list.append(Q(name=".".join(names)))
                 names.pop(0)
-
             if names_list:
                 domain = (
                     Domain.objects.filter(reduce(operator.or_, names_list))
@@ -430,7 +428,22 @@ class DnsRecord(models.Model):
                     .order_by("-length")
                     .first()
                 )
-                if domain:
+
+                if (
+                    domain
+                    and self.dns_type
+                    and self.dns_type.is_cname_record
+                    and domain.name == self.name
+                ):
+                    raise ValidationError(
+                        {
+                            "name": [
+                                "Cannot create CNAME record with name equivalent to existing domain "
+                                + domain.name
+                            ]
+                        }
+                    )
+                elif domain:
                     self.domain = domain
                 else:
                     raise ValidationError(

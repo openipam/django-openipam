@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.admin.sites import AdminSite
+from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
@@ -26,8 +27,8 @@ from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
 from openipam.core.forms import ProfileForm, FeatureRequestForm
-
-# from openipam.user.forms import IPAMAuthenticationForm
+from openipam.core.auth import signin as saml2_signin
+from openipam.user.forms import IPAMAuthenticationForm
 from openipam.conf.ipam_settings import CONFIG
 
 import duo_web
@@ -36,6 +37,7 @@ import os
 import random
 import sys
 import json
+import ipaddress
 
 import logging
 
@@ -57,6 +59,46 @@ def index(request):
         return AdminSite().index(request, extra_context=context)
 
 
+<<<<<<< HEAD
+=======
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def login(request, internal=False, **kwargs):
+    if CONFIG.get("SAML2_LOGIN") and internal is False:
+        if request.POST:
+            return saml2_signin(request, **kwargs)
+        else:
+            context = {
+                "use_saml2": True,
+                "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
+                "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
+            }
+            return render(request, "admin/login.html", context)
+    else:
+        if request.POST and internal:
+            ip = ipaddress.ip_address(request.META.get("REMOTE_ADDR"))
+            if ip not in ipaddress.ip_network(CONFIG["INTERNAL_LOGIN_SUBNET_RESTRICT"]):
+                messages.add_message(request, messages.ERROR, "IP not allowed.")
+                return redirect("internal_login")
+            try:
+                User.objects.get(
+                    username=request.POST.get("username"), source__name="INTERNAL"
+                )
+            except User.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "User not allowed.")
+                return redirect("internal_login")
+        return auth_login_view(
+            request, authentication_form=IPAMAuthenticationForm, **kwargs
+        )
+
+
+@require_http_methods(["GET"])
+def logout(request, next_page=None, **kwargs):
+    next_page = "login"
+    return auth_logout_view(request, next_page=next_page, **kwargs)
+
+
+>>>>>>> e384ee0beae2ff718caf2f390b63dae4b826588c
 def mimic(request):
     if request.POST and request.user.is_ipamadmin:
         mimic_pk = request.POST.get("mimic_pk")
@@ -197,7 +239,12 @@ def page_error(request, template_name, exception=None, extra_context=None):
         "request_path": request.path,
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
+<<<<<<< HEAD
         "error_type": error_type.__name__,
+=======
+        "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
+        "error_type": getattr(error_type, "__name__", None),
+>>>>>>> e384ee0beae2ff718caf2f390b63dae4b826588c
         "error_value": error_value,
         "traceback": traceback,
         "exception": exception,

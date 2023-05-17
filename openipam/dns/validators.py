@@ -19,6 +19,22 @@ def validate_fqdn(value):
         )
 
 
+def validate_mx_content(value):
+    """
+    Validate an mx record's content field
+    """
+
+    components = value.split(" ")
+    if len(components) != 2:
+        raise ValidationError("MX records must have a priority and a value.")
+    try:
+        if int(components[0]) < 0:
+            raise ValidationError("The priority must be a positive integer.")
+    except ValueError:
+        raise ValidationError("The priority must be an integer.")
+    validate_fqdn(components[1])
+
+
 def validate_srv_content(value):
     """
     Validate an srv record's content field
@@ -34,13 +50,12 @@ def validate_soa_content(value):
     """Validate an soa record's content field"""
 
     re_soa = re.compile(
-        r"(?i)^%s [A-Z0-9._%%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$" % FQDN
+        r"(?i)^%s [A-Z0-9._%%+-]+\.[A-Z0-9.-]+\.[A-Z]{2,4} \d+ \d+ \d+ \d+ \d+$" % FQDN
     )
     if not re_soa.search(value):
         raise ValidationError("Invalid SOA Content: %s" % value)
 
 
 def validate_sshfp_content(value):
-
     if not re.match("(?i)^[12] 1 [0-9A-F]{40}", value):
         raise ValidationError("Invalid SSHFP content: %s" % value)

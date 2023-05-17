@@ -39,7 +39,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         "dns_type",
         "text_content",
         "host",
-        "dns_view",
     )
 
     # set max limit of records returned, this is used to protect our site if someone tries to attack our site
@@ -158,7 +157,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         return qs
 
     def prepare_results(self, qs):
-
         change_permissions = (
             DnsRecord.objects.filter(pk__in=[record.pk for record in qs])
             .by_change_perms(self.request.user)
@@ -267,8 +265,11 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             if has_change_permission:
                 return """
                     <a href="javascript:void(0);" class="edit-dns" rel="%s">Edit</a>
+                    <a href="/dns/%s" class="edita-dns" rel="%s" style="display:none;">&gt;&gt;</a>
                     <a href="javascript:void(0);" class="cancel-dns" rel="%s" style="display:none;">Cancel</a>
                 """ % (
+                    dns_record.pk,
+                    dns_record.pk,
                     dns_record.pk,
                     dns_record.pk,
                 )
@@ -311,7 +312,6 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                     get_type(dns_record, has_change_permission),
                     get_content(dns_record, has_change_permission),
                     get_dns_host_href(dns_record) if dns_record.host else "",
-                    dns_record.dns_view.name if dns_record.dns_view else "",
                     get_links(dns_record, has_change_permission),
                 ]
             )
@@ -384,7 +384,6 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-
         action = request.POST.get("action", None)
         selected_records = request.POST.getlist("selected-records", [])
 
@@ -492,6 +491,7 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                 "name": self.record.name,
                 "dns_type": self.record.dns_type,
                 "ttl": self.record.ttl,
+                "domain": self.record.domain,
             }
             if self.record.dns_type.is_a_record:
                 self.initial["content"] = self.record.ip_content.address
@@ -510,8 +510,14 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     user=request.user,
                     name=form.cleaned_data["name"],
                     content=form.cleaned_data["content"],
-                    dns_type=form.cleaned_data["dns_type"],
+                    # We do not edit the type, delete it and make a new one.
+                    dns_type=self.record.dns_type
+                    if hasattr(self.record, "pk")
+                    else form.cleaned_data["dns_type"],
                     ttl=form.cleaned_data["ttl"],
+                    domain=self.record.pk
+                    if hasattr(self.record, "pk")
+                    else form.cleaned_data["domain"],
                     record=self.record.pk if hasattr(self.record, "pk") else None,
                 )
             except ValidationError as e:

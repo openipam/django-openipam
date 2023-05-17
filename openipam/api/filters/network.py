@@ -5,10 +5,11 @@ from openipam.network.models import Network, Lease
 class NetworkFilter(FilterSet):
     network = CharFilter(lookup_expr="net_contains_or_equals")
     name = CharFilter(lookup_expr="icontains")
+    dhcp_group = CharFilter(field_name="dhcp_group__name", lookup_expr="icontains")
 
     class Meta:
         model = Network
-        fields = ["name", "shared_network"]
+        fields = ["name", "shared_network", "dhcp_group__name"]
 
 
 class LeaseFilter(FilterSet):

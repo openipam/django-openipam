@@ -40,7 +40,6 @@ class IPAMNetwork(APIView):
     def create_vlan(
         self, vlan_id, building, name, user, networks=None, downstream_ids=None
     ):
-
         # Create Vlans and Building to Vlans
         abbrev = building.abbreviation.upper()
         vlan_name = f"{abbrev}.{name}"
@@ -178,7 +177,6 @@ class CreateIPAMNetwork(IPAMNetwork):
 
 
 class ConvertIPAMNetwork(IPAMNetwork):
-
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     parser_classes = [FormParser, JSONParser]
 
@@ -318,7 +316,7 @@ class NetworkList(generics.ListAPIView):
     queryset = Network.objects.all()
     pagination_class = APIPagination
     serializer_class = network_serializers.NetworkListSerializer
-    filter_fields = ("network", "name")
+    filter_fields = ("network", "name", "dhcp_group__name")
     filter_class = NetworkFilter
 
     def filter_queryset(self, queryset):
