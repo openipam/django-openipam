@@ -265,7 +265,6 @@ def add_attribute_to_hosts(request, selected_hosts):
 
         for index, attribute_id in enumerate(attribute_list):
             for host in selected_hosts:
-
                 attribute = Attribute.objects.get(pk=attribute_id)
 
                 if attribute.structured:
@@ -304,10 +303,8 @@ def delete_attribute_from_host(request, selected_hosts):
             "Please contact an IPAM administrator.",
         )
     else:
-
         if attribute_form.is_valid():
             for host in selected_hosts:
-
                 attribute = attribute_form.cleaned_data["del_attribute"]
 
                 if attribute.structured:

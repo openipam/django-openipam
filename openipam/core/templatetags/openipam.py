@@ -32,7 +32,6 @@ def unquote_raw(value):
 
 @register.filter(is_safe=True)
 def label_with_classes(field, arg):
-
     return field.label_tag(attrs={"class": arg})
 
 

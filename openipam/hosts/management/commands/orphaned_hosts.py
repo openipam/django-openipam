@@ -15,7 +15,6 @@ class Command(BaseCommand):
         parser.add_argument("-d", "--delete", help="Delete Hosts")
 
     def handle(self, *args, **options):
-
         delete = options.get("delete", None)
         if delete:
             raise NotImplementedError("FIXME: Delete Hosts has not been implemented")

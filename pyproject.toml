@@ -29,7 +29,7 @@ description = "Openipam Django/Web frontent"
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-python = "3.9.13"
+python = "3.9.16"
 beautifulsoup4 = "4.8.2"
 django-admin-tools = "0.9.0"
 django-auth-ldap = "2.1.0"
