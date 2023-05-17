@@ -101,7 +101,6 @@ class IPAMSearchAutoComplete(View):
     def get_search_filters(self, model_class):
         # Produce a list of filters for each field in _search_fields for this model.
         filters = []
-        print(self.q)
         for q in self.q:
             filters.append(
                 [
@@ -141,7 +140,6 @@ class IPAMSearchAutoComplete(View):
             return JsonResponse({"results": []})
         if self._word_split:
             # treat each word as a separate query
-            print("splitting")
             self.q = self.q.split(" ")
         else:
             self.q = [self.q]
