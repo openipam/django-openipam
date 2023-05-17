@@ -29,9 +29,13 @@ CONFIG_DEFAULTS = {
     "NOTIFICATION_EMAIL_ADDRESS": "OpenIPAM Notifications <servicedesk@usu.edu>",
     "LEGACY_DOMAIN": "https://legacy.openipam.usu.edu",
     "DISABLED_HOSTS_WEBSITE": "https://usu.service-now.com/services/disabled.do",
-    "CAS_LOGIN": False,
-    "DUO_LOGIN": False,
-    "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},
+    "SAML2_LOGIN": False,
+    "SAML2_LOGIN_TEXT": "Login via SAML2",
+    "SAML2_LOGIN_IMAGE": "",
+    "INTERNAL_LOGIN_SUBNET_RESTRICT": "0.0.0.0/0",
+    "CAS_LOGIN": False,  # TODO: remove
+    "DUO_LOGIN": False,  # TODO: remove
+    "DUO_SETTINGS": {"IKEY": "", "SKEY": "", "AKEY": "", "HOST": ""},  # TODO: remove
     "WEATHERMAP_DATA": {"data": {}, "config": {}},
     "STATIC_HOST_EXPIRY_THRESHOLD_WEEKS": 5 * 52,
     "DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS": 2 * 52,
