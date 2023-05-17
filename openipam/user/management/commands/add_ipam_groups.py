@@ -13,7 +13,6 @@ class Command(BaseCommand):
     help = "Convert User Permissions"
 
     def handle(self, *args, **options):
-
         self.stdout.write("Adding ipam groups to users...")
 
         ipam_user_group, u_created = Group.objects.get_or_create(

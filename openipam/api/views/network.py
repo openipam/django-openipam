@@ -40,7 +40,6 @@ class IPAMNetwork(APIView):
     def create_vlan(
         self, vlan_id, building, name, user, networks=None, downstream_ids=None
     ):
-
         # Create Vlans and Building to Vlans
         abbrev = building.abbreviation.upper()
         vlan_name = f"{abbrev}.{name}"
@@ -178,7 +177,6 @@ class CreateIPAMNetwork(IPAMNetwork):
 
 
 class ConvertIPAMNetwork(IPAMNetwork):
-
     permission_classes = (IsAuthenticated, IPAMAPIAdminPermission)
     parser_classes = [FormParser, JSONParser]
 

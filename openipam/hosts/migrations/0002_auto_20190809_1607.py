@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("network", "0001_initial"), ("hosts", "0001_initial")]
 
     operations = [
