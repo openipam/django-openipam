@@ -37,9 +37,11 @@ class IPAMAdminFilter(SimpleListFilter):
     parameter_name = "ipamadmin"
 
     def lookups(self, request, model_admin):
+
         return (("1", "Yes"), ("0", "No"))
 
     def queryset(self, request, queryset):
+
         if self.value():
             if self.value() == "1":
                 queryset = queryset.filter(groups__name="ipam-admins")
@@ -379,6 +381,7 @@ class AuthGroupAdmin(GroupAdmin):
         return qs.select_related("source__source").distinct()
 
     def changelist_view(self, request, extra_context=None):
+
         permission_param = request.GET.get("permissions", "")
         q = request.GET.get("q", "")
         if not q and not permission_param:
@@ -471,6 +474,7 @@ class ObjectPermissionFilter(SimpleListFilter):
         return tuple(permisssion_filters)
 
     def queryset(self, request, queryset):
+
         if self.value():
             permission = AuthPermission.objects.get(id=self.value())
             queryset = queryset.filter(permission=permission)

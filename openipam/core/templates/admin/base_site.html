@@ -21,7 +21,7 @@
             <ul id="right-menu" class="nav navbar-nav navbar-right">
                 {% block mimic-user %}
                 <li class="navbar-form">
-                  {% if request.user.is_ipamadmin and not request.session.mimic_user %}
+                    {% if request.user.is_ipamadmin and not request.session.mimic_user %}
                         {% mimic_user_form %}
                     {% else %}
                         {% if request.session.mimic_user %}

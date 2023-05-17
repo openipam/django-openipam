@@ -17,7 +17,7 @@ urlpatterns = [
     ),
     path(
         "ipam-autocomplete/",
-        views.IPAMSearchAutoComplete.for_hosts().enable_word_split().as_view(),
+        views.IPAMSearchAutoComplete.as_view(),
         name="ipam_autocomplete",
     ),
 ]

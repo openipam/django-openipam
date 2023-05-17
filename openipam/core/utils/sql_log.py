@@ -41,6 +41,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.db import connections, connection
 from django.template import Template, Context
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
 
 import sys
 import os

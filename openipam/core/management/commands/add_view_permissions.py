@@ -8,6 +8,7 @@ class Command(BaseCommand):
     help = "Create View Permissions for models."
 
     def handle(self, *args, **options):
+
         # for each of our content types
         for content_type in ContentType.objects.all():
             # build our permission slug

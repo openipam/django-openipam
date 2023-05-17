@@ -10,6 +10,7 @@ class Command(BaseCommand):
         parser.add_argument("-u", "--url", help="URL for wireshark 'manuf'-style file")
 
     def handle(self, *args, **options):
+
         url = options.get("url", None)
 
         if url:

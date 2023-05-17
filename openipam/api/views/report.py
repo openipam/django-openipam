@@ -177,6 +177,7 @@ class LeaseUsageView(APIView):
         grouped_lease_data = {"name": "routers", "children": [], "style": "#000033"}
 
         for key, group in itertools.groupby(lease_data, lambda item: item["router"]):
+
             if exclude_free and key is None:
                 continue
 

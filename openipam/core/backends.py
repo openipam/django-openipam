@@ -53,6 +53,7 @@ class IPAMLDAPBackend(LDAPBackend):
 
 
 class _IPAMLDAPUser(_LDAPUser):
+
     # TODO: How can we take users out of LDAP groups?
     # TODO: We need to hash out LDAP and Internal Groups with the same name.
     # def _mirror_groups(self):

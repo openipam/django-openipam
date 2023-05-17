@@ -158,6 +158,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         return qs
 
     def prepare_results(self, qs):
+
         change_permissions = (
             DnsRecord.objects.filter(pk__in=[record.pk for record in qs])
             .by_change_perms(self.request.user)
@@ -383,6 +384,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+
         action = request.POST.get("action", None)
         selected_records = request.POST.getlist("selected-records", [])
 

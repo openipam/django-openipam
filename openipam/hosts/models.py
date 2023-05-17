@@ -370,6 +370,7 @@ class Host(DirtyFieldsMixin, models.Model):
     )
 
     def __init__(self, *args, **kwargs):
+
         # Initialize setters
         self._expire_days = None
         self._user_owners = None
@@ -680,6 +681,7 @@ class Host(DirtyFieldsMixin, models.Model):
         return [str(address) for address in self.addresses.all()]
 
     def delete_ip_address(self, user, address):
+
         if isinstance(address, string_types):
             address = self.addresses.filter(address=address)
 
@@ -833,6 +835,7 @@ class Host(DirtyFieldsMixin, models.Model):
             raise Exception("A User must be given to delete dns records for host.")
 
         if self.master_dns_deleted is False:
+
             # If addresses list is empty, we use the master address
             # So By default we are deleting DNS for just the primary address
             if not addresses:
@@ -914,6 +917,7 @@ class Host(DirtyFieldsMixin, models.Model):
 
         # Only do this on static hosts.
         if self.is_static:
+
             if not hostname:
                 hostname = self.hostname
 
@@ -1066,6 +1070,7 @@ class Host(DirtyFieldsMixin, models.Model):
         elif self.network or (
             self.ip_address and self.ip_address not in self.ip_addresses
         ):
+
             # Remove all pools
             self.pools.clear()
             # TODO: Look at delete_dns for a way to only delete dhcp dns records.

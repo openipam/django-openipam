@@ -21,6 +21,7 @@ class IPAMMenu(Menu):
     """
 
     def __init__(self, **kwargs):
+
         super(IPAMMenu, self).__init__(**kwargs)
 
     def init_with_context(self, context):

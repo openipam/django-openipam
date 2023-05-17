@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView
 from django.views.generic import TemplateView
+from django.urls import path
 
 from openipam.core import views
 from openipam.user.forms import IPAMAuthenticationForm

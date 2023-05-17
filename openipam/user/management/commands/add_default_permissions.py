@@ -12,6 +12,7 @@ class Command(BaseCommand):
     help = "Add Default Permissions"
 
     def handle(self, *args, **options):
+
         self.stdout.write("Adding default permissions to ipam-users group...")
 
         ipam_user_group, u_created = Group.objects.get_or_create(
