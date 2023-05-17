@@ -1,4 +1,3 @@
-# from django.contrib.auth.views import login as auth_login, logout as auth_logout
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -12,7 +11,6 @@ from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
-
 # from django.contrib.auth.views import (
 #     login as auth_login_view,
 #     logout as auth_logout_view,
@@ -23,6 +21,9 @@ from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
@@ -59,41 +60,64 @@ def index(request):
         return AdminSite().index(request, extra_context=context)
 
 
-@csrf_exempt
-@require_http_methods(["GET", "POST"])
-def login(request, internal=False, **kwargs):
-    if CONFIG.get("SAML2_LOGIN") and internal is False:
-        if request.POST:
+class IPAMLoginView(LoginView):
+    form_class = IPAMAuthenticationForm
+    template_name = "admin/login.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.internal_login = kwargs.pop('internal', False)
+        if request.user.is_authenticated:
+            return self.handle_authenticated(request)
+        if request.POST and CONFIG.get("SAML2_LOGIN") and self.internal_login is False:
             return saml2_signin(request, **kwargs)
-        else:
-            context = {
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if CONFIG.get("SAML2_LOGIN") and self.internal_login is False:
+            context.update({
                 "use_saml2": True,
                 "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
                 "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
-            }
-            return render(request, "admin/login.html", context)
-    else:
-        if request.POST and internal:
-            ip = ipaddress.ip_address(request.META.get("REMOTE_ADDR"))
-            if ip not in ipaddress.ip_network(CONFIG["INTERNAL_LOGIN_SUBNET_RESTRICT"]):
-                messages.add_message(request, messages.ERROR, "IP not allowed.")
-                return redirect("internal_login")
-            try:
-                User.objects.get(
-                    username=request.POST.get("username"), source__name="INTERNAL"
-                )
-            except User.DoesNotExist:
-                messages.add_message(request, messages.ERROR, "User not allowed.")
-                return redirect("internal_login")
-        return auth_login_view(
-            request, authentication_form=IPAMAuthenticationForm, **kwargs
-        )
+            })
+        return context
+    
+# @csrf_exempt
+# @require_http_methods(["GET", "POST"])
+# def login(request, internal=False, **kwargs):
+#     if CONFIG.get("SAML2_LOGIN") and internal is False:
+#         if request.POST:
+#             return saml2_signin(request, **kwargs)
+#         else:
+#             context = {
+#                 "use_saml2": True,
+#                 "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
+#                 "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
+#             }
+#             return render(request, "admin/login.html", context)
+#     else:
+#         if request.POST and internal:
+#             ip = ipaddress.ip_address(request.META.get("REMOTE_ADDR"))
+#             if ip not in ipaddress.ip_network(CONFIG["INTERNAL_LOGIN_SUBNET_RESTRICT"]):
+#                 messages.add_message(request, messages.ERROR, "IP not allowed.")
+#                 return redirect("internal_login")
+#             try:
+#                 User.objects.get(
+#                     username=request.POST.get("username"), source__name="INTERNAL"
+#                 )
+#             except User.DoesNotExist:
+#                 messages.add_message(request, messages.ERROR, "User not allowed.")
+#                 return redirect("internal_login")
+#         return auth_login_view(
+#             request, authentication_form=IPAMAuthenticationForm, **kwargs
+#         )
 
 
-@require_http_methods(["GET"])
-def logout(request, next_page=None, **kwargs):
-    next_page = "login"
-    return auth_logout_view(request, next_page=next_page, **kwargs)
+# @require_http_methods(["GET"])
+# def logout(request, next_page=None, **kwargs):
+#     next_page = "login"
+#     return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
 def mimic(request):

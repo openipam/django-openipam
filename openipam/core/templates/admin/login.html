@@ -81,7 +81,7 @@
 									{% trans 'Log in' %}
 								{% endif %}
 							</button>
-							{% if not use_saml2 %}<a href="{% url 'password_forgot' %}" class="btn btn-info">{% trans 'Forgot Password?' %}</a>{% endif %}
+							{% if not use_saml2 %}<a href="{% url 'core:password_forgot' %}" class="btn btn-info">{% trans 'Forgot Password?' %}</a>{% endif %}
 						</div>
 						
         				<div class="clear"><!-- --></div>

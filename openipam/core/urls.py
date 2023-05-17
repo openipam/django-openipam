@@ -1,9 +1,9 @@
 from django.urls import path, include
-from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView
+from django.contrib.auth.views import LogoutView, PasswordChangeDoneView
 from django.views.generic import TemplateView
-from django.urls import path
 
 from openipam.core import views, auth
+from openipam.user.forms import IPAMAuthenticationForm
 
 app_name = "core"
 
@@ -27,11 +27,11 @@ urlpatterns = [
     # Account URLS
     path(
         "login/i/",
-        LoginView.as_view(form_class=IPAMAuthenticationForm),
+        views.IPAMLoginView.as_view(form_class=IPAMAuthenticationForm),
         {"internal": True},
         name="internal_login",
     ),
-    path("login/", LoginView.as_view(form_class=IPAMAuthenticationForm), name="login"),
+    path("login/", views.IPAMLoginView.as_view(form_class=IPAMAuthenticationForm), name="login"),
     path("logout/", LogoutView.as_view(), {"next_page": "login"}, name="logout"),
     path("mimic/", views.mimic, name="mimic"),
     path("profile/", views.profile, name="profile"),

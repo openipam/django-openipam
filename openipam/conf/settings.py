@@ -241,6 +241,7 @@ LOGIN_EXEMPT_URLS = (
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = reverse_lazy("core:index")
 LOGOUT_URL = reverse_lazy("core:logout")
+LOGOUT_REDIRECT_URL = reverse_lazy("core:index")
 
 REST_FRAMEWORK = {
     "PAGINATE_BY": 25,
