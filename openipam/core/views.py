@@ -59,8 +59,6 @@ def index(request):
         return AdminSite().index(request, extra_context=context)
 
 
-<<<<<<< HEAD
-=======
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def login(request, internal=False, **kwargs):
@@ -98,7 +96,6 @@ def logout(request, next_page=None, **kwargs):
     return auth_logout_view(request, next_page=next_page, **kwargs)
 
 
->>>>>>> e384ee0beae2ff718caf2f390b63dae4b826588c
 def mimic(request):
     if request.POST and request.user.is_ipamadmin:
         mimic_pk = request.POST.get("mimic_pk")
@@ -239,12 +236,8 @@ def page_error(request, template_name, exception=None, extra_context=None):
         "request_path": request.path,
         "kitty": kitty,
         "email": CONFIG.get("EMAIL_ADDRESS"),
-<<<<<<< HEAD
-        "error_type": error_type.__name__,
-=======
         "legacy_domain": CONFIG.get("LEGACY_DOAMIN"),
         "error_type": getattr(error_type, "__name__", None),
->>>>>>> e384ee0beae2ff718caf2f390b63dae4b826588c
         "error_value": error_value,
         "traceback": traceback,
         "exception": exception,
