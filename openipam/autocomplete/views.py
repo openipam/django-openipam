@@ -1,7 +1,6 @@
 from openipam.hosts.models import (
     FreeformAttributeToHost,
     StructuredAttributeValue,
-    Host,
 )
 from openipam.network.models import AddressType, Network
 from openipam.user.models import User
@@ -50,7 +49,8 @@ class IPAMSearchAutoComplete(View):
 
     _word_split = False
 
-    _default_id_generator = lambda self, x: f"{x.__class__.__name__.lower()}:{x.pk}"
+    def _default_id_generator(self, x):
+        f"{x.__class__.__name__.lower()}:{x.pk}"
 
     _id_generators = {
         User: lambda x: f"user:{x.username}",

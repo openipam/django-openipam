@@ -38,8 +38,14 @@ from openipam.hosts.forms import (
     HostDhcpGroupForm,
     HostNetworkForm,
 )
-from openipam.hosts.models import Host, Disabled, Attribute, FreeformAttributeToHost
-from openipam.network.models import Address, AddressType
+from openipam.hosts.models import (
+    Host,
+    Disabled,
+    Attribute,
+    FreeformAttributeToHost,
+    StructuredAttributeValue,
+)
+from openipam.network.models import Address, AddressType, Network
 from openipam.hosts.actions import (
     delete_hosts,
     renew_hosts,
@@ -561,7 +567,9 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         elif filter_type == "group":
             return [search_filter, f"Group | {filter_value}"]
         elif filter_type == "sattr":  # structured attribute
-            attribute_value = get_object_or_404(StructuredAttribute, value=filter_value)
+            attribute_value = get_object_or_404(
+                StructuredAttributeValue, value=filter_value
+            )
             return [
                 search_filter,
                 f"Attribute | {attribute_value.attribute.name} | {attribute_value.value}",
