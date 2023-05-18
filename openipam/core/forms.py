@@ -25,14 +25,15 @@ class BaseUserObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete"),
     )
 
 
 class BaseGroupObjectPermissionForm(forms.ModelForm):
     id = forms.CharField(widget=forms.HiddenInput)
     group = forms.ModelChoiceField(
-        Group.objects.all(), widget=autocomplete.ModelSelect2(url="group_autocomplete")
+        Group.objects.all(),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:group_autocomplete"),
     )
 
 
@@ -42,14 +43,5 @@ class MimicUserForm(forms.Form):
         widget=autocomplete.ModelSelect2(
             url="core:autocomplete:user_autocomplete",
             attrs={"data-placeholder": "Mimic User..."},
-        ),
-    )
-
-
-class AdvancedSearchForm(forms.Form):
-    advanced_search = forms.ChoiceField(
-        widget=autocomplete.ListSelect2(
-            url="core:autocomplete:ipam_autocomplete",
-            attrs={"data-placeholder": "Advanced Search..."},
         ),
     )

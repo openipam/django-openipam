@@ -22,7 +22,7 @@ class AddressAdminForm(forms.ModelForm):
     host = forms.ModelChoiceField(
         queryset=Host.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
     )
 
     class Meta:

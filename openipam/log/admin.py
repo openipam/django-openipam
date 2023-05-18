@@ -17,11 +17,13 @@ User = get_user_model()
 class LogEntryAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete"),
     )
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
-        widget=autocomplete.ModelSelect2(url="content_type_autocomplete"),
+        widget=autocomplete.ModelSelect2(
+            url="core:autocomplete:content_type_autocomplete"
+        ),
     )
 
     class Meta:

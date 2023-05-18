@@ -54,7 +54,9 @@ class NetworkAdmin(ChangedAdmin):
         Network,
         exclude=("changed,",),
         widgets={
-            "dhcp_group": autocomplete.ModelSelect2(url="dhcp_group_autocomplete")
+            "dhcp_group": autocomplete.ModelSelect2(
+                url="core:autocomplete:dhcp_group_autocomplete"
+            )
         },
     )
     search_fields = ("^network", "^name", "^shared_network__name")

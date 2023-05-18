@@ -357,7 +357,9 @@ class TokenAdmin(TokenAdmin):
     form = modelform_factory(
         Token,
         fields=("user",),
-        widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+        widgets={
+            "user": autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete")
+        },
     )
 
 
