@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('network', '0001_initial'),
-        ('hosts', '0001_initial'),
+        ('hosts', '0002_auto_20190809_1607'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

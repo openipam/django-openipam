@@ -1,11 +1,12 @@
 <form id="mimic_form" method="post" action="{% url 'core:mimic' %}">
-    {% csrf_token %}
-    {{ mimic_user_form.media }}
-    {{ mimic_user_form }}
+  {% csrf_token %} {{ mimic_user_form.media }} {{ mimic_user_form }}
 </form>
 
 <script>
   $(function () {
-    $("#mimic_form select").change(() => $("#mimic_form").submit())
+    $("#mimic_form select").change(() => {
+      console.log("submitting");
+      $("#mimic_form").submit();
+    });
   });
 </script>

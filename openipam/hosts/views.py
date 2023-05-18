@@ -26,6 +26,7 @@ from django.forms.utils import ErrorList, ErrorDict
 
 from openipam.core.utils.messages import process_errors
 from openipam.core.views import BaseDatatableView
+from openipam.core.forms import AdvancedSearchForm
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import (
     HostForm,
@@ -37,8 +38,14 @@ from openipam.hosts.forms import (
     HostDhcpGroupForm,
     HostNetworkForm,
 )
-from openipam.hosts.models import Host, Disabled, Attribute, FreeformAttributeToHost
-from openipam.network.models import Address, AddressType
+from openipam.hosts.models import (
+    Host,
+    Disabled,
+    Attribute,
+    FreeformAttributeToHost,
+    StructuredAttributeValue,
+)
+from openipam.network.models import Address, AddressType, Network
 from openipam.hosts.actions import (
     delete_hosts,
     renew_hosts,
@@ -546,14 +553,51 @@ class HostListView(PermissionRequiredMixin, TemplateView):
     permission_required = "hosts.view_host"
     template_name = "hosts/host_list.html"
 
+    def _parse_search_filters(self, search_filter):
+        components = search_filter.split(":")
+        try:
+            filter_type = components[0]
+            filter_value = components[1]
+        except IndexError:
+            return None
+
+        if filter_type == "user":
+            user = get_object_or_404(User, username=filter_value)
+            return [search_filter, f"User | {user.username} | {user.get_full_name()}"]
+        elif filter_type == "group":
+            return [search_filter, f"Group | {filter_value}"]
+        elif filter_type == "sattr":  # structured attribute
+            attribute_value = get_object_or_404(
+                StructuredAttributeValue, value=filter_value
+            )
+            return [
+                search_filter,
+                f"Attribute | {attribute_value.attribute.name} | {attribute_value.value}",
+            ]
+        elif filter_type == "net":
+            network = get_object_or_404(Network, network=filter_value)
+            return [search_filter, f"Network | {network.name} | {network.network}"]
+        elif filter_type == "atype":
+            address_type = get_object_or_404(AddressType, pk=filter_value)
+            return [search_filter, f"Address Type | {address_type.name}"]
+        elif filter_type == "fattr":
+            # Results are ambiguous, no idea how this search actually works.
+            return [search_filter, search_filter]
+
+        return search_filter
+
     def get_context_data(self, **kwargs):
         context = super(HostListView, self).get_context_data(**kwargs)
+        print(self.request.GET)
 
         owner_filter = self.request.COOKIES.get("owner_filter", None)
         context["owner_filter"] = self.request.GET.get("mine", owner_filter)
         search_filter = self.request.COOKIES.get("search_filter")
         search_filter = urlunquote(search_filter).split(",") if search_filter else []
+        search_filter = [self._parse_search_filters(filter) for filter in search_filter]
+        search_filter = [filter for filter in search_filter if filter is not None]
         context["search_filter"] = search_filter
+        context["advanced_search_form"] = AdvancedSearchForm()
         context["owners_form"] = HostOwnerForm()
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()

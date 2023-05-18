@@ -7,7 +7,6 @@ import openipam.user.managers
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

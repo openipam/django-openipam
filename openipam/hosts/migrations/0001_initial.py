@@ -10,7 +10,6 @@ import openipam.hosts.validators
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

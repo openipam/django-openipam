@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('network', '0001_initial'),
-        ('hosts', '0002_auto_20230517_1146'),
+        ('hosts', '0003_auto_20230517_1146'),
     ]
 
     operations = [
