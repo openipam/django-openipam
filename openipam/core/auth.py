@@ -75,7 +75,7 @@ def _get_metadata():
 
 
 def _get_saml_client(domain):
-    acs_url = domain + get_reverse([acs, "acs", "usu_saml2_auth:acs"])
+    acs_url = domain + get_reverse([acs, "acs", "core:acs"])
     metadata = _get_metadata()
 
     saml_settings = {
