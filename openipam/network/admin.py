@@ -450,7 +450,12 @@ class HasHostFilter(admin.SimpleListFilter):
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network", "reserved", "pool", HasHostFilter)
+    list_filter = (
+        "network__network",
+        "reserved",
+        "pool",
+        HasHostFilter,
+    )
     list_display = (
         "address",
         "network",
@@ -464,7 +469,7 @@ class AddressAdmin(ChangedAdmin):
 
     def get_queryset(self, request):
         qs = super(AddressAdmin, self).get_queryset(request)
-        return qs.select_related("host", "network", "changed_by")
+        return qs.select_related("host", "network", "changed_by").all()
 
 
 class BuildingAdmin(ChangedAdmin):
