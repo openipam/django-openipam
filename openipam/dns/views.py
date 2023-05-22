@@ -515,9 +515,10 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     if hasattr(self.record, "pk")
                     else form.cleaned_data["dns_type"],
                     ttl=form.cleaned_data["ttl"],
-                    domain=self.record.pk
-                    if hasattr(self.record, "pk")
-                    else form.cleaned_data["domain"],
+                    # TODO: Finish domain linking, this is currently broken.
+                    # domain=self.record.pk
+                    # if hasattr(self.record, "pk")
+                    # else form.cleaned_data["domain"],
                     record=self.record.pk if hasattr(self.record, "pk") else None,
                 )
             except ValidationError as e:
