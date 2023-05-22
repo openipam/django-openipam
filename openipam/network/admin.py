@@ -6,7 +6,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib import messages
 from django.forms import modelform_factory
+from django.db.models import Q
 
+from netfields import NetManager
+from netaddr import IPNetwork, AddrFormatError
 
 from openipam.network.models import (
     Network,
@@ -395,8 +398,15 @@ class IsExpiredFilter(admin.SimpleListFilter):
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
     list_display = ("address", "mac", "starts", "ends", "server", "abandoned")
-    search_fields = ("^address__address", "^host__mac", "^host__hostname")
+    search_fields = (
+        "^address__address",
+        "^host__mac",
+        "^host__hostname",
+    )
     list_filter = ("abandoned", "starts", "ends", "server", IsExpiredFilter)
+
+    # def get_changelist(self, request, **kwargs):
+    #     return LeaseChangeList
 
     def save_model(self, request, obj, form, change):
         obj.host_id = form.cleaned_data["host"]
@@ -404,6 +414,21 @@ class LeaseAdmin(admin.ModelAdmin):
 
     def mac(self, obj):
         return obj.host_id
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(LeaseAdmin, self).get_search_results(
+            request, queryset, search_term
+        )
+        try:
+            # If the search term is a valid IP network in CIDR notation
+            # then search for leases in that network
+            cidr = IPNetwork(search_term)
+            queryset |= self.model.objects.filter(
+                address__address__net_contained_or_equal=cidr
+            )
+        except AddrFormatError:
+            pass
+        return queryset, use_distinct
 
     mac.short_description = "Host"
 
@@ -439,7 +464,7 @@ class AddressAdmin(ChangedAdmin):
 
     def get_queryset(self, request):
         qs = super(AddressAdmin, self).get_queryset(request)
-        return qs.select_related("host", "network", "changed_by").all()
+        return qs.select_related("host", "network", "changed_by")
 
 
 class BuildingAdmin(ChangedAdmin):
