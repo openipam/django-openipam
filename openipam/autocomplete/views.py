@@ -1,5 +1,4 @@
 from openipam.hosts.models import (
-    FreeformAttributeToHost,
     StructuredAttributeValue,
 )
 from openipam.network.models import AddressType, Network
