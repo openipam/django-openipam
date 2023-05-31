@@ -196,6 +196,8 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
                 CONFIG_DEFAULTS["DYNAMIC_HOST_EXPIRY_THRESHOLD_WEEKS"],
             )
         )
+        show_static = self.request.GET.get("show_static", "true") == "true"
+        show_dynamic = self.request.GET.get("show_dynamic", "false") == "true"
 
         limit = self.request.GET.get("limit", None)
         if limit == "all":
@@ -206,25 +208,46 @@ class ExpiredHostsView(GroupRequiredMixin, TemplateView):
         host_types = {
             "static": Host.objects.select_related("mac_history")
             .filter(
-                pools__isnull=False,
+                pools__isnull=True,  # Static hosts are not in pools
                 expires__lte=timezone.now() - timedelta(weeks=expiry_threshold_static),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
             "dynamic": Host.objects.select_related("mac_history")
             .filter(
-                pools__isnull=True,
+                pools__isnull=False,  # Dynamic hosts are in pools
                 expires__lte=timezone.now() - timedelta(weeks=expiry_threshold_dynamic),
                 mac_history__host__isnull=True,
             )
             .order_by("-expires"),
         }
 
+        host_counts = {
+            "static": host_types["static"].count(),
+            "dynamic": host_types["dynamic"].count(),
+        }
+
+        show = "all"
+
+        if not show_static:
+            host_types["static"] = []
+            host_counts["static"] = 0
+            show = "dynamic"
+        if not show_dynamic:
+            host_types["dynamic"] = []
+            host_counts["dynamic"] = 0
+            if show_static:
+                show = "static"
+            else:
+                show = "none"
+
         if limit:
             host_types["static"] = host_types["static"][:limit]
             host_types["dynamic"] = host_types["dynamic"][:limit]
 
         context["host_types"] = host_types
+        context["host_counts"] = host_counts
+        context["show"] = show
         context["static_mac_addrs"] = [str(host.mac) for host in host_types["static"]]
         context["dynamic_mac_addrs"] = [str(host.mac) for host in host_types["dynamic"]]
         context["expiry_threshold_static"] = expiry_threshold_static
