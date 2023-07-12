@@ -44,12 +44,16 @@ class AuthUserChangeAdminForm(UserChangeForm):
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:group_autocomplete"
+        ),
     )
     user_permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="permission_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:permission_autocomplete"
+        ),
     )
 
     def clean_username(self):
@@ -70,7 +74,9 @@ class AuthGroupAdminForm(forms.ModelForm):
     permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="permission_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:permission_autocomplete"
+        ),
     )
     # def clean_name(self):
     #     name = self.cleaned_data['name'].lower()
@@ -107,7 +113,7 @@ class PermissionModelChoiceField(forms.ModelChoiceField):
 class UserObjectPermissionAdminForm(forms.ModelForm):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete"),
     )
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related("content_type").filter(
@@ -118,7 +124,7 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
     )
     object_id = forms.CharField(
         label="Object",
-        widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
+        # widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -137,7 +143,7 @@ class UserObjectPermissionAdminForm(forms.ModelForm):
 class GroupObjectPermissionAdminForm(forms.ModelForm):
     group = forms.ModelChoiceField(
         queryset=Group.objects.all(),
-        widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:group_autocomplete"),
     )
     permission = PermissionModelChoiceField(
         queryset=Permission.objects.select_related("content_type").filter(
@@ -148,7 +154,7 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
     )
     object_id = forms.CharField(
         label="Object",
-        widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
+        # widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -201,7 +207,9 @@ class GroupObjectPermissionAdminForm(forms.ModelForm):
 class GroupForm(forms.Form):
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:group_autocomplete"
+        ),
     )
 
 
@@ -215,7 +223,7 @@ class UserObjectPermissionForm(forms.ModelForm):
     )
     object_id = forms.CharField(
         label="Object",
-        widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
+        # widget=autocomplete.ModelSelect2(url="ipam_objects_autocomplete"),
     )
 
     class Meta:
@@ -226,7 +234,7 @@ class UserObjectPermissionForm(forms.ModelForm):
 class TokenForm(forms.ModelForm):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete"),
     )
 
     class Meta:

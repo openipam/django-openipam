@@ -26,7 +26,6 @@ from django.forms.utils import ErrorList, ErrorDict
 
 from openipam.core.utils.messages import process_errors
 from openipam.core.views import BaseDatatableView
-from openipam.core.forms import AdvancedSearchForm
 from openipam.hosts.decorators import permission_change_host
 from openipam.hosts.forms import (
     HostForm,
@@ -37,6 +36,7 @@ from openipam.hosts.forms import (
     HostRenameForm,
     HostDhcpGroupForm,
     HostNetworkForm,
+    AdvancedSearchForm,
 )
 from openipam.hosts.models import (
     Host,

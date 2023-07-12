@@ -84,7 +84,9 @@ class GuestTicketAdmin(admin.ModelAdmin):
     form = modelform_factory(
         GuestTicket,
         fields=("user", "ticket", "starts", "ends", "description"),
-        widgets={"user": autocomplete.ModelSelect2(url="user_autocomplete")},
+        widgets={
+            "user": autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete")
+        },
     )
 
 
