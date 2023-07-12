@@ -20,4 +20,14 @@ urlpatterns = [
         views.IPAMSearchAutoComplete.for_hosts().enable_word_split().as_view(),
         name="ipam_autocomplete",
     ),
+    path(
+        "permissions-autocomplete/",
+        views.PermissionsAutocomplete.as_view(),
+        name="permission_autocomplete",
+    ),
+    path(
+        "contenttype-autocomplete/",
+        views.ContentTypeAutocomplete.as_view(),
+        name="content_type_autocomplete",
+    ),
 ]

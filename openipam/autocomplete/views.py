@@ -1,14 +1,14 @@
 from openipam.hosts.models import (
-    FreeformAttributeToHost,
     StructuredAttributeValue,
 )
 from openipam.network.models import AddressType, Network
 from openipam.user.models import User
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views import View
 from functools import reduce
 from django.http import JsonResponse
+from django.contrib.contenttypes.models import ContentType
 
 
 class IPAMSearchAutoComplete(View):
@@ -30,7 +30,6 @@ class IPAMSearchAutoComplete(View):
             Group,
             Network,
             StructuredAttributeValue,
-            FreeformAttributeToHost,
             AddressType,
         )
 
@@ -58,7 +57,6 @@ class IPAMSearchAutoComplete(View):
         Network: lambda x: f"net:{x.network}",
         StructuredAttributeValue: lambda x: f"sattr:{x.value}",
         AddressType: lambda x: f"atype:{x.pk}",
-        FreeformAttributeToHost: lambda x: f"fattr:{x.value}",
     }
 
     _models_to_search = []
@@ -70,17 +68,19 @@ class IPAMSearchAutoComplete(View):
         Group: ["name"],
         Network: ["network", "name"],
         StructuredAttributeValue: ["attribute__name", "value"],
-        FreeformAttributeToHost: ["attribute__name", "value"],
         AddressType: ["name", "description"],
+        Permission: ["name", "codename", "content_type__app_label"],
+        ContentType: ["app_label", "model"],
     }
 
     _formatters = {
-        FreeformAttributeToHost: lambda x: ["Attribute", x.attribute, x.value],
         StructuredAttributeValue: lambda x: ["Attribute", x.attribute, x.value],
         Network: lambda x: ["Network", x.name, x],
         AddressType: lambda x: ["Address Type", x],
         User: lambda x: ["User", x, x.get_full_name()],
         Group: lambda x: ["Group", x],
+        Permission: lambda x: ["Permission", x.content_type.app_label, x.name],
+        ContentType: lambda x: ["Content Type", x.app_label, x.model],
     }
 
     def get_queryset(self, model_class=None):
@@ -173,7 +173,17 @@ class IPAMSearchAutoComplete(View):
         )
 
 
-GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group)
+GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group).always_use_pk()
 UserAutocomplete = (
     IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
+)
+PermissionsAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(Permission)
+    .enable_word_split()
+    .always_use_pk()
+)
+ContentTypeAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(ContentType)
+    .enable_word_split()
+    .always_use_pk()
 )
