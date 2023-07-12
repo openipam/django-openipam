@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block module_content %}
         {% for child in module.children %}
-        <h3><a class="app-title" href="#">{% trans child.title %}</a></h3>
+        <h3><a class="app-title" href={{child.url}}>{% trans child.title %}</a></h3>
         <ul class="app-list" style="display: none;">
             {% for model in child.models %}
             {% spaceless %}
