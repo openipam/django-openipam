@@ -793,7 +793,7 @@ class HostUserPermissionForm(BaseUserObjectPermissionForm):
     )
     content_object = forms.ModelChoiceField(
         queryset=Host.objects.all(),
-        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
+        widget=autocomplete.ModelSelect2 (url="core:autocomplete:host_autocomplete"),
     )
 
 
@@ -818,12 +818,11 @@ class HostAttributesDeleteForm(forms.Form):
 
 
 class HostDisableForm(forms.ModelForm):
-    host_mac = forms.CharField(
-        max_length="255",
+    host_mac = forms.ModelChoiceField(
+        queryset=Host.objects.all(),
         label="Host or Mac",
-        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete", attrs={"data-placeholder": "Enter a Host or Mac"}),
     )
-
     def __init__(self, *args, **kwargs):
         super(HostDisableForm, self).__init__(*args, **kwargs)
         if self.instance.pk:

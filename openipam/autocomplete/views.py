@@ -3,6 +3,7 @@ from openipam.hosts.models import (
 )
 from openipam.network.models import AddressType, Network
 from openipam.user.models import User
+from openipam.hosts.models import Host
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views import View
@@ -40,9 +41,12 @@ class IPAMSearchAutoComplete(View):
         return new_class
 
     @classmethod
-    def always_use_pk(cls):
+    def always_use_pk(cls, pk_as_string=False):
         new_class = type(cls.__name__, (cls,), {})
-        new_class._default_id_generator = lambda self, x: x.pk
+        if pk_as_string:
+            new_class._default_id_generator = lambda self, x: str(x.pk)
+        else:
+            new_class._default_id_generator = lambda self, x: x.pk
         new_class._id_generators = {}
         return new_class
 
@@ -71,6 +75,7 @@ class IPAMSearchAutoComplete(View):
         AddressType: ["name", "description"],
         Permission: ["name", "codename", "content_type__app_label"],
         ContentType: ["app_label", "model"],
+        Host: ["hostname", "mac"],
     }
 
     _formatters = {
@@ -81,6 +86,7 @@ class IPAMSearchAutoComplete(View):
         Group: lambda x: ["Group", x],
         Permission: lambda x: ["Permission", x.content_type.app_label, x.name],
         ContentType: lambda x: ["Content Type", x.app_label, x.model],
+        Host: lambda x: ["Host", x.hostname, x.mac],
     }
 
     def get_queryset(self, model_class=None):
@@ -117,7 +123,6 @@ class IPAMSearchAutoComplete(View):
 
     def serialize(self, obj):
         model_class = obj.__class__
-
         try:
             formatted = self._formatters[model_class](obj)
             formatted = [str(x) for x in formatted]
@@ -177,6 +182,11 @@ GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group).always_use_pk
 UserAutocomplete = (
     IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
 )
+HostAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(Host)
+    .enable_word_split()
+    .always_use_pk(pk_as_string=True)
+)
 PermissionsAutocomplete = (
     IPAMSearchAutoComplete.searching_models(Permission)
     .enable_word_split()
@@ -187,3 +197,4 @@ ContentTypeAutocomplete = (
     .enable_word_split()
     .always_use_pk()
 )
+
