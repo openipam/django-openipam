@@ -209,8 +209,5 @@ ContentTypeAutocomplete = (
     .always_use_pk()
 )
 DomainAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(Domain)
-    .enable_word_split()
-    .always_use_pk()
+    IPAMSearchAutoComplete.searching_models(Domain).enable_word_split().always_use_pk()
 )
-
