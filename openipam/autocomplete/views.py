@@ -3,6 +3,8 @@ from openipam.hosts.models import (
 )
 from openipam.network.models import AddressType, Network
 from openipam.user.models import User
+from openipam.dns.models import Domain
+from openipam.network.models import DhcpGroup
 from openipam.hosts.models import Host
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
@@ -76,6 +78,8 @@ class IPAMSearchAutoComplete(View):
         Permission: ["name", "codename", "content_type__app_label"],
         ContentType: ["app_label", "model"],
         Host: ["hostname", "mac"],
+        DhcpGroup: ["name"],
+        Domain: ["name"],
     }
 
     _formatters = {
@@ -87,6 +91,8 @@ class IPAMSearchAutoComplete(View):
         Permission: lambda x: ["Permission", x.content_type.app_label, x.name],
         ContentType: lambda x: ["Content Type", x.app_label, x.model],
         Host: lambda x: ["Host", x.hostname, x.mac],
+        DhcpGroup: lambda x: ["DHCP Group", x.name],
+        Domain: lambda x: ["Domain", x.name],
     }
 
     def get_queryset(self, model_class=None):
@@ -182,6 +188,11 @@ GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group).always_use_pk
 UserAutocomplete = (
     IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
 )
+DHCPGroupAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(DhcpGroup)
+    .enable_word_split()
+    .always_use_pk()
+)
 HostAutocomplete = (
     IPAMSearchAutoComplete.searching_models(Host)
     .enable_word_split()
@@ -194,6 +205,11 @@ PermissionsAutocomplete = (
 )
 ContentTypeAutocomplete = (
     IPAMSearchAutoComplete.searching_models(ContentType)
+    .enable_word_split()
+    .always_use_pk()
+)
+DomainAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(Domain)
     .enable_word_split()
     .always_use_pk()
 )
