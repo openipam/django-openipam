@@ -109,7 +109,9 @@ FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
 SECRET_KEY = locals().pop(
     "LOCAL_SECRET_KEY",
     hashlib.md5(
-        (socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@").encode("ascii")
+        (
+            socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@"
+        ).encode("ascii")
     ).hexdigest(),
 )
 
@@ -280,6 +282,4 @@ ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"
 ADMIN_TOOLS_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMIndexDashboard"
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMAppIndexDashboard"
 
-HOSTNAME_VALIDATION_REGEX = (
-    r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
-)
+HOSTNAME_VALIDATION_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
