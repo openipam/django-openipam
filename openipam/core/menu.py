@@ -168,8 +168,7 @@ class IPAMMenu(Menu):
         ]
 
         self.children += [hostMenu, dnsMenu]
-        if networkMenu.children.__len__() > 0:
-            print(networkMenu.children)
+        if formattedNetwork:
             self.children += [networkMenu]
 
         if user.is_superuser:
