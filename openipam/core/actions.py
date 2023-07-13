@@ -23,8 +23,6 @@ def changed_delete_selected(modeladmin, request, queryset):
     if not modeladmin.has_delete_permission(request):
         raise PermissionDenied
 
-    using = router.db_for_write(modeladmin.model)
-
     # Populate deletable_objects, a data structure of all related objects that
     # will also be deleted.
     deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
