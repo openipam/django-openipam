@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.admin import helpers
 from django.contrib.admin.utils import get_deleted_objects, model_ngettext
 from django.core.exceptions import PermissionDenied
-from django.db import router
 from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy, ugettext as _
@@ -84,8 +83,7 @@ def changed_delete_selected(modeladmin, request, queryset):
         request,
         modeladmin.delete_selected_confirmation_template
         or [
-            "admin/%s/%s/delete_selected_confirmation.html"
-            % (app_label, opts.model_name),
+            "admin/%s/%s/delete_selected_confirmation.html" % (app_label, opts.model_name),
             "admin/%s/delete_selected_confirmation.html" % app_label,
             "admin/delete_selected_confirmation.html",
         ],
@@ -93,6 +91,4 @@ def changed_delete_selected(modeladmin, request, queryset):
     )
 
 
-changed_delete_selected.short_description = ugettext_lazy(
-    "Delete selected %(verbose_name_plural)s"
-)
+changed_delete_selected.short_description = ugettext_lazy("Delete selected %(verbose_name_plural)s")
