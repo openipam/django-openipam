@@ -30,21 +30,47 @@ class IPAMMenu(Menu):
 
         user = context["request"].user
         admin_sites = admin.site._registry
-        hosts_models = [x for x in admin_sites if x.__module__ == "openipam.hosts.models"]
-        hosts_models = tuple(sorted(["%s.%s" % (model.__module__, model.__name__) for model in hosts_models]))
+        hosts_models = [
+            x for x in admin_sites if x.__module__ == "openipam.hosts.models"
+        ]
+        hosts_models = tuple(
+            sorted(
+                ["%s.%s" % (model.__module__, model.__name__) for model in hosts_models]
+            )
+        )
 
         dns_models = [x for x in admin_sites if x.__module__ == "openipam.dns.models"]
-        dns_models = tuple(sorted(["%s.%s" % (model.__module__, model.__name__) for model in dns_models]))
+        dns_models = tuple(
+            sorted(
+                ["%s.%s" % (model.__module__, model.__name__) for model in dns_models]
+            )
+        )
 
-        network_models = [x for x in admin_sites if x.__module__ == "openipam.network.models"]
-        network_models = tuple(sorted(["%s.%s" % (model.__module__, model.__name__) for model in network_models]))
+        network_models = [
+            x for x in admin_sites if x.__module__ == "openipam.network.models"
+        ]
+        network_models = tuple(
+            sorted(
+                [
+                    "%s.%s" % (model.__module__, model.__name__)
+                    for model in network_models
+                ]
+            )
+        )
 
-        formattedHosts = [x.__name__ for x, y in items.ModelList("", hosts_models)._visible_models(context["request"])]
+        formattedHosts = [
+            x.__name__
+            for x, y in items.ModelList("", hosts_models)._visible_models(
+                context["request"]
+            )
+        ]
 
         hostMenu = items.MenuItem(
             "Hosts",
             children=[
-                items.ModelList(x.title, list(filter(lambda y: y not in formattedHosts, x.models)))
+                items.ModelList(
+                    x.title, list(filter(lambda y: y not in formattedHosts, x.models))
+                )
                 for x in [
                     items.ModelList(
                         "Hosts",
@@ -77,11 +103,18 @@ class IPAMMenu(Menu):
             ],
         )
 
-        formattedDNS = [x.__name__ for x, y in items.ModelList("", dns_models)._visible_models(context["request"])]
+        formattedDNS = [
+            x.__name__
+            for x, y in items.ModelList("", dns_models)._visible_models(
+                context["request"]
+            )
+        ]
         dnsMenu = items.MenuItem(
             "DNS",
             children=[
-                items.ModelList(x.title, list(filter(lambda y: y not in formattedDNS, x.models)))
+                items.ModelList(
+                    x.title, list(filter(lambda y: y not in formattedDNS, x.models))
+                )
                 for x in [
                     items.ModelList(
                         "DNS",
@@ -103,12 +136,17 @@ class IPAMMenu(Menu):
         )
 
         formattedNetwork = [
-            x.__name__ for x, y in items.ModelList("", network_models)._visible_models(context["request"])
+            x.__name__
+            for x, y in items.ModelList("", network_models)._visible_models(
+                context["request"]
+            )
         ]
         networkMenu = items.MenuItem(
             "Network",
             children=[
-                items.ModelList(x.title, list(filter(lambda y: y not in formattedNetwork, x.models)))
+                items.ModelList(
+                    x.title, list(filter(lambda y: y not in formattedNetwork, x.models))
+                )
                 for x in [
                     items.ModelList(
                         "Networks",
@@ -204,14 +242,18 @@ class IPAMMenu(Menu):
                                 "openipam.log.models.UserLog",
                             ],
                         ),
-                        items.ModelList("Feature Requests", ["openipam.core.models.FeatureRequest"]),
+                        items.ModelList(
+                            "Feature Requests", ["openipam.core.models.FeatureRequest"]
+                        ),
                     ],
                     # icon='icon-user icon-white'
                 )
             )
 
         elif user.is_staff:
-            user_apps = items.AppList("", exclude=("openipam.hosts.*", "openipam.dns.*"))
+            user_apps = items.AppList(
+                "", exclude=("openipam.hosts.*", "openipam.dns.*")
+            )
             user_apps.init_with_context(context)
 
             # if user.has_perm("user.view_user"):
@@ -223,11 +265,17 @@ class IPAMMenu(Menu):
                 self.children.append(
                     items.MenuItem(
                         "Admin",
-                        children=[items.AppList("", exclude=("openipam.hosts.*", "openipam.dns.*"))],
+                        children=[
+                            items.AppList(
+                                "", exclude=("openipam.hosts.*", "openipam.dns.*")
+                            )
+                        ],
                     )
                 )
 
-        if user.is_ipamadmin or user.groups.filter(name=CONFIG.get("REPORT_USER_GROUP")):
+        if user.is_ipamadmin or user.groups.filter(
+            name=CONFIG.get("REPORT_USER_GROUP")
+        ):
             self.children.append(
                 items.MenuItem(
                     "Reports",
