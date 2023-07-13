@@ -27,19 +27,12 @@ def changed_delete_selected(modeladmin, request, queryset):
 
     # Populate deletable_objects, a data structure of all related objects that
     # will also be deleted.
-    print(f'using is {using}')
-    print(f'opts is {opts}')
-    print(f'user is {request.user}')
     deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
         # queryset, opts, request.user, modeladmin.admin_site, using
         queryset,
         request,
         modeladmin.admin_site,
     )
-    print(f'deletable_objects is {deletable_objects}')
-    print(f'model_count is {model_count}')
-    print(f'perms_needed is {perms_needed}')
-    print(f'protected is {protected}')
 
     # The user has already confirmed the deletion.
     # Do the deletion and return a None to display the change list view again.
