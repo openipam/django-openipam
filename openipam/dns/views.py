@@ -245,7 +245,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return """
                 <span title="%s">%s</span>
-                <input type="text" 
+                <input type="text"
                 class="input-content dns-content form-control input-sm" name="content-%s"
                 value="%s" style="display:none;" />
             """ % (
