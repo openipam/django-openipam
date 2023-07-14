@@ -4,14 +4,14 @@
 {% block extrastyle %}
 	{{ block.super }}
     {{ media.css }}
-    <link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "chosen-js/chosen.min.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
     {{ media.js }}
-    <script type="text/javascript" src="{% static "chosen/chosen.jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "chosen-js/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         $(function(){
             $("#searchbar").on('keypress', function(e){
