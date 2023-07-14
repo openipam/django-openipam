@@ -481,6 +481,14 @@ $(function () {
     }, 300);
   });
 
+   $(".help-button").on("click", function () {
+    $(this).next("div").toggle();
+  });
+
+  $(".help-close").on("click", function () {
+    $(this).parent("div").hide();
+  });
+
   $("#search-help-button").on("click", function () {
     $("#search-help").toggle();
     return false;

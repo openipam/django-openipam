@@ -145,29 +145,19 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
                             Q(addresses__address__istartswith=".".join(ip_blocks))
-                            | Q(
-                                leases__address__address__istartswith=".".join(
-                                    ip_blocks
-                                )
-                            )
+                            | Q(leases__address__address__istartswith=".".join(ip_blocks))
                         ).distinct()
                     else:
-                        qs = qs.filter(
-                            Q(addresses__address=ip) | Q(leases__address__address=ip)
-                        ).distinct()
+                        qs = qs.filter(Q(addresses__address=ip) | Q(leases__address__address=ip)).distinct()
                 elif search_item.startswith("net:"):
                     if search_str.endswith("/"):
                         qs = qs.none()
                     else:
-                        qs = qs.filter(
-                            addresses__address__net_contained_or_equal=search_str
-                        ).distinct()
+                        qs = qs.filter(addresses__address__net_contained_or_equal=search_str).distinct()
                 elif search_item.startswith("fattr:"):
                     qs = qs.filter(freeform_attributes__value=search_str)
                 elif search_item.startswith("sattr:"):
-                    qs = qs.filter(
-                        structured_attributes__structured_attribute_value__value=search_str
-                    )
+                    qs = qs.filter(structured_attributes__structured_attribute_value__value=search_str)
                 elif search_item.startswith("atype:"):
                     qs = qs.filter(address_type_id=search_str)
                 elif search_item:
@@ -211,16 +201,14 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                             SELECT leases.mac from leases
                                 WHERE HOST(leases.address) = %(search)s
                         """
-                    cursor.execute(
-                        omni_sql, {"lsearch": like_search_term, "search": search_item}
-                    )
+                    cursor.execute(omni_sql, {"lsearch": like_search_term, "search": search_item})
                     search_hosts = cursor.fetchall()
                     qs = qs.filter(mac__in=[host[0] for host in search_hosts])
 
             if host_search:
                 if host_search.startswith("^"):
-                    qs = qs.filter(hostname__startswith=host_search[1:].lower())
-                if host_search.startswith("~"):
+                    qs = qs.filter(hostname__istartswith=host_search[1:].lower())
+                elif host_search.startswith("~"):
                     qs = qs.filter(hostname__iregex=r"%s" % host_search[1:])
                 elif host_search.startswith("="):
                     qs = qs.filter(hostname__exact=host_search[1:].lower())
@@ -232,15 +220,11 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 mac_str = rgx.sub("", mac_search)
                 # Split to list to put back togethor with :
                 mac_str = iter(mac_str)
-                mac_str = ":".join(
-                    a + b for a, b in zip_longest(mac_str, mac_str, fillvalue="")
-                )
+                mac_str = ":".join(a + b for a, b in zip_longest(mac_str, mac_str, fillvalue=""))
                 qs = qs.filter(mac__startswith=mac_str.lower())
             if vendor_search:
                 qs = qs.extra(
-                    where=[
-                        "hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"
-                    ],
+                    where=["hosts.mac >= ouis.start and hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"],
                     params=["%%%s%%" % vendor_search],
                     tables=["ouis"],
                 )
@@ -268,15 +252,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     ip_blocks = [_f for _f in ip.split(".") if _f]
                     if len(ip_blocks) < 4 or not ip_blocks[3]:
                         qs = qs.filter(
-                            Q(
-                                addresses__address__istartswith=".".join(ip_blocks)
-                                + tail_dot
-                            )
+                            Q(addresses__address__istartswith=".".join(ip_blocks) + tail_dot)
                             | Q(
-                                leases__address__address__istartswith=".".join(
-                                    ip_blocks
-                                )
-                                + tail_dot,
+                                leases__address__address__istartswith=".".join(ip_blocks) + tail_dot,
                                 leases__ends__gt=timezone.now(),
                             )
                         ).distinct()
@@ -343,10 +321,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             def dictfetchall(cursor):
                 "Returns all rows from a cursor as a dict"
                 desc = cursor.description
-                return [
-                    dict(list(zip([col[0] for col in desc], row)))
-                    for row in cursor.fetchall()
-                ]
+                return [dict(list(zip([col[0] for col in desc], row))) for row in cursor.fetchall()]
 
             c = connection.cursor()
             c.execute(
@@ -377,9 +352,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
             value_qs = dictfetchall(c)
 
         user = self.request.user
-        user_change_permissions = Host.objects.filter(pk__in=qs_macs).by_change_perms(
-            user, ids_only=True
-        )
+        user_change_permissions = Host.objects.filter(pk__in=qs_macs).by_change_perms(user, ids_only=True)
         global_delete_permission = user.has_perm("hosts.delete_host")
         global_change_permission = user.has_perm("hosts.change_host")
 
@@ -416,19 +389,9 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         def get_ips(host):
             addresses = []
-            host["address"] = (
-                [host["address"]]
-                if not isinstance(host["address"], list)
-                else host["address"]
-            )
-            host["lease"] = (
-                [host["lease"]]
-                if not isinstance(host["lease"], list)
-                else host["lease"]
-            )
-            host["ends"] = (
-                [host["ends"]] if not isinstance(host["ends"], list) else host["ends"]
-            )
+            host["address"] = [host["address"]] if not isinstance(host["address"], list) else host["address"]
+            host["lease"] = [host["lease"]] if not isinstance(host["lease"], list) else host["lease"]
+            host["ends"] = [host["ends"]] if not isinstance(host["ends"], list) else host["ends"]
             if host["address"]:
                 for address in host["address"]:
                     if address and address not in addresses:
@@ -437,10 +400,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 for index, lease in enumerate(host["lease"]):
                     if lease and lease not in addresses:
                         try:
-                            if (
-                                host["ends"][index]
-                                and host["ends"][index] > timezone.now()
-                            ):
+                            if host["ends"][index] and host["ends"][index] > timezone.now():
                                 addresses.append(lease)
                         except IndexError:
                             pass
@@ -462,18 +422,13 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
 
         def get_expires(expires):
             if expires < timezone.now():
-                return '<span class="flagged">%s</span>' % timezone.localtime(
-                    expires
-                ).strftime("%Y-%m-%d")
+                return '<span class="flagged">%s</span>' % timezone.localtime(expires).strftime("%Y-%m-%d")
             else:
                 return timezone.localtime(expires).strftime("%Y-%m-%d")
 
         def get_selector(host, change_permissions):
             if change_permissions or global_delete_permission:
-                return (
-                    '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />'
-                    % host["mac"]
-                )
+                return '<input class="action-select" name="selected_hosts" type="checkbox" value="%s" />' % host["mac"]
             else:
                 return ""
 
@@ -488,18 +443,12 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
         for host in value_qs:
             is_disabled = "disabled" if host["disabled"] else ""
 
-            if not is_disabled and (
-                global_change_permission or host["mac"] in user_change_permissions
-            ):
+            if not is_disabled and (global_change_permission or host["mac"] in user_change_permissions):
                 change_permissions = True
             else:
                 change_permissions = False
-            host_view_href = reverse_lazy(
-                "core:hosts:view_host", args=(slugify(host["mac"]),)
-            )
-            host_edit_href = reverse_lazy(
-                "core:hosts:update_host", args=(slugify(host["mac"]),)
-            )
+            host_view_href = reverse_lazy("core:hosts:view_host", args=(slugify(host["mac"]),))
+            host_edit_href = reverse_lazy("core:hosts:update_host", args=(slugify(host["mac"]),))
             host_ips = get_ips(host)
             expires = get_expires(host["expires"])
             last_mac_stamp = get_last_mac_stamp(host)
@@ -530,8 +479,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                     host["vendor"],
                     render_cell(last_mac_stamp, is_flagged, is_disabled),
                     render_cell(last_ip_stamp, is_flagged, is_disabled),
-                    '<a href="%s?q=host:%s">DNS Records</a>'
-                    % (reverse_lazy("core:dns:list_dns"), host["hostname"]),
+                    '<a href="%s?q=host:%s">DNS Records</a>' % (reverse_lazy("core:dns:list_dns"), host["hostname"]),
                     '<a href="%s">%s</a>'
                     % (
                         host_edit_href if change_permissions else host_view_href,
@@ -567,9 +515,7 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         elif filter_type == "group":
             return [search_filter, f"Group | {filter_value}"]
         elif filter_type == "sattr":  # structured attribute
-            attribute_value = get_object_or_404(
-                StructuredAttributeValue, value=filter_value
-            )
+            attribute_value = get_object_or_404(StructuredAttributeValue, value=filter_value)
             return [
                 search_filter,
                 f"Attribute | {attribute_value.attribute.name} | {attribute_value.value}",
@@ -667,9 +613,7 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(HostDetailView, self).get_context_data(**kwargs)
         attributes = []
-        attributes += self.object.freeform_attributes.values_list(
-            "attribute__description", "value"
-        )
+        attributes += self.object.freeform_attributes.values_list("attribute__description", "value")
         attributes += self.object.structured_attributes.values_list(
             "structured_attribute_value__attribute__description",
             "structured_attribute_value__value",
@@ -679,15 +623,11 @@ class HostDetailView(PermissionRequiredMixin, DetailView):
         context["dns_records"] = self.object.get_dns_records()
         context["addresses"] = self.object.addresses.select_related().all()
         context["pools"] = self.object.pools.all()
-        context["leased_addresses"] = self.object.leases.select_related(
-            "address", "host"
-        ).all()
+        context["leased_addresses"] = self.object.leases.select_related("address", "host").all()
         context["user_owners"], context["group_owners"] = self.object.get_owners()
         context["disabled_info"] = Disabled.objects.filter(pk=self.object.pk).first()
         context["disabled_website"] = CONFIG.get("DISABLED_HOSTS_WEBSITE")
-        context["view_show_users"] = (
-            True if self.object.user.has_perm("user.view_user") else False
-        )
+        context["view_show_users"] = True if self.object.user.has_perm("user.view_user") else False
 
         return context
 
@@ -720,10 +660,7 @@ class HostUpdateCreateMixin(object):
     def get_context_data(self, **kwargs):
         context = super(HostUpdateCreateMixin, self).get_context_data(**kwargs)
         context["dynamic_address_types"] = json.dumps(
-            [
-                address_type.pk
-                for address_type in AddressType.objects.filter(pool__isnull=False)
-            ]
+            [address_type.pk for address_type in AddressType.objects.filter(pool__isnull=False)]
         )
         return context
 
@@ -780,20 +717,14 @@ class HostUpdateView(HostUpdateCreateMixin, UpdateView):
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy(
-                        "core:hosts:update_host", args=[self.object.mac_stripped]
-                    ),
+                    reverse_lazy("core:hosts:update_host", args=[self.object.mac_stripped]),
                     self.object.hostname,
                 )
             ),
         )
 
         if self.request.POST.get("_continue"):
-            return redirect(
-                reverse_lazy(
-                    "core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}
-                )
-            )
+            return redirect(reverse_lazy("core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}))
 
         return valid_form
 
@@ -817,20 +748,14 @@ class HostCreateView(PermissionRequiredMixin, HostUpdateCreateMixin, CreateView)
             mark_safe(
                 'Host <a href="%s" class="text-success"><strong>%s</strong></a> was successfully changed.'
                 % (
-                    reverse_lazy(
-                        "core:hosts:update_host", args=[self.object.mac_stripped]
-                    ),
+                    reverse_lazy("core:hosts:update_host", args=[self.object.mac_stripped]),
                     self.object.hostname,
                 )
             ),
         )
 
         if self.request.POST.get("_continue"):
-            return redirect(
-                reverse_lazy(
-                    "core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}
-                )
-            )
+            return redirect(reverse_lazy("core:hosts:update_host", kwargs={"pk": slugify(self.object.pk)}))
         elif self.request.POST.get("_add"):
             # Get fields that would carry over
             self.request.session["host_form_add"] = form.data
@@ -853,17 +778,13 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(HostAddressCreateView, self).get_context_data(**kwargs)
         self.host_addresses = self.object.addresses.values_list("address", flat=True)
-        self.addresses = Address.objects.filter(host=self.object).exclude(
-            arecords__name=self.object.hostname
-        )
+        self.addresses = Address.objects.filter(host=self.object).exclude(arecords__name=self.object.hostname)
         if not self.addresses:
             self.addresses = Address.objects.filter(host=self.object)
 
         addresses_data = []
         for address in self.addresses:
-            name = address.arecords.filter(
-                Q(dns_type__name="A") | Q(dns_type__name="AAAA")
-            ).first()
+            name = address.arecords.filter(Q(dns_type__name="A") | Q(dns_type__name="AAAA")).first()
             addresses_data.append({"ip_address": address.address, "name": name})
         context["address_data"] = addresses_data
 
@@ -902,8 +823,7 @@ class HostAddressCreateView(SuperuserRequiredMixin, DetailView):
                     )
                 messages.info(
                     request,
-                    "Address %s has been assigned to Host %s"
-                    % (added_address.address, host.hostname),
+                    "Address %s has been assigned to Host %s" % (added_address.address, host.hostname),
                 )
 
         except ValidationError as e:
@@ -935,9 +855,7 @@ class HostAddressDeleteView(SuperuserRequiredMixin, View):
             except ValidationError:
                 return redirect("core:hosts:add_addresses_host", pk=host.mac_stripped)
 
-            messages.info(
-                request, "Address %s has been removed and released." % address
-            )
+            messages.info(request, "Address %s has been removed and released." % address)
         return redirect("core:hosts:add_addresses_host", pk=host.mac_stripped)
 
     def post(self, request, *args, **kwargs):
@@ -966,13 +884,9 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         ]
 
         if len(host) < 3:
-            raise ValidationError(
-                "CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days."
-            )
+            raise ValidationError("CSV File needs at least 3 columns: Hostname, MAC Address, and Expire Days.")
         elif len(host) > len(fields):
-            raise ValidationError(
-                f"CSV File needs at most {len(fields)} columns: {fields}"
-            )
+            raise ValidationError(f"CSV File needs at most {len(fields)} columns: {fields}")
 
         host_vals = collections.OrderedDict()
 
@@ -1004,9 +918,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
         host = {}
         try:
             if len(hostnames) != len(set(hostnames)):
-                raise ValidationError(
-                    "Duplicate Hostnames detected.  Please make sure all hostnames are unique."
-                )
+                raise ValidationError("Duplicate Hostnames detected.  Please make sure all hostnames are unique.")
 
             mac_dups = set([x for x in macs if macs.count(x) > 1])
             if mac_dups:
@@ -1023,10 +935,7 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
 
                         for field in required_fields:
                             if field not in host:
-                                raise ValidationError(
-                                    "Missing required field '%s' on row '%s'"
-                                    % (field, i + 1)
-                                )
+                                raise ValidationError("Missing required field '%s' on row '%s'" % (field, i + 1))
 
                         if (
                             "ip" in host
@@ -1034,15 +943,9 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                             or "network" in host
                             and "pool" in host
                         ):
-                            raise ValidationError(
-                                "Cannot set more than one of network, pool, or ip"
-                            )
+                            raise ValidationError("Cannot set more than one of network, pool, or ip")
 
-                        if (
-                            "ip_address" not in host
-                            and "network" not in host
-                            and "pool" not in host
-                        ):
+                        if "ip_address" not in host and "network" not in host and "pool" not in host:
                             host["pool"] = "routable-dynamic"
 
                         if host["mac"] == "vmware":
@@ -1051,39 +954,25 @@ class HostBulkCreateView(PermissionRequiredMixin, FormView):
                         if "user_owners" in host:
                             user_owners = host["user_owners"].split(",")
                             user_owners = [user.upper() for user in user_owners]
-                            users_check = [
-                                user.username
-                                for user in User.objects.filter(
-                                    username__in=user_owners
-                                )
-                            ]
+                            users_check = [user.username for user in User.objects.filter(username__in=user_owners)]
                             users_diff = set(user_owners) - set(users_check)
                             if users_diff:
-                                raise ValidationError(
-                                    "Unknown User(s): %s" % ",".join(users_diff)
-                                )
+                                raise ValidationError("Unknown User(s): %s" % ",".join(users_diff))
                             host["user_owners"] = user_owners
 
                         if "group_owners" in host:
                             group_owners = host["group_owners"].split(",")
-                            groups_check = [
-                                group.name
-                                for group in Group.objects.filter(name__in=group_owners)
-                            ]
+                            groups_check = [group.name for group in Group.objects.filter(name__in=group_owners)]
                             groups_diff = set(group_owners) - set(groups_check)
                             if groups_diff:
-                                raise ValidationError(
-                                    "Unknown Groups(s): %s" % ",".join(groups_diff)
-                                )
+                                raise ValidationError("Unknown Groups(s): %s" % ",".join(groups_diff))
                             host["group_owners"] = group_owners
 
                         if "location" in host:
                             host_location = host["location"]
                             del host["location"]
 
-                        instance = Host.objects.add_or_update_host(
-                            self.request.user, **host
-                        )
+                        instance = Host.objects.add_or_update_host(self.request.user, **host)
 
                         if host_location:
                             # Add location for attributes
