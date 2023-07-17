@@ -50,7 +50,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
     max_display_length = 1500
 
     def get_initial_queryset(self):
-        qs = DnsRecord.objects.select_related("ip_content", "dns_type", "ip_content__host", "domain").all()
+        qs = DnsRecord.objects.select_related(
+            "ip_content", "dns_type", "ip_content__host", "domain"
+        ).all()
 
         owner_filter = self.json_data.get("change_filter", None)
         if owner_filter:
@@ -80,7 +82,11 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                     qs = qs.filter(pk=search_item[3:].lower())
                 elif search_item.startswith("host:") and search_str:
                     qs = qs.filter(
-                        Q(ip_content__host__hostname__startswith=search_item[5:].lower())
+                        Q(
+                            ip_content__host__hostname__startswith=search_item[
+                                5:
+                            ].lower()
+                        )
                         | Q(text_content__iexact=search_item[5:])
                         | Q(name__iexact=search_item[5:])
                         | Q(host__hostname=search_item[5:])
@@ -88,7 +94,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 elif search_item.startswith("mac:") and search_str:
                     mac_str = search_item[4:]
                     try:
-                        mac_str = ":".join(s.encode("hex") for s in mac_str.decode("hex"))
+                        mac_str = ":".join(
+                            s.encode("hex") for s in mac_str.decode("hex")
+                        )
                     except TypeError:
                         pass
                     qs = qs.filter(ip_content__host__mac__startswith=mac_str.lower())
@@ -126,7 +134,10 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 content_str = rgx.sub("", content_search)
                 # Split to list to put back togethor with :
                 content_str = iter(content_str)
-                content_str = ".".join(a + b for a, b in zip_longest(content_str, content_str, fillvalue=""))
+                content_str = ".".join(
+                    a + b
+                    for a, b in zip_longest(content_str, content_str, fillvalue="")
+                )
                 qs = qs.filter(
                     Q(text_content__icontains=content_str.lower())
                     | Q(ip_content__address__startswith=content_str.lower())
@@ -214,7 +225,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
         def get_type(dns_record, has_change_permission):
             # Disabling dns_type edits per ekoyle
             # if not has_change_permission:
-            return '<span id="dns_type">%s</span>' % conditional_escape(dns_record.dns_type.name)
+            return '<span id="dns_type">%s</span>' % conditional_escape(
+                dns_record.dns_type.name
+            )
             # else:
             #     return '''
             #         <span>%s</span>
@@ -291,17 +304,24 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             return reverse_lazy("core:dns:list_dns", args=(href,))
 
         def get_dns_host_href(dns_record):
-            return '<a href="%s">Host</a>' % reverse_lazy("core:hosts:view_host", args=(dns_record.host.mac_stripped,))
+            return '<a href="%s">Host</a>' % reverse_lazy(
+                "core:hosts:view_host", args=(dns_record.host.mac_stripped,)
+            )
 
         # prepare list with output column data
         # queryset is already paginated here
         json_data = []
 
         for dns_record in qs:
-            has_change_permission = True if dns_record.pk in change_permissions else False
+            has_change_permission = (
+                True if dns_record.pk in change_permissions else False
+            )
             dns_view_href = get_dns_view_href(dns_record)
             data = [
-                ('<input class="action-select" name="selected-records" type="checkbox" value="%s" />' % dns_record.pk),
+                (
+                    '<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
+                    % dns_record.pk
+                ),
                 get_name(dns_record, has_change_permission),
                 get_ttl(dns_record, has_change_permission),
                 get_type(dns_record, has_change_permission),
@@ -311,7 +331,11 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 get_links(dns_record, has_change_permission),
                 "",
             ]
-            json_data.append(data[0:8] if has_change_permission or global_delete_permission else data[1:])
+            json_data.append(
+                data[0:8]
+                if has_change_permission or global_delete_permission
+                else data[1:]
+            )
         return json_data
 
 
@@ -336,7 +360,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
         if kwargs.get("host"):
             context["search_filter"] = "host:%s" % kwargs["host"]
         else:
-            context["search_filter"] = urlunquote(self.request.COOKIES.get("search_filter", ""))
+            context["search_filter"] = urlunquote(
+                self.request.COOKIES.get("search_filter", "")
+            )
 
         selected_records = self.request.POST.getlist("selected-records", [])
         if selected_records:
@@ -366,7 +392,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
         return context
 
     def render_to_response(self, context, **response_kwargs):
-        response = super(DNSListView, self).render_to_response(context, **response_kwargs)
+        response = super(DNSListView, self).render_to_response(
+            context, **response_kwargs
+        )
         if self.kwargs.get("host"):
             response.set_cookie(
                 "search_filter",
@@ -397,7 +425,11 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
             # Permission checks are done inside add_or_update_record
             # New records
             for index, record in enumerate(new_records):
-                if not new_names[index] and not new_contents[index] and not new_types[index]:
+                if (
+                    not new_names[index]
+                    and not new_contents[index]
+                    and not new_types[index]
+                ):
                     continue
 
                 try:
@@ -446,7 +478,9 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
                 error_list.append("Please try again.")
                 process_errors(request, error_list=error_list)
             else:
-                messages.success(self.request, "Selected DNS records have been updated.")
+                messages.success(
+                    self.request, "Selected DNS records have been updated."
+                )
                 return redirect("core:dns:list_dns")
 
         return self.get(request, *args, **kwargs)

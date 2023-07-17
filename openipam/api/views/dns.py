@@ -95,7 +95,9 @@ class DnsCreate(generics.CreateAPIView):
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class DnsDelete(generics.DestroyAPIView):

@@ -78,7 +78,8 @@ class DnsCreateSerializer(serializers.ModelSerializer):
         )
         self.fields["dns_type"] = serializers.ChoiceField(
             required=True,
-            choices=blank_choice + [(dns_type.name, dns_type.name) for dns_type in dns_type_choices],
+            choices=blank_choice
+            + [(dns_type.name, dns_type.name) for dns_type in dns_type_choices],
         )
 
     def save(self):
@@ -123,7 +124,9 @@ class DnsCreateSerializer(serializers.ModelSerializer):
                         validate_sshfp_content(data["content"])
 
                     elif dns_type.is_a_record:
-                        raise serializers.ValidationError("Content should not be added with A records.")
+                        raise serializers.ValidationError(
+                            "Content should not be added with A records."
+                        )
                 except ValidationError as e:
                     raise serializers.ValidationError({"content": e.messages})
 
@@ -134,7 +137,9 @@ class DnsCreateSerializer(serializers.ModelSerializer):
             try:
                 validate_fqdn(value)
             except ValidationError:
-                raise serializers.ValidationError("The Dns Name is not fully qualified domain name.  Please try again.")
+                raise serializers.ValidationError(
+                    "The Dns Name is not fully qualified domain name.  Please try again."
+                )
 
     class Meta:
         model = DnsRecord
