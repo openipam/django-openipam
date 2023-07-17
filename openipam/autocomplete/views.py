@@ -96,15 +96,12 @@ class IPAMSearchAutoComplete(View):
     }
 
     def get_queryset(self, model_class=None):
-        print(f"\n\nget_queryset: {model_class}\n\n")
         if not model_class:
             querysets = [self.get_queryset(model) for model in self._models_to_search]
             return querysets
         else:
             try:
-                return model_class.objects.all().filter(
-                    self.get_search_filters(model_class)
-                )[
+                return model_class.objects.all().filter(self.get_search_filters(model_class))[
                     :5
                 ]  # Limit to 5 results per model
             except KeyError:
@@ -115,12 +112,7 @@ class IPAMSearchAutoComplete(View):
         # Produce a list of filters for each field in _search_fields for this model.
         filters = []
         for q in self.q:
-            filters.append(
-                [
-                    Q(**{f"{field}__icontains": q})
-                    for field in self._search_fields[model_class]
-                ]
-            )
+            filters.append([Q(**{f"{field}__icontains": q}) for field in self._search_fields[model_class]])
 
         # OR all of the filters for each query together.
         filters = [reduce(lambda x, y: x | y, filter) for filter in filters]
@@ -186,29 +178,9 @@ class IPAMSearchAutoComplete(View):
 
 
 GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group).always_use_pk()
-UserAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
-)
-DHCPGroupAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(DhcpGroup)
-    .enable_word_split()
-    .always_use_pk()
-)
-HostAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(Host)
-    .enable_word_split()
-    .always_use_pk(pk_as_string=True)
-)
-PermissionsAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(Permission)
-    .enable_word_split()
-    .always_use_pk()
-)
-ContentTypeAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(ContentType)
-    .enable_word_split()
-    .always_use_pk()
-)
-DomainAutocomplete = (
-    IPAMSearchAutoComplete.searching_models(Domain).enable_word_split().always_use_pk()
-)
+UserAutocomplete = IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
+DHCPGroupAutocomplete = IPAMSearchAutoComplete.searching_models(DhcpGroup).enable_word_split().always_use_pk()
+HostAutocomplete = IPAMSearchAutoComplete.searching_models(Host).enable_word_split().always_use_pk(pk_as_string=True)
+PermissionsAutocomplete = IPAMSearchAutoComplete.searching_models(Permission).enable_word_split().always_use_pk()
+ContentTypeAutocomplete = IPAMSearchAutoComplete.searching_models(ContentType).enable_word_split().always_use_pk()
+DomainAutocomplete = IPAMSearchAutoComplete.searching_models(Domain).enable_word_split().always_use_pk()
