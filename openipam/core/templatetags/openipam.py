@@ -58,7 +58,13 @@ def nav_tabs(path, verboseName):
         if i == 0:
             t.append({"title": "Home", "url": "/", "active": ""})
         else:
-            t.append({"title": segments[i].replace("_", ' ').title(), "url": "/".join(segments[: i + 1]), "active": ""})
+            t.append(
+                {
+                    "title": segments[i].replace("_", " ").title(),
+                    "url": "/".join(segments[: i + 1]),
+                    "active": "",
+                }
+            )
     t[-1]["active"] = "active"
     print(t)
     print(verboseName)
@@ -66,7 +72,7 @@ def nav_tabs(path, verboseName):
         return {"tabs": t}
     if verboseName.replace(" ", "").lower() != t[-1]["title"].replace(" ", "").lower():
         t[-2]["title"] = verboseName.title()
-    else: 
+    else:
         t[-1]["title"] = verboseName.title()
     return {"tabs": t}
 
@@ -115,7 +121,10 @@ def bootstrap_paginator_number(cl, i, li_class=None):
     elif i == cl.page_num:
         return mark_safe('<li class="active"><a href="#">%d</a></li> ' % (i + 1))
     else:
-        return mark_safe('<li><a href="%s">%d</a></li>' % (escape(cl.get_query_string({PAGE_VAR: i})), i + 1))
+        return mark_safe(
+            '<li><a href="%s">%d</a></li>'
+            % (escape(cl.get_query_string({PAGE_VAR: i})), i + 1)
+        )
 
 
 paginator_number = register.simple_tag(bootstrap_paginator_number)
@@ -150,9 +159,13 @@ def bootstrap_pagination(cl):
             else:
                 page_range.extend(list(range(0, page_num + 1)))
             if page_num < (paginator.num_pages - ON_EACH_SIDE - ON_ENDS - 1):
-                page_range.extend(list(range(page_num + 1, page_num + ON_EACH_SIDE + 1)))
+                page_range.extend(
+                    list(range(page_num + 1, page_num + ON_EACH_SIDE + 1))
+                )
                 page_range.append(DOT)
-                page_range.extend(list(range(paginator.num_pages - ON_ENDS, paginator.num_pages)))
+                page_range.extend(
+                    list(range(paginator.num_pages - ON_ENDS, paginator.num_pages))
+                )
             else:
                 page_range.extend(list(range(page_num + 1, paginator.num_pages)))
 
@@ -168,13 +181,17 @@ def bootstrap_pagination(cl):
     }
 
 
-bootstrap_pagination = register.inclusion_tag("admin/pagination.html")(bootstrap_pagination)
+bootstrap_pagination = register.inclusion_tag("admin/pagination.html")(
+    bootstrap_pagination
+)
 
 
 @register.simple_tag
 def admin_select_filter(cl, spec):
     tpl = get_template(spec.template)
-    query_string = cl.get_query_string({}, [spec.parameter_name] if hasattr(spec, "parameter_name") else [])
+    query_string = cl.get_query_string(
+        {}, [spec.parameter_name] if hasattr(spec, "parameter_name") else []
+    )
 
     return tpl.render(
         {
@@ -194,7 +211,9 @@ def admin_filter_selected(cl, spec):
     href = None
 
     for index, choice in enumerate(spec.choices(cl)):
-        if choice["selected"] is True and (index > 0 or isinstance(choice["display"], string_types)):
+        if choice["selected"] is True and (
+            index > 0 or isinstance(choice["display"], string_types)
+        ):
             value = choice["display"]
             if hasattr(spec, "parameter_name"):
                 param_name = spec.parameter_name
