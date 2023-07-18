@@ -22,20 +22,24 @@
     <script type="text/javascript">
         $(function(){
             {% if selected_records %}
-                $.selectedRecords = {{ selected_records|safe }};
+            $.selectedRecords = {{ selected_records|safe }};
             {% endif %}
             {% if form_data %}
-                $.formData = {{ form_data|safe }};
+            $.formData = {{ form_data|safe }};
             {% endif %}
         });
     </script>
     {% endif %}
+    <script type="text/javascript">
+       var perms = '{{ perms.dns.delete_record }}';
+    </script>
     <script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
     <script type="text/javascript" src="{% static 'dns/js/dnsrecord_list.js' %}"></script>
 {% endblock %}
 
 {% block object-tools %}
+{% if perms.dns.add_record %}
 <div class="pull-right object-tools">
   {% block object-tools-items %}
     <a href="{% url 'core:dns:add_dns' %}" class="btn btn-primary">
@@ -44,13 +48,16 @@
     </a>
   {% endblock %}
 </div>
+{% endif %}
 {% endblock %}
 
+
 {% block contentbody %}
-    <form id="changelist-form" action="" method="post" class="quickbody form-inline">
+<form id="changelist-form" action="" method="post" class="quickbody form-inline">
         {% csrf_token %}
         <div id="actions">
             {% spaceless %}
+                {% if perms.dns.delete_record %}
                 <div class="actions changelist-actions pull-left">
                     <div class="changelist-action" style="height: auto !important;">
                         <div class="action-wrapper">
@@ -66,6 +73,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% if not request.user.is_ipamadmin %}
                 <div id="filter-change" class="btn-group pull-left">
                     <button type="button" class="btn btn-default {% if change_filter %}btn-primary{% endif %}" value="1">Show Mine</button>
@@ -101,26 +109,48 @@
             <table cellspacing="0" id="result_list" class="table table-striped table-condensed table-bordered">
                 <thead>
                     <tr>
+                        {% if perms.dns.delete_record %}
                         <th scope="col" class="action-checkbox-column">
                             <div class="text">
                                 <span><input type="checkbox" id="action-toggle" /></span>
                             </div>
                             <div class="clear"></div>
                         </th>
+                        {% endif %}
                         <th scope="col">Name</th>
                         <th scope="col" style="width: 50px;">TTL</th>
                         <th scope="col" style="width: 80px;">Type</th>
                         <th scope="col" style="width: 70%;">Content</th>
                         <th scope="col" style="width: 80px;">Host</th>
+                        {% if perms.dns.change_record %}
                         <th scope="col" style="width: 80px;">View</th>
                         <th scope="col" style="width: 70px;">Edit</th>
+                        {% comment %} {% else %} {% endcomment %}
+                        {% comment %} <th scope="col" style="width: 70px;">&nbsp;</th> {% endcomment %}
+                        {% comment %} <th scope="col" style="width: 70px;">&nbsp;</th> {% endcomment %}
+                        {% comment %} <th scope="col" style="width: 70px;">&nbsp;</th> {% endcomment %}
+                        {% endif %}
                     </tr>
                 </thead>
                 {% if request.GET|length == 0 %}
                 <tfoot>
                     <tr>
+                        {% if perms.dns.delete_record %}
                         <th>&nbsp;</th>
-                        <th><div><input id="name-search" type="text" rel="1" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
+                        {% endif %}
+                        <th>
+                            <input id="name-search" type="text" rel="1" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" />
+                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+                            <div class="help-content">
+                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right">
+                                </div>
+                                <p>To search records by name, try these special helpers:</p>
+                                <pre>^<em>name</em> (starts with)</pre>
+                                <pre>=<em>name</em> (equal)</pre>
+                                <pre>~<em>name</em> (regex)</pre>
+                            </div>
+                        </th>
+                        
                         <th>&nbsp;</th>
                         <th>
                             <div>
@@ -132,24 +162,50 @@
                                 </select>
                             </div>
                         </th>
-                        <th><div><input id="content-search" type="text" rel="4" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
+                        <th>
+                            <input id="content-search" type="text" rel="4" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" />
+                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+                            <div class="help-content">
+                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right">
+                                </div>
+                                <p>
+                                    To search by content, numbers may be
+                                    separated by commas, colons, periods, dashes, or spaces.
+                                </p>
+                                <pre>10.25.99.0</pre>
+                                <pre>10:25:99:0</pre>
+                                <pre>10-25-99-0</pre>
+                                <pre>1025-990</pre>
+                                <pre>1025990</pre>
+                                <pre>10 25 99 0</pre>
+                                <pre>10,25,99,0</pre>
+                            </div>
+                        </th>
                         <th>&nbsp;</th>
+                        {% if perms.dns.delete_record %}
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>
+                        {% comment %} {% else %} {% endcomment %}
+                        {% comment %} <th>&nbsp;</th> {% endcomment %}
+                        {% comment %} <th scope="col" style="width: 70px;">&nbsp;</th> {% endcomment %}
+                        {% comment %} <th scope="col" style="width: 70px;">&nbsp;</th> {% endcomment %}
+                        {% endif %}
                     </tr>
                 </tfoot>
                 {% endif %}
                 <tbody>
                     <tr>
                         <td>&nbsp;</td>
-                        <td colspan="7">Loading...</td>
+                        <td colspan="5">Loading...</td>
                     </tr>
                 </tbody>
             </table>
             <table id="add-table" style="display: none;">
                 {% for row in form_data_new %}
                     <tr class="add-row warning">
+                        {% if perms.dns.add_record %}
                         <td><input type="hidden" name="new-records" value="1" class="form-control input-sm" /></td>
+                        {% endif %}
                         <td><input type="text" name="name-new" value="{{ row.name }}" class="form-control input-sm" /></td>
                         <td><input type="text" name="ttl-new" value="{{ row.ttl }}" class="form-control input-sm dns-ttl" /></td>
                         <td>
@@ -168,7 +224,9 @@
                     </tr>
                 {% endfor %}
                 <tr class="add-row extra">
+                    {% if perms.dns.delete_record %}
                     <td><input type="hidden" name="new-records" value="1" /></td>
+                    {% endif %}
                     <td><input type="text" name="name-new" class="form-control input-sm" /></td>
                     <td><input type="text" name="ttl-new" value="14400" class="form-control input-sm dns-ttl" /></td>
                     <td>
@@ -181,11 +239,17 @@
                     </td>
                     <td><input type="text" name="content-new" class="input-content form-control input-sm" /></td>
                     <td>&nbsp;</td>
+                    {% if perms.dns.add_record %}
                     <td>&nbsp;</td>
                     <td>
                         <a class="add-record" href="javascript:void(0);">Quick add</a>
                         <a class="remove-record" href="javascript:void(0);" style="display:none;">Remove</a>
                     </td>
+                    {% comment %} {% else %} {% endcomment %}
+                    {% comment %} <th>&nbsp;</th> {% endcomment %}
+                    {% comment %} <td>&nbsp;</td> {% endcomment %}
+                    {% comment %} <td>&nbsp;</td> {% endcomment %}
+                    {% endif %}
                 </tr>
 
             </table>

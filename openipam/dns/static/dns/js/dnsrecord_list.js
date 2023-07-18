@@ -111,7 +111,7 @@ $(function () {
               json.data.splice(0, requestStart - cacheLower);
             }
             json.data.splice(requestLength, json.data.length);
-
+            console.log(json);
             drawCallback(json);
           },
         });
@@ -141,6 +141,8 @@ $(function () {
       timer = setTimeout(callback, ms);
     };
   })();
+
+  console.log($.urlVars);
 
   var results = $("#result_list")
     .DataTable({
@@ -184,7 +186,17 @@ $(function () {
         $("#type-filter").val(data.columns[3].search.search);
         $("#content-search").val(data.columns[4].search.search);
       },
-      columns: [
+      columns: perms === 'False' ? [
+        // { name: "select", orderable: false, searchable: false },
+        { name: "name", orderable: true },
+        { name: "ttl", orderable: false, searchable: false },
+        { name: "ttl", orderable: true },
+        { name: "content", orderable: true },
+        { name: "host", orderable: false, searchable: false },
+        // { name: "view", orderable: false, searchable: false },
+        // { name: "edit", orderable: false, searchable: false },
+      ] :
+      [
         { name: "select", orderable: false, searchable: false },
         { name: "name", orderable: true },
         { name: "ttl", orderable: false, searchable: false },
@@ -479,6 +491,14 @@ $(function () {
     delay(function () {
       results.column($(self).attr("rel")).search($(self).val()).draw();
     }, 300);
+  });
+
+   $(".help-button").on("click", function () {
+    $(this).next("div").toggle();
+  });
+
+  $(".help-close").on("click", function () {
+    $(this).parent("div").hide();
   });
 
   $("#search-help-button").on("click", function () {
