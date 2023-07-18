@@ -30,22 +30,6 @@
 
 {% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
 
-{% block breadcrumbs %}
-    {% if not is_popup %}
-        {% if change %}
-            ../../../../|{% trans "Home" %}
-            ../../../|{{ opts.app_label|capfirst|escape }}
-            ../../|{{ opts.verbose_name_plural|capfirst }}
-            {{ original|truncatewords:"18"|replace:"/\|/-" }}
-        {% else %}
-            ../../../|{% trans "Home" %}
-            ../../|{{ opts.app_label|capfirst|escape }}
-            ../|{{ opts.verbose_name_plural|capfirst }}
-            *{% trans "Add" %} {{ opts.verbose_name }}
-        {% endif %}
-    {% endif %}
-{% endblock %}
-
 {% block object-tools %}
     {% if change %}
         {% if not is_popup %}

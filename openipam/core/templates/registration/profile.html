@@ -3,13 +3,6 @@
 
 {% block page_title %} {{request.user.get_full_name}}'s Profile {% endblock %}
 
-{% block breadcrumbs %}
-    {% if not is_popup %}
-        ../../|{% trans "Home" %}
-        Profile
-    {% endif %}
-{% endblock %}
-
 {% block extrastyle %}
     {{ block.super }}
     <style type="text/css">

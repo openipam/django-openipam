@@ -180,7 +180,6 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     app_title = None
     # we disable title because its redundant with the model list module
     title = ""
-    breadcrumbs = True
 
     def __init__(self, app_title, models, **kwargs):
         kwargs.update({"app_title": app_title, "models": models})

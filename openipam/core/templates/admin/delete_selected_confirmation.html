@@ -1,15 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n l10n admin_urls %}
 
-{% block breadcrumbs %}
-    {% if not is_popup %}
-        ../../|{% trans "Home" %}
-        ../|{{ opts.app_label|capfirst|escape }}
-        ./|{{ opts.verbose_name_plural|capfirst }}
-        *Delete Selected
-    {% endif %}
-{% endblock %}
-
 {% block content %}
 {% if perms_lacking or protected %}
     {% if perms_lacking %}

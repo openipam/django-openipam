@@ -207,17 +207,6 @@
     </script>
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
-        ../|{% trans "Hosts" %}
-        {% if object %}
-            {{ object.hostname }}
-        {% else %}
-            {% trans "Host" %}
-        {% endif %}
-{% endblock %}
-
-
 {% block contentbody %}
     <div class="well well-sm">
         <form id="host-form" action="" method="post" class="form-horizontal">

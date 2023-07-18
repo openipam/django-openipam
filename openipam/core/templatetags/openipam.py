@@ -8,10 +8,10 @@ from django.template.loader import get_template
 
 from openipam.core.forms import MimicUserForm
 
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    from BeautifulSoup import BeautifulSoup
+# try:
+#     from bs4 import BeautifulSoup
+# except ImportError:
+#     from BeautifulSoup import BeautifulSoup
 
 from django.utils.http import urlunquote
 
@@ -60,7 +60,14 @@ def nav_tabs(path, verboseName):
         else:
             t.append({"title": segments[i].replace("_", ' ').title(), "url": "/".join(segments[: i + 1]), "active": ""})
     t[-1]["active"] = "active"
-    t[-1]["title"] = verboseName.title() if verboseName else t[-1]["title"]
+    print(t)
+    print(verboseName)
+    if not verboseName:
+        return {"tabs": t}
+    if verboseName.replace(" ", "").lower() != t[-1]["title"].replace(" ", "").lower():
+        t[-2]["title"] = verboseName.title()
+    else: 
+        t[-1]["title"] = verboseName.title()
     return {"tabs": t}
 
 
@@ -162,79 +169,6 @@ def bootstrap_pagination(cl):
 
 
 bootstrap_pagination = register.inclusion_tag("admin/pagination.html")(bootstrap_pagination)
-
-
-# breadcrumbs tag
-class BreadcrumbsNode(template.Node):
-    """
-    renders bootstrap breadcrumbs list.
-    usage::
-        {% breadcrumbs %}
-        url1|text1
-        url2|text2
-        text3
-        {% endbreadcrumbs %}
-    | is delimiter by default, you can use {% breadcrumbs delimiter_char %} to change it.
-    lines without delimiters are interpreted as active breadcrumbs
-
-    """
-
-    def __init__(self, nodelist, delimiter):
-        self.nodelist = nodelist
-        self.delimiter = delimiter
-
-    def render(self, context):
-        data = self.nodelist.render(context).strip()
-
-        if not data:
-            return ""
-
-        try:
-            data.index('<div class="breadcrumbs">')
-        except ValueError:
-            lines = [x.strip().split(self.delimiter) for x in data.split("\n") if x.strip()]
-        else:
-            # data is django-style breadcrumbs, parsing
-            try:
-                soup = BeautifulSoup(data)
-                lines = [(a.get("href"), a.text) for a in soup.findAll("a")]
-                lines.append([soup.find("div").text.split("&rsaquo;")[-1].strip()])
-            except Exception as e:
-                lines = [["Cannot parse breadcrumbs: %s" % str(e)]]
-
-        out = '<ul class="breadcrumb">'
-        curr = 0
-        for d in lines:
-            if len(d[0]) > 0:
-                if d[0][0] == "*":
-                    active = ' class="active"'
-                    d[0] = d[0][1:]
-                else:
-                    active = ""
-
-                curr += 1
-
-                if len(d) == 2:
-                    out += '<li%s><a href="%s">%s</a></li>' % (active, d[0], d[1])
-                elif len(d) == 1:
-                    out += "<li%s>%s</li>" % (active, d[0])
-                else:
-                    raise ValueError("Invalid breadcrumb line: %s" % self.delimiter.join(d))
-        out += "</ul>"
-        return out
-
-
-@register.tag(name="breadcrumbs")
-def do_breadcrumbs(parser, token):
-    try:
-        tag_name, delimiter = token.contents.split(None, 1)
-    except ValueError:
-        delimiter = "|"
-
-    nodelist = parser.parse(("endbreadcrumbs",))
-    parser.delete_first_token()
-
-    return BreadcrumbsNode(nodelist, delimiter)
 
 
 @register.simple_tag
