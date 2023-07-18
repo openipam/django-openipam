@@ -48,7 +48,8 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> to help aid us with features and bugs.
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> 
+                            to help aid us with features and bugs.
                             Please make an issue on GitHub to give us feedback.
                         </p>
                         <p>Item to consider when using the new interface:</p>
@@ -99,9 +100,7 @@ class IPAMIndexDashboard(Dashboard):
 
         # append recent stats module
         hosts = Host.objects.all()
-        hosts_stats = qsstats.QuerySetStats(
-            hosts, "changed", aggregate=Count("mac"), today=datetime.now()
-        )
+        hosts_stats = qsstats.QuerySetStats(hosts, "changed", aggregate=Count("mac"), today=datetime.now())
         users = User.objects.all()
         users_stats = qsstats.QuerySetStats(users, "date_joined", today=datetime.now())
 
@@ -207,14 +206,10 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
         self.app_title = self.app_title + " Admin"
 
         # append a model list module and a recent actions module
-        self.children += [
-            modules.ModelList(title=self.app_title, models=models, exclude=exclude)
-        ]
+        self.children += [modules.ModelList(title=self.app_title, models=models, exclude=exclude)]
 
         self.children += [
-            modules.RecentActions(
-                _("Recent Actions"), include_list=self.get_app_content_types(), limit=5
-            )
+            modules.RecentActions(_("Recent Actions"), include_list=self.get_app_content_types(), limit=5)
         ]
 
         return super(IPAMAppIndexDashboard, self).init_with_context(context)

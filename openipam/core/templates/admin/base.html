@@ -63,9 +63,7 @@
                         {% endif %}
                         {% endblock %}
 
-                        {% breadcrumbs %}
-                            {% block breadcrumbs %}{% endblock %}
-                        {% endbreadcrumbs %}
+                        {% nav_tabs request.path %}
 
                         {% block object-tools %}{% endblock %}
                         <div class="clear"><!-- --></div>

@@ -344,6 +344,12 @@
     padding: 4px;
     text-decoration: none;
 }
+.mt-8 {
+    margin-top: 6px;
+}
+.ml-10 {
+    margin-left: 10px;
+}
 .calendar td a:active, .timelist a:active
 {
     background: #036;
