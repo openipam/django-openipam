@@ -51,15 +51,16 @@ def field_with_classes(value, arg):
 
 # tag for dispay nagivagation as tabs
 @register.inclusion_tag("admin/nav_tabs.html")
-def nav_tabs(path):
+def nav_tabs(path, verboseName):
     segments = path.split("/")[:-1]
     t = []
     for i in range(len(segments)):
         if i == 0:
             t.append({"title": "Home", "url": "/", "active": ""})
         else:
-            t.append({"title": segments[i].capitalize(), "url": "/".join(segments[: i + 1]), "active": ""})
+            t.append({"title": segments[i].replace("_", ' ').title(), "url": "/".join(segments[: i + 1]), "active": ""})
     t[-1]["active"] = "active"
+    t[-1]["title"] = verboseName.title() if verboseName else t[-1]["title"]
     return {"tabs": t}
 
 

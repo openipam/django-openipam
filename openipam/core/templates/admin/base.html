@@ -63,8 +63,7 @@
                         {% endif %}
                         {% endblock %}
 
-                        {% nav_tabs request.path %}
-
+                        {% nav_tabs request.path opts.verbose_name %}
                         {% block object-tools %}{% endblock %}
                         <div class="clear"><!-- --></div>
                     </div>
