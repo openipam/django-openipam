@@ -3,6 +3,9 @@ from openipam.hosts.models import (
 )
 from openipam.network.models import AddressType, Network
 from openipam.user.models import User
+from openipam.dns.models import Domain
+from openipam.network.models import DhcpGroup
+from openipam.hosts.models import Host
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.views import View
@@ -40,9 +43,12 @@ class IPAMSearchAutoComplete(View):
         return new_class
 
     @classmethod
-    def always_use_pk(cls):
+    def always_use_pk(cls, pk_as_string=False):
         new_class = type(cls.__name__, (cls,), {})
-        new_class._default_id_generator = lambda self, x: x.pk
+        if pk_as_string:
+            new_class._default_id_generator = lambda self, x: str(x.pk)
+        else:
+            new_class._default_id_generator = lambda self, x: x.pk
         new_class._id_generators = {}
         return new_class
 
@@ -71,6 +77,9 @@ class IPAMSearchAutoComplete(View):
         AddressType: ["name", "description"],
         Permission: ["name", "codename", "content_type__app_label"],
         ContentType: ["app_label", "model"],
+        Host: ["hostname", "mac"],
+        DhcpGroup: ["name"],
+        Domain: ["name"],
     }
 
     _formatters = {
@@ -81,9 +90,13 @@ class IPAMSearchAutoComplete(View):
         Group: lambda x: ["Group", x],
         Permission: lambda x: ["Permission", x.content_type.app_label, x.name],
         ContentType: lambda x: ["Content Type", x.app_label, x.model],
+        Host: lambda x: ["Host", x.hostname, x.mac],
+        DhcpGroup: lambda x: ["DHCP Group", x.name],
+        Domain: lambda x: ["Domain", x.name],
     }
 
     def get_queryset(self, model_class=None):
+        print(f"\n\nget_queryset: {model_class}\n\n")
         if not model_class:
             querysets = [self.get_queryset(model) for model in self._models_to_search]
             return querysets
@@ -93,7 +106,7 @@ class IPAMSearchAutoComplete(View):
                     self.get_search_filters(model_class)
                 )[
                     :5
-                ]  # Limit to 3 results per model
+                ]  # Limit to 5 results per model
             except KeyError:
                 # If the model is not in _search_fields, return an empty queryset.
                 return model_class.objects.none()
@@ -117,7 +130,6 @@ class IPAMSearchAutoComplete(View):
 
     def serialize(self, obj):
         model_class = obj.__class__
-
         try:
             formatted = self._formatters[model_class](obj)
             formatted = [str(x) for x in formatted]
@@ -177,6 +189,16 @@ GroupAutocomplete = IPAMSearchAutoComplete.searching_models(Group).always_use_pk
 UserAutocomplete = (
     IPAMSearchAutoComplete.searching_models(User).enable_word_split().always_use_pk()
 )
+DHCPGroupAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(DhcpGroup)
+    .enable_word_split()
+    .always_use_pk()
+)
+HostAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(Host)
+    .enable_word_split()
+    .always_use_pk(pk_as_string=True)
+)
 PermissionsAutocomplete = (
     IPAMSearchAutoComplete.searching_models(Permission)
     .enable_word_split()
@@ -186,4 +208,7 @@ ContentTypeAutocomplete = (
     IPAMSearchAutoComplete.searching_models(ContentType)
     .enable_word_split()
     .always_use_pk()
+)
+DomainAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(Domain).enable_word_split().always_use_pk()
 )

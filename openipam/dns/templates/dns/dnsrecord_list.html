@@ -120,7 +120,19 @@
                 <tfoot>
                     <tr>
                         <th>&nbsp;</th>
-                        <th><div><input id="name-search" type="text" rel="1" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" /></div></th>
+                        <th>
+                            <input id="name-search" type="text" rel="1" class="form-control input-sm search_init" placeholder="Search Name" style="max-width: 150px;" />
+                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+                            <div class="help-content">
+                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right">
+                                </div>
+                                <p>To search records by name, try these special helpers:</p>
+                                <pre>^<em>name</em> (starts with)</pre>
+                                <pre>=<em>name</em> (equal)</pre>
+                                <pre>~<em>name</em> (regex)</pre>
+                            </div>
+                        </th>
+                        
                         <th>&nbsp;</th>
                         <th>
                             <div>
@@ -132,7 +144,25 @@
                                 </select>
                             </div>
                         </th>
-                        <th><div><input id="content-search" type="text" rel="4" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" /></div></th>
+                        <th>
+                            <input id="content-search" type="text" rel="4" class="input-content form-control input-sm search_init" placeholder="Search Content" style="max-width: 300px;" />
+                            <div href="javascript:void(0);" class="help-button glyphicon glyphicon-question-sign"></div>
+                            <div class="help-content">
+                                <div href="javascript:void(0);" class="help-close glyphicon glyphicon-remove pull-right">
+                                </div>
+                                <p>
+                                    To search by content, numbers may be
+                                    separated by commas, colons, periods, dashes, or spaces.
+                                </p>
+                                <pre>10.25.99.0</pre>
+                                <pre>10:25:99:0</pre>
+                                <pre>10-25-99-0</pre>
+                                <pre>1025-990</pre>
+                                <pre>1025990</pre>
+                                <pre>10 25 99 0</pre>
+                                <pre>10,25,99,0</pre>
+                            </div>
+                        </th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>
                         <th><a href="javascript:void(0);" class="edit-all" rel="edit">Edit All</a></th>

@@ -24,7 +24,10 @@ from guardian.shortcuts import get_objects_for_user
 
 from braces.views import PermissionRequiredMixin
 
+from itertools import zip_longest
+
 import json
+import re
 
 User = get_user_model()
 
@@ -117,14 +120,27 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             if name_search:
                 if name_search.startswith("~"):
                     qs = qs.filter(name__iregex=name_search[1:]).distinct()
+                elif name_search.startswith("^"):
+                    qs = qs.filter(name__istartswith=name_search[1:]).distinct()
+                elif name_search.startswith("="):
+                    qs = qs.filter(name__exact=name_search[1:]).distinct()
                 else:
                     qs = qs.filter(name__icontains=name_search.lower()).distinct()
             if type_search:
                 qs = qs.filter(dns_type=type_search)
             if content_search:
+                # Replace garbage
+                rgx = re.compile("[:,-. ]")
+                content_str = rgx.sub("", content_search)
+                # Split to list to put back togethor with :
+                content_str = iter(content_str)
+                content_str = ".".join(
+                    a + b
+                    for a, b in zip_longest(content_str, content_str, fillvalue="")
+                )
                 qs = qs.filter(
-                    Q(text_content__icontains=content_search)
-                    | Q(ip_content__address__startswith=content_search)
+                    Q(text_content__icontains=content_str.lower())
+                    | Q(ip_content__address__startswith=content_str.lower())
                 )
 
             # if host_filter:
@@ -194,7 +210,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 </span>
             """
             if has_change_permission:
-                html += '<input type="text" name="name-%(id)s" value="%(name)s" class="form-control input-sm" style="display:none;" />'
+                html += """<input type="text" name="name-%(id)s" value="%(name)s"
+                class="form-control input-sm" style="display:none;" />"""
 
             return (
                 html
@@ -241,7 +258,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return """
                 <span title="%s">%s</span>
-                <input type="text" class="input-content dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
+                <input type="text"
+                class="input-content dns-content form-control input-sm" name="content-%s"
+                value="%s" style="display:none;" />
             """ % (
                     conditional_escape(content),
                     conditional_escape(s_content),
@@ -255,7 +274,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return """
                 <span>%s</span>
-                <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s" value="%s" style="display:none;" />
+                <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s"
+                value="%s" style="display:none;" />
             """ % (
                     dns_record.ttl,
                     dns_record.pk,
