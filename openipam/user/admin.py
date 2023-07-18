@@ -6,7 +6,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import Group as AuthGroup, Permission as AuthPermission
 from django.contrib.admin import SimpleListFilter, ListFilter
 from django.utils.encoding import force_text
-from django.conf.urls import url
+from django.urls import path
 from django.db.models import Q
 from django.shortcuts import redirect, render, reverse
 from django.contrib import messages
@@ -320,13 +320,13 @@ class AuthUserAdmin(UserAdmin):
     def get_urls(self):
         urls = super(AuthUserAdmin, self).get_urls()
         new_urls = [
-            url(
-                r"^perm_delete/(\d+)/$",
+            path(
+                "perm_delete/<int:user>/$",
                 self.admin_site.admin_view(self.delete_perm_view),
                 name="user_perm_delete",
             ),
-            url(
-                r"^permissions/(\d+)/$",
+            path(
+                "permissions/<int:user>/$",
                 self.admin_site.admin_view(self.user_perms_view),
                 name="user_perms_view",
             ),
@@ -416,8 +416,8 @@ class AuthGroupAdmin(GroupAdmin):
     def get_urls(self):
         urls = super(AuthGroupAdmin, self).get_urls()
         new_urls = [
-            url(
-                r"^perm_delete/(\d+)/$",
+            path(
+                "perm_delete/<int:group>/$",
                 self.admin_site.admin_view(self.delete_perm_view),
                 name="auth_group_perm_delete",
             )
