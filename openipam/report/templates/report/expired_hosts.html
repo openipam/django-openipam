@@ -27,8 +27,10 @@
 </style>
 
 <script type="text/javascript">
-	function reloadWithNewThresholds() {
-		window.location.href = '/reports/expired_hosts/?expiry_threshold_static=' + document.getElementById('static-expired').value + '&expiry_threshold_dynamic=' + document.getElementById('dynamic-expired').value + '&limit=' + document.getElementById('limit').value;
+ function reloadWithNewThresholds() {
+	 showStatic = document.getElementById('show').value == 'static' || document.getElementById('show').value == 'all';
+	 showDynamic = document.getElementById('show').value == 'dynamic' || document.getElementById('show').value == 'all';
+		window.location.href = '/reports/expired_hosts/?expiry_threshold_static=' + document.getElementById('static-expired').value + '&expiry_threshold_dynamic=' + document.getElementById('dynamic-expired').value + '&limit=' + document.getElementById('limit').value + '&show_static=' + showStatic + '&show_dynamic=' + showDynamic;
 	}
 </script>
 {% endblock %} {% block content %}
@@ -71,7 +73,13 @@
 			<option value="4000" {% if limit == 4000 %}selected{% endif %}>4000</option>
 			<option value="5000" {% if limit == 5000 %}selected{% endif %}>5000</option>
 			<option value="all" {% if limit == 'all' %}selected{% endif %}>All</option>
-		</select> entries.
+		</select> entries. Show <select id="show" class="form-control" style="display: inline-block; width: auto;" onchange="reloadWithNewThresholds()">
+			<option value="all" {% if show == 'all' %}selected{% endif %}>all</option>
+			<option value="static" {% if show == 'static' %}selected{% endif %}>only static</option>
+			<option value="dynamic" {% if show == 'dynamic' %}selected{% endif %}>only dynamic</option>
+			<!-- only show the none option if that is the current state. It's not a useful mode, so don't let the user select it. -->
+			{% if show == 'none' %}<option value="none" selected>none</option>{% endif %}
+		</select> hosts.
   </p>
   <button class="btn btn-primary" id="toggle-checks">
     <span class="glyphicon glyphicon-check"></span>
@@ -80,8 +88,12 @@
   <div class="row">
     {% if host_types.static or host_types.dynamic %}
     <div class="col-lg-12">
-      {% if host_types.static %}
-      <h2>Static Hosts - ({{host_types.static|length}})</h2>
+      {% if host_types.static|length != 0 %}
+			{% if host_counts.static == host_types.static|length %}
+      <h2>Static Hosts - ({{host_counts.static}})</h2>
+			{% else %}
+			<h2>Static Hosts - ({{host_types.static|length}} of {{host_counts.static}})</h2>
+			{% endif %}
 
       <form method="post" action="/api/hosts/bulk_delete/" id="static_hosts" autocomplete="off">
         {% csrf_token %}
@@ -112,8 +124,12 @@
           </tbody>
         </table>
       </form>
-      {% endif %} {% if host_types.dynamic %}
-      <h2>Dynamic Hosts - ({{host_types.dynamic|length}})</h2>
+      {% endif %} {% if host_types.dynamic|length != 0 %}
+			{% if host_counts.dynamic == host_types.dynamic|length %}
+      <h2>Dynamic Hosts - ({{host_counts.dynamic}})</h2>
+			{% else %}
+			<h2>Dynamic Hosts - ({{host_types.dynamic|length}} of {{host_counts.dynamic}})</h2>
+			{% endif %}
       <form method="post" action="/api/hosts/bulk_delete/" id="dynamic_hosts" autocomplete="off">
         {% csrf_token %}
         <table id="dynamic-table" class="table table-striped table-condensed table-bordered">
