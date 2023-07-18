@@ -48,7 +48,7 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> 
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a>
                             to help aid us with features and bugs.
                             Please make an issue on GitHub to give us feedback.
                         </p>
