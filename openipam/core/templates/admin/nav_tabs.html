@@ -1,0 +1,11 @@
+{% for tab in tabs %}
+<a
+  class="btn btn-default mt-8 ml-10 {{ tab.active }}"
+  {% if tab.active == 'active' %}
+  aria-pressed="true"
+  {% endif %}
+  role='button'
+  href="{{ tab.url }}"
+  >{{ tab.title }}</a
+>
+{% endfor %} 

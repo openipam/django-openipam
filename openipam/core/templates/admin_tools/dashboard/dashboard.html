@@ -55,16 +55,6 @@
 	{% if dashboard.title %}
 		<h1 class="dashboard-title">{{ dashboard.title }}</h1>
 	{% endif %}
-
-	{% if dashboard.breadcrumbs %}
-	    <div id="page-nav" class="well well-sm">
-	        <ul class="breadcrumb">
-	            <li><a href="../">Home</a></li>
-	            <li><a href="./">{{ dashboard.app_title }}</a></li>
-	        </ul>
-	        <div class="clear"><!-- --></div>
-	    </div>
-	{% endif %}
 {% endblock %}
 
 {% block dashboard_panel %}

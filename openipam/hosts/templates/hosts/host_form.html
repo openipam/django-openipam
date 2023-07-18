@@ -15,7 +15,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "chosen-js/chosen.min.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
 
 	<style type="text/css">
@@ -42,7 +42,7 @@
 		}
 	</style>
 
-	<script type="text/javascript" src="{% static "chosen/chosen.jquery.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "chosen-js/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         var dynamicAddressTypes = {{ dynamic_address_types }};
 
@@ -206,17 +206,6 @@
         });
     </script>
 {% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-        ../|{% trans "Hosts" %}
-        {% if object %}
-            {{ object.hostname }}
-        {% else %}
-            {% trans "Host" %}
-        {% endif %}
-{% endblock %}
-
 
 {% block contentbody %}
     <div class="well well-sm">

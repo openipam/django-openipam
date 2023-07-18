@@ -15,15 +15,6 @@
 
 {% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
 
-{% block breadcrumbs %}
-{% if not is_popup %}
-../../../|{% trans "Home" %}
-../../|{{ app_label|capfirst|escape }}
-*{% if has_change_permission %}../|{{ opts.verbose_name_plural|capfirst }}{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
-*{% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
-{% endif %}
-{% endblock %}
-
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
   <div class="pull-right">

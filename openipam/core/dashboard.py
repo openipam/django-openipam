@@ -48,7 +48,8 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> to help aid us with features and bugs.
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a>
+                            to help aid us with features and bugs.
                             Please make an issue on GitHub to give us feedback.
                         </p>
                         <p>Item to consider when using the new interface:</p>
@@ -181,7 +182,6 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     app_title = None
     # we disable title because its redundant with the model list module
     title = ""
-    breadcrumbs = True
 
     def __init__(self, app_title, models, **kwargs):
         kwargs.update({"app_title": app_title, "models": models})

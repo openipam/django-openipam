@@ -21,17 +21,6 @@
     </style>
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
-        ../|{% trans "DNS" %}
-        {% if object %}
-            {{ object.name }}
-        {% else %}
-            {% trans "Add Record" %}
-        {% endif %}
-{% endblock %}
-
-
 {% block contentbody %}
     <div class="well well-sm quickbody">
         <form id="dns-form" action="" method="post" class="form-horizontal" style="min-width: 400px;">
