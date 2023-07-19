@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 import re
 
 # FQDN = "([0-9A-Za-z]+\.[0-9A-Za-z]+|[0-9A-Za-z]+[\-0-9A-Za-z\.]*[0-9A-Za-z])"
-FQDN = r"(([a-z0-9-_]+\.)?[a-z0-9][a-z0-9-]*\.)+[a-z]{2,6}"
+FQDN = r"(([a-z0-9-_]+\.)?[a-z0-9_][a-z0-9-_]*\.)+[a-z]{2,6}"
 
 
 def validate_fqdn(value):
