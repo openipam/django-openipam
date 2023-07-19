@@ -180,6 +180,7 @@ INSTALLED_APPS = [
     "openipam.core",
     "openipam.user",
     "openipam.api",
+    "openipam.api_v2",
     "openipam.hosts",
     "openipam.network",
     "openipam.dns",
@@ -261,6 +262,7 @@ LOGOUT_URL = reverse_lazy("core:logout")
 REST_FRAMEWORK = {
     "PAGINATE_BY": 25,
     "PAGINATE_BY_PARAM": "limit",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
