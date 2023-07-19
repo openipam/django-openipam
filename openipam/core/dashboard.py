@@ -23,7 +23,7 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
 from openipam.core.modules import HTMLContentModule
 
-from datetime import datetime
+from django.utils import timezone
 
 import qsstats
 
@@ -48,7 +48,8 @@ class IPAMIndexDashboard(Dashboard):
                 html="""
                     <div style="margin: 10px 20px;">
                         <p>
-                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a> to help aid us with features and bugs.
+                            We are now using <a href="%(feature_request_link)s" target="_blank">Issues on GitHub</a>
+                            to help aid us with features and bugs.
                             Please make an issue on GitHub to give us feedback.
                         </p>
                         <p>Item to consider when using the new interface:</p>
@@ -100,10 +101,10 @@ class IPAMIndexDashboard(Dashboard):
         # append recent stats module
         hosts = Host.objects.all()
         hosts_stats = qsstats.QuerySetStats(
-            hosts, "changed", aggregate=Count("mac"), today=datetime.now()
+            hosts, "changed", aggregate=Count("mac"), today=timezone.now()
         )
         users = User.objects.all()
-        users_stats = qsstats.QuerySetStats(users, "date_joined", today=datetime.now())
+        users_stats = qsstats.QuerySetStats(users, "date_joined", today=timezone.now())
 
         hosts_today = cache.get("hosts_today")
         hosts_week = cache.get("hosts_week")
@@ -181,7 +182,6 @@ class IPAMAppIndexDashboard(AppIndexDashboard):
     app_title = None
     # we disable title because its redundant with the model list module
     title = ""
-    breadcrumbs = True
 
     def __init__(self, app_title, models, **kwargs):
         kwargs.update({"app_title": app_title, "models": models})

@@ -10,13 +10,6 @@
 {% endblock %}
 
 
-{% block breadcrumbs %}
-    {{ block.super }}
-        ../../|{% trans "Hosts" %}
-        ../|{{ object.hostname }}
-        Add/Delete Addresses
-{% endblock %}
-
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
