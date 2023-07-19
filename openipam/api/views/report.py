@@ -45,7 +45,7 @@ import itertools
 
 from tempfile import TemporaryFile
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from collections import OrderedDict
 
@@ -308,7 +308,7 @@ class WeatherMapView(APIView):
         for key, value in list(data.items()):
             del value["id"]
 
-        data["timestamp"] = int(datetime.now().strftime("%s"))
+        data["timestamp"] = int(timezone.now().strftime("%s"))
 
         return Response(data, status=status.HTTP_200_OK)
 

@@ -293,7 +293,7 @@ class GulRecentArpBymac(models.Model):
 
 
 class HostUserView(models.Model):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         User, primary_key=True, db_column="user", on_delete=models.DO_NOTHING
     )
     host = models.ForeignKey(
@@ -309,7 +309,7 @@ class HostUserView(models.Model):
 
 
 class HostGroupView(models.Model):
-    group_id = models.ForeignKey(
+    group_id = models.OneToOneField(
         "auth.Group",
         primary_key=True,
         db_column="auth_group",

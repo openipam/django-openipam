@@ -23,7 +23,7 @@ from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
 from openipam.core.modules import HTMLContentModule
 
-from datetime import datetime
+from django.utils import timezone
 
 import qsstats
 
@@ -101,10 +101,10 @@ class IPAMIndexDashboard(Dashboard):
         # append recent stats module
         hosts = Host.objects.all()
         hosts_stats = qsstats.QuerySetStats(
-            hosts, "changed", aggregate=Count("mac"), today=datetime.now()
+            hosts, "changed", aggregate=Count("mac"), today=timezone.now()
         )
         users = User.objects.all()
-        users_stats = qsstats.QuerySetStats(users, "date_joined", today=datetime.now())
+        users_stats = qsstats.QuerySetStats(users, "date_joined", today=timezone.now())
 
         hosts_today = cache.get("hosts_today")
         hosts_week = cache.get("hosts_week")

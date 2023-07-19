@@ -321,12 +321,12 @@ class AuthUserAdmin(UserAdmin):
         urls = super(AuthUserAdmin, self).get_urls()
         new_urls = [
             path(
-                "perm_delete/<int:user>/$",
+                "perm_delete/<int:user>/",
                 self.admin_site.admin_view(self.delete_perm_view),
                 name="user_perm_delete",
             ),
             path(
-                "permissions/<int:user>/$",
+                "permissions/<int:user>/",
                 self.admin_site.admin_view(self.user_perms_view),
                 name="user_perms_view",
             ),
@@ -417,7 +417,7 @@ class AuthGroupAdmin(GroupAdmin):
         urls = super(AuthGroupAdmin, self).get_urls()
         new_urls = [
             path(
-                "perm_delete/<int:group>/$",
+                "perm_delete/<int:group>/",
                 self.admin_site.admin_view(self.delete_perm_view),
                 name="auth_group_perm_delete",
             )
