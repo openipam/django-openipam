@@ -66,8 +66,6 @@ def nav_tabs(path, verboseName):
                 }
             )
     t[-1]["active"] = "active"
-    print(t)
-    print(verboseName)
     if not verboseName:
         return {"tabs": t}
     if verboseName.replace(" ", "").lower() != t[-1]["title"].replace(" ", "").lower():
