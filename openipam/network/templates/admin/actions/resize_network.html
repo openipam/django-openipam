@@ -1,12 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n crispy_forms_tags %}
 
-{% block breadcrumbs %}
-    ../../../|{% trans "Home" %}
-    ../../|{% trans "Network" %}
-    *Resize Network
-{% endblock %}
-
 {% block content %}
     <div id="content-main" class="container">
         <form id="tags-form" method="post" class="form-horizontal">
@@ -16,7 +10,7 @@
 	        	</div>
 	        {% else %}
 	        	<div class="alert alert-warning form-group">
-	        		Currently <strong>ONLY</strong> increaseing network size is supported.
+	        		Currently <strong>ONLY</strong> increasing network size is supported.
 	        	</div>
 	            {% crispy form %}
 	            <div class="pull-right">

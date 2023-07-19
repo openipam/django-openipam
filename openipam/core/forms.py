@@ -40,6 +40,7 @@ class BaseGroupObjectPermissionForm(forms.ModelForm):
 class MimicUserForm(forms.Form):
     mimic_pk = forms.ModelChoiceField(
         queryset=User.objects.all(),
+        label="Mimic User",
         widget=autocomplete.ModelSelect2(
             url="core:autocomplete:user_autocomplete",
             attrs={"data-placeholder": "Mimic User..."},

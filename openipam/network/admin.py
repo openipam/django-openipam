@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
-from django.conf.urls import url
+from django.urls import path
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib import messages
@@ -83,8 +83,8 @@ class NetworkAdmin(ChangedAdmin):
     def get_urls(self):
         urls = super(NetworkAdmin, self).get_urls()
         net_urls = [
-            url(r"^tag/$", self.tag_network_view),
-            url(r"^resize/$", self.resize_network_view),
+            path("tag/", self.tag_network_view),
+            path("resize/", self.resize_network_view),
         ]
         return net_urls + urls
 
@@ -341,7 +341,7 @@ class VlanAdmin(ChangedAdmin):
 
     def get_urls(self):
         urls = super(VlanAdmin, self).get_urls()
-        net_urls = [url(r"^assign_buildings/$", self.assign_buildings_view)]
+        net_urls = [path("assign_buildings/", self.assign_buildings_view)]
         return net_urls + urls
 
     def building_numbers(self, obj):

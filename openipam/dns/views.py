@@ -24,7 +24,10 @@ from guardian.shortcuts import get_objects_for_user
 
 from braces.views import PermissionRequiredMixin
 
+from itertools import zip_longest
+
 import json
+import re
 
 User = get_user_model()
 
@@ -117,14 +120,27 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             if name_search:
                 if name_search.startswith("~"):
                     qs = qs.filter(name__iregex=name_search[1:]).distinct()
+                elif name_search.startswith("^"):
+                    qs = qs.filter(name__istartswith=name_search[1:]).distinct()
+                elif name_search.startswith("="):
+                    qs = qs.filter(name__exact=name_search[1:]).distinct()
                 else:
                     qs = qs.filter(name__icontains=name_search.lower()).distinct()
             if type_search:
                 qs = qs.filter(dns_type=type_search)
             if content_search:
+                # Replace garbage
+                rgx = re.compile("[:,-. ]")
+                content_str = rgx.sub("", content_search)
+                # Split to list to put back togethor with :
+                content_str = iter(content_str)
+                content_str = ".".join(
+                    a + b
+                    for a, b in zip_longest(content_str, content_str, fillvalue="")
+                )
                 qs = qs.filter(
-                    Q(text_content__icontains=content_search)
-                    | Q(ip_content__address__startswith=content_search)
+                    Q(text_content__icontains=content_str.lower())
+                    | Q(ip_content__address__startswith=content_str.lower())
                 )
 
             # if host_filter:
@@ -163,7 +179,7 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             .by_change_perms(self.request.user)
             .values_list("pk", flat=True)
         )
-        global_delete_permission = self.request.user.has_perm("dns.change_dnsrecord")
+        global_delete_permission = self.request.user.has_perm("dns.delete_record")
 
         # Currently un-used
         # dns_types = get_objects_for_user(
@@ -194,7 +210,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 </span>
             """
             if has_change_permission:
-                html += '<input type="text" name="name-%(id)s" value="%(name)s" class="form-control input-sm" style="display:none;" />'
+                html += """<input type="text" name="name-%(id)s" value="%(name)s"
+                class="form-control input-sm" style="display:none;" />"""
 
             return (
                 html
@@ -241,7 +258,9 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return """
                 <span title="%s">%s</span>
-                <input type="text" class="input-content dns-content form-control input-sm" name="content-%s" value="%s" style="display:none;" />
+                <input type="text"
+                class="input-content dns-content form-control input-sm" name="content-%s"
+                value="%s" style="display:none;" />
             """ % (
                     conditional_escape(content),
                     conditional_escape(s_content),
@@ -255,7 +274,8 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             else:
                 return """
                 <span>%s</span>
-                <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s" value="%s" style="display:none;" />
+                <input type="text" class="dns-ttl form-control input-sm" name="ttl-%s"
+                value="%s" style="display:none;" />
             """ % (
                     dns_record.ttl,
                     dns_record.pk,
@@ -297,22 +317,24 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
                 True if dns_record.pk in change_permissions else False
             )
             dns_view_href = get_dns_view_href(dns_record)
+            data = [
+                (
+                    '<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
+                    % dns_record.pk
+                ),
+                get_name(dns_record, has_change_permission),
+                get_ttl(dns_record, has_change_permission),
+                get_type(dns_record, has_change_permission),
+                get_content(dns_record, has_change_permission),
+                get_dns_host_href(dns_record) if dns_record.host else "",
+                dns_record.dns_view.name if dns_record.dns_view else "",
+                get_links(dns_record, has_change_permission),
+                "",
+            ]
             json_data.append(
-                [
-                    (
-                        '<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
-                        % dns_record.pk
-                    )
-                    if has_change_permission or global_delete_permission
-                    else "",
-                    get_name(dns_record, has_change_permission),
-                    get_ttl(dns_record, has_change_permission),
-                    get_type(dns_record, has_change_permission),
-                    get_content(dns_record, has_change_permission),
-                    get_dns_host_href(dns_record) if dns_record.host else "",
-                    dns_record.dns_view.name if dns_record.dns_view else "",
-                    get_links(dns_record, has_change_permission),
-                ]
+                data[0:8]
+                if has_change_permission or global_delete_permission
+                else data[1:]
             )
         return json_data
 
@@ -465,7 +487,7 @@ class DNSListView(PermissionRequiredMixin, TemplateView):
 
 
 class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
-    permission_required = "dns.add_dnsrecord"
+    permission_required = "dns.add_record"
     template_name = "dns/dnsrecord_form.html"
     form_class = DSNCreateFrom
     success_url = reverse_lazy("core:dns:list_dns")

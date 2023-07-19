@@ -9,11 +9,6 @@
   </h3>
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
-        {% trans "Hosts" %}
-{% endblock %}
-
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />

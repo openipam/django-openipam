@@ -7,12 +7,6 @@
   </h3>
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
-        ../../|{% trans "Hosts" %}
-        *{{ object.hostname }}
-{% endblock %}
-
 
 {% block contentbody %}
     {% include 'hosts/inc/detail.html' %}

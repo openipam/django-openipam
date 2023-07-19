@@ -8,12 +8,6 @@
 {% endblock %}
 
 
-{% block breadcrumbs %}
-	../../|{% trans "Home" %}
-	../|{% trans "Users" %}
-	*User Info
-{% endblock %}
-
 {% block extrastyle %}
 	{{ block.super }}
 	<link rel="stylesheet" href="{% static 'core/css/dataTables.bootstrap.css' %}" type="text/css" />
@@ -34,7 +28,7 @@
 	<script type="text/javascript" src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'core/js/dataTables.bootstrap.js' %}"></script>
 	<script type="text/javascript" src="{% static 'core/js/bootstrap-waitingfor.js' %}"></script>
-	<script type="text/javascript" src="{% static 'chosen/chosen.jquery.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'chosen-js/chosen.jquery.min.js' %}"></script>
 	<!--<script type="text/javascript" src="{% static 'ajax-chosen/lib/ajax-chosen.min.js' %}"></script>-->
 	<script type="text/javascript" src="{% static 'user/js/user_manager.js' %}"></script>
 {% endblock %}
