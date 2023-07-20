@@ -1,6 +1,7 @@
 from openipam.hosts.models import Host, Disabled
 from rest_framework import serializers
 from .users import UserNestedSerializer
+from . import base as serializer_base
 from django.utils import timezone
 from django.db import connection
 
@@ -8,7 +9,7 @@ from django.db import connection
 class DisabledHostSerializer(serializers.ModelSerializer):
     """Disabled Host serializer."""
 
-    changed_by = UserNestedSerializer()
+    changed_by = serializer_base.ChangedBySerializer()
 
     class Meta:
         model = Disabled
@@ -26,8 +27,10 @@ class HostSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
     owners = serializers.SerializerMethodField()
+    changed_by = serializer_base.ChangedBySerializer()
 
     def get_addresses(self, obj):
+        """Get addresses for host."""
         return {
             "leased": [
                 {
@@ -39,7 +42,7 @@ class HostSerializer(serializers.ModelSerializer):
                 }
                 for lease in obj.leases.all()  # [x for x in obj.leases.all() if x.ends > timezone.now()]
             ],
-            "static": [
+            "addresses": [
                 {
                     "address": str(address.address),
                     "network": str(address.network),
@@ -102,4 +105,10 @@ class HostSerializer(serializers.ModelSerializer):
             "addresses",
             "master_ip_address",
             "owners",
+            "changed",
+            "changed_by",
         )
+
+
+class HostCreateUpdateSerializer(serializers.ModelSerializer):
+    """Host create/update serializer."""
