@@ -11,6 +11,8 @@ urlpatterns = [
     path("", views.index, name="index"),
     # API
     path("api/", include("openipam.api.urls")),
+    # API v2
+    path("api/v2/", include("openipam.api_v2.urls")),
     # New Autocomplete Library
     path("autocomplete/", include("openipam.autocomplete.urls")),
     # Hosts

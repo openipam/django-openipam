@@ -1,3 +1,3 @@
-from . import hosts
+from . import hosts, dns
 
-__all__ = ["hosts"]
+__all__ = ["hosts", "dns"]
