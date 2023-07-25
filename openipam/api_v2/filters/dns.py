@@ -5,7 +5,7 @@ from openipam.dns.models import Domain, DnsRecord
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-
+from django_filters import FilterSet
 User = get_user_model()
 
 
@@ -66,10 +66,10 @@ class UserFilter(filters.SearchFilter):
         return qs
 
 
-class DomainFilter(filters.BaseFilterBackend):
+class DomainFilter(FilterSet):
     name = filters.SearchFilter()
     username = UserFilter()
 
-    class Meta:
+    class _meta:
         model = Domain
         fields = ["name"]

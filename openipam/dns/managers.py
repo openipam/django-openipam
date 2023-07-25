@@ -242,11 +242,8 @@ class DnsManager(Manager):
             dns_record.name = name
             dns_record.set_priority()
             dns_record.set_domain_from_name()
-
             dns_record.full_clean()
-
             dns_record.save()
-
             LogEntry.objects.log_action(
                 user_id=user.pk,
                 content_type_id=ContentType.objects.get_for_model(self.model).pk,

@@ -105,7 +105,8 @@ class DnsCreateSerializer(serializers.ModelSerializer):
 
             if not dns_type:
                 raise serializers.ValidationError(
-                    "The Dns Type selected is not valid.  Please enter a valid type (https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
+                    "The Dns Type selected is not valid.  Please enter a valid type" +
+                    "(https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
 
             if data["content"]:

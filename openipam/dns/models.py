@@ -422,7 +422,6 @@ class DnsRecord(models.Model):
             while names:
                 names_list.append(Q(name=".".join(names)))
                 names.pop(0)
-
             if names_list:
                 domain = (
                     Domain.objects.filter(reduce(operator.or_, names_list))
