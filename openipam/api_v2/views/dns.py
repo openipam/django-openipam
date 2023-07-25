@@ -1,11 +1,13 @@
 """DNS API Views."""
 
-from openipam.dns.models import DnsRecord, Domain
+from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from ..serializers.dns import DNSSerializer, DomainSerializer, DNSCreateSerializer, DomainCreateSerializer
+from ..serializers.dns import DnsTypeSerializer, DnsViewSerializer, DhcpDnsRecordSerializer
 from rest_framework import permissions
-from .base import APIModelViewSet
+from .base import APIModelViewSet, APIPagination
 from ..filters.dns import DnsFilter, DomainFilter
 from rest_framework import status
+from rest_framework import generics
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from django.db.utils import DataError
@@ -66,3 +68,27 @@ class DomainViewSet(APIModelViewSet):
             return Response(
                 {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class DnsTypeList(generics.ListAPIView):
+    """API endpoint that allows dns types to be viewed."""
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = APIPagination
+    serializer_class = DnsTypeSerializer
+    queryset = DnsType.objects.all()
+
+
+class DnsViewsList(generics.ListAPIView):
+    """API endpoint that allows dns types to be viewed."""
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = APIPagination
+    serializer_class = DnsViewSerializer
+    queryset = DnsView.objects.all()
+
+
+class DhcpDnsRecordsList(generics.ListAPIView):
+    """API endpoint that allows dhcp dns records to be viewed."""
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = APIPagination
+    serializer_class = DhcpDnsRecordSerializer
+    queryset = DhcpDnsRecord.objects.all()

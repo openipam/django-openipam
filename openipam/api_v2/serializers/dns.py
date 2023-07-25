@@ -1,4 +1,4 @@
-from openipam.dns.models import DnsRecord, Domain, DnsType
+from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from rest_framework import serializers
 from guardian.shortcuts import get_objects_for_user
 from django.core.exceptions import ValidationError
@@ -11,6 +11,8 @@ from openipam.dns.validators import (
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
+
+from ipaddress import IPv4Address
 
 
 class DNSSerializer(serializers.ModelSerializer):
@@ -165,3 +167,32 @@ class DomainCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Domain
         fields = "__all__"
+
+
+class DnsTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DnsType
+        fields = "__all__"
+
+
+class DnsViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DnsView
+        fields = "__all__"
+
+
+class IPv4AddressSerializer(serializers.Serializer):
+    class Meta:
+        model = IPv4Address
+        fields = "__all__"
+
+
+class DhcpDnsRecordSerializer(serializers.ModelSerializer):
+    ip_content = serializers.SerializerMethodField()
+
+    def get_ip_content(self, obj):
+        return str(obj.ip_content.address)
+
+    class Meta:
+        model = DhcpDnsRecord
+        fields = ['host', "ttl", "domain", "changed", "ip_content"]
