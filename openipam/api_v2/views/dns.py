@@ -16,7 +16,7 @@ class DnsViewSet(APIModelViewSet):
 
     queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DNSSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterFields = ["name", "ip_content", "text_content", "dns_type"]
     filterClass = DnsFilter
 
@@ -43,6 +43,7 @@ class DnsViewSet(APIModelViewSet):
 class DomainViewSet(APIModelViewSet):
     queryset = Domain.objects.select_related().all()
     serializer_class = DomainSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filterFields = ("name", "username")
     filter_class = DomainFilter
 
@@ -65,4 +66,3 @@ class DomainViewSet(APIModelViewSet):
             return Response(
                 {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
             )
-
