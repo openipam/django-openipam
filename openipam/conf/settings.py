@@ -79,15 +79,13 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    # Hack to find bower components
-    "%s/node-modules" % BASE_DIR,
-    "%s/components/static_components" % BASE_DIR,
+    "%s/node_modules" % BASE_DIR,
+    "%s/static/node_modules" % BASE_DIR,
 )
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "djangobower.finders.BowerFinder",
 )
 
 FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
@@ -95,9 +93,7 @@ FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
 SECRET_KEY = locals().pop(
     "LOCAL_SECRET_KEY",
     hashlib.md5(
-        (
-            socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@"
-        ).encode("ascii")
+        (socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@").encode("ascii")
     ).hexdigest(),
 )
 
@@ -179,7 +175,6 @@ INSTALLED_APPS = [
     "admin_tools.theming",
     "admin_tools.menu",
     "admin_tools.dashboard",
-    "djangobower",
     "django_nvd3",
     "django_extensions",
     "widget_tweaks",
@@ -203,20 +198,6 @@ INSTALLED_APPS = [
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 ] + LOCAL_INSTALLED_APPS
-
-# Fixme:  Remove and use npm
-BOWER_COMPONENTS_ROOT = "%s/components/" % BASE_DIR
-BOWER_PATH = locals().pop("LOCAL_BOWER_PATH", "/usr/bin/bower")
-BOWER_INSTALLED_APPS = (
-    "jquery#2.1.4",
-    "jquer-ui#1.11.4",
-    "bootstrap#3.3.5",
-    "datatables#1.10.7",
-    "jquery.cookie#1.4.1",
-    "chosen",
-    "intro.js#0.9.0",
-    "qTip#1.0.0",
-)
 
 MESSAGE_TAGS = {message_constants.DEBUG: "warning", message_constants.ERROR: "danger"}
 
@@ -268,4 +249,6 @@ ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"
 ADMIN_TOOLS_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMIndexDashboard"
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMAppIndexDashboard"
 
-HOSTNAME_VALIDATION_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+HOSTNAME_VALIDATION_REGEX = (
+    r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+)

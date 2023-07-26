@@ -5,7 +5,7 @@
     {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     {{ media.js }}
-    <script type="text/javascript" src="{% static "chosen/chosen.jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "chosen-js/chosen.jquery.min.js" %}"></script>
     <script type="text/javascript">
         $(function(){
             $('select:not(.value-select):not(.no-chosen)').chosen();
@@ -17,7 +17,7 @@
 {% block extrastyle %}
     {{ block.super }}
     {{ media.css }}
-    <link rel="stylesheet" type="text/css" href="{% static "chosen/chosen.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "chosen-js/chosen.min.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "core/css/bootstrap-chosen.css" %}" />
     <style type="text/css">
         .panel-group .panel {
