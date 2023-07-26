@@ -13,12 +13,20 @@ from django.core.exceptions import ValidationError
 from django.db.utils import DataError
 
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return request.user.is_staff
+
+
 class DnsViewSet(APIModelViewSet):
     """API endpoint that allows dns records to be viewed or edited."""
 
     queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DNSSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     filterFields = ["name", "ip_content", "text_content", "dns_type"]
     filterClass = DnsFilter
 
@@ -45,7 +53,7 @@ class DnsViewSet(APIModelViewSet):
 class DomainViewSet(APIModelViewSet):
     queryset = Domain.objects.select_related().all()
     serializer_class = DomainSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     filterFields = ("name", "username")
     filter_class = DomainFilter
 
@@ -72,7 +80,7 @@ class DomainViewSet(APIModelViewSet):
 
 class DnsTypeList(generics.ListAPIView):
     """API endpoint that allows dns types to be viewed."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = APIPagination
     serializer_class = DnsTypeSerializer
     queryset = DnsType.objects.all()
@@ -80,7 +88,7 @@ class DnsTypeList(generics.ListAPIView):
 
 class DnsViewsList(generics.ListAPIView):
     """API endpoint that allows dns types to be viewed."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = APIPagination
     serializer_class = DnsViewSerializer
     queryset = DnsView.objects.all()
@@ -88,7 +96,7 @@ class DnsViewsList(generics.ListAPIView):
 
 class DhcpDnsRecordsList(generics.ListAPIView):
     """API endpoint that allows dhcp dns records to be viewed."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = APIPagination
     serializer_class = DhcpDnsRecordSerializer
     queryset = DhcpDnsRecord.objects.all()
