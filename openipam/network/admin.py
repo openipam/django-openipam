@@ -7,6 +7,11 @@ from django.utils import timezone
 from django.contrib import messages
 from django.forms import modelform_factory
 
+# This must be imported, even though it is not directly used, as it allows
+# us to use the net_contained_or_equal lookup type. Flake8 does not like
+# unused imports, so we disable the check for this line.
+from netfields import NetManager  # noqa: F401
+from netaddr import IPNetwork, AddrFormatError
 
 from openipam.network.models import (
     Network,
@@ -54,7 +59,9 @@ class NetworkAdmin(ChangedAdmin):
         Network,
         exclude=("changed,",),
         widgets={
-            "dhcp_group": autocomplete.ModelSelect2(url="dhcp_group_autocomplete")
+            "dhcp_group": autocomplete.ModelSelect2(
+                url="core:autocomplete:dhcp_group_autocomplete"
+            )
         },
     )
     search_fields = ("^network", "^name", "^shared_network__name")
@@ -393,8 +400,15 @@ class IsExpiredFilter(admin.SimpleListFilter):
 class LeaseAdmin(admin.ModelAdmin):
     form = LeaseAdminForm
     list_display = ("address", "mac", "starts", "ends", "server", "abandoned")
-    search_fields = ("^address__address", "^host__mac", "^host__hostname")
+    search_fields = (
+        "^address__address",
+        "^host__mac",
+        "^host__hostname",
+    )
     list_filter = ("abandoned", "starts", "ends", "server", IsExpiredFilter)
+
+    # def get_changelist(self, request, **kwargs):
+    #     return LeaseChangeList
 
     def save_model(self, request, obj, form, change):
         obj.host_id = form.cleaned_data["host"]
@@ -402,6 +416,21 @@ class LeaseAdmin(admin.ModelAdmin):
 
     def mac(self, obj):
         return obj.host_id
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(LeaseAdmin, self).get_search_results(
+            request, queryset, search_term
+        )
+        try:
+            # If the search term is a valid IP network in CIDR notation
+            # then search for leases in that network
+            cidr = IPNetwork(search_term)
+            queryset |= self.model.objects.filter(
+                address__address__net_contained_or_equal=cidr
+            )
+        except AddrFormatError:
+            pass
+        return queryset, use_distinct
 
     mac.short_description = "Host"
 
@@ -423,7 +452,12 @@ class HasHostFilter(admin.SimpleListFilter):
 class AddressAdmin(ChangedAdmin):
     form = AddressAdminForm
     search_fields = ("^address", "^host__mac", "^host__hostname")
-    list_filter = ("network", "reserved", "pool", HasHostFilter)
+    list_filter = (
+        "network__network",
+        "reserved",
+        "pool",
+        HasHostFilter,
+    )
     list_display = (
         "address",
         "network",

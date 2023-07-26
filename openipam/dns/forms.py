@@ -34,15 +34,15 @@ class DNSSearchForm(forms.Form):
 class DNSListForm(forms.Form):
     host = forms.ModelChoiceField(
         queryset=Host.objects.all(),
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
     )
     groups = forms.ModelChoiceField(
         queryset=Group.objects.all(),
-        widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:group_autocomplete"),
     )
     users = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:user_autocomplete"),
     )
 
 
@@ -144,7 +144,7 @@ class DSNCreateFrom(forms.Form):
 class DhcpDnsRecordForm(forms.ModelForm):
     domain = forms.ModelChoiceField(
         queryset=Domain.objects.all(),
-        widget=autocomplete.ModelSelect2(url="domain_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:domain_autocomplete"),
     )
     host = forms.CharField()
 

@@ -82,17 +82,23 @@ class HostForm(forms.ModelForm):
         help_text="Leave this alone unless directed by an IPAM administrator",
         label="DHCP Group",
         required=False,
-        widget=autocomplete.ModelSelect2(url="dhcp_group_autocomplete"),
+        widget=autocomplete.ModelSelect2(
+            url="core:autocomplete:dhcp_group_autocomplete"
+        ),
     )
     user_owners = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:user_autocomplete"
+        ),
     )
     group_owners = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
         required=False,
-        widget=autocomplete.ModelSelect2Multiple(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="core:autocomplete:group_autocomplete"
+        ),
     )
 
     def __init__(self, request, *args, **kwargs):
@@ -768,11 +774,11 @@ class HostBulkCreateForm(forms.Form):
 class HostListForm(forms.Form):
     user_owners = forms.ModelChoiceField(
         queryset=User.objects.all(),
-        widget=autocomplete.ModelSelect2(url="user_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocompleteuser_autocomplete"),
     )
     group_owners = forms.ModelChoiceField(
         queryset=Group.objects.all(),
-        widget=autocomplete.ModelSelect2(url="group_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:group_autocomplete"),
     )
 
 
@@ -788,7 +794,7 @@ class HostUserPermissionForm(BaseUserObjectPermissionForm):
     )
     content_object = forms.ModelChoiceField(
         queryset=Host.objects.all(),
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
     )
 
 
@@ -816,7 +822,7 @@ class HostDisableForm(forms.ModelForm):
     host_mac = forms.CharField(
         max_length="255",
         label="Host or Mac",
-        widget=autocomplete.ModelSelect2(url="host_autocomplete"),
+        widget=autocomplete.ModelSelect2(url="core:autocomplete:host_autocomplete"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -848,3 +854,12 @@ class HostDhcpGroupForm(forms.Form):
 
 class HostNetworkForm(forms.Form):
     network = forms.ModelChoiceField(queryset=Network.objects.all())
+
+
+class AdvancedSearchForm(forms.Form):
+    advanced_search = forms.ChoiceField(
+        widget=autocomplete.ListSelect2(
+            url="core:autocomplete:ipam_autocomplete",
+            attrs={"data-placeholder": "Advanced Search..."},
+        ),
+    )
