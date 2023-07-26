@@ -13,216 +13,399 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0011_update_proxy_permissions'),
-        ('user', '0001_initial'),
+        ("auth", "0011_update_proxy_permissions"),
+        ("user", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AttributeToHost',
+            name="AttributeToHost",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('attribute', models.IntegerField(blank=True, db_column='aid', null=True)),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
-                ('structured', models.BooleanField(default=None)),
-                ('required', models.BooleanField(default=False)),
-                ('mac', netfields.fields.MACAddressField(blank=True, null=True)),
-                ('avid', models.IntegerField(blank=True, null=True)),
-                ('value', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "attribute",
+                    models.IntegerField(blank=True, db_column="aid", null=True),
+                ),
+                ("name", models.CharField(blank=True, max_length=255, null=True)),
+                ("structured", models.BooleanField(default=None)),
+                ("required", models.BooleanField(default=False)),
+                ("mac", netfields.fields.MACAddressField(blank=True, null=True)),
+                ("avid", models.IntegerField(blank=True, null=True)),
+                ("value", models.TextField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'attributes_to_hosts',
-                'managed': False,
+                "db_table": "attributes_to_hosts",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='HostGroupView',
+            name="HostGroupView",
             fields=[
-                ('group_id', models.ForeignKey(db_column='auth_group', on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, serialize=False, to='auth.Group')),
-                ('group_name', models.CharField(db_column='auth_group_name', max_length=80)),
+                (
+                    "group_id",
+                    models.ForeignKey(
+                        db_column="auth_group",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        serialize=False,
+                        to="auth.Group",
+                    ),
+                ),
+                (
+                    "group_name",
+                    models.CharField(db_column="auth_group_name", max_length=80),
+                ),
             ],
             options={
-                'db_table': 'hosts_to_auth_groups_v',
-                'managed': False,
+                "db_table": "hosts_to_auth_groups_v",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='HostUserView',
+            name="HostUserView",
             fields=[
-                ('user', models.ForeignKey(db_column='user', on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        db_column="user",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'hosts_to_auth_users_v',
-                'managed': False,
+                "db_table": "hosts_to_auth_users_v",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='Attribute',
+            name="Attribute",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('structured', models.BooleanField(default=False)),
-                ('multiple', models.BooleanField(default=False)),
-                ('required', models.BooleanField(default=False)),
-                ('validation', models.TextField(blank=True, null=True)),
-                ('changed', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("structured", models.BooleanField(default=False)),
+                ("multiple", models.BooleanField(default=False)),
+                ("required", models.BooleanField(default=False)),
+                ("validation", models.TextField(blank=True, null=True)),
+                ("changed", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'attributes',
+                "db_table": "attributes",
             },
         ),
         migrations.CreateModel(
-            name='Disabled',
+            name="Disabled",
             fields=[
-                ('mac', netfields.fields.MACAddressField(primary_key=True, serialize=False)),
-                ('reason', models.TextField(blank=True, null=True)),
-                ('changed', models.DateTimeField(auto_now=True, db_column='disabled')),
+                (
+                    "mac",
+                    netfields.fields.MACAddressField(primary_key=True, serialize=False),
+                ),
+                ("reason", models.TextField(blank=True, null=True)),
+                ("changed", models.DateTimeField(auto_now=True, db_column="disabled")),
             ],
             options={
-                'verbose_name': 'Disabled Host',
-                'db_table': 'disabled',
-                'ordering': ('-changed',),
+                "verbose_name": "Disabled Host",
+                "db_table": "disabled",
+                "ordering": ("-changed",),
             },
         ),
         migrations.CreateModel(
-            name='ExpirationType',
+            name="ExpirationType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('expiration', models.DateTimeField()),
-                ('min_permissions', models.CharField(max_length=8)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("expiration", models.DateTimeField()),
+                ("min_permissions", models.CharField(max_length=8)),
             ],
             options={
-                'db_table': 'expiration_types',
-                'ordering': ('expiration',),
-                'permissions': (('is_owner_expiration_type', 'Is owner'),),
+                "db_table": "expiration_types",
+                "ordering": ("expiration",),
+                "permissions": (("is_owner_expiration_type", "Is owner"),),
             },
         ),
         migrations.CreateModel(
-            name='FreeformAttributeToHost',
+            name="FreeformAttributeToHost",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.TextField()),
-                ('changed', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.TextField()),
+                ("changed", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'freeform_attributes_to_hosts',
+                "db_table": "freeform_attributes_to_hosts",
             },
         ),
         migrations.CreateModel(
-            name='GuestTicket',
+            name="GuestTicket",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ticket', models.CharField(max_length=255, unique=True)),
-                ('starts', models.DateTimeField()),
-                ('ends', models.DateTimeField()),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ticket", models.CharField(max_length=255, unique=True)),
+                ("starts", models.DateTimeField()),
+                ("ends", models.DateTimeField()),
+                ("description", models.TextField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'guest_tickets',
+                "db_table": "guest_tickets",
             },
         ),
         migrations.CreateModel(
-            name='Host',
+            name="Host",
             fields=[
-                ('mac', netfields.fields.MACAddressField(primary_key=True, serialize=False, verbose_name='Mac Address')),
-                ('hostname', models.CharField(db_index=True, max_length=255, unique=True, validators=[openipam.hosts.validators.validate_hostname])),
-                ('description', models.TextField(blank=True, null=True)),
-                ('expires', models.DateTimeField()),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('last_notified', models.DateTimeField(blank=True, null=True)),
-                ('search_index', djorm_pgfulltext.fields.VectorField(db_index=True, default='', editable=False, null=True, serialize=False)),
+                (
+                    "mac",
+                    netfields.fields.MACAddressField(
+                        primary_key=True, serialize=False, verbose_name="Mac Address"
+                    ),
+                ),
+                (
+                    "hostname",
+                    models.CharField(
+                        db_index=True,
+                        max_length=255,
+                        unique=True,
+                        validators=[openipam.hosts.validators.validate_hostname],
+                    ),
+                ),
+                ("description", models.TextField(blank=True, null=True)),
+                ("expires", models.DateTimeField()),
+                ("changed", models.DateTimeField(auto_now=True)),
+                ("last_notified", models.DateTimeField(blank=True, null=True)),
+                (
+                    "search_index",
+                    djorm_pgfulltext.fields.VectorField(
+                        db_index=True,
+                        default="",
+                        editable=False,
+                        null=True,
+                        serialize=False,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'hosts',
-                'ordering': ('hostname',),
-                'permissions': (('is_owner_host', 'Is owner'),),
-                'default_permissions': ('add', 'change', 'delete', 'view'),
+                "db_table": "hosts",
+                "ordering": ("hostname",),
+                "permissions": (("is_owner_host", "Is owner"),),
+                "default_permissions": ("add", "change", "delete", "view"),
             },
             bases=(openipam.core.mixins.DirtyFieldsMixin, models.Model),
         ),
         migrations.CreateModel(
-            name='MacOui',
+            name="MacOui",
             fields=[
-                ('oui', netfields.fields.MACAddressField(primary_key=True, serialize=False)),
-                ('vendor', models.TextField()),
+                (
+                    "oui",
+                    netfields.fields.MACAddressField(primary_key=True, serialize=False),
+                ),
+                ("vendor", models.TextField()),
             ],
             options={
-                'db_table': 'mac_oui',
+                "db_table": "mac_oui",
             },
         ),
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('notification', models.DateField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("notification", models.DateField()),
             ],
             options={
-                'db_table': 'notifications',
+                "db_table": "notifications",
             },
         ),
         migrations.CreateModel(
-            name='OUI',
+            name="OUI",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start', netfields.fields.MACAddressField()),
-                ('stop', netfields.fields.MACAddressField()),
-                ('shortname', models.CharField(blank=True, max_length=255, null=True)),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("start", netfields.fields.MACAddressField()),
+                ("stop", netfields.fields.MACAddressField()),
+                ("shortname", models.CharField(blank=True, max_length=255, null=True)),
+                ("name", models.CharField(blank=True, max_length=255, null=True)),
             ],
             options={
-                'db_table': 'ouis',
+                "db_table": "ouis",
             },
         ),
         migrations.CreateModel(
-            name='GulRecentArpByaddress',
+            name="GulRecentArpByaddress",
             fields=[
-                ('host', models.OneToOneField(db_column='mac', db_constraint=False, on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, related_name='ip_history', serialize=False, to='hosts.Host')),
-                ('stopstamp', models.DateTimeField()),
+                (
+                    "host",
+                    models.OneToOneField(
+                        db_column="mac",
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        related_name="ip_history",
+                        serialize=False,
+                        to="hosts.Host",
+                    ),
+                ),
+                ("stopstamp", models.DateTimeField()),
             ],
             options={
-                'db_table': 'gul_recent_arp_byaddress',
-                'managed': False,
+                "db_table": "gul_recent_arp_byaddress",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='GulRecentArpBymac',
+            name="GulRecentArpBymac",
             fields=[
-                ('host', models.OneToOneField(db_column='mac', db_constraint=False, on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, related_name='mac_history', serialize=False, to='hosts.Host')),
-                ('stopstamp', models.DateTimeField()),
+                (
+                    "host",
+                    models.OneToOneField(
+                        db_column="mac",
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        primary_key=True,
+                        related_name="mac_history",
+                        serialize=False,
+                        to="hosts.Host",
+                    ),
+                ),
+                ("stopstamp", models.DateTimeField()),
             ],
             options={
-                'db_table': 'gul_recent_arp_bymac',
-                'managed': False,
+                "db_table": "gul_recent_arp_bymac",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='StructuredAttributeValue',
+            name="StructuredAttributeValue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.TextField()),
-                ('is_default', models.BooleanField(default=False)),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('attribute', models.ForeignKey(db_column='aid', on_delete=django.db.models.deletion.CASCADE, related_name='choices', to='hosts.Attribute')),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.TextField()),
+                ("is_default", models.BooleanField(default=False)),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "attribute",
+                    models.ForeignKey(
+                        db_column="aid",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="choices",
+                        to="hosts.Attribute",
+                    ),
+                ),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'structured_attribute_values',
-                'ordering': ('attribute__name', 'value'),
+                "db_table": "structured_attribute_values",
+                "ordering": ("attribute__name", "value"),
             },
         ),
         migrations.CreateModel(
-            name='StructuredAttributeToHost',
+            name="StructuredAttributeToHost",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
-                ('host', models.ForeignKey(db_column='mac', on_delete=django.db.models.deletion.CASCADE, related_name='structured_attributes', to='hosts.Host')),
-                ('structured_attribute_value', models.ForeignKey(db_column='avid', on_delete=django.db.models.deletion.CASCADE, to='hosts.StructuredAttributeValue')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "host",
+                    models.ForeignKey(
+                        db_column="mac",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="structured_attributes",
+                        to="hosts.Host",
+                    ),
+                ),
+                (
+                    "structured_attribute_value",
+                    models.ForeignKey(
+                        db_column="avid",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="hosts.StructuredAttributeValue",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'structured_attributes_to_hosts',
+                "db_table": "structured_attributes_to_hosts",
             },
         ),
     ]

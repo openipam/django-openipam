@@ -32,7 +32,11 @@ urlpatterns = [
         {"internal": True},
         name="internal_login",
     ),
-    path("login/", views.IPAMLoginView.as_view(form_class=IPAMAuthenticationForm), name="login"),
+    path(
+        "login/",
+        views.IPAMLoginView.as_view(form_class=IPAMAuthenticationForm),
+        name="login",
+    ),
     path("logout/", LogoutView.as_view(), {"next_page": "login"}, name="logout"),
     path("mimic/", views.mimic, name="mimic"),
     path("profile/", views.profile, name="profile"),

@@ -6,64 +6,109 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('network', '0001_initial'),
-        ('hosts', '0002_auto_20190809_1607'),
+        ("network", "0001_initial"),
+        ("hosts", "0002_auto_20190809_1607"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='host',
-            name='address_type_id',
-            field=models.ForeignKey(blank=True, db_column='address_type_id', null=True, on_delete=django.db.models.deletion.SET_NULL, to='network.AddressType'),
+            model_name="host",
+            name="address_type_id",
+            field=models.ForeignKey(
+                blank=True,
+                db_column="address_type_id",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="network.AddressType",
+            ),
         ),
         migrations.AddField(
-            model_name='host',
-            name='changed_by',
-            field=models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
+            model_name="host",
+            name="changed_by",
+            field=models.ForeignKey(
+                db_column="changed_by",
+                on_delete=django.db.models.deletion.PROTECT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='host',
-            name='dhcp_group',
-            field=models.ForeignKey(blank=True, db_column='dhcp_group', null=True, on_delete=django.db.models.deletion.PROTECT, to='network.DhcpGroup', verbose_name='DHCP Group'),
+            model_name="host",
+            name="dhcp_group",
+            field=models.ForeignKey(
+                blank=True,
+                db_column="dhcp_group",
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                to="network.DhcpGroup",
+                verbose_name="DHCP Group",
+            ),
         ),
         migrations.AddField(
-            model_name='host',
-            name='pools',
-            field=models.ManyToManyField(related_name='pool_hosts', through='network.HostToPool', to='network.Pool'),
+            model_name="host",
+            name="pools",
+            field=models.ManyToManyField(
+                related_name="pool_hosts",
+                through="network.HostToPool",
+                to="network.Pool",
+            ),
         ),
         migrations.AddField(
-            model_name='guestticket',
-            name='user',
-            field=models.ForeignKey(db_column='uid', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="guestticket",
+            name="user",
+            field=models.ForeignKey(
+                db_column="uid",
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='freeformattributetohost',
-            name='attribute',
-            field=models.ForeignKey(db_column='aid', on_delete=django.db.models.deletion.PROTECT, to='hosts.Attribute'),
+            model_name="freeformattributetohost",
+            name="attribute",
+            field=models.ForeignKey(
+                db_column="aid",
+                on_delete=django.db.models.deletion.PROTECT,
+                to="hosts.Attribute",
+            ),
         ),
         migrations.AddField(
-            model_name='freeformattributetohost',
-            name='changed_by',
-            field=models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
+            model_name="freeformattributetohost",
+            name="changed_by",
+            field=models.ForeignKey(
+                db_column="changed_by",
+                on_delete=django.db.models.deletion.PROTECT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='freeformattributetohost',
-            name='host',
-            field=models.ForeignKey(db_column='mac', on_delete=django.db.models.deletion.CASCADE, related_name='freeform_attributes', to='hosts.Host'),
+            model_name="freeformattributetohost",
+            name="host",
+            field=models.ForeignKey(
+                db_column="mac",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="freeform_attributes",
+                to="hosts.Host",
+            ),
         ),
         migrations.AddField(
-            model_name='disabled',
-            name='changed_by',
-            field=models.ForeignKey(db_column='disabled_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
+            model_name="disabled",
+            name="changed_by",
+            field=models.ForeignKey(
+                db_column="disabled_by",
+                on_delete=django.db.models.deletion.PROTECT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='attribute',
-            name='changed_by',
-            field=models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
+            model_name="attribute",
+            name="changed_by",
+            field=models.ForeignKey(
+                db_column="changed_by",
+                on_delete=django.db.models.deletion.PROTECT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]
