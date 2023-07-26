@@ -11,6 +11,7 @@ from django.template import loader
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.contrib.auth import get_user_model
+
 # from django.contrib.auth.views import (
 #     login as auth_login_view,
 #     logout as auth_logout_view,
@@ -65,24 +66,27 @@ class IPAMLoginView(LoginView):
     template_name = "admin/login.html"
 
     def dispatch(self, request, *args, **kwargs):
-        self.internal_login = kwargs.pop('internal', False)
+        self.internal_login = kwargs.pop("internal", False)
         if request.user.is_authenticated:
             return self.handle_authenticated(request)
         if request.POST and CONFIG.get("SAML2_LOGIN") and self.internal_login is False:
             return saml2_signin(request, **kwargs)
-        
+
         return super().dispatch(request, *args, **kwargs)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if CONFIG.get("SAML2_LOGIN") and self.internal_login is False:
-            context.update({
-                "use_saml2": True,
-                "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
-                "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
-            })
+            context.update(
+                {
+                    "use_saml2": True,
+                    "saml2_text": CONFIG.get("SAML2_LOGIN_TEXT"),
+                    "saml2_image": CONFIG.get("SAML2_LOGIN_IMAGE"),
+                }
+            )
         return context
-    
+
+
 # @csrf_exempt
 # @require_http_methods(["GET", "POST"])
 # def login(request, internal=False, **kwargs):

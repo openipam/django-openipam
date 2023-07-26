@@ -6,183 +6,390 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('network', '0001_initial'),
-        ('hosts', '0003_auto_20230517_1146'),
+        ("network", "0001_initial"),
+        ("hosts", "0003_auto_20230517_1146"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DnsRecordMunged',
+            name="DnsRecordMunged",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain_id', models.IntegerField(blank=True, null=True)),
-                ('name', models.CharField(blank=True, max_length=255)),
-                ('type', models.CharField(blank=True, max_length=32)),
-                ('content', models.TextField(blank=True)),
-                ('ttl', models.IntegerField(blank=True, null=True)),
-                ('prio', models.IntegerField(blank=True, null=True)),
-                ('change_date', models.IntegerField(blank=True, null=True)),
-                ('view_id', models.IntegerField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("domain_id", models.IntegerField(blank=True, null=True)),
+                ("name", models.CharField(blank=True, max_length=255)),
+                ("type", models.CharField(blank=True, max_length=32)),
+                ("content", models.TextField(blank=True)),
+                ("ttl", models.IntegerField(blank=True, null=True)),
+                ("prio", models.IntegerField(blank=True, null=True)),
+                ("change_date", models.IntegerField(blank=True, null=True)),
+                ("view_id", models.IntegerField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'dns_records_munged',
-                'managed': False,
+                "db_table": "dns_records_munged",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='PdnsZoneXfer',
+            name="PdnsZoneXfer",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('type', models.CharField(max_length=10)),
-                ('content', models.CharField(max_length=65535)),
-                ('ttl', models.IntegerField(blank=True, null=True)),
-                ('prio', models.IntegerField(blank=True, null=True)),
-                ('change_date', models.IntegerField(blank=True, null=True)),
-                ('disabled', models.BooleanField(default=False)),
-                ('ordername', models.CharField(blank=True, max_length=255, null=True)),
-                ('auth', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("type", models.CharField(max_length=10)),
+                ("content", models.CharField(max_length=65535)),
+                ("ttl", models.IntegerField(blank=True, null=True)),
+                ("prio", models.IntegerField(blank=True, null=True)),
+                ("change_date", models.IntegerField(blank=True, null=True)),
+                ("disabled", models.BooleanField(default=False)),
+                ("ordername", models.CharField(blank=True, max_length=255, null=True)),
+                ("auth", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'pdns_zone_xfer',
-                'managed': False,
+                "db_table": "pdns_zone_xfer",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='Record',
+            name="Record",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain', models.IntegerField(blank=True, null=True)),
-                ('name', models.CharField(blank=True, max_length=255)),
-                ('type', models.CharField(blank=True, max_length=32)),
-                ('content', models.TextField(blank=True)),
-                ('ttl', models.IntegerField(blank=True, null=True)),
-                ('prio', models.IntegerField(blank=True, null=True)),
-                ('change_date', models.IntegerField(blank=True, null=True)),
-                ('view_id', models.IntegerField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("domain", models.IntegerField(blank=True, null=True)),
+                ("name", models.CharField(blank=True, max_length=255)),
+                ("type", models.CharField(blank=True, max_length=32)),
+                ("content", models.TextField(blank=True)),
+                ("ttl", models.IntegerField(blank=True, null=True)),
+                ("prio", models.IntegerField(blank=True, null=True)),
+                ("change_date", models.IntegerField(blank=True, null=True)),
+                ("view_id", models.IntegerField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'records',
-                'managed': False,
+                "db_table": "records",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='RecordMunged',
+            name="RecordMunged",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain_id', models.IntegerField(blank=True, null=True)),
-                ('name', models.CharField(blank=True, max_length=255)),
-                ('type', models.CharField(blank=True, max_length=255)),
-                ('content', models.TextField(blank=True)),
-                ('ttl', models.IntegerField(blank=True, null=True)),
-                ('prio', models.IntegerField(blank=True, null=True)),
-                ('change_date', models.IntegerField(blank=True, null=True)),
-                ('view_id', models.IntegerField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("domain_id", models.IntegerField(blank=True, null=True)),
+                ("name", models.CharField(blank=True, max_length=255)),
+                ("type", models.CharField(blank=True, max_length=255)),
+                ("content", models.TextField(blank=True)),
+                ("ttl", models.IntegerField(blank=True, null=True)),
+                ("prio", models.IntegerField(blank=True, null=True)),
+                ("change_date", models.IntegerField(blank=True, null=True)),
+                ("view_id", models.IntegerField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'records_munged',
-                'managed': False,
+                "db_table": "records_munged",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='DnsType',
+            name="DnsType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=16, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('min_permissions', models.CharField(max_length=8)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(blank=True, max_length=16, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("min_permissions", models.CharField(max_length=8)),
             ],
             options={
-                'verbose_name': 'DNS Type',
-                'db_table': 'dns_types',
-                'ordering': ('name',),
-                'permissions': (('add_records_to_dnstype', 'Can add records to'),),
+                "verbose_name": "DNS Type",
+                "db_table": "dns_types",
+                "ordering": ("name",),
+                "permissions": (("add_records_to_dnstype", "Can add records to"),),
             },
         ),
         migrations.CreateModel(
-            name='DnsView',
+            name="DnsView",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=128, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'dns_views',
+                "db_table": "dns_views",
             },
         ),
         migrations.CreateModel(
-            name='Supermaster',
+            name="Supermaster",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ip', models.CharField(max_length=25)),
-                ('nameserver', models.CharField(max_length=255)),
-                ('account', models.CharField(blank=True, default=None, max_length=40, null=True)),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ip", models.CharField(max_length=25)),
+                ("nameserver", models.CharField(max_length=255)),
+                (
+                    "account",
+                    models.CharField(
+                        blank=True, default=None, max_length=40, null=True
+                    ),
+                ),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'supermasters',
+                "db_table": "supermasters",
             },
         ),
         migrations.CreateModel(
-            name='Domain',
+            name="Domain",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('master', models.CharField(blank=True, default=None, max_length=128, null=True)),
-                ('last_check', models.IntegerField(blank=True, null=True)),
-                ('type', models.CharField(max_length=6)),
-                ('notified_serial', models.IntegerField(blank=True, null=True)),
-                ('account', models.CharField(blank=True, default=None, max_length=40, null=True)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                (
+                    "master",
+                    models.CharField(
+                        blank=True, default=None, max_length=128, null=True
+                    ),
+                ),
+                ("last_check", models.IntegerField(blank=True, null=True)),
+                ("type", models.CharField(max_length=6)),
+                ("notified_serial", models.IntegerField(blank=True, null=True)),
+                (
+                    "account",
+                    models.CharField(
+                        blank=True, default=None, max_length=40, null=True
+                    ),
+                ),
+                ("description", models.TextField(blank=True, null=True)),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'domains',
-                'permissions': (('is_owner_domain', 'Is owner'), ('add_records_to_domain', 'Can add records to')),
+                "db_table": "domains",
+                "permissions": (
+                    ("is_owner_domain", "Is owner"),
+                    ("add_records_to_domain", "Can add records to"),
+                ),
             },
         ),
         migrations.CreateModel(
-            name='DnsRecord',
+            name="DnsRecord",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(error_messages={'blank': 'Name fields for DNS records cannot be blank.'}, max_length=255)),
-                ('text_content', models.CharField(blank=True, max_length=1000, null=True)),
-                ('ttl', models.IntegerField(blank=True, default=14400, null=True)),
-                ('priority', models.IntegerField(blank=True, null=True, verbose_name='Priority')),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('changed_by', models.ForeignKey(db_column='changed_by', on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
-                ('dns_type', models.ForeignKey(db_column='tid', error_messages={'blank': 'Type fields for DNS records cannot be blank.'}, on_delete=django.db.models.deletion.CASCADE, related_name='records', to='dns.DnsType', verbose_name='Type')),
-                ('dns_view', models.ForeignKey(blank=True, db_column='vid', null=True, on_delete=django.db.models.deletion.PROTECT, to='dns.DnsView', verbose_name='View')),
-                ('domain', models.ForeignKey(db_column='did', on_delete=django.db.models.deletion.PROTECT, to='dns.Domain', verbose_name='Domain')),
-                ('host', models.ForeignKey(blank=True, db_column='mac', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='dns_records', to='hosts.Host')),
-                ('ip_content', models.ForeignKey(blank=True, db_column='ip_content', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='arecords', to='network.Address', verbose_name='IP Content')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        error_messages={
+                            "blank": "Name fields for DNS records cannot be blank."
+                        },
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "text_content",
+                    models.CharField(blank=True, max_length=1000, null=True),
+                ),
+                ("ttl", models.IntegerField(blank=True, default=14400, null=True)),
+                (
+                    "priority",
+                    models.IntegerField(blank=True, null=True, verbose_name="Priority"),
+                ),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        db_column="changed_by",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "dns_type",
+                    models.ForeignKey(
+                        db_column="tid",
+                        error_messages={
+                            "blank": "Type fields for DNS records cannot be blank."
+                        },
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="records",
+                        to="dns.DnsType",
+                        verbose_name="Type",
+                    ),
+                ),
+                (
+                    "dns_view",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="vid",
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="dns.DnsView",
+                        verbose_name="View",
+                    ),
+                ),
+                (
+                    "domain",
+                    models.ForeignKey(
+                        db_column="did",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="dns.Domain",
+                        verbose_name="Domain",
+                    ),
+                ),
+                (
+                    "host",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="mac",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="dns_records",
+                        to="hosts.Host",
+                    ),
+                ),
+                (
+                    "ip_content",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="ip_content",
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="arecords",
+                        to="network.Address",
+                        verbose_name="IP Content",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'DNS Record',
-                'db_table': 'dns_records',
-                'ordering': ('dns_type', 'name'),
-                'default_permissions': ('add', 'change', 'delete', 'view'),
+                "verbose_name": "DNS Record",
+                "db_table": "dns_records",
+                "ordering": ("dns_type", "name"),
+                "default_permissions": ("add", "change", "delete", "view"),
             },
         ),
         migrations.CreateModel(
-            name='DhcpDnsRecord',
+            name="DhcpDnsRecord",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ttl', models.IntegerField(blank=True, default=-1, null=True)),
-                ('changed', models.DateTimeField(auto_now=True)),
-                ('domain', models.ForeignKey(db_column='did', on_delete=django.db.models.deletion.PROTECT, to='dns.Domain')),
-                ('host', models.OneToOneField(db_column='name', on_delete=django.db.models.deletion.CASCADE, to='hosts.Host', to_field='hostname')),
-                ('ip_content', models.ForeignKey(blank=True, db_column='ip_content', null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='network.Address')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ttl", models.IntegerField(blank=True, default=-1, null=True)),
+                ("changed", models.DateTimeField(auto_now=True)),
+                (
+                    "domain",
+                    models.ForeignKey(
+                        db_column="did",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="dns.Domain",
+                    ),
+                ),
+                (
+                    "host",
+                    models.OneToOneField(
+                        db_column="name",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="hosts.Host",
+                        to_field="hostname",
+                    ),
+                ),
+                (
+                    "ip_content",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="ip_content",
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="network.Address",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'dhcp_dns_records',
+                "db_table": "dhcp_dns_records",
             },
         ),
     ]
