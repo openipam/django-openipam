@@ -1,8 +1,17 @@
 """DNS API Views."""
 
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
-from ..serializers.dns import DNSSerializer, DomainSerializer, DNSCreateSerializer, DomainCreateSerializer
-from ..serializers.dns import DnsTypeSerializer, DnsViewSerializer, DhcpDnsRecordSerializer
+from ..serializers.dns import (
+    DNSSerializer,
+    DomainSerializer,
+    DNSCreateSerializer,
+    DomainCreateSerializer,
+)
+from ..serializers.dns import (
+    DnsTypeSerializer,
+    DnsViewSerializer,
+    DhcpDnsRecordSerializer,
+)
 from rest_framework import permissions
 from .base import APIModelViewSet, APIPagination
 from ..filters.dns import DnsFilter, DomainFilter
@@ -16,14 +25,6 @@ from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
 from guardian.shortcuts import get_objects_for_user
-
-
-class IsAdminOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        return request.user.is_staff
 
 
 class DnsViewSet(APIModelViewSet):
@@ -52,7 +53,9 @@ class DnsViewSet(APIModelViewSet):
         """Create a new DNS record."""
         try:
             print(f"\nrequest.aut: {request.auth}")
-            serializer = DNSCreateSerializer(data=request.data, context={"request": request})
+            serializer = DNSCreateSerializer(
+                data=request.data, context={"request": request}
+            )
             serializer.is_valid(raise_exception=False)
             print(f"\nserializer.data: {serializer.data}")
             serializer.save()
@@ -65,7 +68,9 @@ class DnsViewSet(APIModelViewSet):
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 #  {
@@ -93,12 +98,16 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            return self.queryset.filter(pk__in=allowed_domains).select_related("changed_by")
+            return self.queryset.filter(pk__in=allowed_domains).select_related(
+                "changed_by"
+            )
         return self.queryset
 
     def create(self, request, *args, **kwargs):
         print(f"\nrequest.data: {request.data}")
-        serializer = DomainCreateSerializer(data=request.data, context={"request": request})
+        serializer = DomainCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -113,7 +122,9 @@ class DomainViewSet(APIModelViewSet):
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def partial_update(self, request, name=None):
         instance = Domain.objects.get(name=name)
@@ -131,7 +142,9 @@ class DomainViewSet(APIModelViewSet):
         dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
         page = request.query_params.get("page") or 1
         dns_records = dns_records[int(page) * limit : (int(page) + 1) * limit]
-        dns_serializer = DNSSerializer(dns_records, many=True, context={"request": request})
+        dns_serializer = DNSSerializer(
+            dns_records, many=True, context={"request": request}
+        )
         serializer = DomainSerializer(domain)
         data = {"domain": serializer.data, "dns_records": dns_serializer.data}
         return Response(data)
@@ -140,7 +153,46 @@ class DomainViewSet(APIModelViewSet):
     def add_dns_record(self, request, name=None):
         print(f"\n auth is {request.user}")
         request.data["name"] = request.data["name"] + "." + name
-        serializer = DNSCreateSerializer(data=request.data, context={"request": request})
+        serializer = DNSCreateSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        print(f"serializer.data: {serializer.data}")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # Posting to domain/domainName should create a dns record.
+
+    def partial_update(self, request, name=None):
+        instance = Domain.objects.get(name=name)
+        serializer = DomainSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, name=None):
+        print(f"request params are {request.query_params}")
+        domain = Domain.objects.get(name=name)
+        limit = 25
+        # Paginate this
+        # dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
+        dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
+        page = request.query_params.get("page") or 1
+        dns_records = dns_records[int(page) * limit : (int(page) + 1) * limit]
+        dns_serializer = DNSSerializer(
+            dns_records, many=True, context={"request": request}
+        )
+        serializer = DomainSerializer(domain)
+        data = {"domain": serializer.data, "dns_records": dns_serializer.data}
+        return Response(data)
+
+    @action(detail=True, methods=["post"], serializer_class=DNSCreateSerializer)
+    def add_dns_record(self, request, name=None):
+        print(f"\n auth is {request.user}")
+        request.data["name"] = request.data["name"] + "." + name
+        serializer = DNSCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         print(f"serializer.data: {serializer.data}")
