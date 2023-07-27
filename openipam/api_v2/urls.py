@@ -12,6 +12,26 @@ router.register(r"domains", views.dns.DomainViewSet)
 # TODO: figure out how to get CSRF protection working with the new API
 urlpatterns = [
     path("", include(router.urls)),
+    path('domains/<name>/', 
+         csrf_exempt(views.dns.DomainViewSet.as_view({'get': 'retrieve',
+                                                      'patch': 'partial_update',
+                                                      'delete': 'destroy',
+                                                      'post': 'add_dns_record'})), name='api_domain_dns_list'),
+    path(
+        "dns-types/",
+        csrf_exempt(views.dns.DnsTypeList.as_view()),
+        name="api_dns_type_list",
+    ),
+    path(
+        "dns-views/",
+        csrf_exempt(views.dns.DnsViewsList.as_view()),
+        name="api_dns_view_list",
+    ),
+    path(
+        "dhcp-dns/",
+        csrf_exempt(views.dns.DhcpDnsRecordsList.as_view()),
+        name="api_dhcp_dns_list",
+    ),
     # Host disable/enable
     path(
         "hosts/<str:mac>/disabled/",
