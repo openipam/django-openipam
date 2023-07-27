@@ -25,6 +25,7 @@ urlpatterns = [
     # Utitity routes to serve admin
     path("admin_tools/", include("admin_tools.urls")),
     path("api/v2/", include("openipam.api_v2.urls")),
+    path("ui/", include("openipam.frontend.urls")),
 ]
 
 # Serve Static and Media on development

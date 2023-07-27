@@ -188,6 +188,7 @@ INSTALLED_APPS = [
     "openipam.autocomplete",
     # openIPAM reports
     "openipam.report",
+    "openipam.frontend",
     # Firewall
     # 'openipam.firewall',
     # Admin Tools
