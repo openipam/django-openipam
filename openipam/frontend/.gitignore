@@ -1,3 +1,6 @@
 dist/
 __pycache__/
 node_modules/
+
+# Compiled and minified frontend
+static/frontend/main.js*
