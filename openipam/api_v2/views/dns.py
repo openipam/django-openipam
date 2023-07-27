@@ -12,6 +12,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from django.db.utils import DataError
+from django.contrib.admin.models import DELETION, LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import force_text
 
 
 class DnsViewSet(APIModelViewSet):
@@ -24,6 +27,19 @@ class DnsViewSet(APIModelViewSet):
     ]
     filter_fields = ["name", "ip_content", "text_content", "dns_type"]
     filter_class = DnsFilter
+
+    def delete(self, request, *args, **kwargs):
+        """Delete a DNS record."""
+        obj = self.get_object()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(obj).pk,
+            object_id=obj.pk,
+            object_repr=force_text(obj),
+            action_flag=DELETION,
+            change_message="API Delete call.",
+        )
+        return super().delete(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         """Create a new DNS record."""
