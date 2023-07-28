@@ -1,5 +1,5 @@
-import Main from "./Main";
 import { createRoot } from "react-dom/client";
+import { App } from "./navigation/BrowserRouter";
 
 const appDiv = document.getElementById("app");
 if (appDiv === null) {
@@ -8,4 +8,4 @@ if (appDiv === null) {
   );
 }
 const root = createRoot(appDiv);
-root.render(Main());
+root.render(App());

@@ -1,8 +1,7 @@
-import React, { Component } from "react";
-import { render } from "react-dom";
+import React from "react";
 import { DnsRecords } from "./components/DnsRecords";
 
-export default function Main() {
+export const Main = () => {
   return <div>OpenIPAM
     <DnsRecords />
   </div>;
