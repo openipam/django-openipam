@@ -48,6 +48,18 @@ class AddressSerializer(ModelSerializer):
 
     network = SimpleNetworkSerializer()
     gateway = SerializerMethodField()
+    pool = SerializerMethodField()
+
+    def get_pool(self, obj):
+        """Return pool name for network."""
+        if obj.pool:
+            return {
+                "id": obj.pool.id,
+                "name": obj.pool.name,
+                "description": obj.pool.description,
+            }
+        else:
+            return None
 
     def get_gateway(self, obj):
         """Return gateway address for network."""
@@ -90,7 +102,7 @@ class SimpleAddressSerializer(Field):
 class LeaseSerializer(ModelSerializer):
     """Serializer for lease objects."""
 
-    address = SimpleAddressSerializer(read_only=True)
+    address = AddressSerializer()
 
     class Meta:
         """Meta class for lease serializer."""

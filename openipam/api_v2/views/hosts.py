@@ -36,6 +36,11 @@ class HostViewSet(APIModelViewSet):
     permission_classes = [
         api_permissions.HostPermission,
     ]
+    filter_fields = [
+        "mac",
+        "hostname",
+        "master_ip_address",
+    ]
 
     def get_serializer_class(self):
         """Get serializer class."""
@@ -507,8 +512,7 @@ class LeasesView(views.APIView):
         leases = leases.select_related("address", "address__network")
         data = [
             {
-                "address": str(lease.address.address),
-                "network": str(lease.address.network.network),
+                "address": network_serializers.AddressSerializer(lease.address).data,
                 "abandoned": lease.abandoned,
                 "starts": lease.starts,
                 "ends": lease.ends,

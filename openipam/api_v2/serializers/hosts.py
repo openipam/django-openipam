@@ -18,7 +18,6 @@ import re
 from guardian.shortcuts import get_objects_for_user
 from django.db.models import Q
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 
 
 class DisabledHostSerializer(serializers.ModelSerializer):
@@ -52,6 +51,18 @@ class HostSerializer(serializers.ModelSerializer):
     addresses = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
     changed_by = serializer_base.ChangedBySerializer()
+    dhcp_group = serializers.SerializerMethodField()
+
+    def get_dhcp_group(self, obj):
+        """Get DHCP group for host."""
+        if obj.dhcp_group:
+            return {
+                "id": obj.dhcp_group.id,
+                "name": obj.dhcp_group.name,
+                "description": obj.dhcp_group.description,
+            }
+        else:
+            return None
 
     def get_addresses(self, obj):
         """Get addresses for host."""
