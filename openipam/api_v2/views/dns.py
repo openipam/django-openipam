@@ -21,6 +21,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from django.db.utils import DataError
+from guardian.shortcuts import get_objects_for_user
 from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
