@@ -9,6 +9,7 @@ import { Navigation } from "./Navigation";
 import "../styles/index.css";
 import { Domains } from "../modules/domains";
 import { Hosts } from "../modules/hosts";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const routes: RouteObject[] = [
   {
@@ -50,10 +51,22 @@ const router = createHashRouter(routes, {
   },
 });
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      cacheTime: 5 * 60 * 1000,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
 export const App = () => {
   return (
     <React.StrictMode>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </React.StrictMode>
   );
 };

@@ -1,11 +1,15 @@
-import { DnsRecords } from "../../components/DnsRecords";
 import React from "react";
+import { useDomainsTable } from "./useDomainsTable";
+import { Table } from "../../components/table";
 export const Domains = () => {
+  const table = useDomainsTable();
   return (
-    <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
+    <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Domains</h1>
       <h4>Here is some info and some options</h4>
-      <DnsRecords />
+      <div className="flex flex-col gap-4 m-8">
+        <Table table={table.table} loading={false} />
+      </div>
     </div>
   );
 };

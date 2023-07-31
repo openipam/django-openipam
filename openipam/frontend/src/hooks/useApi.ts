@@ -11,6 +11,18 @@ export const useApi = () => {
         };
       },
     },
+    domains: {
+      get: requestGenerator("GET", "domains/"),
+      create: requestGenerator("POST", "domains/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator("GET", `domains/${id}/`),
+          update: requestGenerator("PATCH", `domains/${id}/`),
+          delete: requestGenerator("DELETE", `domains/${id}/`),
+          createDns: requestGenerator("POST", `domains/${id}/`),
+        };
+      },
+    },
   };
 
   return api;
