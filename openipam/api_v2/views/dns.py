@@ -11,7 +11,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from django.db.utils import DataError
-
+from guardian.shortcuts import get_objects_for_user
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -51,11 +51,24 @@ class DnsViewSet(APIModelViewSet):
 
 
 class DomainViewSet(APIModelViewSet):
-    queryset = Domain.objects.select_related().all()
+    queryset = Domain.objects.select_related('changed_by').all()
     serializer_class = DomainSerializer
     permission_classes = [permissions.IsAdminUser]
     filterFields = ("name", "username")
     filter_class = DomainFilter
+
+    def get_queryset(self):
+        # If listing, filter on the user
+        if self.action == "list":
+            allowed_domains = get_objects_for_user(
+                self.request.user,
+                ["dns.add_records_to_domain", "dns.change_domain"],
+                any_perm=True,
+                use_groups=True,
+                with_superuser=True,
+            )
+            return self.queryset.filter(pk__in=allowed_domains).select_related('changed_by')
+        return self.queryset
 
     def create(self, request, *args, **kwargs):
         serializer = DomainCreateSerializer(data=request.data, context={"request": request})
