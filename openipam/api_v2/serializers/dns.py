@@ -197,6 +197,7 @@ class DomainSerializer(serializers.ModelSerializer):
             "user_perms",
             "group_perms",
         ]
+        read_only_fields = ["id", "changed", "changed_by", "user_perms", "group_perms"]
 
 
 class DomainCreateSerializer(serializers.ModelSerializer):

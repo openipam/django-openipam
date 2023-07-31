@@ -15,6 +15,7 @@ from ..serializers.hosts import (
     DisabledHostSerializer,
     AttributeSerializer,
 )
+from ..filters.base import FieldSearchFilterBackend
 from .. import permissions as api_permissions
 from rest_framework import permissions as base_permissions, views
 from .base import APIModelViewSet
@@ -35,6 +36,12 @@ class HostViewSet(APIModelViewSet):
     queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
     permission_classes = [
         api_permissions.HostPermission,
+    ]
+    filter_backends = [FieldSearchFilterBackend]
+    search_fields = [
+        ("mac", "mac"),
+        ("hostname", "hostname"),
+        ("master_ip_address", "ip_address"),
     ]
 
     def get_serializer_class(self):

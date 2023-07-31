@@ -12,9 +12,10 @@ from ..serializers.dns import (
     DnsViewSerializer,
     DhcpDnsRecordSerializer,
 )
-from rest_framework import permissions
+from rest_framework import permissions, filters as base_filters
 from .base import APIModelViewSet, APIPagination
-from ..filters.dns import DnsFilter, DomainFilter
+from ..filters.dns import DnsFilter
+from ..filters.base import FieldSearchFilterBackend
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.decorators import action
@@ -85,16 +86,21 @@ class DnsViewSet(APIModelViewSet):
 class DomainViewSet(APIModelViewSet):
     queryset = Domain.objects.select_related("changed_by").all()
     serializer_class = DomainSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
-    filter_fields = ("name", "username")
-    filter_class = DomainFilter
+    permission_classes = [permissions.IsAdminUser]
+    filter_backends = [FieldSearchFilterBackend]
+
+    search_fields = [("name", "name"), ("changed_by__username", "changed_by")]
 
     def get_queryset(self):
         # If listing, filter on the user
         if self.action == "list":
             allowed_domains = get_objects_for_user(
                 self.request.user,
-                ["dns.add_records_to_domain", "dns.change_domain"],
+                [
+                    "dns.add_records_to_domain",
+                    "dns.is_owner_domain",
+                    "dns.change_domain",
+                ],
                 any_perm=True,
                 use_groups=True,
                 with_superuser=True,
