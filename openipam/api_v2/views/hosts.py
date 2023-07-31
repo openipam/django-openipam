@@ -36,11 +36,6 @@ class HostViewSet(APIModelViewSet):
     permission_classes = [
         api_permissions.HostPermission,
     ]
-    filter_fields = [
-        "mac",
-        "hostname",
-        "master_ip_address",
-    ]
 
     def get_serializer_class(self):
         """Get serializer class."""

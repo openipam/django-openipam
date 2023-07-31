@@ -35,7 +35,7 @@ export module HostData {
     description: string | null;
     is_dynamic: boolean;
     disabled_host: Required<Omit<DisabledHostData, "disabled">> | null;
-    dhcp_group: number | null;
+    dhcp_group: DHCPGroupData | null;
     attributes: { [key: string]: string };
     addresses: {
       leased: string[];
