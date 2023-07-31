@@ -6,12 +6,12 @@ export const TableBody = (p: {
   estimateColumnSize?: number;
   tableContainerRef: React.RefObject<HTMLDivElement>;
 }) => {
-  const tableRows = p.table.getRowModel().rows;
+  const tableRows = p.table.getRowModel().rows ?? [];
 
   return (
     <tbody>
-      {tableRows.map((virtualRow) => {
-        const row = tableRows[virtualRow.index]!;
+      {tableRows.map((row) => {
+        if (!row) return null;
         return (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell) => (

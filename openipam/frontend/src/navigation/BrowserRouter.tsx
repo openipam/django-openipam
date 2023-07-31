@@ -27,8 +27,12 @@ const routes: RouteObject[] = [
       },
       {
         path: "domains",
-        element: <Domains />, //DomainLayout
+        // element: <></>, //DomainLayout
         children: [
+          {
+            path: "",
+            element: <Domains />,
+          },
           {
             path: ":domain",
             lazy: async () => {

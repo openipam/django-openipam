@@ -94,14 +94,13 @@ function Filter({
   );
 
   const filterType = header.column.columnDef.meta?.filterType;
-
   switch (filterType) {
     case "string":
       return (
         <>
           <datalist id={column.id + "list"}>
-            {sortedUniqueValues.slice(0, 5000).map((value: any) => (
-              <option value={value} key={value || ""} />
+            {sortedUniqueValues.slice(0, 5000).map((value: any, i: number) => (
+              <option value={value} key={i} />
             ))}
           </datalist>
           <DebouncedInput
@@ -114,6 +113,43 @@ function Filter({
           />
           <div className="h-1" />
         </>
+      );
+    case "date":
+      const maxDate = new Date().getTime();
+      const minDate = new Date("1970-01-01").getTime();
+      return (
+        <div>
+          <div className="flex flex-col w-full space-x-2">
+            <input
+              type="date"
+              min={minDate}
+              max={maxDate}
+              value={(columnFilterValue as [string, string])?.[0] ?? ""}
+              onChange={(e) => {
+                column.setFilterValue((old: [string, string]) => [
+                  e.target.value,
+                  old?.[1],
+                ]);
+              }}
+              placeholder="Search"
+              className="border shadow rounded w-full input input-xs input-bordered"
+            />
+            <input
+              type="date"
+              min={minDate}
+              max={maxDate}
+              value={(columnFilterValue as [string, string])?.[1] ?? ""}
+              onChange={(e) => {
+                column.setFilterValue((old: [string, string]) => [
+                  old?.[0],
+                  e.target.value,
+                ]);
+              }}
+              placeholder="Search"
+              className="border shadow rounded w-full input input-xs input-bordered"
+            />
+          </div>
+        </div>
       );
     default:
       return null;
@@ -140,7 +176,7 @@ export const TableHeaderCell = (p: {
   return (
     <th
       {...thProps}
-      className={`sticky top-0 text-center bg-white ${headerBorderClasses} ${
+      className={`sticky top-0 text-center bg-gray-500 text-white ${headerBorderClasses} ${
         thProps.className ?? ""
       }`}
       colSpan={header.colSpan}

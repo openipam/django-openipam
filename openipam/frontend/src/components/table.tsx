@@ -20,7 +20,7 @@ declare module "@tanstack/table-core" {
           value: string | number;
         }[]
       | null;
-    filterType: "string" | null;
+    filterType: "string" | "date" | null;
   }
 }
 
