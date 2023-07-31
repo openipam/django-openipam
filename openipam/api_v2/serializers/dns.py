@@ -65,12 +65,21 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         data = self.validated_data.copy()
         data["record"] = self.instance
         data["user"] = self.context["request"].user
+        print(f'\nDNS data: {data}')
         try:
             data["content"] = data["ip_content"]
             data.pop("ip_content")
+            try:
+                if data["text_content"]:
+                    raise serializers.ValidationError(
+                        "Cannot include both ip content and text content"
+                    )
+            except KeyError:
+                pass
         except KeyError:
             data["content"] = data["text_content"]
             data.pop("text_content")
+
         data["dns_type"] = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
         self.instance, create = DnsRecord.objects.add_or_update_record(**data)
 
@@ -84,7 +93,8 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         )
         return self.instance
 
-    def validate(self, data):
+    def run_validation(self, data):
+        print(f'\nvalidate data: {data}')
         if data["dns_type"]:
             dns_type = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
             if not dns_type:
@@ -93,6 +103,7 @@ class DNSCreateSerializer(serializers.ModelSerializer):
                     "(https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
             try:
+                print(f'\nvalidating data: {data}')
                 if data["text_content"]:
                     try:
                         if dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
@@ -137,7 +148,7 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DnsRecord
-        fields = ("name", "content", "text_content", "ip_content", "dns_type", "ttl", "host")
+        fields = ("name", "text_content", 'content', "ip_content", "dns_type", "ttl", "host")
 
 
 class DomainSerializer(serializers.ModelSerializer):

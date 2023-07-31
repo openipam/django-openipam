@@ -8,7 +8,7 @@ class APIAdminPermission(permissions.BasePermission):
     """Global permission check for Admin users."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated() and request.user.is_ipamadmin
+        return request.user.is_authenticated and request.user.is_ipamadmin
 
 
 class ChangeHostPermission(permissions.BasePermission):

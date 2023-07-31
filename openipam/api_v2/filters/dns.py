@@ -5,11 +5,11 @@ from openipam.dns.models import Domain, DnsRecord
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-from django_filters import FilterSet
+from django_filters import FilterSet, CharFilter
 User = get_user_model()
 
 
-class ContentFilter(filters.SearchFilter):
+class ContentFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
@@ -29,15 +29,16 @@ class TypeFilter(filters.SearchFilter):
         return qs
 
 
-class DnsFilter(filters.BaseFilterBackend):
+class DnsFilter(FilterSet):
     """Filter for dns records."""
-    name = filters.SearchFilter()
-    content = ContentFilter()
+    name = CharFilter(lookup_expr="icontains")
+    text_content = ContentFilter()
+    ip_content = ContentFilter()
     type = TypeFilter()
 
     class Meta:
         model = DnsRecord
-        fields = ["name", "content", "dns_type"]
+        fields = ["name", "text_content", "ip_content", "dns_type"]
 
 
 class UserFilter(filters.SearchFilter):
@@ -70,6 +71,6 @@ class DomainFilter(FilterSet):
     name = filters.SearchFilter()
     username = UserFilter()
 
-    class _meta:
+    class Meta:
         model = Domain
         fields = ["name"]
