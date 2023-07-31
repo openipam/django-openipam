@@ -11,8 +11,8 @@ from openipam.dns.validators import (
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
-
 from ipaddress import IPv4Address
+from guardian.models import GroupObjectPermission, UserObjectPermission
 
 
 class DNSSerializer(serializers.ModelSerializer):
@@ -152,14 +152,51 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
 
 class DomainSerializer(serializers.ModelSerializer):
+
+    user_permissions_queryset = UserObjectPermission.objects.select_related(
+        "user", "permission"
+    ).filter(content_type__model=Domain._meta.model_name)
+    group_permissions_queryset = GroupObjectPermission.objects.select_related(
+        "group", "permission"
+    ).filter(content_type__model=Domain._meta.model_name)
+    
     changed_by = serializers.SerializerMethodField()
+    user_perms = serializers.SerializerMethodField()
+    group_perms = serializers.SerializerMethodField()
+
+    def get_user_perms(self, obj):
+        perms = self.user_permissions_queryset.filter(object_pk=obj.pk)
+        by_user = {}
+        for perm in perms:
+            if perm.user.username not in by_user:
+                by_user[perm.user.username] = []
+            by_user[perm.user.username].append(perm.permission.codename)
+        return by_user
+    
+    def get_group_perms(self, obj):
+        perms = self.group_permissions_queryset.filter(object_pk=obj.pk)
+        by_group = {}
+        for perm in perms:
+            if perm.group.name not in by_group:
+                by_group[perm.group.name] = []
+            by_group[perm.group.name].append(perm.permission.codename)
+        return by_group
 
     def get_changed_by(self, obj):
         return obj.changed_by.username
 
-    class Meta:
+    class Meta:        
         model = Domain
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "master",
+            "description",
+            "changed",
+            "changed_by",
+            "user_perms",
+            "group_perms",
+        ]
 
 
 class DomainCreateSerializer(serializers.ModelSerializer):
