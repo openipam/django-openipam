@@ -141,7 +141,7 @@ export const useDomainsTable = () => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: edit domain");
+              alert("TODO: edit ");
             }}
           >
             <Edit fontSize="small" />
