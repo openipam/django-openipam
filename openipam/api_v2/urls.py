@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers
 from . import views
 
+
 router = routers.DefaultRouter()
 router.register(r"hosts", views.hosts.HostViewSet)
 router.register(r"dns", views.dns.DnsViewSet)
@@ -12,11 +13,14 @@ router.register(r"domains", views.dns.DomainViewSet)
 # TODO: figure out how to get CSRF protection working with the new API
 urlpatterns = [
     path("", include(router.urls)),
+<<<<<<< HEAD
     path('domains/<name>/', 
          csrf_exempt(views.dns.DomainViewSet.as_view({'get': 'retrieve',
                                                       'patch': 'partial_update',
                                                       'delete': 'destroy',
                                                       'post': 'add_dns_record'})), name='api_domain_dns_list'),
+=======
+>>>>>>> 0f6095bf (Improved DNS record routing)
     path(
         "dns-types/",
         csrf_exempt(views.dns.DnsTypeList.as_view()),

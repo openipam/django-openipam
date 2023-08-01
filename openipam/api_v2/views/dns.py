@@ -86,10 +86,13 @@ class DnsViewSet(APIModelViewSet):
 class DomainViewSet(APIModelViewSet):
     queryset = Domain.objects.select_related("changed_by").all()
     serializer_class = DomainSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.DjangoObjectPermissions]
     filter_backends = [FieldSearchFilterBackend]
 
     search_fields = [("name", "name"), ("changed_by__username", "changed_by")]
+
+    lookup_field = "name"
+    lookup_value_regex = "(?:[a-z0-9\-]{1,63}\.){1,10}[a-z0-9\-]{2,63}"
 
     def get_queryset(self):
         # If listing, filter on the user
@@ -146,63 +149,52 @@ class DomainViewSet(APIModelViewSet):
         limit = 25
         # Paginate this
         # dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
-        dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
-        page = request.query_params.get("page") or 1
-        dns_records = dns_records[int(page) * limit : (int(page) + 1) * limit]
-        dns_serializer = DNSSerializer(
-            dns_records, many=True, context={"request": request}
-        )
-        serializer = DomainSerializer(domain)
-        data = {"domain": serializer.data, "dns_records": dns_serializer.data}
-        return Response(data)
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data)
 
-    @action(detail=True, methods=["post"], serializer_class=DNSCreateSerializer)
-    def add_dns_record(self, request, name=None):
-        print(f"\n auth is {request.user}")
-        request.data["name"] = request.data["name"] + "." + name
-        serializer = DNSCreateSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        print(f"serializer.data: {serializer.data}")
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # Posting to domain/domainName should create a dns record.
-
-    def partial_update(self, request, name=None):
-        instance = Domain.objects.get(name=name)
-        serializer = DomainSerializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, name=None):
-        print(f"request params are {request.query_params}")
+    @action(detail=True, methods=["get"], serializer_class=DNSSerializer)
+    def records(self, request, name=None):
         domain = Domain.objects.get(name=name)
-        limit = 25
-        # Paginate this
-        # dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
         dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
-        page = request.query_params.get("page") or 1
-        dns_records = dns_records[int(page) * limit : (int(page) + 1) * limit]
-        dns_serializer = DNSSerializer(
-            dns_records, many=True, context={"request": request}
-        )
-        serializer = DomainSerializer(domain)
-        data = {"domain": serializer.data, "dns_records": dns_serializer.data}
-        return Response(data)
+        if not request.user.has_perm("is_owner_domain", domain):
+            user_hosts = get_objects_for_user(
+                request.user,
+                ["hosts.is_owner_host", "hosts.change_host"],
+                any_perm=True,
+            )
+            dns_records = dns_records.filter(host__in=user_hosts)
+        # DNS record filtering
+        dns_type = request.query_params.get("dns_type", None)
+        if dns_type:
+            dns_records = dns_records.filter(dns_type__name=dns_type)
+        content = request.query_params.get("content", None)
+        if content:
+            dns_records = dns_records.filter(content__icontains=content)
+        name = request.query_params.get("name", None)
+        if name:
+            dns_records = dns_records.filter(name__icontains=name)
+        host = request.query_params.get("host", None)
+        if host:
+            dns_records = dns_records.filter(host__mac=host)
+        pagination = APIPagination()
+        page = pagination.paginate_queryset(dns_records, request)
+        dns_serializer = DNSSerializer(page, many=True, context={"request": request})
 
-    @action(detail=True, methods=["post"], serializer_class=DNSCreateSerializer)
+        return pagination.get_paginated_response(dns_serializer.data)
+
+    @records.mapping.post
     def add_dns_record(self, request, name=None):
-        print(f"\n auth is {request.user}")
         request.data["name"] = request.data["name"] + "." + name
+        if not request.user.has_perm("dns.add_records_to_domain", name):
+            return Response(
+                {"detail": "You do not have permission to add records to this domain."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = DNSCreateSerializer(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        print(f"serializer.data: {serializer.data}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
