@@ -10,12 +10,13 @@ import "../styles/index.css";
 import { Domains } from "../modules/domains";
 import { Hosts } from "../modules/hosts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NotFoundPage } from "../components/NotFoundPage";
 
 const routes: RouteObject[] = [
   {
     path: "",
     element: <Navigation />, //change to Navigation element
-    errorElement: <div>TODO: create 404 page</div>,
+    errorElement: <NotFoundPage />,
     children: [
       {
         path: "",

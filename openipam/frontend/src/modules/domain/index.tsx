@@ -10,35 +10,67 @@ export const Domain = () => {
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">{domain}</h1>
-      <h4>Here is some info and some options</h4>
+      <h4>Here is some info and some optionss</h4>
       {/* card displayig domain information */}
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
-        <div className="card w-[50%] md:w-[1/3] bg-gray-600 shadow-xl">
-          <div className="card-body items-center">
-            <div className="card-title text-2xl">Domain Info</div>
+        <div className="card w-[80%] md:w-[50rem] bg-gray-600 shadow-xl">
+          <div className="card-body">
+            <div className="card-title text-2xl justify-center">
+              Domain Info
+            </div>
             {data.domain && (
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-1">
-                  <div className="text-xl">Last Changed</div>
-                  <div className="text-xl">Changed By</div>
-                  <div className="text-xl">Last Check</div>
-                  <div className="text-xl">Description</div>
-                </div>
-                <div className="col-span-2">
-                  <div className="text-xl">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
+                  <div className="col-span-1 text-xl">Last Changed:</div>
+                  <div className="text-xl col-span-2">
                     {data.domain[0].last_changed
                       ? new Date(data.domain[0].last_changed)
                           .toISOString()
                           .split("T")[0]
-                      : "-"}
+                      : data.domain[0].changed
+                      ? new Date(data.domain[0].changed)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""}
                   </div>
-                  <div className="text-xl">
-                    {data.domain[0].changed_by ?? "-"}
+                </div>
+                <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
+                  <div className="col-span-1 text-xl">Changed By:</div>
+                  <div className="text-xl col-span-2">
+                    {data.domain[0].changed_by}
                   </div>
-                  <div className="text-xl">
-                    {data.domain[0].last_check ?? "-"}
+                </div>
+                <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
+                  <div className="col-span-1 text-xl">User Permissions:</div>
+                  <div className="text-xl col-span-2">
+                    {Object.entries(data.domain[0].user_perms).map(
+                      ([key, val]) => (
+                        <div>
+                          {key}: {val as string}
+                        </div>
+                      )
+                    )}
                   </div>
-                  <div className="text-xl">{data.domain[0].description}</div>
+                </div>
+                <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
+                  <div className="col-span-1 text-xl">Group Permissions:</div>
+
+                  <div className="text-xl col-span-2">
+                    {Object.entries(data.domain[0].group_perms).map(
+                      ([key, val]) => (
+                        <div>
+                          {key}: {val as string}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
+                  <div className="col-span-1 text-xl">Description:</div>
+
+                  <div className="text-xl col-span-2">
+                    {data.domain[0].description}
+                  </div>
                 </div>
               </div>
             )}
@@ -47,7 +79,7 @@ export const Domain = () => {
       </div>
       {/* table for dns info */}
       <div className="flex flex-col gap-4 m-8">
-        {/* <Table table={table.table} loading={false} /> */}
+        <Table table={data.table} loading={false} />
       </div>
     </div>
   );

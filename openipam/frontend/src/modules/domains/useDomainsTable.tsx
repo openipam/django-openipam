@@ -11,23 +11,13 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import {
-  betweenDatesFilter,
-  fuzzyFilter,
-  stringFilter,
-} from "../../components/filters";
+import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import {
-  Add,
-  Edit,
-  ExpandMore,
-  MoreVert,
-  Visibility,
-} from "@mui/icons-material";
+import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-//TODO permissions, add, edit
+//TODO search permissions, add, edit
 
 type Domain = {
   id: number;
@@ -35,11 +25,22 @@ type Domain = {
   description: string;
   changed_by: string;
   master: string;
-  last_check: string;
-  type: string;
-  notified_serial: string;
-  account: string;
   changed: string;
+  user_perms: Record<string, string>;
+  group_perms: Record<string, string>;
+};
+
+const getPerms = (perms: Record<string, string>) => {
+  return (
+    <div className="">
+      {Object.entries(perms ?? {}).map(([key, val]) => (
+        <>
+          <div className="font-bold">{key}:</div>
+          <div className=""> {val}</div>
+        </>
+      ))}
+    </div>
+  );
 };
 
 export const useInfiniteDomains = () => {
@@ -92,7 +93,7 @@ export const useDomainsTable = () => {
   const columnHelper = createColumnHelper<Domain>();
   const columns = [
     {
-      size: 50,
+      size: 100,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
@@ -172,6 +173,34 @@ export const useDomainsTable = () => {
       ],
     }),
     columnHelper.group({
+      id: "Permissions",
+      header: "Permissions",
+      columns: [
+        {
+          id: "user_perms",
+          size: 200,
+          header: "User Permissions",
+          cell: ({ row }: { row: any }) => {
+            return getPerms(row.original.user_perms);
+          },
+          meta: {
+            filterType: "string",
+          },
+        },
+        {
+          id: "group_perms",
+          size: 200,
+          header: "Group Permissions",
+          cell: ({ row }: { row: any }) => {
+            return getPerms(row.original.group_perms);
+          },
+          meta: {
+            filterType: "string",
+          },
+        },
+      ],
+    }),
+    columnHelper.group({
       id: "Other Details",
       header: "Other Details",
       columns: [
@@ -199,14 +228,6 @@ export const useDomainsTable = () => {
           id: "changedBy",
           header: "Changed By",
           accessorFn: (row) => row.changed_by,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "last_check",
-          header: "Last Check",
-          accessorFn: (row) => row.last_check,
           meta: {
             filterType: "string",
           },
