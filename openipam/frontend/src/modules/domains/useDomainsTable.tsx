@@ -69,7 +69,7 @@ export const useInfiniteDomains = () => {
   return query;
 };
 
-export const useDomainsTable = () => {
+export const useDomainsTable = (p: { setShowAddDomain: any }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -117,7 +117,7 @@ export const useDomainsTable = () => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: create domain");
+              p.setShowAddDomain((prev: boolean) => !prev);
             }}
           >
             <Add />

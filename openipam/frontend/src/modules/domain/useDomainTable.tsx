@@ -27,7 +27,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-//TODO permissions, add, edit
+//TODO search permissions, add, edit
 
 type DnsRecord = {
   id: number;
