@@ -17,6 +17,14 @@ class APIPagination(PageNumberPagination):
     max_page_size = 100  # even 25 takes over a second to load
 
 
+class LogsPagination(APIPagination):
+    """Pagination for logs endpoints."""
+
+    page_size = 25
+    page_size_query_param = "page_size"
+    max_page_size = 500
+
+
 class APIModelViewSet(ModelViewSet):
     """Base API viewset."""
 
