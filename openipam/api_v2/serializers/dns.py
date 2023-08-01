@@ -1,3 +1,4 @@
+from django.db import DataError
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from rest_framework import serializers
 from guardian.shortcuts import get_objects_for_user
@@ -13,10 +14,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
 from ipaddress import IPv4Address
 from guardian.models import GroupObjectPermission, UserObjectPermission
+from openipam.hosts.models import Host
 
 
 class DNSSerializer(serializers.ModelSerializer):
     """DNS serializer."""
+
     content = serializers.SerializerMethodField()
     dns_type = serializers.SerializerMethodField()
     host = serializers.SerializerMethodField()
@@ -38,6 +41,7 @@ class DNSSerializer(serializers.ModelSerializer):
 
 class DNSCreateSerializer(serializers.ModelSerializer):
     """DNS create serializer."""
+
     text_content = serializers.CharField(required=False, allow_blank=True)
     ip_content = serializers.CharField(required=False, allow_blank=True)
 
@@ -65,7 +69,7 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         data = self.validated_data.copy()
         data["record"] = self.instance
         data["user"] = self.context["request"].user
-        print(f'\nDNS data: {data}')
+        print(f"\nDNS data: {data}")
         try:
             data["content"] = data["ip_content"]
             data.pop("ip_content")
@@ -83,6 +87,22 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         data["dns_type"] = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
         self.instance, create = DnsRecord.objects.add_or_update_record(**data)
 
+        # Try to find the host
+        if not self.instance.host:
+            if self.instance.dns_type.name in ["A", "AAAA"]:
+                lookup = {"hostname": self.instance.name}
+            elif self.instance.dns_type.name == "CNAME":
+                lookup = {"hostname": self.instance.content}
+            elif self.instance.dns_type.name in ["TXT", "SRV"]:
+                lookup = {"hostname": self.instance.content}
+            try:
+                host = Host.objects.filter(**lookup).first()
+                if host:
+                    self.instance.host = host
+                    self.instance.save()
+            except DataError:
+                pass
+
         LogEntry.objects.log_action(
             user_id=self.context["request"].user.pk,
             content_type_id=ContentType.objects.get_for_model(self.instance).pk,
@@ -94,16 +114,16 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         return self.instance
 
     def run_validation(self, data):
-        print(f'\nvalidate data: {data}')
+        print(f"\nvalidate data: {data}")
         if data["dns_type"]:
             dns_type = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
             if not dns_type:
                 raise serializers.ValidationError(
-                    "The Dns Type selected is not valid.  Please enter a valid type " +
-                    "(https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
+                    "The Dns Type selected is not valid.  Please enter a valid type "
+                    + "(https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
             try:
-                print(f'\nvalidating data: {data}')
+                print(f"\nvalidating data: {data}")
                 if data["text_content"]:
                     try:
                         if dns_type.name in ["NS", "CNAME", "PTR", "MX"]:
@@ -148,21 +168,35 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DnsRecord
-        fields = ("name", "text_content", 'content', "ip_content", "dns_type", "ttl", "host")
+        fields = (
+            "name",
+            "text_content",
+            "content",
+            "ip_content",
+            "dns_type",
+            "ttl",
+            "host",
+        )
 
 
 class DomainSerializer(serializers.ModelSerializer):
-
     user_permissions_queryset = UserObjectPermission.objects.select_related(
         "user", "permission"
     ).filter(content_type__model=Domain._meta.model_name)
     group_permissions_queryset = GroupObjectPermission.objects.select_related(
         "group", "permission"
     ).filter(content_type__model=Domain._meta.model_name)
-    
+
     changed_by = serializers.SerializerMethodField()
     user_perms = serializers.SerializerMethodField()
     group_perms = serializers.SerializerMethodField()
+    records = serializers.SerializerMethodField()
+
+    def get_records(self, obj):
+        """Return a url to the records for this domain."""
+        return self.context["request"].build_absolute_uri(
+            f"/api/v2/domains/{obj.name}/records/"
+        )
 
     def get_user_perms(self, obj):
         perms = self.user_permissions_queryset.filter(object_pk=obj.pk)
@@ -172,7 +206,7 @@ class DomainSerializer(serializers.ModelSerializer):
                 by_user[perm.user.username] = []
             by_user[perm.user.username].append(perm.permission.codename)
         return by_user
-    
+
     def get_group_perms(self, obj):
         perms = self.group_permissions_queryset.filter(object_pk=obj.pk)
         by_group = {}
@@ -185,7 +219,7 @@ class DomainSerializer(serializers.ModelSerializer):
     def get_changed_by(self, obj):
         return obj.changed_by.username
 
-    class Meta:        
+    class Meta:
         model = Domain
         fields = [
             "id",
@@ -196,7 +230,13 @@ class DomainSerializer(serializers.ModelSerializer):
             "changed_by",
             "user_perms",
             "group_perms",
+            "url",
+            "records",
         ]
+        read_only_fields = ["id", "changed", "changed_by", "user_perms", "group_perms"]
+        extra_kwargs = {
+            "url": {"lookup_field": "name"},
+        }
 
 
 class DomainCreateSerializer(serializers.ModelSerializer):
@@ -243,4 +283,4 @@ class DhcpDnsRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DhcpDnsRecord
-        fields = ['host', "ttl", "domain", "changed", "ip_content"]
+        fields = ["host", "ttl", "domain", "changed", "ip_content"]
