@@ -1,11 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 // import { useDomainTable } from "./useDomainsTable";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useDomainTable } from "./useDomainTable";
+import { useApi } from "../../hooks/useApi";
+
+type Domain = {
+  id: number;
+  name: string;
+  description: string;
+  changed_by: string;
+  master: string;
+  changed: string;
+  user_perms: Record<string, string>;
+  group_perms: Record<string, string>;
+};
+
 export const Domain = () => {
   const { domain } = useParams();
+  const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const data = useDomainTable({ domain: domain ?? "" });
+  const api = useApi();
+  const getDomainInfo = async (domain: string) => {
+    const results = await api.domains.byId(domain).get({});
+    setDomainInfo(results);
+  };
+  useEffect(() => {
+    if (domain) {
+      getDomainInfo(domain);
+    }
+  }, [domain]);
 
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
@@ -18,45 +42,37 @@ export const Domain = () => {
             <div className="card-title text-2xl justify-center">
               Domain Info
             </div>
-            {data.domain && (
+            {domainInfo && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Last Changed:</div>
                   <div className="text-xl col-span-2">
-                    {data.domain[0].last_changed
-                      ? new Date(data.domain[0].last_changed)
-                          .toISOString()
-                          .split("T")[0]
-                      : data.domain[0].changed
-                      ? new Date(data.domain[0].changed)
-                          .toISOString()
-                          .split("T")[0]
+                    {domainInfo.changed
+                      ? new Date(domainInfo.changed).toISOString().split("T")[0]
                       : ""}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Changed By:</div>
                   <div className="text-xl col-span-2">
-                    {data.domain[0].changed_by}
+                    {domainInfo.changed_by}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">User Permissions:</div>
                   <div className="text-xl col-span-2">
-                    {Object.entries(data.domain[0].user_perms).map(
-                      ([key, val]) => (
-                        <div>
-                          {key}: {val as string}
-                        </div>
-                      )
-                    )}
+                    {Object.entries(domainInfo.user_perms).map(([key, val]) => (
+                      <div>
+                        {key}: {val as string}
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Group Permissions:</div>
 
                   <div className="text-xl col-span-2">
-                    {Object.entries(data.domain[0].group_perms).map(
+                    {Object.entries(domainInfo.group_perms).map(
                       ([key, val]) => (
                         <div>
                           {key}: {val as string}
@@ -69,7 +85,7 @@ export const Domain = () => {
                   <div className="col-span-1 text-xl">Description:</div>
 
                   <div className="text-xl col-span-2">
-                    {data.domain[0].description}
+                    {domainInfo.description}
                   </div>
                 </div>
               </div>

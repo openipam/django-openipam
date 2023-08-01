@@ -44,11 +44,12 @@ export const useInfiniteDomain = (p: { domain: string }) => {
   const query = useInfiniteQuery({
     queryKey: ["domain", p.domain],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains.byId(p.domain).get({ page: pageParam });
+      const results = await api.domains
+        .byId(p.domain)
+        .dns.get({ page: pageParam });
       console.log("got", results);
       return {
-        dns: results.dns_records,
-        domain: results.domain,
+        dns: results.results,
         page: pageParam,
       };
     },
@@ -245,7 +246,6 @@ export const useDomainTable = (p: { domain: string }) => {
 
   return useMemo(
     () => ({
-      domain: data.data?.pages.flatMap((page) => page.domain),
       loading: data.isFetching,
       table,
     }),
