@@ -1,32 +1,34 @@
+import { HttpMethod, requestGenerator } from "../api";
+
 export const useApi = () => {
   const api = {
     dns: {
-      get: requestGenerator("GET", "dns/"),
-      create: requestGenerator("POST", "dns/"),
+      get: requestGenerator(HttpMethod.GET, "dns/"),
+      create: requestGenerator(HttpMethod.POST, "dns/"),
       byId(id: string) {
         return {
-          get: requestGenerator("GET", `dns/${id}/`),
-          update: requestGenerator("PUT", `dns/${id}/`),
-          delete: requestGenerator("DELETE", `dns/${id}/`),
+          get: requestGenerator(HttpMethod.GET, `dns/${id}/`),
+          update: requestGenerator(HttpMethod.PATCH, `dns/${id}/`),
+          delete: requestGenerator(HttpMethod.DELETE, `dns/${id}/`),
         };
       },
     },
     domains: {
-      get: requestGenerator("GET", "domains/"),
-      create: requestGenerator("POST", "domains/"),
+      get: requestGenerator(HttpMethod.GET, "domains/"),
+      create: requestGenerator(HttpMethod.POST, "domains/"),
       byId(id: string) {
         return {
-          get: requestGenerator("GET", `domains/${id}/`),
-          update: requestGenerator("PATCH", `domains/${id}/`),
-          delete: requestGenerator("DELETE", `domains/${id}/`),
+          get: requestGenerator(HttpMethod.GET, `domains/${id}/`),
+          update: requestGenerator(HttpMethod.PATCH, `domains/${id}/`),
+          delete: requestGenerator(HttpMethod.DELETE, `domains/${id}/`),
           dns: {
-            get: requestGenerator("GET", `domains/${id}/records/`),
-            create: requestGenerator("POST", `domains/${id}/records/`),
+            get: requestGenerator(HttpMethod.GET, `domains/${id}/records/`),
+            create: requestGenerator(HttpMethod.POST, `domains/${id}/records/`),
             byId(dnsId: string) {
               return {
-                get: requestGenerator("GET", `dns/${dnsId}/`),
-                update: requestGenerator("PUT", `dns/${dnsId}/`),
-                delete: requestGenerator("DELETE", `dns/${dnsId}/`),
+                get: requestGenerator(HttpMethod.GET, `dns/${dnsId}/`),
+                update: requestGenerator(HttpMethod.PATCH, `dns/${dnsId}/`),
+                delete: requestGenerator(HttpMethod.DELETE, `dns/${dnsId}/`),
               };
             },
           },
@@ -36,39 +38,4 @@ export const useApi = () => {
   };
 
   return api;
-};
-
-const requestGenerator = (method: string, url: string) => {
-  const authHeader = {
-    Authorization: "Bearer " + localStorage.getItem("token"),
-  };
-  const baseUrl = "/api/v2/";
-  switch (method) {
-    case "DELETE":
-    case "GET":
-      return async function (params: any) {
-        url = url + "?" + new URLSearchParams(params).toString();
-        const response = await fetch(baseUrl + url, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeader,
-          },
-        });
-        return response.json();
-      };
-    default:
-      return async function (data: any) {
-        const response = await fetch(baseUrl + url, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeader,
-          },
-          body: JSON.stringify(data),
-        });
-
-        return response.json();
-      };
-  }
 };

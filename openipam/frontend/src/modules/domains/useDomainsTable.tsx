@@ -43,7 +43,7 @@ const getPerms = (perms: Record<string, string>) => {
   );
 };
 
-export const useInfiniteDomains = () => {
+export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
     queryKey: ["domains, all"],
@@ -52,12 +52,12 @@ export const useInfiniteDomains = () => {
       return { results: results.results, page: pageParam };
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.results.length > 0 ? lastPage.page + 1 : undefined;
+      return lastPage.results?.length > 0 ? lastPage.page + 1 : undefined;
     },
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 10) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 5) {
       query.fetchNextPage();
     }
   }, [
@@ -76,7 +76,14 @@ export const useDomainsTable = (p: { setShowAddDomain: any }) => {
   const [prevData, setPrevData] = useState<Domain[]>([]);
   const navigate = useNavigate();
 
-  const data = useInfiniteDomains();
+  const data = useInfiniteDomains({
+    ...Object.fromEntries(
+      columnFilters.map((filter) => [
+        filter.id,
+        filter.value as string | number,
+      ])
+    ),
+  });
   const domains = useMemo<Domain[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];

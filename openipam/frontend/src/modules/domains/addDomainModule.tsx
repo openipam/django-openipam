@@ -20,8 +20,10 @@ export const AddDomainModule = (p: {
 }) => {
   const api = useApi();
   const addDomain = async (domainData: Domain) => {
-    // const results = await api.domains.create({...domainData});
-    console.log(domainData);
+    const results = await api.domains.create({ ...domainData });
+    console.log(results);
+    alert(`successfully created ${domainData.name}`);
+    p.setShowModule(false);
   };
   return (
     <>
@@ -37,6 +39,7 @@ export const AddDomainModule = (p: {
         <div className="modal-box border border-white">
           <label
             htmlFor="add-domain-module"
+            onClick={() => p.setShowModule(false)}
             className="absolute top-0 right-0 p-4 cursor-pointer"
           >
             <svg

@@ -12,9 +12,9 @@ from rest_framework.viewsets import ModelViewSet
 class APIPagination(PageNumberPagination):
     """Pagination for API endpoints."""
 
-    page_size = 10  # Current default page size
+    page_size = 100  # Current default page size
     page_size_query_param = "page_size"
-    max_page_size = 100  # even 25 takes over a second to load
+    max_page_size = 1000  # even 25 takes over a second to load
 
 
 class LogsPagination(APIPagination):
