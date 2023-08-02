@@ -61,7 +61,7 @@ export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 5) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
       query.fetchNextPage();
     }
   }, [

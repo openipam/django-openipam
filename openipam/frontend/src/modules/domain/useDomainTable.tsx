@@ -52,7 +52,7 @@ export const useInfiniteDomain = (p: {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 5) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
       query.fetchNextPage();
     }
   }, [
@@ -64,7 +64,11 @@ export const useInfiniteDomain = (p: {
   return query;
 };
 
-export const useDomainTable = (p: { domain: string; setShowModule: any }) => {
+export const useDomainTable = (p: {
+  domain: string;
+  setShowModule: any;
+  setEditModule: any;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -144,7 +148,10 @@ export const useDomainTable = (p: { domain: string; setShowModule: any }) => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: edit domain");
+              p.setEditModule({
+                show: true,
+                DnsData: row.original,
+              });
             }}
           >
             <Edit fontSize="small" />

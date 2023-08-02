@@ -18,27 +18,31 @@ type Domain = {
   group_perms: Record<string, string>;
 };
 
-// type DnsRecord = {
-//   ip_content: string | undefined;
-//   text_content: string | undefined;
-//   content: string | undefined;
-//   name: string;
-//   ttl: number;
-//   dns_type: string;
-// };
+type DnsRecord = {
+  ip_content: string | undefined;
+  text_content: string | undefined;
+  content: string | undefined;
+  name: string;
+  ttl: number;
+  dns_type: string;
+};
 
 export const Domain = () => {
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [showModule, setShowModule] = useState<boolean>(false);
-  // const [editModule, setEditModule] = useState<{
-  //   show: boolean;
-  //   dnsData: DnsRecord | undefined;
-  // }>({
-  //   show: false,
-  //   dnsData: undefined,
-  // })
-  const data = useDomainTable({ domain: domain ?? "", setShowModule });
+  const [editModule, setEditModule] = useState<{
+    show: boolean;
+    DnsData: DnsRecord | undefined;
+  }>({
+    show: false,
+    DnsData: undefined,
+  });
+  const data = useDomainTable({
+    domain: domain ?? "",
+    setShowModule,
+    setEditModule,
+  });
   const api = useApi();
   const getDomainInfo = async (domain: string) => {
     const results = await api.domains.byId(domain).get({});
@@ -121,12 +125,12 @@ export const Domain = () => {
         showModule={showModule}
         setShowModule={setShowModule}
       />
-      {/* <EditDnsModule
+      <EditDnsModule
         domain={domain ?? ""}
         showModule={editModule.show}
         setShowModule={setEditModule}
-        DnsData={editModule.dnsData}
-      /> */}
+        DnsData={editModule.DnsData}
+      />
     </div>
   );
 };
