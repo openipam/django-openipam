@@ -12,9 +12,14 @@ from rest_framework.viewsets import ModelViewSet
 class APIPagination(PageNumberPagination):
     """Pagination for API endpoints."""
 
-    page_size = 100  # Current default page size
+    # I set these at 10 and 100 for a reason. This is what a paginated UI
+    # is for.
+    page_size = 10  # Current default page size
     page_size_query_param = "page_size"
-    max_page_size = 1000  # even 25 takes over a second to load
+    max_page_size = 100  # even 25 takes over a second to load for hosts
+
+    # If you want infinite scroll, find a way to use cursor pagination
+    # https://www.django-rest-framework.org/api-guide/pagination/#cursorpagination
 
 
 class LogsPagination(APIPagination):
