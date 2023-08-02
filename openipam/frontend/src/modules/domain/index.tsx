@@ -6,6 +6,8 @@ import { useDomainTable } from "./useDomainTable";
 import { useApi } from "../../hooks/useApi";
 import { AddDnsModule } from "./addDnsModule";
 import { EditDnsModule } from "./editDnsModule";
+import { Edit } from "@mui/icons-material";
+import { EditDomainModule } from "../domains/editDomainModule";
 
 type Domain = {
   id: number;
@@ -16,6 +18,10 @@ type Domain = {
   changed: string;
   user_perms: Record<string, string>;
   group_perms: Record<string, string>;
+  type: string | undefined;
+  notified_serial: string | undefined;
+  account: string | undefined;
+  last_check: string | undefined;
 };
 
 type DnsRecord = {
@@ -31,6 +37,13 @@ export const Domain = () => {
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [showModule, setShowModule] = useState<boolean>(false);
+  const [showEditDomainModule, setShowEditDomainModule] = useState<{
+    show: boolean;
+    domainData: Domain | undefined;
+  }>({
+    show: false,
+    domainData: undefined,
+  });
   const [editModule, setEditModule] = useState<{
     show: boolean;
     DnsData: DnsRecord | undefined;
@@ -57,11 +70,23 @@ export const Domain = () => {
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">{domain}</h1>
-      <h4>Here is some info and some optionss</h4>
       {/* card displayig domain information */}
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
         <div className="card w-[80%] md:w-[50rem] bg-gray-600 shadow-xl">
-          <div className="card-body">
+          <div className="card-body relative">
+            <div className="absolute r-2">
+              <button
+                className="btn btn-circle btn-ghost btn-xs"
+                onClick={() => {
+                  setShowEditDomainModule({
+                    show: true,
+                    domainData: domainInfo,
+                  });
+                }}
+              >
+                <Edit />
+              </button>
+            </div>
             <div className="card-title text-2xl justify-center">
               Domain Info
             </div>
@@ -130,6 +155,11 @@ export const Domain = () => {
         showModule={editModule.show}
         setShowModule={setEditModule}
         DnsData={editModule.DnsData}
+      />
+      <EditDomainModule
+        domainData={domainInfo}
+        showModule={showEditDomainModule.show}
+        setShowModule={setShowEditDomainModule}
       />
     </div>
   );

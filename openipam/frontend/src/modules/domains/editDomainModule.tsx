@@ -3,13 +3,13 @@ import { useApi } from "../../hooks/useApi";
 
 type Domain = {
   name: string;
-  description: string;
-  master: string;
-  changed: string;
-  type: string;
-  notified_serial: string;
-  account: string;
-  last_check: string;
+  description: string | undefined;
+  master: string | undefined;
+  changed: string | undefined;
+  type: string | undefined;
+  notified_serial: string | undefined;
+  account: string | undefined;
+  last_check: string | undefined;
   //   user_perms: Record<string, string>;
   //   group_perms: Record<string, string>;
 };
