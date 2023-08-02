@@ -15,7 +15,7 @@ from ..serializers.dns import (
 from rest_framework import permissions, filters as base_filters
 from .base import APIModelViewSet, APIPagination
 from ..filters.dns import DnsFilter
-from ..filters.base import FieldSearchFilterBackend
+from ..filters.base import FieldSearchFilterBackend, RelatedPermissionFilter
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.decorators import action
@@ -92,7 +92,7 @@ class DomainViewSet(APIModelViewSet):
     search_fields = [("name", "name"), ("changed_by__username", "changed_by")]
 
     lookup_field = "name"
-    lookup_value_regex = "(?:[a-z0-9\-]{1,63}\.){1,10}[a-z0-9\-]{2,63}"
+    lookup_value_regex = "(?:[a-z0-9\-]{1,63}\.){1,32}[a-z0-9\-]{2,63}"
 
     def get_queryset(self):
         # If listing, filter on the user
@@ -225,4 +225,8 @@ class DhcpDnsRecordsList(generics.ListAPIView):
     permission_classes = [permissions.DjangoModelPermissions]
     pagination_class = APIPagination
     serializer_class = DhcpDnsRecordSerializer
+    filter_backends = [RelatedPermissionFilter]
+    filter_related_field = "host"
+    filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
+    filter_staff_sees_all = True
     queryset = DhcpDnsRecord.objects.all()
