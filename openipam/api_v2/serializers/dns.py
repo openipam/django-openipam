@@ -15,6 +15,7 @@ from django.utils.encoding import force_text
 from ipaddress import IPv4Address
 from guardian.models import GroupObjectPermission, UserObjectPermission
 from openipam.hosts.models import Host
+from django.utils import timezone
 
 
 class DNSSerializer(serializers.ModelSerializer):
@@ -221,18 +222,20 @@ class DomainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Domain
-        fields = [
-            "id",
-            "name",
-            "master",
-            "description",
-            "changed",
-            "changed_by",
-            "user_perms",
-            "group_perms",
-            "url",
-            "records",
-        ]
+        # fields = [
+        #     "id",
+        #     "name",
+        #     "master",
+        #     "description",
+        #     "changed",
+        #     "changed_by",
+        #     "user_perms",
+        #     "group_perms",
+        #     "url",
+        #     "records",
+        #     "type",
+        # ]
+        fields = "__all__"
         read_only_fields = ["id", "changed", "changed_by", "user_perms", "group_perms"]
         extra_kwargs = {
             "url": {"lookup_field": "name"},
@@ -240,21 +243,49 @@ class DomainSerializer(serializers.ModelSerializer):
 
 
 class DomainCreateSerializer(serializers.ModelSerializer):
-    changed_by = serializers.SerializerMethodField()
+    name = serializers.CharField(required=True, validators=[validate_fqdn])
+    master = serializers.CharField(required=False, default=None)
+    description = serializers.CharField(required=False, default="")
+    type = serializers.ChoiceField(
+        required=False,
+        choices=[("SLAVE", "SLAVE"), ("NATIVE," "NATIVE")],
+        default="NATIVE",
+    )
+    notified_serial = serializers.IntegerField(required=False, default=None)
+    account = serializers.CharField(max_length=40, required=False, default=None)
 
-    def get_changed_by(self, obj):
-        return obj.changed_by.username
+    def validate(self, data):
+        if data["type"] == "SLAVE":
+            if not data["master"] or data["master"] == "":
+                raise serializers.ValidationError(
+                    "Master server must be specified for slave domains."
+                )
+        elif data["master"] == "":
+            data["master"] = None
+        elif data["master"] is not None:
+            raise serializers.ValidationError(
+                "Master server must not be specified for non-slave domains."
+            )
+        return data
 
     def save(self):
         data = self.validated_data.copy()
         data["changed_by"] = self.context["request"].user
+        data["changed"] = timezone.now()
         self.instance = Domain(**data)
         self.instance.save()
         return self.instance
 
     class Meta:
         model = Domain
-        fields = "__all__"
+        fields = [
+            "name",
+            "master",
+            "description",
+            "type",
+            "notified_serial",
+            "account",
+        ]
 
 
 class DnsTypeSerializer(serializers.ModelSerializer):
