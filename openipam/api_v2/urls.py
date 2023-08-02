@@ -14,11 +14,19 @@ router.register(r"domains", views.dns.DomainViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("admin/logs/", csrf_exempt(views.admin.LogEntryList.as_view())),
-    path("admin/logs/hosts/", csrf_exempt(views.admin.HostLogsList.as_view())),
+    path(
+        "admin/logs/hosts/", csrf_exempt(views.admin.HostLogsList.as_view())
+    ),  # TODO: remove this
     path("admin/logs/emails/", csrf_exempt(views.admin.EmailLogsList.as_view())),
-    path("admin/logs/dns/", csrf_exempt(views.admin.DnsLogsList.as_view())),
-    path("admin/logs/addresses/", csrf_exempt(views.admin.AddressLogsList.as_view())),
-    path("admin/logs/users/", csrf_exempt(views.admin.UserLogsList.as_view())),
+    path(
+        "admin/logs/dns/", csrf_exempt(views.admin.DnsLogsList.as_view())
+    ),  # TODO: remove this
+    path(
+        "admin/logs/addresses/", csrf_exempt(views.admin.AddressLogsList.as_view())
+    ),  # TODO: remove this
+    path(
+        "admin/logs/users/", csrf_exempt(views.admin.UserLogsList.as_view())
+    ),  # TODO: remove this
     path(
         "dns-types/",
         csrf_exempt(views.dns.DnsTypeList.as_view()),
@@ -80,7 +88,4 @@ urlpatterns = [
         csrf_exempt(views.hosts.LeasesView.as_view()),
         name="host-leases",
     ),
-    path("dns-types/", views.dns.DnsTypeList.as_view(), name="api_dns_type_list"),
-    path("dns-views/", views.dns.DnsViewsList.as_view(), name="api_dns_view_list"),
-    path("dhcp-dns/", views.dns.DhcpDnsRecordsList.as_view(), name="api_dhcp_dns_list"),
 ]

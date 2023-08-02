@@ -1,6 +1,56 @@
 from rest_framework import filters as lib_filters
 from rest_framework.compat import coreschema
 from django.template import loader
+from guardian.shortcuts import get_objects_for_user
+
+
+class RelatedPermissionFilter(lib_filters.BaseFilterBackend):
+    """Filter that only allows users to see objects when they have a permission on a related object.
+
+    The view must define the following attributes:
+    - filter_related_field: The field to filter on, e.g. 'user' or 'group'
+    - filter_perms: A list of permissions to check for, e.g. ['view_host', 'change_host']
+
+    Additionally, the view may define the following attributes:
+    - filter_admin_sees_all: If True, admins will see all objects, regardless of
+        whether they have the permissions in filter_owner_perms. Defaults to False.
+    - filter_staff_sees_all: If True, staff will see all objects, regardless of
+        whether they have the permissions in filter_owner_perms. Defaults to False.
+    - filter_perms_any: If True, the user can have any of the permissions in filter_perms.
+        If False, the user must have all of the permissions in filter_perms. Defaults to True.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        """
+        Filter the queryset.
+        """
+        if not hasattr(view, "filter_perms") or not hasattr(
+            view, "filter_related_field"
+        ):
+            # this filter does nothing if filter_owner_field is not defined
+            print("filter_perms or filter_related_field not defined")
+            return queryset
+        if hasattr(view, "filter_admin_sees_all") and view.filter_admin_sees_all:
+            if request.user.is_ipamadmin:
+                print("admin sees all")
+                return queryset
+        if hasattr(view, "filter_staff_sees_all") and view.filter_staff_sees_all:
+            if request.user.is_staff:
+                print("staff sees all")
+                return queryset
+
+        print("user sees theirs")
+        related_model = getattr(
+            queryset.model, view.filter_related_field
+        ).field.related_model
+        related_queryset = get_objects_for_user(
+            request.user,
+            view.filter_perms,
+            related_model.objects.all(),
+            any_perm=getattr(view, "filter_perms_any", True),
+            with_superuser=False,
+        )
+        return queryset.filter(**{f"{view.filter_related_field}__in": related_queryset})
 
 
 class FieldSearchFilterBackend(lib_filters.BaseFilterBackend):

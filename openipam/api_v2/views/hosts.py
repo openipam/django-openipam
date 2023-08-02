@@ -30,6 +30,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from guardian.shortcuts import get_objects_for_user
 from netfields import NetManager  # noqa: F401 needed for net_contains
+from django_filters.rest_framework import DjangoFilterBackend
+from ..filters.hosts import HostFilter
 
 
 class HostViewSet(APIModelViewSet):
@@ -39,12 +41,8 @@ class HostViewSet(APIModelViewSet):
     permission_classes = [
         api_permissions.HostPermission,
     ]
-    filter_backends = [FieldSearchFilterBackend]
-    search_fields = [
-        ("mac", "mac"),
-        ("hostname", "hostname"),
-        ("master_ip_address", "ip_address"),
-    ]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = HostFilter
 
     def get_serializer_class(self):
         """Get serializer class."""
