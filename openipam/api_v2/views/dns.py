@@ -1,6 +1,8 @@
 """DNS API Views."""
 
+from django.shortcuts import get_object_or_404
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
+from openipam.user.models import User
 from ..serializers.dns import (
     DNSSerializer,
     DomainSerializer,
@@ -22,10 +24,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from django.db.utils import DataError
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, assign_perm, remove_perm
 from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_text
+from django.contrib.auth.models import Group
 
 
 class DnsViewSet(APIModelViewSet):
@@ -54,7 +57,9 @@ class DnsViewSet(APIModelViewSet):
         """Create a new DNS record."""
         try:
             print(f"\nrequest.aut: {request.auth}")
-            serializer = DNSCreateSerializer(data=request.data, context={"request": request})
+            serializer = DNSCreateSerializer(
+                data=request.data, context={"request": request}
+            )
             serializer.is_valid(raise_exception=False)
             print(f"\nserializer.data: {serializer.data}")
             serializer.save()
@@ -67,7 +72,9 @@ class DnsViewSet(APIModelViewSet):
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 #  {
@@ -79,7 +86,7 @@ class DnsViewSet(APIModelViewSet):
 
 
 class DomainViewSet(APIModelViewSet):
-    queryset = Domain.objects.select_related("changed_by").all()
+    queryset = Domain.objects.select_related("changed_by").order_by("-changed")
     serializer_class = DomainSerializer
     permission_classes = [permissions.DjangoObjectPermissions]
     filter_backends = [FieldSearchFilterBackend]
@@ -103,12 +110,16 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            return self.queryset.filter(pk__in=allowed_domains).select_related("changed_by")
+            return self.queryset.filter(pk__in=allowed_domains).select_related(
+                "changed_by"
+            )
         return self.queryset
 
     def create(self, request, *args, **kwargs):
         print(f"\nrequest.data: {request.data}")
-        serializer = DomainCreateSerializer(data=request.data, context={"request": request})
+        serializer = DomainCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -123,7 +134,9 @@ class DomainViewSet(APIModelViewSet):
                         error_list.append("%s: %s" % (key.capitalize(), error))
             else:
                 error_list.append(e.message)
-            return Response({"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"non_field_errors": error_list}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def partial_update(self, request, name=None):
         instance = Domain.objects.get(name=name)
@@ -177,10 +190,64 @@ class DomainViewSet(APIModelViewSet):
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        serializer = DNSCreateSerializer(data=request.data, context={"request": request})
+        serializer = DNSCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"])
+    def users(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("user_perms"))
+
+    @users.mapping.post
+    def add_user(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        user = get_object_or_404(User, username=request.data.get("user"))
+        perm = request.data.get("perm")
+        assign_perm(perm, user, domain)
+        domain.save()
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("user_perms"))
+
+    @users.mapping.delete
+    def remove_user(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        user = get_object_or_404(User, username=request.data.get("user"))
+        perm = request.data.get("perm")
+        remove_perm(perm, user, domain)
+        domain.save()
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("user_perms"))
+
+    @action(detail=True, methods=["get"])
+    def groups(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("group_perms"))
+
+    @groups.mapping.post
+    def add_group(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        group = get_object_or_404(Group, name=request.data.get("group"))
+        perm = request.data.get("perm")
+        assign_perm(perm, group, domain)
+        domain.save()
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("group_perms"))
+
+    @groups.mapping.delete
+    def remove_group(self, request, name=None):
+        domain = Domain.objects.get(name=name)
+        group = get_object_or_404(Group, name=request.data.get("group"))
+        perm = request.data.get("perm")
+        remove_perm(perm, group, domain)
+        domain.save()
+        serializer = DomainSerializer(domain, context={"request": request})
+        return Response(serializer.data.get("group_perms"))
 
 
 # Posting to domain/domainName should create a dns record.
