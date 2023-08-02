@@ -46,13 +46,17 @@ const getPerms = (perms: Record<string, string>) => {
 export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["domains, all"],
+    queryKey: ["domains, all", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains.get({ page: pageParam });
-      return { results: results.results, page: pageParam };
+      const results = await api.domains.get({ page: pageParam, ...p });
+      return {
+        results: results.results,
+        page: pageParam,
+        nextPage: results.next,
+      };
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.results?.length > 0 ? lastPage.page + 1 : undefined;
+      return lastPage.nextPage ? lastPage.page + 1 : undefined;
     },
   });
   useEffect(() => {
@@ -69,7 +73,10 @@ export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
   return query;
 };
 
-export const useDomainsTable = (p: { setShowAddDomain: any }) => {
+export const useDomainsTable = (p: {
+  setShowAddDomain: any;
+  setEditDomain: any;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -149,7 +156,10 @@ export const useDomainsTable = (p: { setShowAddDomain: any }) => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: edit ");
+              p.setEditDomain({
+                show: true,
+                domainData: row.original,
+              });
             }}
           >
             <Edit fontSize="small" />

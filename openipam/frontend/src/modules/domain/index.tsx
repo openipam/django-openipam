@@ -4,6 +4,8 @@ import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useDomainTable } from "./useDomainTable";
 import { useApi } from "../../hooks/useApi";
+import { AddDnsModule } from "./addDnsModule";
+import { EditDnsModule } from "./editDnsModule";
 
 type Domain = {
   id: number;
@@ -16,10 +18,27 @@ type Domain = {
   group_perms: Record<string, string>;
 };
 
+// type DnsRecord = {
+//   ip_content: string | undefined;
+//   text_content: string | undefined;
+//   content: string | undefined;
+//   name: string;
+//   ttl: number;
+//   dns_type: string;
+// };
+
 export const Domain = () => {
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
-  const data = useDomainTable({ domain: domain ?? "" });
+  const [showModule, setShowModule] = useState<boolean>(false);
+  // const [editModule, setEditModule] = useState<{
+  //   show: boolean;
+  //   dnsData: DnsRecord | undefined;
+  // }>({
+  //   show: false,
+  //   dnsData: undefined,
+  // })
+  const data = useDomainTable({ domain: domain ?? "", setShowModule });
   const api = useApi();
   const getDomainInfo = async (domain: string) => {
     const results = await api.domains.byId(domain).get({});
@@ -97,6 +116,17 @@ export const Domain = () => {
       <div className="flex flex-col gap-4 m-8">
         <Table table={data.table} loading={false} />
       </div>
+      <AddDnsModule
+        domain={domain ?? ""}
+        showModule={showModule}
+        setShowModule={setShowModule}
+      />
+      {/* <EditDnsModule
+        domain={domain ?? ""}
+        showModule={editModule.show}
+        setShowModule={setEditModule}
+        DnsData={editModule.dnsData}
+      /> */}
     </div>
   );
 };
