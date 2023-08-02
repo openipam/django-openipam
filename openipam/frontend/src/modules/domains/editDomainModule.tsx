@@ -14,16 +14,18 @@ type Domain = {
   //   group_perms: Record<string, string>;
 };
 
-export const AddDomainModule = (p: {
+export const EditDomainModule = (p: {
+  domainData: Domain | undefined;
   showModule: boolean;
-  setShowModule: (show: boolean) => void;
+  setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
-  const addDomain = async (domainData: Domain) => {
-    const results = await api.domains.create({ ...domainData });
+  const updateDomain = async (domainData: Domain) => {
+    const results = await api.domains
+      .byId(domainData.name)
+      .update({ ...domainData });
     console.log(results);
     alert(`successfully created ${domainData.name}`);
-    p.setShowModule(false);
   };
   return (
     <>
@@ -39,7 +41,12 @@ export const AddDomainModule = (p: {
         <div className="modal-box border border-white">
           <label
             htmlFor="add-domain-module"
-            onClick={() => p.setShowModule(false)}
+            onClick={() =>
+              p.setShowModule({
+                show: false,
+                domainData: undefined,
+              })
+            }
             className="absolute top-0 right-0 p-4 cursor-pointer"
           >
             <svg
@@ -69,7 +76,7 @@ export const AddDomainModule = (p: {
                 last_check: e.target[6].value,
                 changed: new Date().toISOString(),
               };
-              addDomain(domainData);
+              updateDomain(domainData);
             }}
           >
             <div className="flex flex-col gap-2">
@@ -77,6 +84,8 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-name"
+                value={p.domainData?.name}
+                disabled
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -84,6 +93,7 @@ export const AddDomainModule = (p: {
               <label htmlFor="domain-description">Description</label>
               <textarea
                 id="domain-description"
+                value={p.domainData?.description}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -92,6 +102,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-master"
+                value={p.domainData?.master}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -100,6 +111,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-type"
+                value={p.domainData?.type}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -108,6 +120,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-serial"
+                value={p.domainData?.notified_serial}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -115,7 +128,8 @@ export const AddDomainModule = (p: {
               <label htmlFor="domain-account">Account</label>
               <input
                 type="text"
-                id="domain-type"
+                id="domain-account"
+                value={p.domainData?.account}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -125,14 +139,20 @@ export const AddDomainModule = (p: {
                 type="date"
                 min={new Date(0).getTime()}
                 max={new Date().getTime()}
-                id="domain-type"
+                id="domain-check"
+                value={p.domainData?.last_check}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
                 className="bg-gray-500 hover:cursor-pointer hover:bg-gray-400 rounded-md px-4 py-2"
-                onClick={() => p.setShowModule(false)}
+                onClick={() =>
+                  p.setShowModule({
+                    show: false,
+                    domainData: undefined,
+                  })
+                }
                 type="reset"
               >
                 Cancel
@@ -140,9 +160,14 @@ export const AddDomainModule = (p: {
               <button
                 type="submit"
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
-                onClick={() => p.setShowModule(false)}
+                onClick={() =>
+                  p.setShowModule({
+                    show: false,
+                    domainData: undefined,
+                  })
+                }
               >
-                Add Domain
+                Update Domain
               </button>
             </div>
           </form>

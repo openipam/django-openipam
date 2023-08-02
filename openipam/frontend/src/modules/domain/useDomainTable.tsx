@@ -11,21 +11,10 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import {
-  betweenDatesFilter,
-  fuzzyFilter,
-  stringFilter,
-} from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import {
-  Add,
-  Edit,
-  ExpandMore,
-  MoreVert,
-  Visibility,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Add, Edit, ExpandMore } from "@mui/icons-material";
 
 //TODO search permissions, add, edit
 
@@ -39,27 +28,31 @@ type DnsRecord = {
   dns_type: string;
 };
 
-export const useInfiniteDomain = (p: { domain: string }) => {
+export const useInfiniteDomain = (p: {
+  domain: string;
+  [key: string]: string | number;
+}) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["domain", p.domain],
+    queryKey: ["domain", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
       const results = await api.domains
         .byId(p.domain)
-        .dns.get({ page: pageParam });
+        .dns.get({ page: pageParam, ...p });
       console.log("got", results);
       return {
         dns: results.results,
         page: pageParam,
+        nextPage: results.next,
       };
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.dns.length > 0 ? lastPage.page + 1 : undefined;
+      return lastPage.nextPage ? lastPage.page + 1 : undefined;
     },
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 10) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
       query.fetchNextPage();
     }
   }, [
@@ -71,14 +64,25 @@ export const useInfiniteDomain = (p: { domain: string }) => {
   return query;
 };
 
-export const useDomainTable = (p: { domain: string }) => {
+export const useDomainTable = (p: {
+  domain: string;
+  setShowModule: any;
+  setEditModule: any;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
-  const navigate = useNavigate();
 
-  const data = useInfiniteDomain(p);
+  const data = useInfiniteDomain({
+    ...p,
+    ...Object.fromEntries(
+      columnFilters.map((filter) => [
+        filter.id,
+        filter.value as string | number,
+      ])
+    ),
+  });
   const dns = useMemo<DnsRecord[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
@@ -119,7 +123,7 @@ export const useDomainTable = (p: { domain: string }) => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: create domain");
+              p.setShowModule(true);
             }}
           >
             <Add />
@@ -144,7 +148,10 @@ export const useDomainTable = (p: { domain: string }) => {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              alert("TODO: edit domain");
+              p.setEditModule({
+                show: true,
+                DnsData: row.original,
+              });
             }}
           >
             <Edit fontSize="small" />
