@@ -8,6 +8,7 @@ type DnsRecord = {
   name: string;
   ttl: number;
   dns_type: string;
+  id: number;
 };
 
 export const EditDnsModule = (p: {
@@ -18,9 +19,13 @@ export const EditDnsModule = (p: {
 }) => {
   const api = useApi();
   const updateDns = async (DnsData: DnsRecord) => {
-    const results = await api.dns.byId(DnsData.name).update({ ...DnsData });
+    const results = await api.dns.byId(p.DnsData!.id).update({ ...DnsData });
     console.log(results);
     alert(`successfully created ${DnsData.name}`);
+    p.setShowModule({
+      show: false,
+      DnsData: undefined,
+    });
   };
   return (
     <>
@@ -32,7 +37,7 @@ export const EditDnsModule = (p: {
         id="add-Dns-module"
         className="modal-toggle"
       />
-      <dialog id="add-Dns-module" className="modal">
+      <dialog id="Dns-module" className="modal">
         <div className="modal-box border border-white">
           <label
             htmlFor="add-Dns-module"
@@ -57,6 +62,7 @@ export const EditDnsModule = (p: {
             </svg>
           </label>
           <h1 className="text-2xl font-bold mb-4">Add Dns</h1>
+          <pre>{JSON.stringify(p.DnsData, null, 2)}</pre>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -68,32 +74,33 @@ export const EditDnsModule = (p: {
                 dns_type: e.target["Dns-type"].value,
                 ttl: e.target["Dns-ttl"].value,
                 content: e.target["Dns-ip"].value || e.target["Dns-text"].value,
+                id: p.DnsData!.id,
               };
-              //   if (DnsData.ip_content === "") delete DnsData.ip_content;
-              //   if (DnsData.text_content === "") delete DnsData.text_content;
-              //   if (DnsData.ip_content && DnsData.text_content) {
-              //     alert("only fill out IP Content OR Text Content");
-              //     return;
-              //   }
-              //   if (
-              //     DnsData.ip_content === undefined &&
-              //     DnsData.text_content === undefined
-              //   ) {
-              //     alert("fill out IP Content OR Text Content");
-              //     return;
-              //   }
-              //   if (DnsData.name === "") {
-              //     alert("fill out Dns Name");
-              //     return;
-              //   }
-              //   if (DnsData.dns_type === "") {
-              //     alert("fill out Dns Type");
-              //     return;
-              //   }
-              //   if (DnsData.ttl === "") {
-              //     alert("fill out Dns TTL");
-              //     return;
-              //   }
+              if (DnsData.ip_content === "") delete DnsData.ip_content;
+              if (DnsData.text_content === "") delete DnsData.text_content;
+              if (DnsData.ip_content && DnsData.text_content) {
+                alert("only fill out IP Content OR Text Content");
+                return;
+              }
+              if (
+                DnsData.ip_content === undefined &&
+                DnsData.text_content === undefined
+              ) {
+                alert("fill out IP Content OR Text Content");
+                return;
+              }
+              if (DnsData.name === "") {
+                alert("fill out Dns Name");
+                return;
+              }
+              if (DnsData.dns_type === "") {
+                alert("fill out Dns Type");
+                return;
+              }
+              if (DnsData.ttl === "") {
+                alert("fill out Dns TTL");
+                return;
+              }
               updateDns(DnsData);
             }}
           >
@@ -102,7 +109,8 @@ export const EditDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-name"
-                value={p.DnsData?.name}
+                value={p.DnsData?.name ?? ""}
+                onChange={() => {}}
                 disabled
                 className="border border-gray-300 rounded-md p-2"
               />
@@ -115,10 +123,11 @@ export const EditDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-ip"
+                onChange={() => {}}
                 value={
                   p.DnsData?.content?.includes(".")
                     ? p.DnsData?.content
-                    : p.DnsData?.ip_content
+                    : p.DnsData?.ip_content ?? ""
                 }
                 className="border border-gray-300 rounded-md p-2"
               />
@@ -128,10 +137,11 @@ export const EditDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-text"
+                onChange={() => {}}
                 value={
                   p.DnsData?.content?.includes(".")
                     ? p.DnsData?.text_content
-                    : p.DnsData?.content
+                    : p.DnsData?.content ?? ""
                 }
                 className="border border-gray-300 rounded-md p-2"
               />
@@ -141,7 +151,8 @@ export const EditDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-type"
-                value={p.DnsData?.dns_type}
+                onChange={() => {}}
+                value={p.DnsData?.dns_type ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -150,7 +161,8 @@ export const EditDnsModule = (p: {
               <input
                 type="number"
                 id="Dns-ttl"
-                value={p.DnsData?.ttl}
+                onChange={() => {}}
+                value={p.DnsData?.ttl ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -170,12 +182,6 @@ export const EditDnsModule = (p: {
               <button
                 type="submit"
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
-                onClick={() =>
-                  p.setShowModule({
-                    show: false,
-                    DnsData: undefined,
-                  })
-                }
               >
                 Update Dns
               </button>

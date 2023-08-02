@@ -5,7 +5,7 @@ export const useApi = () => {
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
       create: requestGenerator(HttpMethod.POST, "dns/"),
-      byId(id: string) {
+      byId(id: number) {
         return {
           get: requestGenerator(HttpMethod.GET, `dns/${id}/`),
           update: requestGenerator(HttpMethod.PATCH, `dns/${id}/`),

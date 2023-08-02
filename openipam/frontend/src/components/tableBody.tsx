@@ -14,7 +14,7 @@ export const TableBody = (p: {
         if (!row) return null;
         return (
           <tr key={row.id}>
-            {row.getVisibleCells().map((cell) => (
+            {row.getVisibleCells().map((cell, i) => (
               <td
                 className="overflow-hidden"
                 key={cell.id}

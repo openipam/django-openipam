@@ -84,7 +84,8 @@ export const EditDomainModule = (p: {
               <input
                 type="text"
                 id="domain-name"
-                value={p.domainData?.name}
+                onChange={() => {}}
+                value={p.domainData?.name ?? ""}
                 disabled
                 className="border border-gray-300 rounded-md p-2"
               />
@@ -93,7 +94,8 @@ export const EditDomainModule = (p: {
               <label htmlFor="domain-description">Description</label>
               <textarea
                 id="domain-description"
-                value={p.domainData?.description}
+                onChange={() => {}}
+                value={p.domainData?.description ?? "" ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -102,7 +104,8 @@ export const EditDomainModule = (p: {
               <input
                 type="text"
                 id="domain-master"
-                value={p.domainData?.master}
+                onChange={() => {}}
+                value={p.domainData?.master ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -111,7 +114,8 @@ export const EditDomainModule = (p: {
               <input
                 type="text"
                 id="domain-type"
-                value={p.domainData?.type}
+                onChange={() => {}}
+                value={p.domainData?.type ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -120,7 +124,8 @@ export const EditDomainModule = (p: {
               <input
                 type="text"
                 id="domain-serial"
-                value={p.domainData?.notified_serial}
+                onChange={() => {}}
+                value={p.domainData?.notified_serial ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -129,7 +134,8 @@ export const EditDomainModule = (p: {
               <input
                 type="text"
                 id="domain-account"
-                value={p.domainData?.account}
+                onChange={() => {}}
+                value={p.domainData?.account ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -140,7 +146,8 @@ export const EditDomainModule = (p: {
                 min={new Date(0).getTime()}
                 max={new Date().getTime()}
                 id="domain-check"
-                value={p.domainData?.last_check}
+                onChange={() => {}}
+                value={p.domainData?.last_check ?? ""}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>

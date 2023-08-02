@@ -134,6 +134,7 @@ export const AddDnsModule = (p: {
                 type="number"
                 id="Dns-ttl"
                 value={14400}
+                onChange={() => {}}
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>

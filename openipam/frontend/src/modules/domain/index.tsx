@@ -31,6 +31,7 @@ type DnsRecord = {
   name: string;
   ttl: number;
   dns_type: string;
+  id: number;
 };
 
 export const Domain = () => {

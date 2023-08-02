@@ -34,10 +34,15 @@ const getPerms = (perms: Record<string, string>) => {
   return (
     <div className="">
       {Object.entries(perms ?? {}).map(([key, val]) => (
-        <>
-          <div className="font-bold">{key}:</div>
-          <div className=""> {val}</div>
-        </>
+        <div key={Math.random()}>
+          <div key={Math.random()} className="font-bold">
+            {key}:
+          </div>
+          <div key={Math.random()} className="">
+            {" "}
+            {val}
+          </div>
+        </div>
       ))}
     </div>
   );
