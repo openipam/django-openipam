@@ -46,7 +46,24 @@ class FieldSearchFilterBackend(lib_filters.BaseFilterBackend):
 
 
 class FieldChoiceFilter(lib_filters.BaseFilterBackend):
-    """Filter that allows a field to be filtered by a list of choices."""
+    """Filter that allows a field to be filtered by a list of choices.
+
+    The view must define the following attributes:
+    - filter_field: The field to filter on, e.g. 'status' or 'user__username'
+    - At least one of the following:
+        - filter_choices: A list of choices, e.g. ['active', 'inactive'], which must be valid values for filter_field, and valid strings for query parameters.
+        - filter_allow_unlisted: A boolean indicating whether to allow values not in filter_choices.
+
+    The filter will look for a query parameter for each choice, e.g. 'status_active=1' or 'status_inactive=1'.
+    By default, it will use the value of filter_field as the query parameter prefix, e.g. 'status_active=1'.
+    To override this, set filter_query_prefix to the desired prefix, e.g. 'include_active=1'.
+
+    If filter_allow_unlisted is True, the filter will also read any additional query parameters that start with
+    the prefix, e.g. 'status_active=1&status_inactive=1&status_pending=1' will return all objects with status
+    'active', 'inactive', or 'pending', even if 'pending' is not in filter_choices.
+
+    This filter does nothing if filter_field is not defined, or if there are no matching query parameters in the request.
+    """
 
     def filter_queryset(self, request, queryset, view):
         """
@@ -54,7 +71,12 @@ class FieldChoiceFilter(lib_filters.BaseFilterBackend):
         """
         filter_field = getattr(view, "filter_field", None)
         filter_query_prefix = getattr(view, "filter_query_prefix", filter_field)
-        filter_choices = getattr(view, "filter_choices", None)
+        filter_choices = getattr(view, "filter_choices", [])
+        filter_allow_unlisted = getattr(view, "filter_allow_unlisted", False)
+        if filter_allow_unlisted:
+            for param in request.query_params.keys():
+                if param.startswith(f"{filter_query_prefix}_"):
+                    filter_choices.append(param[len(filter_query_prefix) + 1 :])
         if filter_field and filter_choices:
             filter_values = [
                 value
@@ -62,7 +84,6 @@ class FieldChoiceFilter(lib_filters.BaseFilterBackend):
                 if request.query_params.get(f"{filter_query_prefix}_{value}", "0")
                 == "1"
             ]
-            print(filter_values)
             if filter_values:
                 return queryset.filter(**{f"{filter_field}__in": filter_values})
         return queryset
@@ -76,7 +97,7 @@ class FieldChoiceFilter(lib_filters.BaseFilterBackend):
             return [coreschema.String(filter_field, description=filter_field)]
         return []
 
-    def to_html(self, request, queryset, view):
+    def to_html(self, request, _, view):
         """
         Multiple checkboxes.
         """

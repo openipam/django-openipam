@@ -23,7 +23,10 @@ class LogEntryList(ListAPIView):
         "dnsrecord",
         "address",
         "user",
+        "group",
+        "domain",
     ]
+    filter_allow_unlisted = True
 
 
 class HostLogsList(APIView):
