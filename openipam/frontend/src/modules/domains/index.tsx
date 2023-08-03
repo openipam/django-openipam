@@ -3,25 +3,13 @@ import { useDomainsTable } from "./useDomainsTable";
 import { Table } from "../../components/table";
 import { AddDomainModule } from "./addDomainModule";
 import { EditDomainModule } from "./editDomainModule";
-
-type Domain = {
-  name: string;
-  description: string;
-  master: string;
-  changed: string;
-  type: string;
-  notified_serial: string;
-  account: string;
-  last_check: string;
-  //   user_perms: Record<string, string>;
-  //   group_perms: Record<string, string>;
-};
+import { CreateDomain } from "../../utils/types";
 
 export const Domains = () => {
   const [showAddDomain, setShowAddDomain] = useState(false);
   const [editDomain, setEditDomain] = useState<{
     show: boolean;
-    domainData: Domain | undefined;
+    domainData: CreateDomain | undefined;
   }>({
     show: false,
     domainData: undefined,

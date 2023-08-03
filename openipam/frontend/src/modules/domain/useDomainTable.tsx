@@ -15,18 +15,9 @@ import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore } from "@mui/icons-material";
+import { DnsRecord } from "../../utils/types";
 
 //TODO search permissions, add, edit
-
-type DnsRecord = {
-  id: number;
-  content: string;
-  host: string;
-  name: string;
-  ttl: number;
-  url: string;
-  dns_type: string;
-};
 
 export const useInfiniteDomain = (p: {
   domain: string;

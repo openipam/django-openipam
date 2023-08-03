@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// import { useDomainTable } from "./useDomainsTable";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useDomainTable } from "./useDomainTable";
@@ -8,33 +7,9 @@ import { AddDnsModule } from "./addDnsModule";
 import { EditDnsModule } from "./editDnsModule";
 import { Edit } from "@mui/icons-material";
 import { EditDomainModule } from "../domains/editDomainModule";
+import { DnsRecord, Domain } from "../../utils/types";
 
-type Domain = {
-  id: number;
-  name: string;
-  description: string;
-  changed_by: string;
-  master: string;
-  changed: string;
-  user_perms: Record<string, string>;
-  group_perms: Record<string, string>;
-  type: string | undefined;
-  notified_serial: string | undefined;
-  account: string | undefined;
-  last_check: string | undefined;
-};
-
-type DnsRecord = {
-  ip_content: string | undefined;
-  text_content: string | undefined;
-  content: string | undefined;
-  name: string;
-  ttl: number;
-  dns_type: string;
-  id: number;
-};
-
-export const Domain = () => {
+export const DomainPage = () => {
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [showModule, setShowModule] = useState<boolean>(false);

@@ -16,19 +16,9 @@ import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { Domain } from "../../utils/types";
 
-//TODO search permissions, add, edit
-
-type Domain = {
-  id: number;
-  name: string;
-  description: string;
-  changed_by: string;
-  master: string;
-  changed: string;
-  user_perms: Record<string, string>;
-  group_perms: Record<string, string>;
-};
+//TODO search permissions
 
 const getPerms = (perms: Record<string, string>) => {
   return (

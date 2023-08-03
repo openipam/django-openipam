@@ -37,7 +37,7 @@ const routes: RouteObject[] = [
           {
             path: ":domain",
             lazy: async () => {
-              const { Domain } = await import("../modules/domain");
+              const { DomainPage: Domain } = await import("../modules/domain");
               return {
                 element: <Domain />,
               };

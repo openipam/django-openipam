@@ -1,26 +1,14 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-
-type Domain = {
-  name: string;
-  description: string | undefined;
-  master: string | undefined;
-  changed: string | undefined;
-  type: string | undefined;
-  notified_serial: string | undefined;
-  account: string | undefined;
-  last_check: string | undefined;
-  //   user_perms: Record<string, string>;
-  //   group_perms: Record<string, string>;
-};
+import { CreateDomain } from "../../utils/types";
 
 export const EditDomainModule = (p: {
-  domainData: Domain | undefined;
+  domainData: CreateDomain | undefined;
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
-  const updateDomain = async (domainData: Domain) => {
+  const updateDomain = async (domainData: CreateDomain) => {
     const results = await api.domains
       .byId(domainData.name)
       .update({ ...domainData });

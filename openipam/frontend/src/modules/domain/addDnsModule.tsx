@@ -1,13 +1,6 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-
-type DnsRecord = {
-  ip_content: string | undefined;
-  text_content: string | undefined;
-  name: string;
-  ttl: number;
-  dns_type: string;
-};
+import { CreateDnsRecord } from "../../utils/types";
 
 export const AddDnsModule = (p: {
   domain: string;
@@ -15,7 +8,7 @@ export const AddDnsModule = (p: {
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
-  const addDns = async (DnsData: DnsRecord) => {
+  const addDns = async (DnsData: CreateDnsRecord) => {
     const results = await api.domains.byId(p.domain).dns.create({ ...DnsData });
     console.log(results);
     alert(`successfully created ${DnsData.name}`);

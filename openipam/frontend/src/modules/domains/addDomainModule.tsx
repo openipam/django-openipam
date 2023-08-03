@@ -1,25 +1,13 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-
-type Domain = {
-  name: string;
-  description: string;
-  master: string;
-  changed: string;
-  type: string;
-  notified_serial: string;
-  account: string;
-  last_check: string;
-  //   user_perms: Record<string, string>;
-  //   group_perms: Record<string, string>;
-};
+import { CreateDomain } from "../../utils/types";
 
 export const AddDomainModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
-  const addDomain = async (domainData: Domain) => {
+  const addDomain = async (domainData: CreateDomain) => {
     const results = await api.domains.create({ ...domainData });
     console.log(results);
     alert(`successfully created ${domainData.name}`);
