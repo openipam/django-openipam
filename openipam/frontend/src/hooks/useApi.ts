@@ -35,6 +35,17 @@ export const useApi = () => {
         };
       },
     },
+    hosts: {
+      get: requestGenerator(HttpMethod.GET, "hosts/"),
+      create: requestGenerator(HttpMethod.POST, "hosts/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `hosts/${id}/`),
+          update: requestGenerator(HttpMethod.PATCH, `hosts/${id}/`),
+          delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
+        };
+      },
+    },
   };
 
   return api;

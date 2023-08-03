@@ -1,6 +1,4 @@
-from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
 from django.contrib.admin.models import LogEntry
 from ..filters.base import FieldChoiceFilter
 
@@ -13,6 +11,13 @@ from ..permissions import APIAdminPermission
 class LogEntryList(ListAPIView):
     permission_classes = [APIAdminPermission]
     queryset = LogEntry.objects.all().order_by("-action_time")
+
+    def get_queryset(self):
+        type = self.request.query_params.get("type", None)
+        if type:
+            return super().get_queryset().filter(content_type__model=type)
+        return super().get_queryset()
+
     serializer_class = LogEntrySerializer
     pagination_class = LogsPagination
     filter_backends = [FieldChoiceFilter]
@@ -29,39 +34,8 @@ class LogEntryList(ListAPIView):
     filter_allow_unlisted = True
 
 
-class HostLogsList(APIView):
-    def get(self, request, format=None):
-        # redirect
-        return Response(
-            status=301, headers={"Location": "/api/v2/admin/logs/?include_host=1"}
-        )
-
-
 class EmailLogsList(ListAPIView):
     permission_classes = [APIAdminPermission]
     queryset = EmailLog.objects.all().order_by("-when")
     serializer_class = EmailLogSerializer
     pagination_class = LogsPagination
-
-
-class DnsLogsList(APIView):
-    def get(self, request, format=None):
-        # redirect
-        return Response(
-            status=301, headers={"Location": "/api/v2/admin/logs/?include_dnsrecord=1"}
-        )
-
-
-class AddressLogsList(APIView):
-    def get(self, request, format=None):
-        # redirect
-        return Response(
-            status=301, headers={"Location": "/api/v2/admin/logs/?include_address=1"}
-        )
-
-
-class UserLogsList(APIView):
-    def get(self, request, format=None):
-        return Response(
-            status=301, headers={"Location": "/api/v2/admin/logs/?include_user=1"}
-        )
