@@ -46,6 +46,10 @@ export const useApi = () => {
         };
       },
     },
+    logs: {
+      get: requestGenerator(HttpMethod.GET, "admin/logs/"),
+      getEmails: requestGenerator(HttpMethod.GET, "admin/email-logs/"),
+    },
   };
 
   return api;

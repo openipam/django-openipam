@@ -45,6 +45,21 @@ const routes: RouteObject[] = [
           },
         ],
       },
+      {
+        path: "admin",
+        // element: <></>, //AdminLayout
+        children: [
+          {
+            path: "logs",
+            lazy: async () => {
+              const { Logs } = await import("../modules/logs");
+              return {
+                element: <Logs />,
+              };
+            },
+          },
+        ],
+      },
     ],
   },
 ];

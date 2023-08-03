@@ -1,5 +1,29 @@
 import React from "react";
 
+export const LogTypes = [
+  "",
+  "host",
+  "dnsrecord",
+  "address",
+  "user",
+  "group",
+  "domain",
+  "email",
+] as const;
+
+export const LogActions = ["Addition", "Change", "Deletion"] as const;
+
+export type Log = {
+  id: number;
+  content_type: typeof LogTypes[number];
+  action_flag: typeof LogActions[number];
+  action_time: string;
+  object_id: number;
+  object_repr: string;
+  change_message: string;
+  user: number;
+};
+
 export type Domain = {
   id: number;
   name: string;
