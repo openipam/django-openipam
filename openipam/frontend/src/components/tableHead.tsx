@@ -114,6 +114,26 @@ function Filter({
           <div className="h-1" />
         </>
       );
+    case "exact":
+      const uniqueValues = header.column.columnDef.meta?.filterOptions ?? [];
+      return (
+        <>
+          <datalist id={column.id + "list"}>
+            {uniqueValues.map((value: any, i: number) => (
+              <option value={value} key={i} />
+            ))}
+          </datalist>
+          <DebouncedInput
+            type="text"
+            value={(columnFilterValue ?? "") as string}
+            onChange={(value) => column.setFilterValue(value)}
+            placeholder={`Search (${uniqueValues.length})`}
+            className="w-full border shadow rounded input input-xs input-bordered"
+            list={column.id + "list"}
+          />
+          <div className="h-1" />
+        </>
+      );
     case "date":
       const maxDate = new Date().getTime();
       const minDate = new Date("1970-01-01").getTime();

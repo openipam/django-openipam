@@ -15,13 +15,15 @@ import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore } from "@mui/icons-material";
-import { DnsRecord } from "../../utils/types";
+import { DNS_TYPES, DnsRecord } from "../../utils/types";
 
-//TODO search permissions, add, edit
+//TODO search permissions
+
+const DNSLookupKeys = ["name", "content", "dns_type", "host"];
 
 export const useInfiniteDomain = (p: {
   domain: string;
-  [key: string]: string | number;
+  [key: string]: string;
 }) => {
   const api = useApi();
   const query = useInfiniteQuery({
@@ -30,7 +32,6 @@ export const useInfiniteDomain = (p: {
       const results = await api.domains
         .byId(p.domain)
         .dns.get({ page: pageParam, ...p });
-      console.log("got", results);
       return {
         dns: results.results,
         page: pageParam,
@@ -68,10 +69,9 @@ export const useDomainTable = (p: {
   const data = useInfiniteDomain({
     ...p,
     ...Object.fromEntries(
-      columnFilters.map((filter) => [
-        filter.id,
-        filter.value as string | number,
-      ])
+      columnFilters
+        .filter((f) => DNSLookupKeys.includes(f.id))
+        .map((filter) => [filter.id, filter.value as string])
     ),
   });
   const dns = useMemo<DnsRecord[]>(() => {
@@ -177,11 +177,12 @@ export const useDomainTable = (p: {
       header: "Other Details",
       columns: [
         {
-          id: "type",
+          id: "dns_type",
           header: "Type",
           accessorFn: (row) => row.dns_type,
           meta: {
-            filterType: "string",
+            filterType: "exact",
+            filterOptions: DNS_TYPES,
           },
         },
         {

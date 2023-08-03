@@ -86,7 +86,7 @@ export const DomainPage = () => {
                   <div className="col-span-1 text-xl">User Permissions:</div>
                   <div className="text-xl col-span-2">
                     {Object.entries(domainInfo.user_perms).map(([key, val]) => (
-                      <div>
+                      <div key={key}>
                         {key}: {val as string}
                       </div>
                     ))}
@@ -98,7 +98,7 @@ export const DomainPage = () => {
                   <div className="text-xl col-span-2">
                     {Object.entries(domainInfo.group_perms).map(
                       ([key, val]) => (
-                        <div>
+                        <div key={key}>
                           {key}: {val as string}
                         </div>
                       )

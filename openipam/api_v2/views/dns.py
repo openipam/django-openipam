@@ -22,8 +22,6 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import ValidationError
-from django.db.utils import DataError
 from guardian.shortcuts import get_objects_for_user, assign_perm, remove_perm
 from django.contrib.admin.models import DELETION, LogEntry
 from django.contrib.contenttypes.models import ContentType
@@ -68,9 +66,9 @@ class DnsViewSet(APIModelViewSet):
         domain_name = ".".join(request.data.get("name").split(".")[1:])
         domain = get_object_or_404(Domain, name=domain_name)
 
-        if not request.user.has_perm(
-            "dns.add_records_to_domain", domain
-        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -114,9 +112,7 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            return self.queryset.filter(pk__in=allowed_domains).select_related(
-                "changed_by"
-            )
+            return self.queryset.filter(pk__in=allowed_domains).select_related("changed_by")
         return self.queryset
 
     def update(self, request, name=None):
@@ -191,17 +187,15 @@ class DomainViewSet(APIModelViewSet):
         domain = get_object_or_404(Domain, name=name)
         # check permissions on domain. Can't rely on the permission class, since
         # we're not modifying the domain itself.
-        if not request.user.has_perm(
-            "dns.add_records_to_domain", domain
-        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         # We have permission, so create the record
-        serializer = DNSCreateSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = DNSCreateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         # Log the action
@@ -246,9 +240,7 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove users from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {
-                    "detail": "You do not have permission to remove users from this domain."
-                },
+                {"detail": "You do not have permission to remove users from this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         user = get_object_or_404(User, username=request.data.get("user"))
@@ -289,9 +281,7 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove groups from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {
-                    "detail": "You do not have permission to remove groups from this domain."
-                },
+                {"detail": "You do not have permission to remove groups from this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         group = get_object_or_404(Group, name=request.data.get("group"))
