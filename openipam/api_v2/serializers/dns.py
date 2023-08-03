@@ -25,14 +25,18 @@ class DNSSerializer(serializers.ModelSerializer):
     dns_type = serializers.SerializerMethodField()
     host = serializers.SerializerMethodField()
 
-    def get_content(self, obj):
-        return "%s" % obj.content
+    def get_content(self, obj: DnsRecord):
+        # Content might be an IP address, in which case it's a foreign key
+        # to an IP address object.  If it's not an IP address, it's a string.
+        # Either way, str() should work.
+        return str(obj.content)
 
-    def get_dns_type(self, obj):
-        return "%s" % obj.dns_type.name
+    def get_dns_type(self, obj: DnsRecord):
+        return obj.dns_type.name
 
     def get_host(self, obj):
-        return "%s" % obj.host
+        # Host is nullable, so we need to check for that
+        return obj.host.hostname if obj.host else None
 
     class Meta:
         model = DnsRecord
@@ -202,6 +206,9 @@ class DomainSerializer(serializers.ModelSerializer):
     def get_user_perms(self, obj):
         perms = self.user_permissions_queryset.filter(object_pk=obj.pk)
         by_user = {}
+        # Construct a dict of username -> list of permissions
+        # Generally, there should probably only be one permission per
+        # user, but we're not just assuming that.
         for perm in perms:
             if perm.user.username not in by_user:
                 by_user[perm.user.username] = []
@@ -211,6 +218,9 @@ class DomainSerializer(serializers.ModelSerializer):
     def get_group_perms(self, obj):
         perms = self.group_permissions_queryset.filter(object_pk=obj.pk)
         by_group = {}
+        # Construct a dict of group name -> list of permissions
+        # Generally, there should probably only be one permission per
+        # group, but we're not just assuming that.
         for perm in perms:
             if perm.group.name not in by_group:
                 by_group[perm.group.name] = []
@@ -218,23 +228,11 @@ class DomainSerializer(serializers.ModelSerializer):
         return by_group
 
     def get_changed_by(self, obj):
+        # Usernames are unique, and much more useful than IDs
         return obj.changed_by.username
 
     class Meta:
         model = Domain
-        # fields = [
-        #     "id",
-        #     "name",
-        #     "master",
-        #     "description",
-        #     "changed",
-        #     "changed_by",
-        #     "user_perms",
-        #     "group_perms",
-        #     "url",
-        #     "records",
-        #     "type",
-        # ]
         fields = "__all__"
         read_only_fields = ["id", "changed", "changed_by", "user_perms", "group_perms"]
         extra_kwargs = {
@@ -248,7 +246,7 @@ class DomainCreateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False, default="")
     type = serializers.ChoiceField(
         required=False,
-        choices=[("SLAVE", "SLAVE"), ("NATIVE," "NATIVE")],
+        choices=[("SLAVE", "SLAVE"), ("NATIVE", "NATIVE")],
         default="NATIVE",
     )
     notified_serial = serializers.IntegerField(required=False, default=None)
@@ -256,6 +254,8 @@ class DomainCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data["type"] == "SLAVE":
+            # This is based on current data in my copy of the database.
+            # If this is wrong, let me know.
             if not data["master"] or data["master"] == "":
                 raise serializers.ValidationError(
                     "Master server must be specified for slave domains."
@@ -263,18 +263,21 @@ class DomainCreateSerializer(serializers.ModelSerializer):
         elif data["master"] == "":
             data["master"] = None
         elif data["master"] is not None:
+            # This is based on current data in my copy of the database.
+            # If this is wrong, let me know.
             raise serializers.ValidationError(
                 "Master server must not be specified for non-slave domains."
             )
         return data
 
     def save(self):
-        data = self.validated_data.copy()
-        data["changed_by"] = self.context["request"].user
-        data["changed"] = timezone.now()
-        self.instance = Domain(**data)
-        self.instance.save()
-        return self.instance
+        """Save the domain."""
+        # Set the changed_by field to the current user, and the changed field
+        # to the current time
+        self.validated_data["changed_by"] = self.context["request"].user
+        self.validated_data["changed"] = timezone.now()
+        # Call back to the superclass to do the actual saving
+        return super().save()
 
     class Meta:
         model = Domain
