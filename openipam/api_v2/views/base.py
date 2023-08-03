@@ -18,13 +18,16 @@ class APIPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 100  # even 25 takes over a second to load for hosts
 
-    # If you want infinite scroll, find a way to use cursor pagination
-    # https://www.django-rest-framework.org/api-guide/pagination/#cursorpagination
+    # Scrolling is a lot less useful, as a long list of hosts, subnets, etc.
+    # will blend together. This is why a paginated UI is better for this. This
+    # isn't your social media feed.
 
 
 class LogsPagination(APIPagination):
     """Pagination for logs endpoints."""
 
+    # Logs are a lot less data, so we can increase the page size.
+    # We also want to be able to see more logs at once.
     page_size = 25
     page_size_query_param = "page_size"
     max_page_size = 500
