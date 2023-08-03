@@ -11,17 +11,11 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter, stringFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore } from "@mui/icons-material";
-import {
-  DNS_TYPES,
-  DnsRecord,
-  Log,
-  LogActions,
-  LogTypes,
-} from "../../utils/types";
+import { ExpandMore } from "@mui/icons-material";
+import { Log, LogActions, LogTypes } from "../../utils/types";
 
 //TODO search permissions
 
@@ -30,6 +24,14 @@ export const useInfiniteLogs = (p: { [key: string]: string }) => {
   const query = useInfiniteQuery({
     queryKey: ["logs", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
+      if (p.type === "email") {
+        const results = await api.logs.getEmails({ page: pageParam, ...p });
+        return {
+          emails: results.results,
+          page: pageParam,
+          nextPage: results.next,
+        };
+      }
       const results = await api.logs.get({ page: pageParam, ...p });
       return {
         logs: results.results,
@@ -55,28 +57,42 @@ export const useInfiniteLogs = (p: { [key: string]: string }) => {
   return query;
 };
 
+const logSearchFields = ["user", "action_flag"];
+
 export const useLogsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Log[]>([]);
+  const [emailView, setEmailView] = useState<boolean>(false);
+
+  useEffect(() => {
+    setEmailView(
+      !!columnFilters.filter((f) => f.id === "type" && f.value === "email")
+        .length
+    );
+  }, [columnFilters]);
 
   const data = useInfiniteLogs({
     ...Object.fromEntries(
       columnFilters
         .filter(
           (f) =>
-            f.id === "type" &&
-            LogTypes.includes(f.value as typeof LogTypes[number])
+            logSearchFields.includes(f.id) ||
+            (f.id === "type" &&
+              LogTypes.includes(f.value as typeof LogTypes[number]))
         )
         .map((filter) => [filter.id, filter.value as string])
     ),
   });
-  const dns = useMemo<Log[]>(() => {
+  const logs = useMemo<Log[]>(() => {
+    if (data.isFetching) {
+      return [];
+    }
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
-    return data.data.pages.flatMap((page) => page.logs);
+    return data.data.pages.flatMap((page) => page.logs ?? page.emails);
   }, [data.data]);
 
   useEffect(() => {
@@ -136,61 +152,84 @@ export const useLogsTable = () => {
         {
           id: "type",
           header: "Type",
-          accessorFn: (row) => row.content_type,
+          accessorFn: (row) => row.content_type ?? "email",
           meta: {
             filterType: "exact",
             filterOptions: LogTypes.map((type) => type),
           },
         },
         {
-          id: "user",
-          header: "User",
-          accessorFn: (row) => row.user,
+          id: emailView ? "to" : "user",
+          header: emailView ? "To" : "User",
+          accessorFn: (row) => row.user ?? row.to,
           meta: {
             filterType: "string",
           },
         },
       ],
     }),
-    columnHelper.group({
-      id: "Other Details",
-      header: "Other Details",
-      columns: [
-        {
-          id: "action_flag",
-          header: "Action",
-          accessorFn: (row) => row.action_flag,
-          meta: {
-            filterType: "exact",
-            filterOptions: LogActions.map((action) => action),
-          },
-        },
-        {
-          id: "action_time",
-          header: "Time",
-          accessorFn: (row) => row.action_time,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "object_repr",
-          header: "Object",
-          accessorFn: (row) => row.object_repr,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "change_message",
-          header: "Message",
-          accessorFn: (row) => row.change_message,
-          meta: {
-            filterType: "string",
-          },
-        },
-      ],
-    }),
+    emailView
+      ? columnHelper.group({
+          id: "Email Details",
+          header: "Email Details",
+          columns: [
+            {
+              id: "subject",
+              header: "Subject",
+              accessorFn: (row) => row.subject,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "body",
+              header: "Body",
+              accessorFn: (row) => row.body?.slice(0, 50) + "...",
+              meta: {
+                filterType: "string",
+              },
+            },
+          ],
+        })
+      : columnHelper.group({
+          id: "Other Details",
+          header: "Other Details",
+          columns: [
+            {
+              id: "action_flag",
+              header: "Action",
+              accessorFn: (row) => row.action_flag,
+              meta: {
+                filterType: "exact",
+                filterOptions: LogActions.map((action) => action),
+              },
+            },
+            {
+              id: "action_time",
+              header: "Time",
+              accessorFn: (row) => row.action_time,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "object_repr",
+              header: "Object",
+              accessorFn: (row) => row.object_repr,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "change_message",
+              header: "Message",
+              accessorFn: (row) => row.change_message,
+              meta: {
+                filterType: "string",
+              },
+            },
+          ],
+        }),
   ];
 
   const table = useReactTable({
@@ -206,7 +245,7 @@ export const useLogsTable = () => {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    data: dns,
+    data: logs,
     state: {
       columnFilters,
       get globalFilter() {
@@ -228,6 +267,6 @@ export const useLogsTable = () => {
       loading: data.isFetching,
       table,
     }),
-    [data.data, data.isFetching]
+    [data.data, logs, data.isFetching, columns]
   );
 };

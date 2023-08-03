@@ -1,7 +1,6 @@
 import React from "react";
 
 export const LogTypes = [
-  "",
   "host",
   "dnsrecord",
   "address",
@@ -22,6 +21,11 @@ export type Log = {
   object_repr: string;
   change_message: string;
   user: number;
+} & {
+  when: string;
+  to: string;
+  subject: string;
+  body: string;
 };
 
 export type Domain = {

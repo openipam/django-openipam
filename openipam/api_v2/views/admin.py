@@ -1,5 +1,5 @@
 from rest_framework.generics import ListAPIView
-from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from ..filters.base import FieldChoiceFilter
 
 from .base import LogsPagination
@@ -13,10 +13,23 @@ class LogEntryList(ListAPIView):
     queryset = LogEntry.objects.all().order_by("-action_time")
 
     def get_queryset(self):
+        queryset = super().get_queryset()
         type = self.request.query_params.get("type", None)
+        flag = self.request.query_params.get("action_flag", None)
+        user = self.request.query_params.get("user", None)
         if type:
-            return super().get_queryset().filter(content_type__model=type)
-        return super().get_queryset()
+            queryset = queryset.filter(content_type__model=type)
+        if flag:
+            if flag == "Addition":
+                flag = ADDITION
+            elif flag == "Change":
+                flag = CHANGE
+            elif flag == "Deletion":
+                flag = DELETION
+            queryset = queryset.filter(action_flag=flag)
+        if user:
+            queryset = queryset.filter(user__username=user)
+        return queryset
 
     serializer_class = LogEntrySerializer
     pagination_class = LogsPagination

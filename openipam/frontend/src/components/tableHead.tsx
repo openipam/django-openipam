@@ -81,7 +81,7 @@ function Filter({
 }) {
   const firstValue = table
     .getPreFilteredRowModel()
-    .flatRows[0]?.getValue(column.id);
+    ?.flatRows[0]?.getValue(column.id);
 
   const columnFilterValue = column.getFilterValue();
 

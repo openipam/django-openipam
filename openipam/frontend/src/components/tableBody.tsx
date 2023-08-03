@@ -7,11 +7,23 @@ export const TableBody = (p: {
   tableContainerRef: React.RefObject<HTMLDivElement>;
 }) => {
   const tableRows = p.table.getRowModel().rows ?? [];
-
+  console.log("rows", tableRows);
   return (
     <tbody>
       {tableRows.map((row) => {
-        if (!row) return null;
+        if (!row)
+          return (
+            <tr>
+              <td
+                className="overflow-hidden"
+                colSpan={p.table.getVisibleFlatColumns().length}
+              >
+                <div className="flex justify-center items-center h-32">
+                  <div className="text-2xl">No Results</div>
+                </div>
+              </td>
+            </tr>
+          );
         return (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell, i) => (
