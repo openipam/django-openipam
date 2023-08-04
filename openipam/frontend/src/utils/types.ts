@@ -28,6 +28,13 @@ export type Log = {
   body: string;
 };
 
+export type CreateHost = {
+  mac: string;
+  hostname: string;
+  expires: string;
+  description: string;
+};
+
 export type Host = {
   mac: string;
   hostname: string;

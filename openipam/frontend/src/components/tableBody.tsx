@@ -7,7 +7,6 @@ export const TableBody = (p: {
   tableContainerRef: React.RefObject<HTMLDivElement>;
 }) => {
   const tableRows = p.table.getRowModel().rows ?? [];
-  console.log("rows", tableRows);
   return (
     <tbody>
       {tableRows.map((row) => {

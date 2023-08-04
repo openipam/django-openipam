@@ -69,7 +69,12 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   return query;
 };
 
-export const useHostsTable = () => {
+export const useHostsTable = (p: {
+  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditHost: React.Dispatch<
+    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
+  >;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -100,7 +105,7 @@ export const useHostsTable = () => {
   const columnHelper = createColumnHelper<Host>();
   const columns = [
     {
-      size: 50,
+      size: 100,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
@@ -121,14 +126,14 @@ export const useHostsTable = () => {
               <ExpandMore />
             </button>
           </div>
-          {/* <button
+          <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setShowAddHost((prev: boolean) => !prev);
             }}
           >
             <Add />
-          </button> */}
+          </button>
         </div>
       ),
       cell: ({ row }: { row: any }) => (
@@ -146,7 +151,7 @@ export const useHostsTable = () => {
           >
             <Visibility fontSize="small" />
           </button>
-          {/* <button
+          <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setEditHost({
@@ -156,7 +161,7 @@ export const useHostsTable = () => {
             }}
           >
             <Edit fontSize="small" />
-          </button> */}
+          </button>
         </div>
       ),
     },
@@ -198,15 +203,6 @@ export const useHostsTable = () => {
           },
           filterFn: betweenDatesFilter,
         },
-        // {
-        //   id: "description",
-        //   size: 200,
-        //   header: "Description",
-        //   accessorFn: (row) => row.description,
-        //   meta: {
-        //     filterType: "string",
-        //   },
-        // },
         {
           id: "master_ip_address",
           header: "Master IP Address",

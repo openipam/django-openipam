@@ -1,15 +1,15 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-import { CreateDomain } from "../../utils/types";
+import { CreateHost } from "../../utils/types";
 
-export const AddDomainModule = (p: {
+export const AddHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
-  const addDomain = async (domainData: CreateDomain) => {
-    const results = await api.domains.create({ ...domainData });
-    alert(`successfully created ${domainData.name}`);
+  const addHost = async (hostData: CreateHost) => {
+    const results = await api.hosts.create({ ...hostData });
+    alert(`successfully created ${hostData.hostname}`);
     p.setShowModule(false);
   };
   return (
@@ -19,13 +19,13 @@ export const AddDomainModule = (p: {
         hidden
         checked={p.showModule}
         onChange={(prev) => !prev}
-        id="add-domain-module"
+        id="add-host-module"
         className="modal-toggle"
       />
-      <dialog id="add-domain-module" className="modal">
+      <dialog id="add-host-module" className="modal">
         <div className="modal-box border border-white">
           <label
-            htmlFor="add-domain-module"
+            htmlFor="add-host-module"
             onClick={() => p.setShowModule(false)}
             className="absolute top-0 right-0 p-4 cursor-pointer"
           >
@@ -41,78 +41,52 @@ export const AddDomainModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Domain</h1>
+          <h1 className="text-2xl font-bold mb-4">Add host</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              const domainData = {
-                name: e.target[0].value,
-                description: e.target[1].value,
-                master: e.target[2].value,
-                type: e.target[3].value,
-                notified_serial: e.target[4].value,
-                account: e.target[5].value,
-                last_check: e.target[6].value,
-                changed: new Date().toISOString(),
+              const hostData = {
+                mac: e.target[0].value,
+                hostname: e.target[1].value,
+                description: e.target[2].value,
+                expires: e.target[3].value,
               };
-              addDomain(domainData);
+              addHost(hostData);
             }}
           >
             <div className="flex flex-col gap-2">
-              <label htmlFor="domain-name">Domain Name</label>
+              <label htmlFor="host-mac">Mac</label>
               <input
                 type="text"
-                id="domain-name"
+                id="host-mac"
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="domain-description">Description</label>
+              <label htmlFor="host-name">Host Name</label>
+              <input
+                type="text"
+                id="host-name"
+                className="border border-gray-300 rounded-md p-2"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="host-description">Description</label>
               <textarea
-                id="domain-description"
+                id="host-description"
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="domain-master">Master</label>
-              <input
-                type="text"
-                id="domain-master"
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-type">Type</label>
-              <input
-                type="text"
-                id="domain-type"
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-type">Notified Serial</label>
-              <input
-                type="text"
-                id="domain-serial"
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-account">Account</label>
-              <input
-                type="text"
-                id="domain-type"
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-last-check">Last Check</label>
+              <label htmlFor="host-last-check">Last Check</label>
               <input
                 type="date"
                 min={new Date(0).getTime()}
                 max={new Date().getTime()}
-                id="domain-type"
+                value={new Date("2050-1-1").toISOString().split("T")[0]}
+                onChange={() => {}}
+                id="host-type"
                 className="border border-gray-300 rounded-md p-2"
               />
             </div>
@@ -129,7 +103,7 @@ export const AddDomainModule = (p: {
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
                 onClick={() => p.setShowModule(false)}
               >
-                Add Domain
+                Add host
               </button>
             </div>
           </form>

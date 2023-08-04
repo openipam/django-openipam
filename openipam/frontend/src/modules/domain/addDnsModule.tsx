@@ -10,7 +10,6 @@ export const AddDnsModule = (p: {
   const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
     const results = await api.domains.byId(p.domain).dns.create({ ...DnsData });
-    console.log(results);
     alert(`successfully created ${DnsData.name}`);
     p.setShowModule(false);
   };

@@ -12,8 +12,11 @@ export const EditDomainModule = (p: {
     const results = await api.domains
       .byId(domainData.name)
       .update({ ...domainData });
-    console.log(results);
-    alert(`successfully created ${domainData.name}`);
+    alert(`successfully edited ${domainData.name}`);
+    p.setShowModule({
+      show: false,
+      domainData: undefined,
+    });
   };
   return (
     <>
@@ -155,12 +158,6 @@ export const EditDomainModule = (p: {
               <button
                 type="submit"
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
-                onClick={() =>
-                  p.setShowModule({
-                    show: false,
-                    domainData: undefined,
-                  })
-                }
               >
                 Update Domain
               </button>

@@ -11,8 +11,7 @@ export const EditDnsModule = (p: {
   const api = useApi();
   const updateDns = async (DnsData: CreateDnsRecord) => {
     const results = await api.dns.byId(p.DnsData!.id).update({ ...DnsData });
-    console.log(results);
-    alert(`successfully created ${DnsData.name}`);
+    alert(`successfully edited ${DnsData.name}`);
     p.setShowModule({
       show: false,
       DnsData: undefined,
