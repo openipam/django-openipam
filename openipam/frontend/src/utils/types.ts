@@ -46,7 +46,9 @@ export type Host = {
     leased: string[];
     static: string[];
   };
-  attributes: Record<string, string>;
+  attributes: {
+    [key: string]: string;
+  };
   is_dynamic: boolean;
   disabled_host: boolean;
   master_ip_address: string;

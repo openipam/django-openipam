@@ -9,6 +9,7 @@ import {
 import { Fragment, useMemo } from "react";
 import { DebouncedInput } from "./debouncedInput";
 import React from "react";
+import { PlainIndeterminateCheckbox } from "./boolean";
 
 export const useTHBorderClasses = (
   header: Header<any, unknown>,
@@ -133,6 +134,23 @@ function Filter({
           />
           <div className="h-1" />
         </>
+      );
+    case "boolean":
+      const value = (header.column.getFilterValue() ?? "") as "Y" | "N" | "";
+      return (
+        <div className="">
+          <PlainIndeterminateCheckbox
+            indeterminate={value === ""}
+            checked={value === "Y"}
+            onChange={() => {
+              header.column.setFilterValue((v: "Y" | "N" | "" | undefined) => {
+                if (v === "" || v === undefined) return "Y";
+                if (v === "Y") return "N";
+                return "";
+              });
+            }}
+          />
+        </div>
       );
     case "date":
       const maxDate = new Date().getTime();

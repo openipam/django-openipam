@@ -30,6 +30,15 @@ const routes: RouteObject[] = [
             path: "",
             element: <Hosts />,
           },
+          {
+            path: ":mac",
+            lazy: async () => {
+              const { HostPage: Host } = await import("../modules/host");
+              return {
+                element: <Host />,
+              };
+            },
+          },
         ],
       },
       {

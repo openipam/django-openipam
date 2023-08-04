@@ -17,6 +17,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
+import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
 //TODO search permissions
 
@@ -99,7 +100,7 @@ export const useHostsTable = () => {
   const columnHelper = createColumnHelper<Host>();
   const columns = [
     {
-      size: 100,
+      size: 50,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
@@ -138,13 +139,13 @@ export const useHostsTable = () => {
               disabled={!row.getCanSelect()}
               indeterminate={row.getIsSomeSelected()}
             /> */}
-          {/* <button
+          <button
             className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/Hosts/${row.original.name}`)}
-            disabled={!row.original.name}
+            onClick={() => navigate(`/Hosts/${row.original.mac}`)}
+            disabled={!row.original.mac}
           >
             <Visibility fontSize="small" />
-          </button> */}
+          </button>
           {/* <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
@@ -198,25 +199,14 @@ export const useHostsTable = () => {
           filterFn: betweenDatesFilter,
         },
         // {
-        //   id: "attributes",
+        //   id: "description",
         //   size: 200,
-        //   header: "Attributes",
-        //   cell: ({ row }: { row: any }) => {
-        //     return getList(row.original.attributes);
-        //   },
+        //   header: "Description",
+        //   accessorFn: (row) => row.description,
         //   meta: {
         //     filterType: "string",
         //   },
         // },
-        {
-          id: "description",
-          size: 200,
-          header: "Description",
-          accessorFn: (row) => row.description,
-          meta: {
-            filterType: "string",
-          },
-        },
         {
           id: "master_ip_address",
           header: "Master IP Address",
@@ -231,6 +221,26 @@ export const useHostsTable = () => {
           accessorFn: (row) => row.dhcp_group?.name,
           meta: {
             filterType: "string",
+          },
+        },
+        {
+          id: "disabled_host",
+          size: 50,
+          header: "Disabled Host",
+          accessorFn: booleanAccessor("disabled_host"),
+          cell: BooleanRender,
+          meta: {
+            filterType: "boolean",
+          },
+        },
+        {
+          id: "is_dynamic",
+          size: 50,
+          header: "Dynamic",
+          cell: BooleanRender,
+          accessorFn: booleanAccessor("is_dynamic"),
+          meta: {
+            filterType: "boolean",
           },
         },
       ],

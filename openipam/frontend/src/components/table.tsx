@@ -15,7 +15,7 @@ declare module "@tanstack/table-core" {
       className?: Component<HTMLTableCellElement>["props"]["className"];
     };
     filterOptions?: string[] | null;
-    filterType: "string" | "date" | "exact" | null;
+    filterType: "string" | "date" | "exact" | "boolean" | null;
   }
 }
 
