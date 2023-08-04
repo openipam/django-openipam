@@ -19,10 +19,10 @@ export const Domains = () => {
     setEditDomain: setEditDomain,
   });
   return (
-    <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
+    <div className="m-auto overflow-x-scroll flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Domains</h1>
       <div className="flex flex-col gap-4 m-8">
-        <Table table={table.table} loading={false} />
+        <Table table={table.table} loading={table.loading} />
       </div>
       <AddDomainModule
         showModule={showAddDomain}

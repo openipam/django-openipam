@@ -43,6 +43,63 @@ export const useApi = () => {
           get: requestGenerator(HttpMethod.GET, `hosts/${id}/`),
           update: requestGenerator(HttpMethod.PATCH, `hosts/${id}/`),
           delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
+          disabled: requestGenerator(HttpMethod.GET, `hosts/${id}/disabled/`),
+          users: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
+          byUser(userId: string) {
+            return {
+              get: requestGenerator(
+                HttpMethod.GET,
+                `hosts/${id}/users/${userId}/`
+              ),
+              update: requestGenerator(
+                HttpMethod.PATCH,
+                `hosts/${id}/users/${userId}/`
+              ),
+              delete: requestGenerator(
+                HttpMethod.DELETE,
+                `hosts/${id}/users/${userId}/`
+              ),
+            };
+          },
+          groups: requestGenerator(HttpMethod.GET, `hosts/${id}/groups/`),
+          byGroup(groupId: string) {
+            return {
+              get: requestGenerator(
+                HttpMethod.GET,
+                `hosts/${id}/groups/${groupId}/`
+              ),
+              update: requestGenerator(
+                HttpMethod.PATCH,
+                `hosts/${id}/groups/${groupId}/`
+              ),
+              delete: requestGenerator(
+                HttpMethod.DELETE,
+                `hosts/${id}/groups/${groupId}/`
+              ),
+            };
+          },
+          attributes: requestGenerator(
+            HttpMethod.GET,
+            `hosts/${id}/attributes/`
+          ),
+          addresses: requestGenerator(HttpMethod.GET, `hosts/${id}/addresses/`),
+          byAddress(addressId: string) {
+            return {
+              get: requestGenerator(
+                HttpMethod.GET,
+                `hosts/${id}/addresses/${addressId}/`
+              ),
+              update: requestGenerator(
+                HttpMethod.PATCH,
+                `hosts/${id}/addresses/${addressId}/`
+              ),
+              delete: requestGenerator(
+                HttpMethod.DELETE,
+                `hosts/${id}/addresses/${addressId}/`
+              ),
+            };
+          },
+          leases: requestGenerator(HttpMethod.GET, `hosts/${id}/leases/`),
         };
       },
     },

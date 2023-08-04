@@ -28,6 +28,35 @@ export type Log = {
   body: string;
 };
 
+export type Host = {
+  mac: string;
+  hostname: string;
+  expires: string;
+  description: string;
+  changed_by: {
+    first_name: string;
+    last_name: string;
+    username: string;
+    email: string;
+  };
+  changed: string;
+  user_owners: string[];
+  group_owners: string[];
+  addresses: {
+    leased: string[];
+    static: string[];
+  };
+  attributes: Record<string, string>;
+  is_dynamic: boolean;
+  disabled_host: boolean;
+  master_ip_address: string;
+  dhcp_group: {
+    id: number;
+    name: string;
+    description: string;
+  };
+};
+
 export type Domain = {
   id: number;
   name: string;

@@ -24,7 +24,13 @@ const routes: RouteObject[] = [
       },
       {
         path: "hosts",
-        element: <Hosts />, //HostLayout
+        // element: <Hosts />, //HostLayout
+        children: [
+          {
+            path: "",
+            element: <Hosts />,
+          },
+        ],
       },
       {
         path: "domains",

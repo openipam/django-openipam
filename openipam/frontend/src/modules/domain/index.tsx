@@ -119,7 +119,7 @@ export const DomainPage = () => {
       </div>
       {/* table for dns info */}
       <div className="flex flex-col gap-4 m-8">
-        <Table table={data.table} loading={false} />
+        <Table table={data.table} loading={data.loading} />
       </div>
       <AddDnsModule
         domain={domain ?? ""}

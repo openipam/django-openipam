@@ -15,7 +15,6 @@ from ..serializers.hosts import (
     DisabledHostSerializer,
     AttributeSerializer,
 )
-from ..filters.base import FieldSearchFilterBackend
 from .. import permissions as api_permissions
 from rest_framework import permissions as base_permissions, views
 from .base import APIModelViewSet
@@ -38,6 +37,31 @@ class HostViewSet(APIModelViewSet):
     """API endpoint that allows hosts to be viewed or edited."""
 
     queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        mac = self.request.query_params.get("mac", None)
+        hostname = self.request.query_params.get("hostname", None)
+        # master_ip_address = self.request.query_params.get("master_ip_address", None)
+        expires = self.request.query_params.get("expires", None)
+        dhcp_group = self.request.query_params.get("dhcp_group", None)
+        if mac:
+            queryset = queryset.filter(mac__icontains=mac)
+        if hostname:
+            queryset = queryset.filter(hostname__icontains=hostname)
+        # if master_ip_address:
+        # queryset = queryset.filter(master_ip_address__icontains=master_ip_address)
+        if expires:
+            expires = expires.split(",")
+            if expires[0] == "":
+                expires[0] = timezone.datetime(1970, 1, 1, 0, 0, 0)
+            if expires[1] == "":
+                expires[1] = timezone.datetime(2999, 12, 31, 23, 59, 59)
+            queryset = queryset.filter(expires__range=expires)
+        if dhcp_group:
+            queryset = queryset.filter(dhcp_group__name__icontains=dhcp_group)
+        return queryset
+
     permission_classes = [
         api_permissions.HostPermission,
     ]
@@ -78,9 +102,7 @@ class DisableView(views.APIView):
         """Post."""
         mac = kwargs["mac"]
         reason = request.data.get("reason", "No reason given")
-        disabled = DisabledHost.objects.create(
-            mac=mac, reason=reason, changed_by=request.user
-        )
+        disabled = DisabledHost.objects.create(mac=mac, reason=reason, changed_by=request.user)
         serializer = DisabledHostSerializer(disabled)
         data = serializer.data.copy()
         data["disabled"] = True
@@ -169,9 +191,7 @@ class UserOwnerView(views.APIView):
         mac = kwargs["mac"]
         username = kwargs.get("username")
         if username is not None:
-            return Response(
-                {"detail": f"Cannot POST to /hosts/{mac}/users/{username}/"}, status=405
-            )
+            return Response({"detail": f"Cannot POST to /hosts/{mac}/users/{username}/"}, status=405)
         host = get_object_or_404(Host, mac=mac)
         self.check_object_permissions(request, host)
         for username in request.data:
@@ -211,9 +231,7 @@ class UserOwnerView(views.APIView):
         mac = kwargs["mac"]
         username = kwargs.get("username")
         if username is None and not request.user.is_ipamadmin:
-            return Response(
-                {"detail": "Cannot DELETE to /hosts/<mac>/users/"}, status=405
-            )
+            return Response({"detail": "Cannot DELETE to /hosts/<mac>/users/"}, status=405)
         elif request.user.is_ipamadmin:
             host = get_object_or_404(Host, mac=mac)
             # User is admin, no need to check permissions
@@ -228,7 +246,7 @@ class UserOwnerView(views.APIView):
                 object_id=host.pk,
                 object_repr=str(host.mac),
                 action=CHANGE,
-                change_message=f"Removed all user owners",
+                change_message="Removed all user owners",
             )
             return Response(status=204)
         user = get_object_or_404(User, username=username)
@@ -256,9 +274,7 @@ class UserOwnerView(views.APIView):
         mac = kwargs["mac"]
         username = kwargs.get("username")
         if username is not None:
-            return Response(
-                {"detail": "Cannot PUT to /hosts/<mac>/users/<username>/"}, status=405
-            )
+            return Response({"detail": "Cannot PUT to /hosts/<mac>/users/<username>/"}, status=405)
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
         self.check_object_permissions(request, host)
@@ -342,9 +358,7 @@ class GroupOwnerView(views.APIView):
         """Delete."""
         host = get_object_or_404(Host, mac=mac)
         if groupname is None and not request.user.is_ipamadmin:
-            return Response(
-                {"detail": f"Cannot DELETE to /hosts/{mac}/groups/"}, status=405
-            )
+            return Response({"detail": f"Cannot DELETE to /hosts/{mac}/groups/"}, status=405)
         elif request.user.is_ipamadmin:
             # User is admin, no need to check permissions
             # Delete ownership records
@@ -358,7 +372,7 @@ class GroupOwnerView(views.APIView):
                 object_id=host.pk,
                 object_repr=str(host.mac),
                 action=CHANGE,
-                change_message=f"Removed all group owners",
+                change_message="Removed all group owners",
             )
             return Response(status=204)
         group = get_object_or_404(Group, name=groupname)
@@ -427,14 +441,10 @@ class HostAttributesView(views.APIView):
         structured_attrs = StructuredAttributeToHost.objects.select_related(
             "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related(
-            "attribute"
-        ).filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related("attribute").filter(host=host)
         attributes = {}
         for attr in structured_attrs:
-            attributes[
-                attr.structured_attribute_value.attribute.name
-            ] = attr.structured_attribute_value.value
+            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return Response(attributes, status=status.HTTP_200_OK)
@@ -487,7 +497,7 @@ class HostAttributesView(views.APIView):
             object_id=host.pk,
             object_repr=str(host.mac),
             action=CHANGE,
-            change_message=f"Cleared all attributes",
+            change_message="Cleared all attributes",
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -539,9 +549,7 @@ class AddressView(views.APIView):
             )
 
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
                 {"detail": "You do not have permission to add addresses to this host."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -602,13 +610,9 @@ class AddressView(views.APIView):
 
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
-                {
-                    "detail": "You do not have permission to remove addresses from this host."
-                },
+                {"detail": "You do not have permission to remove addresses from this host."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -648,9 +652,7 @@ class LeasesView(views.APIView):
         # If the user asks for expired leases, return them all
         if request.query_params.get("show_expired") is None:
             leases = leases.filter(ends__gt=timezone.now())
-        elif not api_permissions.HostPermission().has_object_permission(
-            request, self, host, check_for_read=True
-        ):
+        elif not api_permissions.HostPermission().has_object_permission(request, self, host, check_for_read=True):
             # If the user asks for expired leases and does not have
             # permission to view historical data, restrict them to
             # active ones anyways.
