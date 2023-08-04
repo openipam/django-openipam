@@ -52,7 +52,7 @@ export const EditDnsModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Dns</h1>
+          <h1 className="text-2xl font-bold mb-4">Edit Dns</h1>
           <pre>{JSON.stringify(p.DnsData, null, 2)}</pre>
           <form
             className="flex flex-col gap-4"
