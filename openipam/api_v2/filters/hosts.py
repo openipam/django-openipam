@@ -66,9 +66,7 @@ class HostFilter(filters.FilterSet):
         except Group.DoesNotExist:
             return queryset.none()
 
-        return get_objects_for_group(
-            group, "hosts.is_owner_host", queryset, with_superuser=False
-        )
+        return get_objects_for_group(group, "hosts.is_owner_host", queryset)
 
     def filter_ip_address(self, queryset, name, value):
         """Filter based on IP address."""
