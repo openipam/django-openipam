@@ -83,10 +83,31 @@ export const useHostsTable = (p: {
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
-      columnFilters.map((filter) => [
-        filter.id,
-        filter.value as string | number,
-      ])
+      columnFilters
+        .map((filter) => [
+          filter.id,
+          filter.value as string | number | string[],
+        ])
+        .map(([key, val]) => {
+          switch (key) {
+            case "expires":
+              console.log("\n val is \n", val);
+              return [`expires__gt`, (val as string[])[1] ?? ""];
+            case "changed":
+              return [
+                `changed__lt=${(val as string[])[0]}&changed__gt`,
+                (val as string[])[1] ?? "",
+              ];
+            case "mac":
+              return [`mac`, val ?? ""];
+            case "hostname":
+              return [`hostname`, val ?? ""];
+            case "group_owners":
+              return [`group`, val ?? ""];
+            default:
+              return [key, val ?? ""];
+          }
+        })
     ),
   });
   const Hosts = useMemo<Host[]>(() => {
@@ -221,7 +242,7 @@ export const useHostsTable = (p: {
         },
         {
           id: "disabled_host",
-          size: 50,
+          size: 75,
           header: "Disabled Host",
           accessorFn: booleanAccessor("disabled_host"),
           cell: BooleanRender,
@@ -231,7 +252,7 @@ export const useHostsTable = (p: {
         },
         {
           id: "is_dynamic",
-          size: 50,
+          size: 75,
           header: "Dynamic",
           cell: BooleanRender,
           accessorFn: booleanAccessor("is_dynamic"),
