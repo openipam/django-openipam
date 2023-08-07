@@ -2,6 +2,9 @@ import React from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateDnsRecord } from "../../utils/types";
 
+// ip for type A, ipv6
+//ip needs to be an existing address
+
 export const AddDnsModule = (p: {
   domain: string;
   showModule: boolean;

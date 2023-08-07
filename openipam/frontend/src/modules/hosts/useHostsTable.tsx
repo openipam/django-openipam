@@ -21,30 +21,15 @@ import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
 //TODO disabled columns only shows for admins. Master_ip defaults to leased if no static
 
-const getList = (obj: Record<string, string>) => {
-  return (
-    <div className="">
-      {Object.entries(obj ?? {}).map(([key, val]) => (
-        <div key={Math.random()}>
-          <div key={Math.random()} className="font-bold">
-            {key}:
-          </div>
-          <div key={Math.random()} className="">
-            {" "}
-            {val}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
     queryKey: ["Hosts, all", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.hosts.get({ page: pageParam, ...p });
+      const results = await api.hosts.get({
+        page: pageParam,
+        ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
+      });
       return {
         results: results.results,
         page: pageParam,
@@ -90,14 +75,6 @@ export const useHostsTable = (p: {
         ])
         .map(([key, val]) => {
           switch (key) {
-            case "expires":
-              console.log("\n val is \n", val);
-              return [`expires__gt`, (val as string[])[1] ?? ""];
-            case "changed":
-              return [
-                `changed__lt=${(val as string[])[0]}&changed__gt`,
-                (val as string[])[1] ?? "",
-              ];
             case "mac":
               return [`mac`, val ?? ""];
             case "hostname":
@@ -109,6 +86,14 @@ export const useHostsTable = (p: {
           }
         })
     ),
+    expires__gt: columnFilters.find((filter) => filter.id === "expires")
+      ?.value as string[][0],
+    expires__lt: columnFilters.find((filter) => filter.id === "expires")
+      ?.value as string[][1],
+    changed_gt: columnFilters.find((filter) => filter.id === "changed")
+      ?.value as string[][1],
+    changed__lt: columnFilters.find((filter) => filter.id === "changed")
+      ?.value as string[][1],
   });
   const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
@@ -197,6 +182,7 @@ export const useHostsTable = (p: {
           meta: {
             filterType: "string",
           },
+          filterFn: undefined,
         },
         {
           id: "hostname",
@@ -205,6 +191,7 @@ export const useHostsTable = (p: {
           meta: {
             filterType: "string",
           },
+          filterFn: undefined,
         },
       ],
     }),
@@ -222,7 +209,7 @@ export const useHostsTable = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
+          filterFn: undefined,
         },
         {
           id: "master_ip_address",
