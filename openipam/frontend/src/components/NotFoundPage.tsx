@@ -1,6 +1,6 @@
 import React from "react";
 //@ts-ignore
-import NotFound from "../assets/NotFound.png";
+import NotFound from "../../public/NotFound.png";
 const screenWidth = window.screen.width;
 const screenHeight = window.screen.height;
 export const NotFoundPage = () => {

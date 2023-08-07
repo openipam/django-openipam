@@ -11,29 +11,30 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter, stringFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore } from "@mui/icons-material";
-import { DNS_TYPES, DnsRecord } from "../../utils/types";
+import { ExpandMore } from "@mui/icons-material";
+import { Log, LogActions, LogTypes } from "../../utils/types";
 
 //TODO search permissions
 
-const DNSLookupKeys = ["name", "content", "dns_type", "host"];
-
-export const useInfiniteDomain = (p: {
-  domain: string;
-  [key: string]: string;
-}) => {
+export const useInfiniteLogs = (p: { [key: string]: string }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["domain", ...Object.entries(p).flat()],
+    queryKey: ["logs", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains
-        .byId(p.domain)
-        .dns.get({ page: pageParam, ...p });
+      if (p.type === "email") {
+        const results = await api.logs.getEmails({ page: pageParam, ...p });
+        return {
+          emails: results.results,
+          page: pageParam,
+          nextPage: results.next,
+        };
+      }
+      const results = await api.logs.get({ page: pageParam, ...p });
       return {
-        dns: results.results,
+        logs: results.results,
         page: pageParam,
         nextPage: results.next,
       };
@@ -56,38 +57,51 @@ export const useInfiniteDomain = (p: {
   return query;
 };
 
-export const useDomainTable = (p: {
-  domain: string;
-  setShowModule: any;
-  setEditModule: any;
-}) => {
+const logSearchFields = ["user", "action_flag"];
+
+export const useLogsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [prevData, setPrevData] = useState<DnsRecord[]>([]);
+  const [prevData, setPrevData] = useState<Log[]>([]);
+  const [emailView, setEmailView] = useState<boolean>(false);
 
-  const data = useInfiniteDomain({
-    ...p,
+  useEffect(() => {
+    setEmailView(
+      !!columnFilters.filter((f) => f.id === "type" && f.value === "email")
+        .length
+    );
+  }, [columnFilters]);
+
+  const data = useInfiniteLogs({
     ...Object.fromEntries(
       columnFilters
-        .filter((f) => DNSLookupKeys.includes(f.id))
+        .filter(
+          (f) =>
+            logSearchFields.includes(f.id) ||
+            (f.id === "type" &&
+              LogTypes.includes(f.value as typeof LogTypes[number]))
+        )
         .map((filter) => [filter.id, filter.value as string])
     ),
   });
-  const dns = useMemo<DnsRecord[]>(() => {
+  const logs = useMemo<Log[]>(() => {
+    if (data.isFetching) {
+      return [];
+    }
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
-    return data.data.pages.flatMap((page) => page.dns);
+    return data.data.pages.flatMap((page) => page.logs ?? page.emails);
   }, [data.data]);
 
   useEffect(() => {
     if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.dns)]);
+      setPrevData(() => [...data.data.pages.flatMap((page) => page.logs)]);
     }
   }, [data.data]);
 
-  const columnHelper = createColumnHelper<DnsRecord>();
+  const columnHelper = createColumnHelper<Log>();
   const columns = [
     {
       size: 100,
@@ -111,14 +125,6 @@ export const useDomainTable = (p: {
               <ExpandMore />
             </button>
           </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowModule(true);
-            }}
-          >
-            <Add />
-          </button>
         </div>
       ),
       cell: ({ row }: { row: any }) => (
@@ -136,17 +142,6 @@ export const useDomainTable = (p: {
           >
             <Visibility fontSize="small" />
           </button> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditModule({
-                show: true,
-                DnsData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
         </div>
       ),
     },
@@ -155,62 +150,86 @@ export const useDomainTable = (p: {
       header: "Identification",
       columns: [
         {
-          id: "name",
-          header: "Name",
-          accessorFn: (row) => row.name,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "content",
-          header: "Content",
-          accessorFn: (row) => row.content,
-          meta: {
-            filterType: "string",
-          },
-        },
-      ],
-    }),
-    columnHelper.group({
-      id: "Other Details",
-      header: "Other Details",
-      columns: [
-        {
-          id: "dns_type",
+          id: "type",
           header: "Type",
-          accessorFn: (row) => row.dns_type,
+          accessorFn: (row) => row.content_type ?? "email",
           meta: {
             filterType: "exact",
-            filterOptions: DNS_TYPES,
+            filterOptions: LogTypes.map((type) => type),
           },
         },
         {
-          id: "ttl",
-          header: "Ttl",
-          accessorFn: (row) => row.ttl,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "host",
-          header: "Host",
-          accessorFn: (row) => row.host,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "url",
-          header: "URL",
-          accessorFn: (row) => row.url,
+          id: emailView ? "to" : "user",
+          header: emailView ? "To" : "User",
+          accessorFn: (row) => row.user ?? row.to,
           meta: {
             filterType: "string",
           },
         },
       ],
     }),
+    emailView
+      ? columnHelper.group({
+          id: "Email Details",
+          header: "Email Details",
+          columns: [
+            {
+              id: "subject",
+              header: "Subject",
+              accessorFn: (row) => row.subject,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "body",
+              header: "Body",
+              accessorFn: (row) => row.body?.slice(0, 50) + "...",
+              meta: {
+                filterType: "string",
+              },
+            },
+          ],
+        })
+      : columnHelper.group({
+          id: "Other Details",
+          header: "Other Details",
+          columns: [
+            {
+              id: "action_flag",
+              header: "Action",
+              accessorFn: (row) => row.action_flag,
+              meta: {
+                filterType: "exact",
+                filterOptions: LogActions.map((action) => action),
+              },
+            },
+            {
+              id: "action_time",
+              header: "Time",
+              accessorFn: (row) => row.action_time,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "object_repr",
+              header: "Object",
+              accessorFn: (row) => row.object_repr,
+              meta: {
+                filterType: "string",
+              },
+            },
+            {
+              id: "change_message",
+              header: "Message",
+              accessorFn: (row) => row.change_message,
+              meta: {
+                filterType: "string",
+              },
+            },
+          ],
+        }),
   ];
 
   const table = useReactTable({
@@ -226,7 +245,7 @@ export const useDomainTable = (p: {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    data: dns,
+    data: logs,
     state: {
       columnFilters,
       get globalFilter() {
@@ -248,6 +267,6 @@ export const useDomainTable = (p: {
       loading: data.isFetching,
       table,
     }),
-    [data.data, data.isFetching]
+    [data.data, logs, data.isFetching, columns]
   );
 };

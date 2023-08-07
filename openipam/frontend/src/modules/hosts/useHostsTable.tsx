@@ -16,14 +16,15 @@ import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { Domain } from "../../utils/types";
+import { Host } from "../../utils/types";
+import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
 //TODO search permissions
 
-const getPerms = (perms: Record<string, string>) => {
+const getList = (obj: Record<string, string>) => {
   return (
     <div className="">
-      {Object.entries(perms ?? {}).map(([key, val]) => (
+      {Object.entries(obj ?? {}).map(([key, val]) => (
         <div key={Math.random()}>
           <div key={Math.random()} className="font-bold">
             {key}:
@@ -38,12 +39,12 @@ const getPerms = (perms: Record<string, string>) => {
   );
 };
 
-export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
+export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["domains, all", ...Object.entries(p).flat()],
+    queryKey: ["Hosts, all", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains.get({ page: pageParam, ...p });
+      const results = await api.hosts.get({ page: pageParam, ...p });
       return {
         results: results.results,
         page: pageParam,
@@ -68,17 +69,19 @@ export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
   return query;
 };
 
-export const useDomainsTable = (p: {
-  setShowAddDomain: any;
-  setEditDomain: any;
+export const useHostsTable = (p: {
+  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditHost: React.Dispatch<
+    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [prevData, setPrevData] = useState<Domain[]>([]);
+  const [prevData, setPrevData] = useState<Host[]>([]);
   const navigate = useNavigate();
 
-  const data = useInfiniteDomains({
+  const data = useInfiniteHosts({
     ...Object.fromEntries(
       columnFilters.map((filter) => [
         filter.id,
@@ -86,7 +89,7 @@ export const useDomainsTable = (p: {
       ])
     ),
   });
-  const domains = useMemo<Domain[]>(() => {
+  const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
@@ -99,7 +102,7 @@ export const useDomainsTable = (p: {
     }
   }, [data.data]);
 
-  const columnHelper = createColumnHelper<Domain>();
+  const columnHelper = createColumnHelper<Host>();
   const columns = [
     {
       size: 100,
@@ -126,7 +129,7 @@ export const useDomainsTable = (p: {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              p.setShowAddDomain((prev: boolean) => !prev);
+              p.setShowAddHost((prev: boolean) => !prev);
             }}
           >
             <Add />
@@ -143,17 +146,17 @@ export const useDomainsTable = (p: {
             /> */}
           <button
             className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/domains/${row.original.name}`)}
-            disabled={!row.original.name}
+            onClick={() => navigate(`/Hosts/${row.original.mac}`)}
+            disabled={!row.original.mac}
           >
             <Visibility fontSize="small" />
           </button>
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              p.setEditDomain({
+              p.setEditHost({
                 show: true,
-                domainData: row.original,
+                HostData: row.original,
               });
             }}
           >
@@ -167,45 +170,17 @@ export const useDomainsTable = (p: {
       header: "Identification",
       columns: [
         {
-          id: "name",
-          header: "Name",
-          accessorFn: (row) => row.name,
+          id: "mac",
+          header: "Mac",
+          accessorFn: (row) => row.mac,
           meta: {
             filterType: "string",
           },
         },
         {
-          id: "description",
-          header: "Description",
-          accessorFn: (row) => row.description,
-          meta: {
-            filterType: "string",
-          },
-        },
-      ],
-    }),
-    columnHelper.group({
-      id: "Permissions",
-      header: "Permissions",
-      columns: [
-        {
-          id: "user_perms",
-          size: 200,
-          header: "User Permissions",
-          cell: ({ row }: { row: any }) => {
-            return getPerms(row.original.user_perms);
-          },
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "group_perms",
-          size: 200,
-          header: "Group Permissions",
-          cell: ({ row }: { row: any }) => {
-            return getPerms(row.original.group_perms);
-          },
+          id: "hostname",
+          header: "Hostname",
+          accessorFn: (row) => row.hostname,
           meta: {
             filterType: "string",
           },
@@ -213,23 +188,15 @@ export const useDomainsTable = (p: {
       ],
     }),
     columnHelper.group({
-      id: "Other Details",
-      header: "Other Details",
+      id: "Primary Details",
+      header: "Primary Details",
       columns: [
         {
-          id: "master",
-          header: "Master",
-          accessorFn: (row) => row.master,
-          meta: {
-            filterType: "string",
-          },
-        },
-        {
-          id: "changed",
-          header: "Last Changed",
+          id: "expires",
+          header: "Expires",
           accessorFn: (row) =>
-            row.changed
-              ? new Date(row.changed).toISOString().split("T")[0]
+            row.expires
+              ? new Date(row.expires).toISOString().split("T")[0]
               : null,
           meta: {
             filterType: "date",
@@ -237,15 +204,93 @@ export const useDomainsTable = (p: {
           filterFn: betweenDatesFilter,
         },
         {
-          id: "changedBy",
-          header: "Changed By",
-          accessorFn: (row) => row.changed_by,
+          id: "master_ip_address",
+          header: "Master IP Address",
+          accessorFn: (row) => row.master_ip_address,
+          meta: {
+            filterType: "string",
+          },
+        },
+        {
+          id: "dhcp_group",
+          header: "DHCP Group",
+          accessorFn: (row) => row.dhcp_group?.name,
+          meta: {
+            filterType: "string",
+          },
+        },
+        {
+          id: "disabled_host",
+          size: 50,
+          header: "Disabled Host",
+          accessorFn: booleanAccessor("disabled_host"),
+          cell: BooleanRender,
+          meta: {
+            filterType: "boolean",
+          },
+        },
+        {
+          id: "is_dynamic",
+          size: 50,
+          header: "Dynamic",
+          cell: BooleanRender,
+          accessorFn: booleanAccessor("is_dynamic"),
+          meta: {
+            filterType: "boolean",
+          },
+        },
+      ],
+    }),
+    columnHelper.group({
+      id: "Owners",
+      header: "Owners",
+      columns: [
+        {
+          id: "user_owners",
+          header: "User Owners",
+          size: 200,
+          accessorFn: (row) => row.user_owners?.join(",\n"),
+          meta: {
+            filterType: "string",
+          },
+        },
+        {
+          id: "group_owners",
+          header: "Group Owners",
+          size: 200,
+          accessorFn: (row) => row.group_owners?.join(",\n"),
           meta: {
             filterType: "string",
           },
         },
       ],
     }),
+    // columnHelper.group({
+    //   id: "Changed",
+    //   header: "Changed",
+    //   columns: [
+    //     {
+    //       id: "changed",
+    //       header: "Last Changed",
+    //       accessorFn: (row) =>
+    //         row.changed
+    //           ? new Date(row.changed).toISOString().split("T")[0]
+    //           : null,
+    //       meta: {
+    //         filterType: "date",
+    //       },
+    //       filterFn: betweenDatesFilter,
+    //     },
+    //     {
+    //       id: "changedBy",
+    //       header: "Changed By",
+    //       accessorFn: (row) => row.changed_by.username,
+    //       meta: {
+    //         filterType: "string",
+    //       },
+    //     },
+    //   ],
+    // }),
   ];
 
   const table = useReactTable({
@@ -261,7 +306,7 @@ export const useDomainsTable = (p: {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    data: domains,
+    data: Hosts,
     state: {
       columnFilters,
       get globalFilter() {

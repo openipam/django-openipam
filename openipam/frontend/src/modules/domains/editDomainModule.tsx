@@ -1,31 +1,22 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-
-type Domain = {
-  name: string;
-  description: string | undefined;
-  master: string | undefined;
-  changed: string | undefined;
-  type: string | undefined;
-  notified_serial: string | undefined;
-  account: string | undefined;
-  last_check: string | undefined;
-  //   user_perms: Record<string, string>;
-  //   group_perms: Record<string, string>;
-};
+import { CreateDomain } from "../../utils/types";
 
 export const EditDomainModule = (p: {
-  domainData: Domain | undefined;
+  domainData: CreateDomain | undefined;
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
-  const updateDomain = async (domainData: Domain) => {
+  const updateDomain = async (domainData: CreateDomain) => {
     const results = await api.domains
       .byId(domainData.name)
       .update({ ...domainData });
-    console.log(results);
-    alert(`successfully created ${domainData.name}`);
+    alert(`successfully edited ${domainData.name}`);
+    p.setShowModule({
+      show: false,
+      domainData: undefined,
+    });
   };
   return (
     <>
@@ -61,7 +52,7 @@ export const EditDomainModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Domain</h1>
+          <h1 className="text-2xl font-bold mb-4">Edit Domain</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -167,12 +158,6 @@ export const EditDomainModule = (p: {
               <button
                 type="submit"
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
-                onClick={() =>
-                  p.setShowModule({
-                    show: false,
-                    domainData: undefined,
-                  })
-                }
               >
                 Update Domain
               </button>

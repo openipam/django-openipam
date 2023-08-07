@@ -20,6 +20,7 @@ export const stringFilter: FilterFn<any> = (
   filterValue,
   addMeta
 ) => {
+  console.log("stringFilter");
   // Rank the item
   const v = row.getValue(columnId) as string | undefined;
   // test to see if v is included in value

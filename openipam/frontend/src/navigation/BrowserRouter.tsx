@@ -24,7 +24,22 @@ const routes: RouteObject[] = [
       },
       {
         path: "hosts",
-        element: <Hosts />, //HostLayout
+        // element: <Hosts />, //HostLayout
+        children: [
+          {
+            path: "",
+            element: <Hosts />,
+          },
+          {
+            path: ":mac",
+            lazy: async () => {
+              const { HostPage: Host } = await import("../modules/host");
+              return {
+                element: <Host />,
+              };
+            },
+          },
+        ],
       },
       {
         path: "domains",
@@ -37,9 +52,24 @@ const routes: RouteObject[] = [
           {
             path: ":domain",
             lazy: async () => {
-              const { Domain } = await import("../modules/domain");
+              const { DomainPage: Domain } = await import("../modules/domain");
               return {
                 element: <Domain />,
+              };
+            },
+          },
+        ],
+      },
+      {
+        path: "admin",
+        // element: <></>, //AdminLayout
+        children: [
+          {
+            path: "logs",
+            lazy: async () => {
+              const { Logs } = await import("../modules/logs");
+              return {
+                element: <Logs />,
               };
             },
           },

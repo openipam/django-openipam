@@ -1,15 +1,6 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-
-type DnsRecord = {
-  ip_content: string | undefined;
-  text_content: string | undefined;
-  content: string | undefined;
-  name: string;
-  ttl: number;
-  dns_type: string;
-  id: number;
-};
+import { CreateDnsRecord, DnsRecord } from "../../utils/types";
 
 export const EditDnsModule = (p: {
   DnsData: DnsRecord | undefined;
@@ -18,10 +9,9 @@ export const EditDnsModule = (p: {
   setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
-  const updateDns = async (DnsData: DnsRecord) => {
+  const updateDns = async (DnsData: CreateDnsRecord) => {
     const results = await api.dns.byId(p.DnsData!.id).update({ ...DnsData });
-    console.log(results);
-    alert(`successfully created ${DnsData.name}`);
+    alert(`successfully edited ${DnsData.name}`);
     p.setShowModule({
       show: false,
       DnsData: undefined,
@@ -61,7 +51,7 @@ export const EditDnsModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Dns</h1>
+          <h1 className="text-2xl font-bold mb-4">Edit Dns</h1>
           <pre>{JSON.stringify(p.DnsData, null, 2)}</pre>
           <form
             className="flex flex-col gap-4"
