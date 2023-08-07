@@ -5,6 +5,9 @@ export const useApi = () => {
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
       create: requestGenerator(HttpMethod.POST, "dns/"),
+      types: requestGenerator(HttpMethod.GET, "dns-types/"),
+      veiws: requestGenerator(HttpMethod.GET, "dns-views/"),
+      dhcp: requestGenerator(HttpMethod.GET, "dhcp-dns/"),
       byId(id: number) {
         return {
           get: requestGenerator(HttpMethod.GET, `dns/${id}/`),

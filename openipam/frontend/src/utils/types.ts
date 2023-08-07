@@ -86,6 +86,14 @@ export type CreateDomain = Omit<
   "id" | "changed_by" | "changed" | "user_perms" | "group_perms"
 >;
 
+export type DhcpRecord = {
+  id: number;
+  host: string;
+  ttl: number;
+  changed: string;
+  ip_content: string;
+};
+
 export type DnsRecord = {
   ip_content: string | undefined;
   text_content: string | undefined;

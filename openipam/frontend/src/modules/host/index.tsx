@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
 import { Host } from "../../utils/types";
 import { useAddressesTable } from "./useAddressesTable";
+import { Tabs } from "../../components/tabs";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -29,22 +30,7 @@ export const HostPage = () => {
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">{mac}</h1>
-      <div className="tabs flex flex-row gap-4 m-8 justify-center items-center content-center">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            className={`tab btn btn-ghost btn-outline ${
-              tab === t
-                ? "btn-primary btn-disabled disabled:text-gray-500"
-                : "btn-ghost-secondary text-gray-300"
-            }`}
-            disabled={tab === t}
-            onClick={() => setTab(t)}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={tabs} tab={tab} setTab={setTab} props={"m-8"} />
       {/* card displayig Host information */}
       {tab === "Info" && (
         <div className="card w-[80%] md:w-[40rem] bg-gray-600 shadow-xl">
