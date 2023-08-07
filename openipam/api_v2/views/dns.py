@@ -321,3 +321,13 @@ class DhcpDnsRecordsList(generics.ListAPIView):
     filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
     filter_staff_sees_all = True
     queryset = DhcpDnsRecord.objects.all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        domain = self.request.query_params.get("domain", None)
+        ip_content = self.request.query_params.get("ip_content", None)
+        if domain:
+            queryset = queryset.filter(domain__name__endswith=domain)
+        if ip_content:
+            queryset = queryset.filter(ip_content__ip_lower=ip_content)
+        return queryset
