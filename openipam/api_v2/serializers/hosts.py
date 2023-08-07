@@ -80,9 +80,23 @@ class HostSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         """Get attributes for host."""
 
-        attributes = AttributeToHost.objects.filter(mac=obj.mac)
-        data = {attr.name: attr.value for attr in attributes}
-        return data
+        structured_attrs = StructuredAttributeToHost.objects.filter(
+            host=obj
+        ).select_related(
+            "structured_attribute_value__attribute",
+            "structured_attribute_value",
+        )
+        freeform_attrs = FreeformAttributeToHost.objects.filter(
+            host=obj
+        ).select_related("attribute")
+        attributes = {}
+        for attr in structured_attrs:
+            attributes[
+                attr.structured_attribute_value.attribute.name
+            ] = attr.structured_attribute_value.value
+        for attr in freeform_attrs:
+            attributes[attr.attribute.name] = attr.value
+        return attributes
 
     class Meta:
         """Meta class."""
