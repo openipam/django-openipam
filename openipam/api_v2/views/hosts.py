@@ -20,6 +20,7 @@ from rest_framework import permissions as base_permissions, views
 from .base import APIModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
@@ -37,6 +38,7 @@ class HostViewSet(APIModelViewSet):
     """API endpoint that allows hosts to be viewed or edited."""
 
     queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
+    lookup_field = "mac"
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -49,7 +51,9 @@ class HostViewSet(APIModelViewSet):
         is_dynamic = self.request.query_params.get("is_dynamic", None)
         if disabled_host:
             if disabled_host == "Y":
-                disabled_hosts = DisabledHost.objects.all().values_list("mac", flat=True)
+                disabled_hosts = DisabledHost.objects.all().values_list(
+                    "mac", flat=True
+                )
                 queryset = queryset.filter(mac__in=disabled_hosts)
         if mac:
             queryset = queryset.filter(mac__icontains=mac)
@@ -70,7 +74,9 @@ class HostViewSet(APIModelViewSet):
             if is_dynamic == "Y":
                 queryset = queryset.filter(Q(pools__isnull=False))
             elif is_dynamic == "N":
-                queryset = queryset.filter(Q(pools__isnull=True) & Q(addresses__isnull=True))
+                queryset = queryset.filter(
+                    Q(pools__isnull=True) & Q(addresses__isnull=True)
+                )
         return queryset
 
     permission_classes = [
@@ -88,6 +94,101 @@ class HostViewSet(APIModelViewSet):
     def perform_destroy(self, instance):
         """Perform destroy."""
         instance.delete(user=self.request.user)
+
+    @action(detail=True, methods=["get"])
+    def addresses(self, request, *args, mac, **kwargs):
+        """Get addresses."""
+        return AddressView().get(request, *args, mac=mac, **kwargs)
+
+    @addresses.mapping.post
+    def addresses_post(self, request, *args, mac, **kwargs):
+        """Post addresses."""
+        return AddressView().post(request, *args, mac=mac, **kwargs)
+
+    @addresses.mapping.delete
+    def addresses_delete(self, request, *args, mac, **kwargs):
+        """Delete addresses."""
+        return AddressView().delete(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["get"])
+    def leases(self, request, *args, mac, **kwargs):
+        """Get leases."""
+        return LeasesView().get(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["get"])
+    def attributes(self, request, *args, mac, **kwargs):
+        """Get attributes."""
+        return HostAttributesView().get(request, *args, mac=mac, **kwargs)
+
+    @attributes.mapping.post
+    def attributes_post(self, request, *args, mac, **kwargs):
+        """Post attributes."""
+        return HostAttributesView().post(request, *args, mac=mac, **kwargs)
+
+    @attributes.mapping.patch
+    def attributes_patch(self, request, *args, mac, **kwargs):
+        """Patch attributes."""
+        return HostAttributesView().patch(request, *args, mac=mac, **kwargs)
+
+    @attributes.mapping.delete
+    def attributes_delete(self, request, *args, mac, **kwargs):
+        """Delete attributes."""
+        return HostAttributesView().delete(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["get"])
+    def users(self, request, *args, mac, **kwargs):
+        """Get users."""
+        return UserOwnerView().get(request, *args, mac=mac, **kwargs)
+
+    @users.mapping.post
+    def users_post(self, request, *args, mac, **kwargs):
+        """Post users."""
+        return UserOwnerView().post(request, *args, mac=mac, **kwargs)
+
+    @users.mapping.delete
+    def users_delete(self, request, *args, mac, **kwargs):
+        """Delete users."""
+        return UserOwnerView().delete(request, *args, mac=mac, **kwargs)
+
+    @users.mapping.put
+    def users_put(self, request, *args, mac, **kwargs):
+        """Put users."""
+        return UserOwnerView().put(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["get"])
+    def groups(self, request, *args, mac, **kwargs):
+        """Get groups."""
+        return GroupOwnerView().get(request, *args, mac=mac**kwargs)
+
+    @groups.mapping.post
+    def groups_post(self, request, *args, mac, **kwargs):
+        """Post groups."""
+        return GroupOwnerView().post(request, *args, mac=mac, **kwargs)
+
+    @groups.mapping.delete
+    def groups_delete(self, request, *args, mac, **kwargs):
+        """Delete groups."""
+        return GroupOwnerView().delete(request, *args, mac=mac, **kwargs)
+
+    @groups.mapping.put
+    def groups_put(self, request, *args, mac, **kwargs):
+        """Put groups."""
+        return GroupOwnerView().put(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["get"])
+    def disabled(self, request, *args, mac, **kwargs):
+        """Get disabled."""
+        return DisableView().get(request, *args, mac=mac, **kwargs)
+
+    @disabled.mapping.post
+    def disabled_post(self, request, *args, mac, **kwargs):
+        """Post disabled."""
+        return DisableView().post(request, *args, mac=mac, **kwargs)
+
+    @disabled.mapping.delete
+    def disabled_delete(self, request, *args, mac, **kwargs):
+        """Delete disabled."""
+        return DisableView().delete(request, *args, mac=mac, **kwargs)
 
 
 class DisableView(views.APIView):
@@ -113,7 +214,9 @@ class DisableView(views.APIView):
         """Post."""
         mac = kwargs["mac"]
         reason = request.data.get("reason", "No reason given")
-        disabled = DisabledHost.objects.create(mac=mac, reason=reason, changed_by=request.user)
+        disabled = DisabledHost.objects.create(
+            mac=mac, reason=reason, changed_by=request.user
+        )
         serializer = DisabledHostSerializer(disabled)
         data = serializer.data.copy()
         data["disabled"] = True
@@ -180,16 +283,8 @@ class UserOwnerView(views.APIView):
 
     GET to /hosts/<mac>/users/ to list all users who own a host. Accessible to all users.
     POST to /hosts/<mac>/users/ to add a user as an owner of a host. Owners only.
-    DELETE to /hosts/<mac>/users/ to clear all owners of a host. Admins only.
+    DELETE to /hosts/<mac>/users/ to remove a user as an owner of a host. Owners only.
     PUT to /hosts/<mac>/users/ to replace all owners of a host. Owners only.
-
-    Above endpoint returns a JSON array of usernames, e.g. ["user1", "user2"], except for DELETE,
-    which returns 204 No Content. POST and PUT take a JSON array of usernames, e.g. ["user1", "user2"].
-
-    GET to /hosts/<mac>/users/<username>/ to check if a user owns a host. Accessible to all users.
-    DELETE to /hosts/<mac>/users/<username>/ to remove a user as an owner of a host. Owners only.
-
-    GET returns a boolean, e.g. true or false. DELETE returns the same JSON array as above.
     """
 
     permission_classes = [
@@ -200,9 +295,6 @@ class UserOwnerView(views.APIView):
         """Post."""
         self.action = "create"
         mac = kwargs["mac"]
-        username = kwargs.get("username")
-        if username is not None:
-            return Response({"detail": f"Cannot POST to /hosts/{mac}/users/{username}/"}, status=405)
         host = get_object_or_404(Host, mac=mac)
         self.check_object_permissions(request, host)
         for username in request.data:
@@ -227,11 +319,6 @@ class UserOwnerView(views.APIView):
         """Get."""
         self.action = "list"
         mac = kwargs["mac"]
-        username = kwargs.get("username")
-        if username is not None:
-            host = get_object_or_404(Host, mac=mac)
-            serializer = HostSerializer(host)
-            return Response(username in serializer.data.get("user_owners"))
         host = get_object_or_404(Host, mac=mac)
         serializer = HostSerializer(host)
         return Response(serializer.data.get("user_owners"))
@@ -240,32 +327,14 @@ class UserOwnerView(views.APIView):
         """Delete."""
         self.action = "destroy"
         mac = kwargs["mac"]
-        username = kwargs.get("username")
-        if username is None and not request.user.is_ipamadmin:
-            return Response({"detail": "Cannot DELETE to /hosts/<mac>/users/"}, status=405)
-        elif request.user.is_ipamadmin:
-            host = get_object_or_404(Host, mac=mac)
-            # User is admin, no need to check permissions
-            # Delete ownership records
-            host.remove_user_owners()
-            # Update changedby field
-            host.save(user=request.user)
-            # Log the event
-            LogEntry.objects.log_action(
-                user_id=request.user.pk,
-                content_type_id=ContentType.objects.get_for_model(host).pk,
-                object_id=host.pk,
-                object_repr=str(host.mac),
-                action=CHANGE,
-                change_message="Removed all user owners",
-            )
-            return Response(status=204)
-        user = get_object_or_404(User, username=username)
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
         self.check_object_permissions(request, host)
-        # Delete ownership record
-        host.remove_owner(user)
+        # Remove listed users
+        for username in request.data:
+            user = get_object_or_404(User, username=username)
+            # Delete ownership record
+            host.remove_owner(user)
         # Update changedby field
         host.save(user=request.user)
         # Log the event
@@ -275,7 +344,7 @@ class UserOwnerView(views.APIView):
             object_id=host.pk,
             object_repr=str(host.mac),
             action=CHANGE,
-            change_message=f"Removed user {user.username} as owner",
+            change_message=f"Removed users {', '.join(request.data)} as owners",
         )
         return Response(host.user_owners)
 
@@ -283,9 +352,6 @@ class UserOwnerView(views.APIView):
         """Put."""
         self.action = "update"
         mac = kwargs["mac"]
-        username = kwargs.get("username")
-        if username is not None:
-            return Response({"detail": "Cannot PUT to /hosts/<mac>/users/<username>/"}, status=405)
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
         self.check_object_permissions(request, host)
@@ -332,12 +398,6 @@ class GroupOwnerView(views.APIView):
 
     def post(self, request, *args, mac, **kwargs):
         """Post."""
-        groupname = kwargs.get("groupname")
-        if groupname is not None:
-            return Response(
-                {"detail": f"Cannot POST to /hosts/{mac}/groups/{groupname}/"},
-                status=405,
-            )
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
         self.check_object_permissions(request, host)
@@ -358,39 +418,20 @@ class GroupOwnerView(views.APIView):
         )
         return Response(host.group_owners)
 
-    def get(self, request, *args, mac, groupname=None, **kwargs):
+    def get(self, request, *args, mac, **kwargs):
         """Get."""
         host = get_object_or_404(Host, mac=mac)
-        if groupname is not None:
-            return Response(groupname in host.group_owners)
         return Response(host.group_owners)
 
-    def delete(self, request, *args, mac, groupname=None, **kwargs):
+    def delete(self, request, *args, mac, **kwargs):
         """Delete."""
         host = get_object_or_404(Host, mac=mac)
-        if groupname is None and not request.user.is_ipamadmin:
-            return Response({"detail": f"Cannot DELETE to /hosts/{mac}/groups/"}, status=405)
-        elif request.user.is_ipamadmin:
-            # User is admin, no need to check permissions
-            # Delete ownership records
-            host.remove_group_owners()
-            # Update the changedby field
-            host.save(user=request.user)
-            # Log the event
-            LogEntry.objects.log_action(
-                user_id=request.user.pk,
-                content_type_id=ContentType.objects.get_for_model(host).pk,
-                object_id=host.pk,
-                object_repr=str(host.mac),
-                action=CHANGE,
-                change_message="Removed all group owners",
-            )
-            return Response(status=204)
-        group = get_object_or_404(Group, name=groupname)
         # Check permissions
         self.check_object_permissions(request, host)
-        # Delete ownership record
-        host.remove_owner(group)
+        for groupname in request.data:
+            group = get_object_or_404(Group, name=groupname)
+            # Delete ownership record
+            host.remove_owner(group)
         # Update the changedby field
         host.save(user=request.user)
         # Log the event
@@ -400,17 +441,12 @@ class GroupOwnerView(views.APIView):
             object_id=host.pk,
             object_repr=str(host.mac),
             action=CHANGE,
-            change_message=f"Removed group {group.name} as owner",
+            change_message=f"Removed groups {', '.join(request.data)} as owners",
         )
         return Response(host.group_owners)
 
-    def put(self, request, *args, mac, username=None, **kwargs):
+    def put(self, request, *args, mac, **kwargs):
         """Put."""
-        if username is not None:
-            return Response(
-                {"detail": f"Cannot PUT to /hosts/{mac}/groups/{username}/"},
-                status=405,
-            )
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
         self.check_object_permissions(request, host)
@@ -452,10 +488,14 @@ class HostAttributesView(views.APIView):
         structured_attrs = StructuredAttributeToHost.objects.select_related(
             "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related("attribute").filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related(
+            "attribute"
+        ).filter(host=host)
         attributes = {}
         for attr in structured_attrs:
-            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
+            attributes[
+                attr.structured_attribute_value.attribute.name
+            ] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return Response(attributes, status=status.HTTP_200_OK)
@@ -529,9 +569,6 @@ class AddressView(views.APIView):
 
     def get(self, request, *args, mac, host=None, **kwargs):
         """Get."""
-        if kwargs.get("address") is not None:
-            # Can't GET a specific address
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         host = host or get_object_or_404(Host, mac=mac)
         addresses = host.addresses.all()
         serializer = network_serializers.AddressSerializer(addresses, many=True)
@@ -542,9 +579,6 @@ class AddressView(views.APIView):
 
     def post(self, request, *args, mac, **kwargs):
         """Post."""
-        if kwargs.get("address") is not None:
-            # Can't POST to a specific address
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         host = get_object_or_404(Host, mac=mac)
         address = request.data.get("address")
         hostname = request.data.get("hostname")
@@ -560,7 +594,9 @@ class AddressView(views.APIView):
             )
 
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(request, self, host):
+        if not api_permissions.HostPermission().has_object_permission(
+            request, self, host
+        ):
             return Response(
                 {"detail": "You do not have permission to add addresses to this host."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -611,19 +647,18 @@ class AddressView(views.APIView):
         # Return the updated list of addresses
         return self.get(request, mac=mac, host=host)
 
-    def delete(self, request, *args, mac, address=None, **kwargs):
+    def delete(self, request, *args, mac, **kwargs):
         """Delete."""
-        if address is None:
-            # wrong endpoint, <mac>/addresses does not support DELETE
-            return Response(
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
-
+        address = request.data.get("address")
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(request, self, host):
+        if not api_permissions.HostPermission().has_object_permission(
+            request, self, host
+        ):
             return Response(
-                {"detail": "You do not have permission to remove addresses from this host."},
+                {
+                    "detail": "You do not have permission to remove addresses from this host."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -663,7 +698,9 @@ class LeasesView(views.APIView):
         # If the user asks for expired leases, return them all
         if request.query_params.get("show_expired") is None:
             leases = leases.filter(ends__gt=timezone.now())
-        elif not api_permissions.HostPermission().has_object_permission(request, self, host, check_for_read=True):
+        elif not api_permissions.HostPermission().has_object_permission(
+            request, self, host, check_for_read=True
+        ):
             # If the user asks for expired leases and does not have
             # permission to view historical data, restrict them to
             # active ones anyways.
