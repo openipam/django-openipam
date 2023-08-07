@@ -20,30 +20,26 @@ class HostFilter(filters.FilterSet):
 
     ip_address = filters.CharFilter(method="filter_ip_address")
     dhcp_group = filters.CharFilter(method="filter_dhcp_group")
-
     user = filters.CharFilter(method="filter_user")
     group = filters.CharFilter(method="filter_group")
 
+    mac = filters.CharFilter(field_name="mac", lookup_expr="istartswith")
+    hostname = filters.CharFilter(field_name="hostname", lookup_expr="icontains")
+    expires__gte = filters.DateFilter(field_name="expires", lookup_expr="gte")
+    expires__lte = filters.DateFilter(field_name="expires", lookup_expr="lte")
+
     class Meta:
         model = Host
-        fields = {
-            "mac": ["startswith"],
-            "hostname": ["icontains"],
-            "ip_address": [],
-            "dhcp_group": [],
-            "user": [],
-            "group": [],
-            "expires": ["lt", "gt"],
-        }
-
-        filter_overrides = {
-            MACAddressField: {
-                "filter_class": filters.CharFilter,
-            },
-            DateTimeField: {
-                "filter_class": filters.DateFilter,
-            },
-        }
+        fields = [
+            "mac",
+            "hostname",
+            "ip_address",
+            "dhcp_group",
+            "user",
+            "group",
+            "expires__gte",
+            "expires__lte",
+        ]
 
     def filter_user(self, queryset, name, value):
         """Filter based on user."""

@@ -32,6 +32,7 @@ from guardian.shortcuts import get_objects_for_user
 from netfields import NetManager  # noqa: F401 needed for net_contains
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.hosts import HostFilter
+from rest_framework import filters as rest_filters
 
 
 class HostViewSet(APIModelViewSet):
@@ -44,8 +45,15 @@ class HostViewSet(APIModelViewSet):
     permission_classes = [
         api_permissions.HostPermission,
     ]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, rest_filters.OrderingFilter]
     filterset_class = HostFilter
+
+    ordering_fields = [
+        "mac",
+        "hostname",
+        "dhcp_group__name",
+        "expires",
+    ]
 
     def get_serializer_class(self):
         """Get serializer class."""
