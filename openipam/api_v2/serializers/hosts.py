@@ -1,4 +1,5 @@
 from openipam.hosts.models import (
+    AttributeToHost,
     Host,
     Disabled as DisabledHostDetails,
     Attribute,
@@ -79,23 +80,8 @@ class HostSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         """Get attributes for host."""
 
-        def dictfetchall(cursor):
-            desc = cursor.description
-            return [
-                dict(list(zip([col[0] for col in desc], row)))
-                for row in cursor.fetchall()
-            ]
-
-        c = connection.cursor()
-        c.execute(
-            """
-            SELECT name, value from attributes_to_hosts WHERE mac = %s
-            """,
-            [str(obj.mac)],
-        )
-
-        rows = dictfetchall(c)
-        data = {attr["name"]: attr["value"] for attr in rows}
+        attributes = AttributeToHost.objects.filter(mac=obj.mac)
+        data = {attr.name: attr.value for attr in attributes}
         return data
 
     class Meta:
@@ -127,7 +113,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
     needs to be a separate serializer from the
     HostSerializer. Additionally, the data returned from this
     serializer is not the same as the HostSerializer. To populate the
-    UI with the correct data after creating/updating a host, the UI
+    UI with the correct data after creating/updating a host, a UI
     will need to make a separate GET request to get the updated data.
 
     """
