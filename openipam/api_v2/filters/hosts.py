@@ -37,8 +37,8 @@ class HostFilter(filters.FilterSet):
             "dhcp_group",
             "user",
             "group",
-            "expires__gte",
-            "expires__lte",
+            "expires__gt",
+            "expires__lt",
         ]
 
     def filter_user(self, queryset, name, value):
