@@ -37,47 +37,9 @@ from ..filters.hosts import HostFilter
 class HostViewSet(APIModelViewSet):
     """API endpoint that allows hosts to be viewed or edited."""
 
-    queryset = Host.objects.prefetch_related("addresses", "leases", "pools").all()
-    lookup_field = "mac"
+    queryset = Host.objects.prefetch_related("addresses", "leases", "pools")
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        mac = self.request.query_params.get("mac", None)
-        hostname = self.request.query_params.get("hostname", None)
-        master_ip_address = self.request.query_params.get("master_ip_address", None)
-        expires = self.request.query_params.get("expires", None)
-        dhcp_group = self.request.query_params.get("dhcp_group", None)
-        disabled_host = self.request.query_params.get("disabled_host", None)
-        is_dynamic = self.request.query_params.get("is_dynamic", None)
-        if disabled_host:
-            if disabled_host == "Y":
-                disabled_hosts = DisabledHost.objects.all().values_list(
-                    "mac", flat=True
-                )
-                queryset = queryset.filter(mac__in=disabled_hosts)
-        if mac:
-            queryset = queryset.filter(mac__icontains=mac)
-        if hostname:
-            queryset = queryset.filter(hostname__icontains=hostname)
-        if master_ip_address:
-            queryset = queryset.filter(addresses__address__icontains=master_ip_address)
-        if expires:
-            expires = expires.split(",")
-            if expires[0] == "":
-                expires[0] = timezone.datetime(1970, 1, 1, 0, 0, 0)
-            if expires[1] == "":
-                expires[1] = timezone.datetime(2999, 12, 31, 23, 59, 59)
-            queryset = queryset.filter(expires__range=expires)
-        if dhcp_group:
-            queryset = queryset.filter(dhcp_group__name__icontains=dhcp_group)
-        if is_dynamic:
-            if is_dynamic == "Y":
-                queryset = queryset.filter(Q(pools__isnull=False))
-            elif is_dynamic == "N":
-                queryset = queryset.filter(
-                    Q(pools__isnull=True) & Q(addresses__isnull=True)
-                )
-        return queryset
+    lookup_field = "mac"
 
     permission_classes = [
         api_permissions.HostPermission,
