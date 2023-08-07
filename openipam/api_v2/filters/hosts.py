@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from openipam.user.models import User
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, DateTimeField
 from ipaddress import ip_interface
 from openipam.network.models import Lease
 
@@ -27,7 +27,7 @@ class HostFilter(filters.FilterSet):
     class Meta:
         model = Host
         fields = {
-            "mac": ["icontains"],
+            "mac": ["startswith"],
             "hostname": ["icontains"],
             "ip_address": [],
             "dhcp_group": [],
@@ -39,6 +39,9 @@ class HostFilter(filters.FilterSet):
         filter_overrides = {
             MACAddressField: {
                 "filter_class": filters.CharFilter,
+            },
+            DateTimeField: {
+                "filter_class": filters.DateFilter,
             },
         }
 
