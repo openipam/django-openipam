@@ -25,8 +25,9 @@ class HostFilter(filters.FilterSet):
 
     mac = filters.CharFilter(field_name="mac", lookup_expr="istartswith")
     hostname = filters.CharFilter(field_name="hostname", lookup_expr="icontains")
-    expires__gte = filters.DateFilter(field_name="expires", lookup_expr="gte")
-    expires__lte = filters.DateFilter(field_name="expires", lookup_expr="lte")
+    # Expiration date filters
+    expires__gt = filters.DateFilter(field_name="expires", lookup_expr="gte")
+    expires__lt = filters.DateFilter(field_name="expires", lookup_expr="lte")
 
     class Meta:
         model = Host
@@ -37,8 +38,8 @@ class HostFilter(filters.FilterSet):
             "dhcp_group",
             "user",
             "group",
-            "expires__gte",
-            "expires__lte",
+            "expires__gt",
+            "expires__lt",
         ]
 
     def filter_user(self, queryset, name, value):
