@@ -8,7 +8,7 @@ import { EditDnsModule } from "./editDnsModule";
 import { Edit } from "@mui/icons-material";
 import { EditDomainModule } from "../domains/editDomainModule";
 import { DnsRecord, Domain } from "../../utils/types";
-import { Tabs } from "../../components/tabs";
+import { Tab, Tabs } from "../../components/tabs";
 import { useDhcpTable } from "./useDhcpTable";
 
 const tabs = ["DNS", "DHCP"];
@@ -50,8 +50,6 @@ export const DomainPage = () => {
 
   const dhcp = useDhcpTable({
     domain: domain ?? "",
-    setShowModule,
-    setEditModule,
   });
 
   return (
@@ -128,17 +126,18 @@ export const DomainPage = () => {
           </div>
         </div>
       </div>
-      <Tabs tabs={tabs} tab={tab} setTab={setTab} />
-      {tab === "DNS" && (
-        <div className="flex flex-col gap-4 m-8">
-          <Table table={data.table} loading={data.loading} />
-        </div>
-      )}
-      {tab === "DHCP" && (
-        <div className="flex flex-col gap-4 m-8">
-          <Table table={dhcp.table} loading={dhcp.loading} />
-        </div>
-      )}
+      <Tabs tabs={tabs} tab={tab} setTab={setTab}>
+        <Tab tab={tab} name={"DNS"} props={"m-2"} data={data}>
+          <div className="flex flex-col gap-4 m-8">
+            <Table table={data.table} loading={data.loading} />
+          </div>
+        </Tab>
+        <Tab tab={tab} name={"DHCP"} props={"m-2"} data={dhcp}>
+          <div className="flex flex-col gap-4 m-8">
+            <Table table={dhcp.table} loading={dhcp.loading} />
+          </div>
+        </Tab>
+      </Tabs>
       <AddDnsModule
         domain={domain ?? ""}
         showModule={showModule}

@@ -14,7 +14,7 @@ import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
+import { ExpandMore, Visibility } from "@mui/icons-material";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 
@@ -53,11 +53,7 @@ export const useInfiniteDhcp = (p: {
   return query;
 };
 
-export const useDhcpTable = (p: {
-  domain: string;
-  setShowModule: any;
-  setEditModule: any;
-}) => {
+export const useDhcpTable = (p: { domain: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -108,14 +104,14 @@ export const useDhcpTable = (p: {
               <ExpandMore />
             </button>
           </div>
-          <button
+          {/* <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setShowModule(true);
             }}
           >
             <Add />
-          </button>
+          </button> */}
         </div>
       ),
       cell: ({ row }: { row: any }) => (
@@ -133,7 +129,7 @@ export const useDhcpTable = (p: {
           >
             <Visibility fontSize="small" />
           </button>
-          <button
+          {/* <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setEditModule({
@@ -143,7 +139,7 @@ export const useDhcpTable = (p: {
             }}
           >
             <Edit fontSize="small" />
-          </button>
+          </button> */}
         </div>
       ),
     },
