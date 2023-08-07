@@ -28,8 +28,6 @@ export const useAddressesTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [prevData, setPrevData] = useState<Address[]>([]);
-
   const data = useMemo(() => {
     return {
       data: {
@@ -54,17 +52,11 @@ export const useAddressesTable = (p: {
     };
   }, [p.data]);
 
-  const domains = useMemo<Address[]>(() => {
+  const addresses = useMemo<Address[]>(() => {
     if (!data.data) {
-      return prevData.length ? prevData : [];
+      return [];
     }
     return data.data.pages.flatMap((page) => page.results);
-  }, [data.data]);
-
-  useEffect(() => {
-    if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.results)]);
-    }
   }, [data.data]);
 
   const columns: ColumnDef<Address>[] = [
@@ -161,7 +153,7 @@ export const useAddressesTable = (p: {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    data: domains,
+    data: addresses,
     state: {
       columnFilters,
       get globalFilter() {
@@ -178,5 +170,5 @@ export const useAddressesTable = (p: {
     },
   });
 
-  return useMemo(() => ({ table, loading: false }), [table]);
+  return useMemo(() => ({ table, loading: false }), [p.data]);
 };

@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
-//TODO search permissions
+//TODO disabled columns only shows for admins. Master_ip defaults to leased if no static
 
 const getList = (obj: Record<string, string>) => {
   return (
