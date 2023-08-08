@@ -204,7 +204,7 @@ class DisableView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(disabled).pk,
             object_id=disabled.pk,
             object_repr=disabled.mac,
-            action=ADDITION,
+            action_flag=ADDITION,
             change_message=message,
         )
 
@@ -230,7 +230,7 @@ class DisableView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(disabled).pk,
             object_id=disabled.pk,
             object_repr=disabled.mac,
-            action=DELETION,
+            action_flag=DELETION,
             change_message=message,
         )
         return Response(data)
@@ -280,7 +280,7 @@ class UserOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Added users {', '.join(request.data)} as owners",
         )
         return Response(host.user_owners)
@@ -313,7 +313,7 @@ class UserOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Removed users {', '.join(request.data)} as owners",
         )
         return Response(host.user_owners)
@@ -338,7 +338,7 @@ class UserOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Replaced user owners with {', '.join(request.data)}",
         )
         return Response(host.user_owners)
@@ -383,7 +383,7 @@ class GroupOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Added groups {', '.join(request.data)} as owners",
         )
         return Response(host.group_owners)
@@ -410,7 +410,7 @@ class GroupOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Removed groups {', '.join(request.data)} as owners",
         )
         return Response(host.group_owners)
@@ -433,7 +433,7 @@ class GroupOwnerView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message=f"Replaced group owners with {', '.join(request.data)}",
         )
         return Response(host.group_owners)
@@ -491,7 +491,7 @@ class HostAttributesView(views.APIView):
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
                 object_repr=str(host.mac),
-                action=CHANGE,
+                action_flag=CHANGE,
                 change_message=f"Set attributes: {request.data}",
             )
             return response
@@ -517,7 +517,7 @@ class HostAttributesView(views.APIView):
             content_type_id=ContentType.objects.get_for_model(host).pk,
             object_id=host.pk,
             object_repr=str(host.mac),
-            action=CHANGE,
+            action_flag=CHANGE,
             change_message="Cleared all attributes",
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -610,7 +610,7 @@ class AddressView(views.APIView):
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
                 object_repr=str(host.mac),
-                action=CHANGE,
+                action_flag=CHANGE,
                 change_message=f"Added address {address}",
             )
 
@@ -642,7 +642,7 @@ class AddressView(views.APIView):
                 content_type_id=ContentType.objects.get_for_model(host).pk,
                 object_id=host.pk,
                 object_repr=str(host.mac),
-                action=CHANGE,
+                action_flag=CHANGE,
                 change_message=f"Removed address {address}",
             )
 
