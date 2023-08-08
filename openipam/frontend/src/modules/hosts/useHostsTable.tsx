@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
-//TODO disabled columns only shows for admins. Master_ip defaults to leased if no static
+//TODO disabled columns only shows for admins.
 
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();

@@ -5,11 +5,19 @@ import { useApi } from "../../hooks/useApi";
 import { Host } from "../../utils/types";
 import { useAddressesTable } from "./useAddressesTable";
 import { Tab, Tabs } from "../../components/tabs";
+import { EditHostModule } from "./editHostModule";
 
 export const HostPage = () => {
   const { mac } = useParams();
   const [HostInfo, setHostInfo] = useState<Host | undefined>();
   const [tab, setTab] = useState<typeof tabs[number]>("Info");
+  const [editHost, setEditHost] = useState<{
+    show: boolean;
+    data: Host | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
   const data = useAddressesTable({
     data: HostInfo?.addresses ?? {
       static: [],
@@ -35,6 +43,7 @@ export const HostPage = () => {
           tab={tab}
           name={"Info"}
           props={"m-2"}
+          edit={setEditHost}
           data={HostInfo ?? {}}
           labels={{
             hostname: "Host Name:",
@@ -121,6 +130,11 @@ export const HostPage = () => {
           }}
         />
       </Tabs>
+      <EditHostModule
+        showModule={editHost.show}
+        setShowModule={setEditHost}
+        HostData={editHost.data}
+      />
     </div>
   );
 };
