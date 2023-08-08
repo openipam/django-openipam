@@ -39,6 +39,16 @@ class DnsViewSet(APIModelViewSet):
     filter_fields = ["name", "ip_content", "text_content", "dns_type"]
     filter_class = DnsFilter
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        host = self.request.query_params.get("host", None)
+        mac = self.request.query_params.get("mac", None)
+        if host:
+            queryset = queryset.filter(host__hostname=host)
+        if mac:
+            queryset = queryset.filter(host__mac=mac)
+        return queryset
+
     def get_serializer_class(self):
         """Return the serializer class."""
         # Necessary to use a different serializer for create

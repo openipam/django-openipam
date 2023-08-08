@@ -208,6 +208,16 @@ export const useDomainTable = (p: {
         {
           id: "host",
           header: "Host",
+          cell: ({ row }: { row: { original: DnsRecord } }) => {
+            return (
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/hosts/${row.original.host}`}
+              >
+                {row.original.host}
+              </a>
+            );
+          },
           accessorFn: (row) => row.host,
           meta: {
             filterType: "string",

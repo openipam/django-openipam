@@ -184,9 +184,7 @@ class DisableView(views.APIView):
         """Post."""
         mac = kwargs["mac"]
         reason = request.data.get("reason", "No reason given")
-        disabled = DisabledHost.objects.create(
-            mac=mac, reason=reason, changed_by=request.user
-        )
+        disabled = DisabledHost.objects.create(mac=mac, reason=reason, changed_by=request.user)
         serializer = DisabledHostSerializer(disabled)
         data = serializer.data.copy()
         data["disabled"] = True
@@ -458,14 +456,10 @@ class HostAttributesView(views.APIView):
         structured_attrs = StructuredAttributeToHost.objects.select_related(
             "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related(
-            "attribute"
-        ).filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related("attribute").filter(host=host)
         attributes = {}
         for attr in structured_attrs:
-            attributes[
-                attr.structured_attribute_value.attribute.name
-            ] = attr.structured_attribute_value.value
+            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return Response(attributes, status=status.HTTP_200_OK)
@@ -564,9 +558,7 @@ class AddressView(views.APIView):
             )
 
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
                 {"detail": "You do not have permission to add addresses to this host."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -622,13 +614,9 @@ class AddressView(views.APIView):
         address = request.data.get("address")
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
-                {
-                    "detail": "You do not have permission to remove addresses from this host."
-                },
+                {"detail": "You do not have permission to remove addresses from this host."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -668,9 +656,7 @@ class LeasesView(views.APIView):
         # If the user asks for expired leases, return them all
         if request.query_params.get("show_expired") is None:
             leases = leases.filter(ends__gt=timezone.now())
-        elif not api_permissions.HostPermission().has_object_permission(
-            request, self, host, check_for_read=True
-        ):
+        elif not api_permissions.HostPermission().has_object_permission(request, self, host, check_for_read=True):
             # If the user asks for expired leases and does not have
             # permission to view historical data, restrict them to
             # active ones anyways.

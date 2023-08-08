@@ -59,7 +59,7 @@ export const Tab = (p: {
             className={`card w-[80%] relative md:w-[40rem] bg-gray-600 shadow-xl ${p.props}`}
           >
             {p.edit && (
-              <div className="absolute mt-4 ml-4">
+              <div className="absolute ml-4">
                 <button
                   className="btn btn-circle btn-ghost btn-xs"
                   onClick={() => {

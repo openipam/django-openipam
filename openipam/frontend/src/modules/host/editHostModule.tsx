@@ -112,12 +112,12 @@ export const EditHostModule = (p: {
               <label htmlFor="host-last-check">Disable Host</label>
               <input
                 type="checkbox"
-                checked={p.HostData?.disabled_host ?? false}
+                checked={disabled}
                 onChange={() => {
                   setDisabled(!disabled);
                 }}
                 id="host-disabled"
-                className="border border-gray-300 rounded-md p-2"
+                className="border border-gray-300 rounded-md p-2 checkbox checkbox-error checkbox-sm"
               />
             </div>
             {/* If disabled is checked, add reason */}

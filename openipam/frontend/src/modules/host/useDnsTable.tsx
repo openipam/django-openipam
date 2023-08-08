@@ -14,23 +14,24 @@ import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ExpandMore, Visibility } from "@mui/icons-material";
-import { DhcpRecord } from "../../utils/types";
+import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
+import { DNS_TYPES, DhcpRecord, DnsRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 
-const DhcpLookupKeys = ["host", "ip_content"];
+const DNSLookupKeys = ["name", "content", "dns_type"];
 
-export const useInfiniteDhcp = (p: {
-  domain: string;
-  [key: string]: string;
+export const useInfiniteDomain = (p: {
+  host?: string | undefined;
+  mac?: string | undefined;
+  [key: string]: string | undefined;
 }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["dhcp", ...Object.entries(p).flat()],
+    queryKey: ["host, dns", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.dns.dhcp({ page: pageParam, ...p });
+      const results = await api.dns.get({ page: pageParam, ...p });
       return {
-        dhcp: results.results,
+        dns: results.results,
         page: pageParam,
         nextPage: results.next,
       };
@@ -53,37 +54,42 @@ export const useInfiniteDhcp = (p: {
   return query;
 };
 
-export const useDhcpTable = (p: { domain: string }) => {
+export const useDnsTable = (p: {
+  host?: string;
+  mac?: string;
+  setShowModule: any;
+  setEditModule: any;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
-  const navigate = useNavigate();
-  const data = useInfiniteDhcp({
+  const [prevData, setPrevData] = useState<DnsRecord[]>([]);
+
+  const data = useInfiniteDomain({
     ...p,
     ...Object.fromEntries(
       columnFilters
-        .filter((f) => DhcpLookupKeys.includes(f.id))
+        .filter((f) => DNSLookupKeys.includes(f.id))
         .map((filter) => [filter.id, filter.value as string])
     ),
   });
-  const dns = useMemo<DhcpRecord[]>(() => {
+  const dns = useMemo<DnsRecord[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
-    return data.data.pages.flatMap((page) => page.dhcp);
+    return data.data.pages.flatMap((page) => page.dns);
   }, [data.data]);
 
   useEffect(() => {
     if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.dhcp)]);
+      setPrevData(() => [...data.data.pages.flatMap((page) => page.dns)]);
     }
   }, [data.data]);
 
-  const columnHelper = createColumnHelper<DhcpRecord>();
+  const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
     {
-      size: 100,
+      size: 80,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
@@ -104,14 +110,14 @@ export const useDhcpTable = (p: { domain: string }) => {
               <ExpandMore />
             </button>
           </div>
-          {/* <button
+          <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setShowModule(true);
             }}
           >
             <Add />
-          </button> */}
+          </button>
         </div>
       ),
       cell: ({ row }: { row: any }) => (
@@ -122,13 +128,14 @@ export const useDhcpTable = (p: { domain: string }) => {
                 disabled={!row.getCanSelect()}
                 indeterminate={row.getIsSomeSelected()}
               /> */}
-          <a
+          {/* <button
             className="btn btn-circle btn-ghost btn-xs"
-            href={`#/hosts/${row.original.host}`}
+            // onClick={() => navigate(`/domain/${row.original.name}`)}
+            disabled={!row.original.name}
           >
             <Visibility fontSize="small" />
-          </a>
-          {/* <button
+          </button> */}
+          <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setEditModule({
@@ -138,7 +145,7 @@ export const useDhcpTable = (p: { domain: string }) => {
             }}
           >
             <Edit fontSize="small" />
-          </button> */}
+          </button>
         </div>
       ),
     },
@@ -147,27 +154,29 @@ export const useDhcpTable = (p: { domain: string }) => {
       header: "Identification",
       columns: [
         {
-          id: "host",
-          header: "Host",
-          accessorFn: (row) => row.host,
+          id: "name",
+          header: "Name",
+          accessorFn: (row) => row.name,
           meta: {
             filterType: "string",
           },
         },
         {
-          id: "ip_content",
-          header: "IP Content",
-          cell: ({ row }: { row: { original: DhcpRecord } }) => {
-            return (
+          id: "content",
+          header: "Content",
+          cell: ({ row }: { row: { original: DnsRecord } }) => {
+            return row.original.dns_type === "A" ? (
               <a
                 className="text-blue-500 hover:underline btn btn-sm btn-ghost"
-                href={`#/addresses/${row.original.ip_content}`}
+                href={`#/addresses/${row.original.content}`}
               >
-                {row.original.ip_content}
+                {row.original.content}
               </a>
+            ) : (
+              row.original.content
             );
           },
-          accessorFn: (row) => row.ip_content,
+          accessorFn: (row) => row.content,
           meta: {
             filterType: "string",
           },
@@ -179,24 +188,21 @@ export const useDhcpTable = (p: { domain: string }) => {
       header: "Other Details",
       columns: [
         {
+          id: "dns_type",
+          header: "Type",
+          accessorFn: (row) => row.dns_type,
+          meta: {
+            filterType: "exact",
+            filterOptions: DNS_TYPES,
+          },
+        },
+        {
           id: "ttl",
-          header: "TTL",
+          header: "Ttl",
           accessorFn: (row) => row.ttl,
           meta: {
             filterType: "string",
           },
-        },
-        {
-          id: "changed",
-          header: "Changed",
-          accessorFn: (row) =>
-            row.changed
-              ? new Date(row.changed).toISOString().split("T")[0]
-              : "",
-          meta: {
-            filterType: "date",
-          },
-          filterFn: betweenDatesFilter,
         },
       ],
     }),
