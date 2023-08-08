@@ -29,6 +29,14 @@ export const Navigation = () => {
         <button className="btn btn-ghost btn-primary">
           <Link
             className="link-hover text-white font-semibold text-lg"
+            to="/networks"
+          >
+            Networks
+          </Link>
+        </button>
+        <button className="btn btn-ghost btn-primary">
+          <Link
+            className="link-hover text-white font-semibold text-lg"
             to="/admin/logs"
           >
             Logs

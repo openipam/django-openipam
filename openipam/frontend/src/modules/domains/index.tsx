@@ -21,6 +21,7 @@ export const Domains = () => {
   return (
     <div className="m-auto mt-8 overflow-x-scroll flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Domains</h1>
+      <p>TODO: Distinguish between Domains and Subdomains?</p>
       <div className="flex flex-col gap-4 m-8">
         <Table table={table.table} loading={table.loading} />
       </div>

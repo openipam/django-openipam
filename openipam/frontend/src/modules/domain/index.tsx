@@ -55,6 +55,7 @@ export const DomainPage = () => {
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">{domain}</h1>
+      <p>TODO: Subdomains? IP addresses associated with domain?</p>
       {/* card displayig domain information */}
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
         <div className="card w-[80%] md:w-[50rem] bg-gray-600 shadow-xl">

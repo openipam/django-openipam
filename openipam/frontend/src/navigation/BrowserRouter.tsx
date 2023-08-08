@@ -11,6 +11,7 @@ import { Domains } from "../modules/domains";
 import { Hosts } from "../modules/hosts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotFoundPage } from "../components/NotFoundPage";
+import { Networks } from "../modules/networks";
 
 const routes: RouteObject[] = [
   {
@@ -21,6 +22,44 @@ const routes: RouteObject[] = [
       {
         path: "",
         element: <Main />,
+      },
+      {
+        path: "networks",
+        // element: <></>, //NetworkLayout
+        children: [
+          {
+            path: "",
+            element: <Networks />,
+          },
+          {
+            path: ":network",
+            lazy: async () => {
+              const { Network } = await import("../modules/network");
+              return {
+                element: <Network />,
+              };
+            },
+          },
+        ],
+      },
+      {
+        path: "addresses",
+        // element: <></>, //AddressLayout
+        children: [
+          {
+            path: "",
+            element: <></>,
+          },
+          {
+            path: ":address",
+            lazy: async () => {
+              const { Address } = await import("../modules/address");
+              return {
+                element: <Address />,
+              };
+            },
+          },
+        ],
       },
       {
         path: "hosts",
