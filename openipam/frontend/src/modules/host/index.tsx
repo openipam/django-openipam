@@ -9,6 +9,7 @@ import { EditHostModule } from "./editHostModule";
 import { useDnsTable } from "./useDnsTable";
 import { AddDnsModule } from "../domain/addDnsModule";
 import { EditDnsModule } from "../domain/editDnsModule";
+import { useDhcpTable } from "./useDhcpTable";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -58,6 +59,11 @@ export const HostPage = () => {
     setEditModule: setShowEditDnsModule,
   });
 
+  const dhcpTable = useDhcpTable({
+    host: HostInfo?.hostname,
+    mac: HostInfo?.mac,
+  });
+
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">{mac}</h1>
@@ -102,7 +108,11 @@ export const HostPage = () => {
           custom={{
             dhcp_group: HostInfo?.dhcp_group?.name,
           }}
-        />
+        >
+          <div className="flex flex-col gap-4 m-8 w-[50rem]">
+            <Table table={dhcpTable.table} loading={dhcpTable.loading} />
+          </div>
+        </Tab>
         <Tab
           tab={tab}
           name={"Addresses"}

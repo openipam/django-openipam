@@ -91,6 +91,7 @@ export type DhcpRecord = {
   host: string;
   ttl: number;
   changed: string;
+  domain: string;
   ip_content: string;
 };
 
