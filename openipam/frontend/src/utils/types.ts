@@ -102,9 +102,9 @@ export type DnsRecord = {
   name: string;
   ttl: number;
   dns_type: string;
-  id: number;
   host: string;
   url: string;
+  id: number;
 };
 
 export type CreateDnsRecord = Omit<

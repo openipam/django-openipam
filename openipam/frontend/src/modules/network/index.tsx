@@ -13,6 +13,9 @@ export const Network = () => {
         Provide filtering and searching capabilities based on status (used,
         available, reserved), network, or domain.
       </p>
+      <p>
+        Name, Gateway, Description, DHCP group, Shared Network, Tags, Changed By
+      </p>
     </div>
   );
 };

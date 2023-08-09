@@ -55,7 +55,7 @@ export const HostPage = () => {
   const dns = useDnsTable({
     host: HostInfo?.hostname,
     mac: HostInfo?.mac,
-    setShowModule: setShowEditDnsModule,
+    setShowModule: setShowModule,
     setEditModule: setShowEditDnsModule,
   });
 
@@ -175,12 +175,12 @@ export const HostPage = () => {
         HostData={editHost.data}
       />
       <AddDnsModule
-        domain={HostInfo?.hostname ?? ""}
+        host={HostInfo?.hostname ?? ""}
         showModule={showModule}
         setShowModule={setShowModule}
       />
       <EditDnsModule
-        domain={HostInfo?.hostname ?? ""}
+        host={HostInfo?.hostname ?? ""}
         showModule={showEditDnsModule.show}
         setShowModule={setShowEditDnsModule}
         DnsData={showEditDnsModule.data}

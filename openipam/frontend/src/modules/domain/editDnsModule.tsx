@@ -4,7 +4,8 @@ import { CreateDnsRecord, DnsRecord } from "../../utils/types";
 
 export const EditDnsModule = (p: {
   DnsData: DnsRecord | undefined;
-  domain: string;
+  domain?: string;
+  host?: string;
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
@@ -52,7 +53,6 @@ export const EditDnsModule = (p: {
             </svg>
           </label>
           <h1 className="text-2xl font-bold mb-4">Edit Dns</h1>
-          <pre>{JSON.stringify(p.DnsData, null, 2)}</pre>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -104,6 +104,7 @@ export const EditDnsModule = (p: {
                 disabled
                 className="border border-gray-300 rounded-md p-2"
               />
+              {p.host && <p className="p-2">Host is {p.host}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <label>Note: only fill out IP Content OR Text Content</label>
