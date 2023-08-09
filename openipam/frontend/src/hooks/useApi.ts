@@ -2,6 +2,9 @@ import { HttpMethod, requestGenerator } from "../api";
 
 export const useApi = () => {
   const api = {
+    user: {
+      get: requestGenerator(HttpMethod.GET, "user/"),
+    },
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
       create: requestGenerator(HttpMethod.POST, "dns/"),
