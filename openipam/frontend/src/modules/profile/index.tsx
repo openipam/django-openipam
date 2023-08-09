@@ -22,9 +22,11 @@ export const Profile = () => {
 
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Welcome, {user?.first_name}</h1>
-      <p>User info</p>
-      <p>Your hosts, quick renew</p>
+      <h1 className="text-4xl">
+        Welcome, {user?.first_name.charAt(0).toUpperCase()}
+        {user?.first_name.slice(1)}
+      </h1>
+      <p className="mt-8">Your Hosts:</p>
       <div className="flex flex-col gap-4 m-8">
         <Table table={hosts.table} loading={hosts.loading} />
       </div>
