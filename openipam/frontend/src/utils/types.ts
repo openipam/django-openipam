@@ -86,6 +86,19 @@ export type CreateDomain = Omit<
   "id" | "changed_by" | "changed" | "user_perms" | "group_perms"
 >;
 
+export type User = {
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+  last_login: string;
+  date_joined: string;
+  groups: string[];
+};
+
 export type DhcpRecord = {
   id: number;
   host: string;

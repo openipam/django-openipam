@@ -32,4 +32,8 @@ urlpatterns = [
         csrf_exempt(views.dns.DhcpDnsRecordsList.as_view()),
         name="api_dhcp_dns_list",
     ),
+    path(
+        "user/",
+        csrf_exempt(views.user.UserView.as_view()),
+    ),
 ]
