@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 
-//TODO disabled columns only shows for admins. Master_ip defaults to leased if no static
+//TODO disabled columns only shows for admins.
 
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();
@@ -212,9 +212,30 @@ export const useHostsTable = (p: {
           filterFn: undefined,
         },
         {
-          id: "master_ip_address",
-          header: "Master IP Address",
-          accessorFn: (row) => row.master_ip_address,
+          id: "ip_addresses",
+          header: "IP Addresses",
+          cell: ({ row }: { row: any }) => (
+            <div className="flex flex-row">
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/addresses/${
+                  row.original.master_ip_address ?? row.addresses?.leased?.[0]
+                }`}
+              >{`${
+                row.original.master_ip_address ??
+                row.original.addresses?.leased?.[0]
+              }`}</a>
+              <p className="flex align-middle m-auto">{`(${
+                row.original.addresses?.leased?.length +
+                row.original.addresses?.static?.length
+              })`}</p>
+            </div>
+          ),
+          accessorFn: (row) =>
+            `${row.master_ip_address ?? row.addresses?.leased?.[0]}
+             (${
+               row.addresses?.leased?.length + row.addresses?.static?.length
+             })`,
           meta: {
             filterType: "string",
           },

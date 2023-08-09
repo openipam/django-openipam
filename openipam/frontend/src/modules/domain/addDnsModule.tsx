@@ -6,15 +6,24 @@ import { CreateDnsRecord } from "../../utils/types";
 //ip needs to be an existing address
 
 export const AddDnsModule = (p: {
-  domain: string;
+  domain?: string;
+  host?: string;
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
-    const results = await api.domains.byId(p.domain).dns.create({ ...DnsData });
-    alert(`successfully created ${DnsData.name}`);
-    p.setShowModule(false);
+    if (p.domain) {
+      const results = await api.domains
+        .byId(p.domain ?? "")
+        .dns.create({ ...DnsData });
+      alert(`successfully created ${DnsData.name}`);
+      p.setShowModule(false);
+    } else {
+      const results = await api.dns.create({ ...DnsData });
+      alert(`successfully created ${DnsData.name}`);
+      p.setShowModule(false);
+    }
   };
   return (
     <>
@@ -93,7 +102,8 @@ export const AddDnsModule = (p: {
                   id="Dns-name"
                   className="border border-gray-300 rounded-md p-2 w-[1/2]"
                 />
-                <p className="p-2">.{p.domain}</p>
+                {p.domain && <p className="p-2">.{p.domain}</p>}
+                {p.host && <p className="p-2">Host is {p.host}</p>}
               </div>
             </div>
             <div className="flex flex-col gap-2">

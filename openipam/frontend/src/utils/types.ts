@@ -91,6 +91,7 @@ export type DhcpRecord = {
   host: string;
   ttl: number;
   changed: string;
+  domain: string;
   ip_content: string;
 };
 
@@ -101,9 +102,9 @@ export type DnsRecord = {
   name: string;
   ttl: number;
   dns_type: string;
-  id: number;
   host: string;
   url: string;
+  id: number;
 };
 
 export type CreateDnsRecord = Omit<

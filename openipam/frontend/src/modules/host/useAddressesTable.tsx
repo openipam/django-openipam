@@ -13,6 +13,8 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
 import { fuzzyFilter } from "../../components/filters";
+import { Visibility } from "@mui/icons-material";
+import { useNavigate } from "react-router";
 
 type Address = {
   name: string;
@@ -28,6 +30,7 @@ export const useAddressesTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
+  const navigate = useNavigate();
   const data = useMemo(() => {
     return {
       data: {
@@ -100,14 +103,13 @@ export const useAddressesTable = (p: {
               disabled={!row.getCanSelect()}
               indeterminate={row.getIsSomeSelected()}
             /> */}
-          {/* <button
+          <a
             className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/domains/${row.original.name}`)}
-            disabled={!row.original.name}
+            href={`#/addresses/${row.original.name}`}
           >
             <Visibility fontSize="small" />
-          </button>
-          <button
+          </a>
+          {/* <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
               p.setEditDomain({

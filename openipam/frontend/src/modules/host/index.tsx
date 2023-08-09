@@ -2,14 +2,34 @@ import React, { useEffect, useState } from "react";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
-import { Host } from "../../utils/types";
+import { DnsRecord, Host } from "../../utils/types";
 import { useAddressesTable } from "./useAddressesTable";
 import { Tab, Tabs } from "../../components/tabs";
+import { EditHostModule } from "./editHostModule";
+import { useDnsTable } from "./useDnsTable";
+import { AddDnsModule } from "../domain/addDnsModule";
+import { EditDnsModule } from "../domain/editDnsModule";
+import { useDhcpTable } from "./useDhcpTable";
 
 export const HostPage = () => {
   const { mac } = useParams();
   const [HostInfo, setHostInfo] = useState<Host | undefined>();
   const [tab, setTab] = useState<typeof tabs[number]>("Info");
+  const [showModule, setShowModule] = useState<boolean>(false);
+  const [showEditDnsModule, setShowEditDnsModule] = useState<{
+    show: boolean;
+    data: DnsRecord | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
+  const [editHost, setEditHost] = useState<{
+    show: boolean;
+    data: Host | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
   const data = useAddressesTable({
     data: HostInfo?.addresses ?? {
       static: [],
@@ -18,14 +38,31 @@ export const HostPage = () => {
   });
   const api = useApi();
   const getHostInfo = async (mac: string) => {
-    const results = await api.hosts.byId(mac).get({});
-    setHostInfo(results);
+    try {
+      const results = await api.hosts.byId(mac).get({});
+      setHostInfo(results);
+    } catch {
+      const result = await api.hosts.get({ hostname: mac });
+      setHostInfo(result.results[0]);
+    }
   };
   useEffect(() => {
     if (mac) {
       getHostInfo(mac);
     }
   }, [mac]);
+
+  const dns = useDnsTable({
+    host: HostInfo?.hostname,
+    mac: HostInfo?.mac,
+    setShowModule: setShowModule,
+    setEditModule: setShowEditDnsModule,
+  });
+
+  const dhcpTable = useDhcpTable({
+    host: HostInfo?.hostname,
+    mac: HostInfo?.mac,
+  });
 
   return (
     <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
@@ -34,10 +71,12 @@ export const HostPage = () => {
         <Tab
           tab={tab}
           name={"Info"}
-          props={"m-2"}
+          props={"m-2 pt-4"}
+          edit={setEditHost}
           data={HostInfo ?? {}}
           labels={{
             hostname: "Host Name:",
+            mac: "Ethernet Address",
             changed: "Last Changed:",
             changed_by: "Changed By:",
             is_dynamic: "Type:",
@@ -53,6 +92,11 @@ export const HostPage = () => {
             disabled_host: HostInfo?.disabled_host ? "True" : "False",
           }}
         />
+        <Tab tab={tab} name={"DNS"} props={"m-2"} data={HostInfo ?? {}}>
+          <div className="flex flex-col gap-4 m-8 w-[80%]">
+            <Table table={dns.table} loading={dns.loading} />
+          </div>
+        </Tab>
         <Tab
           tab={tab}
           name={"DHCP"}
@@ -64,7 +108,11 @@ export const HostPage = () => {
           custom={{
             dhcp_group: HostInfo?.dhcp_group?.name,
           }}
-        />
+        >
+          <div className="flex flex-col gap-4 m-8 w-[50rem]">
+            <Table table={dhcpTable.table} loading={dhcpTable.loading} />
+          </div>
+        </Tab>
         <Tab
           tab={tab}
           name={"Addresses"}
@@ -121,8 +169,32 @@ export const HostPage = () => {
           }}
         />
       </Tabs>
+      <EditHostModule
+        showModule={editHost.show}
+        setShowModule={setEditHost}
+        HostData={editHost.data}
+      />
+      <AddDnsModule
+        host={HostInfo?.hostname ?? ""}
+        showModule={showModule}
+        setShowModule={setShowModule}
+      />
+      <EditDnsModule
+        host={HostInfo?.hostname ?? ""}
+        showModule={showEditDnsModule.show}
+        setShowModule={setShowEditDnsModule}
+        DnsData={showEditDnsModule.data}
+      />
     </div>
   );
 };
 
-const tabs = ["Info", "DHCP", "Addresses", "Users", "Groups", "Attributes"];
+const tabs = [
+  "Info",
+  "DNS",
+  "DHCP",
+  "Addresses",
+  "Users",
+  "Groups",
+  "Attributes",
+];

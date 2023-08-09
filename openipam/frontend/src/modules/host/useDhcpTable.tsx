@@ -21,14 +21,18 @@ import { useNavigate } from "react-router-dom";
 const DhcpLookupKeys = ["host", "ip_content"];
 
 export const useInfiniteDhcp = (p: {
-  domain: string;
-  [key: string]: string;
+  host?: string | undefined;
+  mac?: string | undefined;
+  [key: string]: string | undefined;
 }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["dhcp", ...Object.entries(p).flat()],
+    queryKey: ["dhcp, host", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.dns.dhcp({ page: pageParam, ...p });
+      const results = await api.dns.dhcp({
+        page: pageParam,
+        ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
+      });
       return {
         dhcp: results.results,
         page: pageParam,
@@ -53,7 +57,7 @@ export const useInfiniteDhcp = (p: {
   return query;
 };
 
-export const useDhcpTable = (p: { domain: string }) => {
+export const useDhcpTable = (p: { host?: string; mac?: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -124,7 +128,7 @@ export const useDhcpTable = (p: { domain: string }) => {
               /> */}
           <a
             className="btn btn-circle btn-ghost btn-xs"
-            href={`#/hosts/${row.original.host}`}
+            href={`#/domains/${row.original.domain}`}
           >
             <Visibility fontSize="small" />
           </a>
@@ -147,9 +151,9 @@ export const useDhcpTable = (p: { domain: string }) => {
       header: "Identification",
       columns: [
         {
-          id: "host",
-          header: "Host",
-          accessorFn: (row) => row.host,
+          id: "domain",
+          header: "Domain",
+          accessorFn: (row) => row.domain,
           meta: {
             filterType: "string",
           },

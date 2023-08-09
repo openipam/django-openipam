@@ -90,7 +90,7 @@ export const useDomainTable = (p: {
   const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
     {
-      size: 100,
+      size: 80,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
@@ -165,6 +165,18 @@ export const useDomainTable = (p: {
         {
           id: "content",
           header: "Content",
+          cell: ({ row }: { row: { original: DnsRecord } }) => {
+            return row.original.dns_type === "A" ? (
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/addresses/${row.original.content}`}
+              >
+                {row.original.content}
+              </a>
+            ) : (
+              row.original.content
+            );
+          },
           accessorFn: (row) => row.content,
           meta: {
             filterType: "string",
@@ -196,15 +208,17 @@ export const useDomainTable = (p: {
         {
           id: "host",
           header: "Host",
-          accessorFn: (row) => row.host,
-          meta: {
-            filterType: "string",
+          cell: ({ row }: { row: { original: DnsRecord } }) => {
+            return (
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/hosts/${row.original.host}`}
+              >
+                {row.original.host}
+              </a>
+            );
           },
-        },
-        {
-          id: "url",
-          header: "URL",
-          accessorFn: (row) => row.url,
+          accessorFn: (row) => row.host,
           meta: {
             filterType: "string",
           },

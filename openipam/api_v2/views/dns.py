@@ -39,6 +39,16 @@ class DnsViewSet(APIModelViewSet):
     filter_fields = ["name", "ip_content", "text_content", "dns_type"]
     filter_class = DnsFilter
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        host = self.request.query_params.get("host", None)
+        mac = self.request.query_params.get("mac", None)
+        if host:
+            queryset = queryset.filter(host__hostname=host)
+        if mac:
+            queryset = queryset.filter(host__mac=mac)
+        return queryset
+
     def get_serializer_class(self):
         """Return the serializer class."""
         # Necessary to use a different serializer for create
@@ -319,12 +329,18 @@ class DhcpDnsRecordsList(generics.ListAPIView):
     filter_related_field = "host"
     filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
     filter_staff_sees_all = True
-    queryset = DhcpDnsRecord.objects.all()
+    queryset = DhcpDnsRecord.objects.prefetch_related("domain", "host").all()
 
     def get_queryset(self):
         queryset = super().get_queryset()
         domain = self.request.query_params.get("domain", None)
         ip_content = self.request.query_params.get("ip_content", None)
+        host = self.request.query_params.get("host", None)
+        mac = self.request.query_params.get("mac", None)
+        if host:
+            queryset = queryset.filter(host__hostname=host)
+        if mac:
+            queryset = queryset.filter(host__mac=mac)
         if domain:
             queryset = queryset.filter(domain__name__endswith=domain)
         if ip_content:
