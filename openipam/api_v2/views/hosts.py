@@ -55,6 +55,12 @@ class HostViewSet(APIModelViewSet):
         "expires",
     ]
 
+    def filter_queryset(self, qs=None):
+        print("\n\nfilter_queryset")
+        queryset = super().filter_queryset(qs)
+        print(queryset)
+        return queryset
+
     def get_serializer_class(self):
         """Get serializer class."""
         if self.action in ["create", "update", "partial_update"]:

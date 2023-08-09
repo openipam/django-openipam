@@ -1,16 +1,11 @@
 """Filters for hosts."""
 from django_filters import rest_framework as filters
 from openipam.hosts.models import Host
-from netfields import MACAddressField, NetManager  # noqa
-from rest_framework import filters as rest_filters
-from rest_framework.schemas import coreapi
-from rest_framework.compat import coreschema
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
-from django.shortcuts import get_object_or_404
 from openipam.user.models import User
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from django.db.models import Q, DateTimeField
+from django.db.models import Q
 from ipaddress import ip_interface
 from openipam.network.models import Lease
 
@@ -18,16 +13,24 @@ from openipam.network.models import Lease
 class HostFilter(filters.FilterSet):
     """Filter for hosts."""
 
-    ip_address = filters.CharFilter(method="filter_ip_address")
-    dhcp_group = filters.CharFilter(method="filter_dhcp_group")
-    user = filters.CharFilter(method="filter_user")
-    group = filters.CharFilter(method="filter_group")
-
-    mac = filters.CharFilter(field_name="mac", lookup_expr="istartswith")
-    hostname = filters.CharFilter(field_name="hostname", lookup_expr="icontains")
+    ip_address = filters.CharFilter(method="filter_ip_address", lookup_expr="icontains")
+    dhcp_group = filters.CharFilter(method="filter_dhcp_group", lookup_expr="icontains")
+    user = filters.CharFilter(method="filter_user", lookup_expr="icontains")
+    group = filters.CharFilter(method="filter_group", lookup_expr="icontains")
+    mac = filters.CharFilter(method="filter_mac", lookup_expr="icontains")
+    hostname = filters.CharFilter(method="filter_hostname", lookup_expr="icontains")
     # Expiration date filters
-    expires__gt = filters.DateFilter(field_name="expires", lookup_expr="gte")
-    expires__lt = filters.DateFilter(field_name="expires", lookup_expr="lte")
+    expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
+    expires__lt = filters.DateTimeFilter(method="filter_expires__lt", lookup_expr="lt")
+
+    def get_filterset_kwargs(self, request, queryset, view):
+        kwargs = super().get_filterset_kwargs(request, queryset, view)
+
+        # merge filterset kwargs provided by view class
+        if hasattr(view, "get_filterset_kwargs"):
+            kwargs.update(view.get_filterset_kwargs())
+
+        return kwargs
 
     class Meta:
         model = Host
@@ -41,6 +44,19 @@ class HostFilter(filters.FilterSet):
             "expires__gt",
             "expires__lt",
         ]
+
+    def filter_expires__gt(self, queryset, name, value):
+        return queryset.filter(expires__gte=value)
+
+    def filter_expires__lt(self, queryset, name, value):
+        return queryset.filter(expires__lte=value)
+
+    def filter_mac(self, queryset, name, value):
+        return queryset.filter(mac__istartswith=value)
+
+    def filter_hostname(self, queryset, name, value):
+        """Filter based on hostname."""
+        return queryset.filter(hostname__icontains=value)
 
     def filter_user(self, queryset, name, value):
         """Filter based on user."""

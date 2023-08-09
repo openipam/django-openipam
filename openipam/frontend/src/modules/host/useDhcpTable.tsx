@@ -128,7 +128,7 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
               /> */}
           <a
             className="btn btn-circle btn-ghost btn-xs"
-            href={`#/hosts/${row.original.host}`}
+            href={`#/domains/${row.original.domain}`}
           >
             <Visibility fontSize="small" />
           </a>

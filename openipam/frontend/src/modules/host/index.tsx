@@ -43,7 +43,7 @@ export const HostPage = () => {
       setHostInfo(results);
     } catch {
       const result = await api.hosts.get({ hostname: mac });
-      setHostInfo(result[0]);
+      setHostInfo(result.results[0]);
     }
   };
   useEffect(() => {
