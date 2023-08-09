@@ -12,6 +12,7 @@ import { Hosts } from "../modules/hosts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotFoundPage } from "../components/NotFoundPage";
 import { Networks } from "../modules/networks";
+import { Profile } from "../modules/profile";
 
 const routes: RouteObject[] = [
   {
@@ -21,7 +22,7 @@ const routes: RouteObject[] = [
     children: [
       {
         path: "",
-        element: <Main />,
+        element: <Profile />,
       },
       {
         path: "networks",
