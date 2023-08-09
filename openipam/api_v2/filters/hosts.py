@@ -1,6 +1,7 @@
 """Filters for hosts."""
 from django_filters import rest_framework as filters
 from openipam.hosts.models import Host
+from netfields import NetManager  # noqa
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 from openipam.user.models import User
 from django.contrib.auth.models import Group

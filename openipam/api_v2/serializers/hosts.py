@@ -53,6 +53,11 @@ class HostSerializer(serializers.ModelSerializer):
     attributes = serializers.SerializerMethodField()
     changed_by = serializer_base.ChangedBySerializer()
     dhcp_group = serializers.SerializerMethodField()
+    details = serializers.SerializerMethodField()
+
+    def get_details(self, obj):
+        """Get a link to the host details page."""
+        return self.context["request"].build_absolute_uri(f"/api/v2/hosts/{obj.mac}/")
 
     def get_dhcp_group(self, obj):
         """Get DHCP group for host."""
@@ -104,6 +109,7 @@ class HostSerializer(serializers.ModelSerializer):
         model = Host
         fields = (
             "mac",
+            "details",
             "hostname",
             "expires",
             "description",

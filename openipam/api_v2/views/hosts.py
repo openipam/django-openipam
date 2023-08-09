@@ -166,6 +166,21 @@ class HostViewSet(APIModelViewSet):
         """Delete disabled."""
         return DisableView().delete(request, *args, mac=mac, **kwargs)
 
+    @action(methods=["get"], detail=False)
+    def mine(self, request, *args, **kwargs):
+        """Return a list of hosts that the user owns."""
+        show_groups = request.query_params.get("show_groups", False)
+        hosts = get_objects_for_user(
+            request.user,
+            "hosts.is_owner_host",
+            any_perm=True,
+            with_superuser=False,
+            use_groups=show_groups,
+        )
+        pagination = self.paginate_queryset(hosts)
+        serializer = HostSerializer(pagination, many=True, context={"request": request})
+        return self.get_paginated_response(serializer.data)
+
 
 class DisableView(views.APIView):
     """API endpoints for disabling and enabling hosts.
@@ -351,19 +366,6 @@ class UserOwnerView(views.APIView):
 class GroupOwnerView(views.APIView):
     """
     API endpoints for manipulating host ownership, group version.
-
-    GET to /hosts/<mac>/groups/ to list all groups who own a host. Accessible to all users.
-    POST to /hosts/<mac>/groups/ to add a group as an owner of a host. Owners only.
-    DELETE to /hosts/<mac>/groups/ to clear all group owners of a host. Admins only.
-    PUT to /hosts/<mac>/groups/ to replace all group owners of a host. Owners only.
-
-    Above endpoint returns a JSON array of group names, e.g. ["group1", "group2"], except for DELETE,
-    which returns 204 No Content. POST and PUT take a JSON array of group names, e.g. ["group1", "group2"].
-
-    GET to /hosts/<mac>/groups/<groupname>/ to check if a group owns a host. Accessible to all users.
-    DELETE to /hosts/<mac>/groups/<groupname>/ to remove a group as an owner of a host. Owners only.
-
-    GET returns a boolean, e.g. true or false. DELETE returns the same JSON array as above.
     """
 
     permission_classes = [
@@ -446,10 +448,6 @@ class GroupOwnerView(views.APIView):
 class HostAttributesView(views.APIView):
     """
     View and manipulate attributes on a given host.
-
-    GET to /hosts/<mac>/attributes/ to list all attributes on a host. Accessible to all users.
-    POST to /hosts/<mac>/attributes/ to add attributes to a host. Owners only.
-    DELETE to /hosts/<mac>/attributes/ to clear all attributes from a host. Owners only.
     """
 
     permission_classes = [

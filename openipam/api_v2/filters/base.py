@@ -68,7 +68,7 @@ class FieldSearchFilterBackend(lib_filters.BaseFilterBackend):
         }
         return queryset.filter(**filters)
 
-    def to_html(self, request, queryset, view):
+    def to_html(self, request, _, view):
         """
         One search box per field.
         """
