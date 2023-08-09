@@ -44,6 +44,7 @@ export const useApi = () => {
     hosts: {
       get: requestGenerator(HttpMethod.GET, "hosts/"),
       mine: requestGenerator(HttpMethod.GET, "hosts/mine/"),
+      attributes: requestGenerator(HttpMethod.GET, "attributes/"),
       create: requestGenerator(HttpMethod.POST, "hosts/"),
       byId(id: string) {
         return {

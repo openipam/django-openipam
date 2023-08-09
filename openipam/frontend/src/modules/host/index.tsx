@@ -10,6 +10,8 @@ import { useDnsTable } from "./useDnsTable";
 import { AddDnsModule } from "../domain/addDnsModule";
 import { EditDnsModule } from "../domain/editDnsModule";
 import { useDhcpTable } from "./useDhcpTable";
+import { Attributes } from "../../components/atributes";
+import { useAttributes } from "../../hooks/queries/useAtributes";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -147,27 +149,9 @@ export const HostPage = () => {
             group_owners: HostInfo?.group_owners?.join(",\n"),
           }}
         />
-        <Tab
-          tab={tab}
-          name={"Attributes"}
-          props={"m-2"}
-          data={HostInfo ?? {}}
-          labels={{
-            attributes: "Attributes:",
-          }}
-          custom={{
-            attributes: Object.entries(HostInfo?.attributes ?? {}).map(
-              (attr) => {
-                return (
-                  <div>
-                    <div>Name: {" " + attr[0]}</div>
-                    <div>Value: {" " + attr[1]}</div>
-                  </div>
-                );
-              }
-            ),
-          }}
-        />
+        <Tab tab={tab} name={"Attributes"} data={HostInfo?.attributes ?? {}}>
+          <Attributes attributes={HostInfo?.attributes ?? {}} />
+        </Tab>
       </Tabs>
       <EditHostModule
         showModule={editHost.show}
