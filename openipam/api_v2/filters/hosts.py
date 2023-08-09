@@ -1,16 +1,11 @@
 """Filters for hosts."""
 from django_filters import rest_framework as filters
 from openipam.hosts.models import Host
-from netfields import MACAddressField, NetManager  # noqa
-from rest_framework import filters as rest_filters
-from rest_framework.schemas import coreapi
-from rest_framework.compat import coreschema
+from netfields import NetManager  # noqa
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
-from django.shortcuts import get_object_or_404
 from openipam.user.models import User
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from django.db.models import Q, DateTimeField
 from ipaddress import ip_interface
 from openipam.network.models import Lease
 

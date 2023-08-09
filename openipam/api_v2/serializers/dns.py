@@ -196,6 +196,12 @@ class DomainSerializer(serializers.ModelSerializer):
     user_perms = serializers.SerializerMethodField()
     group_perms = serializers.SerializerMethodField()
     records = serializers.SerializerMethodField()
+    record_count = serializers.SerializerMethodField()
+
+    def get_record_count(self, obj):
+        # If the object has an annotation for record_count, use that.
+        # Otherwise, fall back to hitting the database again.
+        return getattr(obj, "record_count", obj.dnsrecord_set.count())
 
     def get_records(self, obj):
         """Return a url to the records for this domain."""
@@ -234,7 +240,13 @@ class DomainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Domain
         fields = "__all__"
-        read_only_fields = ["id", "changed", "changed_by", "user_perms", "group_perms"]
+        read_only_fields = [
+            "id",
+            "changed",
+            "changed_by",
+            "user_perms",
+            "group_perms",
+        ]
         extra_kwargs = {
             "url": {"lookup_field": "name"},
         }

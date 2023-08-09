@@ -1,8 +1,22 @@
 """DNS API Views."""
 
+from rest_framework import permissions, status, generics
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.request import Request
+from guardian.shortcuts import get_objects_for_user, assign_perm, remove_perm
+from django.contrib.admin.models import DELETION, LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import force_text
+from django.contrib.auth.models import Group
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from openipam.user.models import User
+from .base import APIModelViewSet, APIPagination
+from ..filters.dns import DnsFilter, DomainFilter
+from ..filters.base import RelatedPermissionFilter
 from ..serializers.dns import (
     DNSSerializer,
     DomainSerializer,
@@ -14,20 +28,6 @@ from ..serializers.dns import (
     DnsViewSerializer,
     DhcpDnsRecordSerializer,
 )
-from rest_framework import permissions
-from .base import APIModelViewSet, APIPagination
-from ..filters.dns import DnsFilter
-from ..filters.base import RelatedPermissionFilter
-from rest_framework import status
-from rest_framework import generics
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from guardian.shortcuts import get_objects_for_user, assign_perm, remove_perm
-from django.contrib.admin.models import DELETION, LogEntry
-from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_text
-from django.contrib.auth.models import Group
-from django_filters.rest_framework import DjangoFilterBackend
 
 
 class DnsViewSet(APIModelViewSet):
@@ -66,9 +66,9 @@ class DnsViewSet(APIModelViewSet):
         domain_name = ".".join(request.data.get("name").split(".")[1:])
         domain = get_object_or_404(Domain, name=domain_name)
 
-        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
-            "dns.is_owner_domain", domain
-        ):
+        if not request.user.has_perm(
+            "dns.add_records_to_domain", domain
+        ) and not request.user.has_perm("dns.is_owner_domain", domain):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -78,18 +78,20 @@ class DnsViewSet(APIModelViewSet):
 
 
 class DomainViewSet(APIModelViewSet):
-    queryset = Domain.objects.select_related("changed_by").order_by("-changed")
+    """API endpoint that allows domains to be viewed or edited."""
+
+    queryset = (
+        Domain.objects.select_related("changed_by")
+        .annotate(record_count=Count("dnsrecord"))
+        .order_by("-record_count")
+    )
     serializer_class = DomainSerializer
     permission_classes = [permissions.DjangoObjectPermissions]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = {
-        "name": ["exact", "icontains"],
-        "changed_by": ["exact"],
-        "changed": ["exact", "gte", "lte"],
-    }
+    filterset_class = DomainFilter
 
     lookup_field = "name"
-    lookup_value_regex = "(?:[a-z0-9\-]{1,63}\.){1,32}[a-z0-9\-]{2,63}"
+    lookup_value_regex = r"(?:[a-z0-9\-]{1,63}\.){1,32}[a-z0-9\-]{2,63}"
 
     def get_serializer_class(self):
         """Return the serializer class."""
@@ -112,40 +114,45 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            return self.queryset.filter(pk__in=allowed_domains).select_related("changed_by")
+            return self.queryset.filter(pk__in=allowed_domains).select_related(
+                "changed_by"
+            )
         return self.queryset
 
-    def update(self, request, name=None):
+    def update(self, *args, **kwargs):
         """Updates to domains are not permitted, as DNS records would not be updated."""
         return Response(
             {"detail": "Cannot update a domain. Create a new one."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    def partial_update(self, request, name=None):
+    def partial_update(self, *args, **kwargs):
         """Updates to domains are not permitted, as DNS records would not be updated."""
         return Response(
             {"detail": "Cannot update a domain. Create a new one."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    def retrieve(self, request, name=None):
+    def retrieve(self, request, *args, name=None, **kwargs):
         domain = Domain.objects.get(name=name)
-        # Paginate this
-        # dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
         serializer = DomainSerializer(domain, context={"request": request})
-        return Response(serializer.data)
+        data = serializer.data.copy()
+        return Response(data)
 
     @action(
         detail=True,
         methods=["get"],
         serializer_class=DNSSerializer,
         permission_classes=[permissions.IsAuthenticated],
+        filter_backends=[DjangoFilterBackend],
+        filterset_class=DnsFilter,
+        queryset=DnsRecord.objects.select_related("ip_content", "dns_type"),
     )
     def records(self, request, name=None):
         """Get DNS records for a domain."""
         domain = Domain.objects.get(name=name)
-        dns_records = DnsRecord.objects.filter(name__endswith=domain.name)
+        # Pull the records for this domain
+        dns_records = self.filter_queryset(self.get_queryset().filter(domain=domain))
         # If the user doesn't have permission to view all hosts, filter on hosts
         # This is not a security measure, but rather something to make the UI
         # more usable. Generally, if a user merely has "add_records_to_domain"
@@ -158,19 +165,6 @@ class DomainViewSet(APIModelViewSet):
                 any_perm=True,
             )
             dns_records = dns_records.filter(host__in=user_hosts)
-        # DNS record filtering. TODO: Move this to a filter class
-        dns_type = request.query_params.get("dns_type", None)
-        if dns_type:
-            dns_records = dns_records.filter(dns_type__name=dns_type)
-        content = request.query_params.get("content", None)
-        if content:
-            dns_records = dns_records.filter(content__icontains=content)
-        name = request.query_params.get("name", None)
-        if name:
-            dns_records = dns_records.filter(name__icontains=name)
-        host = request.query_params.get("host", None)
-        if host:
-            dns_records = dns_records.filter(host__mac=host)
         pagination = APIPagination()
         page = pagination.paginate_queryset(dns_records, request)
         dns_serializer = DNSSerializer(page, many=True, context={"request": request})
@@ -178,24 +172,25 @@ class DomainViewSet(APIModelViewSet):
         return pagination.get_paginated_response(dns_serializer.data)
 
     @records.mapping.post
-    def add_dns_record(self, request, name=None):
+    def add_dns_record(self, request: Request, name=None):
         """Add a DNS record to a domain.
 
         Takes the same data as POSTing to the /dns/ endpoint, but appends the domain name.
         """
-        request.data["name"] = request.data["name"] + "." + name
+        data = request.data.copy()
+        data["name"] = request.data["name"] + "." + name
         domain = get_object_or_404(Domain, name=name)
         # check permissions on domain. Can't rely on the permission class, since
         # we're not modifying the domain itself.
-        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
-            "dns.is_owner_domain", domain
-        ):
+        if not request.user.has_perm(
+            "dns.add_records_to_domain", domain
+        ) and not request.user.has_perm("dns.is_owner_domain", domain):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         # We have permission, so create the record
-        serializer = DNSCreateSerializer(data=request.data, context={"request": request})
+        serializer = DNSCreateSerializer(data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         # Log the action
@@ -240,7 +235,9 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove users from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {"detail": "You do not have permission to remove users from this domain."},
+                {
+                    "detail": "You do not have permission to remove users from this domain."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         user = get_object_or_404(User, username=request.data.get("user"))
@@ -281,7 +278,9 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove groups from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {"detail": "You do not have permission to remove groups from this domain."},
+                {
+                    "detail": "You do not have permission to remove groups from this domain."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         group = get_object_or_404(Group, name=request.data.get("group"))
