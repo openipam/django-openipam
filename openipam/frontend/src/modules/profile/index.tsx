@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { User } from "../../utils/types";
+import { Host, User } from "../../utils/types";
 import { useUserHostsTable } from "./useUserHostsTable";
 import { Table } from "../../components/table";
+import { RenewHostModule } from "./renewHostModule";
 
 export const Profile = () => {
   const api = useApi();
   const [user, setUser] = useState<User | undefined>();
+  const [renewModule, setRenewModule] = useState<{
+    show: boolean;
+    data: Host | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
   useEffect(() => {
     api.user
       .get()
@@ -18,7 +26,9 @@ export const Profile = () => {
       });
   }, []);
 
-  const hosts = useUserHostsTable({});
+  const hosts = useUserHostsTable({
+    setRenewModule,
+  });
 
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
@@ -35,6 +45,12 @@ export const Profile = () => {
       <p>Quick add toolbar</p>
       <p>Most recent relevant Logs</p>
       <p>Other Stats/Reports</p>
+      <RenewHostModule
+        HostData={renewModule.data}
+        mac={renewModule.data?.mac ?? ""}
+        showModule={renewModule.show}
+        setShowModule={setRenewModule}
+      />
     </div>
   );
 };

@@ -67,6 +67,9 @@ export const useUserHostsTable = (p: {
   //   setEditHost: React.Dispatch<
   //     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   //   >;
+  setRenewModule: React.Dispatch<
+    React.SetStateAction<{ show: boolean; data: Host | undefined }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
@@ -168,10 +171,10 @@ export const useUserHostsTable = (p: {
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              //   p.setEditHost({
-              //     show: true,
-              //     data: row.original,
-              //   });
+              p.setRenewModule({
+                show: true,
+                data: row.original,
+              });
             }}
           >
             <Autorenew fontSize="small" />
@@ -234,23 +237,28 @@ export const useUserHostsTable = (p: {
         {
           id: "ip_addresses",
           header: "IP Addresses",
-          cell: ({ row }: { row: any }) => (
-            <div className="flex flex-row">
-              <a
-                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
-                href={`#/addresses/${
-                  row.original.master_ip_address ?? row.addresses?.leased?.[0]
-                }`}
-              >{`${
-                row.original.master_ip_address ??
-                row.original.addresses?.leased?.[0]
-              }`}</a>
-              <p className="flex align-middle m-auto">{`(${
-                row.original.addresses?.leased?.length +
-                row.original.addresses?.static?.length
-              })`}</p>
-            </div>
-          ),
+          cell: ({ row }: { row: any }) => {
+            return row.original.master_ip_address ||
+              row.addresses?.leased?.[0] ? (
+              <div className="flex flex-row">
+                <a
+                  className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                  href={`#/addresses/${
+                    row.original.master_ip_address ?? row.addresses?.leased?.[0]
+                  }`}
+                >{`${
+                  row.original.master_ip_address ??
+                  row.original.addresses?.leased?.[0]
+                }`}</a>
+                <p className="flex align-middle m-auto">{`(${
+                  row.original.addresses?.leased?.length +
+                  row.original.addresses?.static?.length
+                })`}</p>
+              </div>
+            ) : (
+              <p className="flex align-middle m-auto">No IP Address</p>
+            );
+          },
           accessorFn: (row) =>
             `${row.master_ip_address ?? row.addresses?.leased?.[0]}
              (${
@@ -262,56 +270,6 @@ export const useUserHostsTable = (p: {
         },
       ],
     }),
-    // columnHelper.group({
-    //   id: "Owners",
-    //   header: "Owners",
-    //   columns: [
-    //     {
-    //       id: "user_owners",
-    //       header: "User Owners",
-    //       size: 200,
-    //       accessorFn: (row) => row.user_owners?.join(",\n"),
-    //       meta: {
-    //         filterType: "string",
-    //       },
-    //     },
-    //     {
-    //       id: "group_owners",
-    //       header: "Group Owners",
-    //       size: 200,
-    //       accessorFn: (row) => row.group_owners?.join(",\n"),
-    //       meta: {
-    //         filterType: "string",
-    //       },
-    //     },
-    //   ],
-    // }),
-    // columnHelper.group({
-    //   id: "Changed",
-    //   header: "Changed",
-    //   columns: [
-    //     {
-    //       id: "changed",
-    //       header: "Last Changed",
-    //       accessorFn: (row) =>
-    //         row.changed
-    //           ? new Date(row.changed).toISOString().split("T")[0]
-    //           : null,
-    //       meta: {
-    //         filterType: "date",
-    //       },
-    //       filterFn: betweenDatesFilter,
-    //     },
-    //     {
-    //       id: "changedBy",
-    //       header: "Changed By",
-    //       accessorFn: (row) => row.changed_by.username,
-    //       meta: {
-    //         filterType: "string",
-    //       },
-    //     },
-    //   ],
-    // }),
   ];
 
   const table = useReactTable({
