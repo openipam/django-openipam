@@ -128,6 +128,7 @@ export const HostPage = () => {
           }}
         >
           <div className="flex flex-col gap-4 m-8 w-[50rem]">
+            <h2 className="text-2xl">DHCP-DNS Records</h2>
             <Table table={dhcpTable.table} loading={dhcpTable.loading} />
           </div>
         </Tab>
