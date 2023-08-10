@@ -214,23 +214,28 @@ export const useHostsTable = (p: {
         {
           id: "ip_addresses",
           header: "IP Addresses",
-          cell: ({ row }: { row: any }) => (
-            <div className="flex flex-row">
-              <a
-                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
-                href={`#/addresses/${
-                  row.original.master_ip_address ?? row.addresses?.leased?.[0]
-                }`}
-              >{`${
-                row.original.master_ip_address ??
-                row.original.addresses?.leased?.[0]
-              }`}</a>
-              <p className="flex align-middle m-auto">{`(${
-                row.original.addresses?.leased?.length +
-                row.original.addresses?.static?.length
-              })`}</p>
-            </div>
-          ),
+          cell: ({ row }: { row: any }) => {
+            return row.original.master_ip_address ||
+              row.addresses?.leased?.[0] ? (
+              <div className="flex flex-row">
+                <a
+                  className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                  href={`#/addresses/${
+                    row.original.master_ip_address ?? row.addresses?.leased?.[0]
+                  }`}
+                >{`${
+                  row.original.master_ip_address ??
+                  row.original.addresses?.leased?.[0]
+                }`}</a>
+                <p className="flex align-middle m-auto">{`(${
+                  row.original.addresses?.leased?.length +
+                  row.original.addresses?.static?.length
+                })`}</p>
+              </div>
+            ) : (
+              <p className="flex align-middle m-auto">No IP Address</p>
+            );
+          },
           accessorFn: (row) =>
             `${row.master_ip_address ?? row.addresses?.leased?.[0]}
              (${

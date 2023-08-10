@@ -11,12 +11,11 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
-import { DNS_TYPES, DhcpRecord, DnsRecord } from "../../utils/types";
-import { useNavigate } from "react-router-dom";
+import { Add, Edit, ExpandMore } from "@mui/icons-material";
+import { DNS_TYPES, DnsRecord } from "../../utils/types";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
 
@@ -66,10 +65,10 @@ export const useDnsTable = (p: {
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
   const data = useInfiniteDomain({
-    ...p,
+    ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
     ...Object.fromEntries(
       columnFilters
-        .filter((f) => DNSLookupKeys.includes(f.id))
+        .filter((f) => DNSLookupKeys.includes(f.id) && f.value)
         .map((filter) => [filter.id, filter.value as string])
     ),
   });

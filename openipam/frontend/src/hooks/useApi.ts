@@ -52,7 +52,11 @@ export const useApi = () => {
           update: requestGenerator(HttpMethod.PATCH, `hosts/${id}/`),
           delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
           disabled: requestGenerator(HttpMethod.GET, `hosts/${id}/disabled/`),
-          users: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
+          users: {
+            get: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
+            put: requestGenerator(HttpMethod.PUT, `hosts/${id}/users/`),
+            create: requestGenerator(HttpMethod.POST, `hosts/${id}/users/`),
+          },
           byUser(userId: string) {
             return {
               get: requestGenerator(
@@ -69,7 +73,11 @@ export const useApi = () => {
               ),
             };
           },
-          groups: requestGenerator(HttpMethod.GET, `hosts/${id}/groups/`),
+          groups: {
+            get: requestGenerator(HttpMethod.GET, `hosts/${id}/groups/`),
+            put: requestGenerator(HttpMethod.PUT, `hosts/${id}/groups/`),
+            create: requestGenerator(HttpMethod.POST, `hosts/${id}/groups/`),
+          },
           byGroup(groupId: string) {
             return {
               get: requestGenerator(
