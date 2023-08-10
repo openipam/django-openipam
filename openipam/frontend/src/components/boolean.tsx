@@ -28,7 +28,13 @@ export const PlainIndeterminateCheckbox = (
       ref.current.indeterminate = !p.checked && p.indeterminate;
     }
   }, [ref, p.indeterminate]);
+  const { indeterminate, ...rest } = p;
   return (
-    <input type="checkbox" className="checkbox checkbox-sm" ref={ref} {...p} />
+    <input
+      type="checkbox"
+      className="checkbox checkbox-sm"
+      ref={ref}
+      {...rest}
+    />
   );
 };
