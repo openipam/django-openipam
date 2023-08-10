@@ -73,7 +73,11 @@ export const useApi = () => {
               ),
             };
           },
-          groups: requestGenerator(HttpMethod.GET, `hosts/${id}/groups/`),
+          groups: {
+            get: requestGenerator(HttpMethod.GET, `hosts/${id}/groups/`),
+            put: requestGenerator(HttpMethod.PUT, `hosts/${id}/groups/`),
+            create: requestGenerator(HttpMethod.POST, `hosts/${id}/groups/`),
+          },
           byGroup(groupId: string) {
             return {
               get: requestGenerator(

@@ -19,6 +19,8 @@ import {
   Autorenew,
   Edit,
   ExpandMore,
+  People,
+  PeopleOutline,
   Visibility,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +31,10 @@ import { BooleanRender, booleanAccessor } from "../../components/boolean";
 // add quick renew button
 // show groups toggle
 
-export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
+export const useInfiniteHosts = (p: {
+  show_groups: false;
+  [key: string]: string | number | boolean;
+}) => {
   const api = useApi();
   const query = useInfiniteQuery({
     queryKey: ["Hosts, mine", ...Object.entries(p).flat()],
@@ -75,6 +80,7 @@ export const useUserHostsTable = (p: {
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
+  const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
 
   const data = useInfiniteHosts({
@@ -105,6 +111,7 @@ export const useUserHostsTable = (p: {
       ?.value as string[][1],
     changed__lt: columnFilters.find((filter) => filter.id === "changed")
       ?.value as string[][1],
+    show_groups: showGroups,
   });
   const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
@@ -143,14 +150,23 @@ export const useUserHostsTable = (p: {
               <ExpandMore />
             </button>
           </div>
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowAddHost((prev: boolean) => !prev);
-            }}
+          <div
+            className="tooltip tooltip-right"
+            data-tip={`${showGroups ? "Hide" : "Show"} Groups`}
           >
-            <Add />
-          </button> */}
+            <button
+              className="btn btn-circle btn-ghost btn-xs"
+              onClick={() => {
+                setShowGroups((prev) => !prev);
+              }}
+            >
+              {showGroups ? (
+                <People fontSize="small" />
+              ) : (
+                <PeopleOutline fontSize="small" />
+              )}
+            </button>
+          </div>
         </div>
       ),
       cell: ({ row }: { row: any }) => (
