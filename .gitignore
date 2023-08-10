@@ -1,5 +1,8 @@
 *.py[cod]
 
+# Node
+node_modules/
+
 # C extensions
 *.so
 
