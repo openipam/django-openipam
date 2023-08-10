@@ -15,8 +15,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from openipam.user.models import User
 from .base import APIModelViewSet, APIPagination
-from ..filters.dns import DnsFilter, DomainFilter
+from ..filters.dns import DhcpDnsFilter, DnsFilter, DomainFilter
 from ..filters.base import RelatedPermissionFilter
+from ..permissions import DnsRecordPermissions
 from ..serializers.dns import (
     DNSSerializer,
     DomainSerializer,
@@ -35,9 +36,9 @@ class DnsViewSet(APIModelViewSet):
 
     queryset = DnsRecord.objects.select_related("ip_content", "dns_type", "host").all()
     serializer_class = DNSSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
-    filter_fields = ["name", "ip_content", "text_content", "dns_type"]
-    filter_class = DnsFilter
+    permission_classes = [DnsRecordPermissions]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DnsFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -56,18 +57,17 @@ class DnsViewSet(APIModelViewSet):
             return DNSCreateSerializer
         return self.serializer_class
 
-    def delete(self, request, *args, **kwargs):
-        """Delete a DNS record."""
-        obj = self.get_object()
+    def perform_destroy(self, instance):
+        """Implement logging for deletion."""
         LogEntry.objects.log_action(
             user_id=self.request.user.pk,
-            content_type_id=ContentType.objects.get_for_model(obj).pk,
-            object_id=obj.pk,
-            object_repr=force_text(obj),
+            content_type_id=ContentType.objects.get_for_model(instance).pk,
+            object_id=instance.pk,
+            object_repr=force_text(instance),
             action_flag=DELETION,
-            change_message="API Delete call.",
+            change_message=f"Deleting DNS record",
         )
-        return super().delete(request, *args, **kwargs)
+        super().perform_destroy(instance)
 
     def create(self, request, *args, **kwargs):
         """Create a DNS record."""
@@ -85,6 +85,38 @@ class DnsViewSet(APIModelViewSet):
             )
         # We have permission, so create the record
         return super().create(request, *args, **kwargs)
+
+    @action(detail=False, methods=["get"], queryset=DnsType.objects.all())
+    def types(self, request: Request, *args, **kwargs):
+        """Return a list of DNS types."""
+        types = self.get_queryset()
+        serializer = DnsTypeSerializer(types, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], queryset=DnsView.objects.all())
+    def views(self, request: Request, *args, **kwargs):
+        """Return a list of DNS views."""
+        views = self.get_queryset()
+        serializer = DnsViewSerializer(views, many=True)
+        return Response(serializer.data)
+
+    filter_related_field = "host"
+    filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
+    filter_staff_sees_all = True
+
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=DhcpDnsRecord.objects.select_related("domain", "host").all(),
+        filter_backends=[RelatedPermissionFilter],
+        serializer_class=DhcpDnsRecordSerializer,
+    )
+    def dhcp(self, request: Request, *args, **kwargs):
+        """Return a list of DHCP DNS records."""
+        records = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(records)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class DomainViewSet(APIModelViewSet):
@@ -149,6 +181,45 @@ class DomainViewSet(APIModelViewSet):
         data = serializer.data.copy()
         return Response(data)
 
+    filter_related_field = "host"
+    filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
+    filter_staff_sees_all = True
+
+    @action(
+        detail=True,
+        methods=["get"],
+        serializer_class=DhcpDnsRecordSerializer,
+        queryset=DhcpDnsRecord.objects.select_related("domain", "host").all(),
+        filter_backends=[DjangoFilterBackend, RelatedPermissionFilter],
+        filterset_class=DhcpDnsFilter,
+        url_path="dhcp",
+    )
+    def dhcp_records(self, request, name=None):
+        """Get DHCP DNS records for a domain."""
+        domain = Domain.objects.get(name=name)
+        # Pull the records for this domain
+        dhcp_records = self.filter_queryset(self.get_queryset().filter(domain=domain))
+        # If the user doesn't own the domain, filter the records to only show
+        # records for hosts they own.
+        if not request.user.has_perm(
+            "dns.add_records_to_domain", domain
+        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+            user_hosts = get_objects_for_user(
+                request.user,
+                [
+                    "hosts.is_owner_host",
+                    "hosts.change_host",
+                ],
+                any_perm=True,
+                use_groups=True,
+                with_superuser=False,
+            )
+            dhcp_records = dhcp_records.filter(host__in=user_hosts)
+        # Serialize the records
+        pagination = self.paginate_queryset(dhcp_records)
+        serializer = self.get_serializer(pagination, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(
         detail=True,
         methods=["get"],
@@ -156,18 +227,22 @@ class DomainViewSet(APIModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
         filter_backends=[DjangoFilterBackend],
         filterset_class=DnsFilter,
-        queryset=DnsRecord.objects.select_related("ip_content", "dns_type"),
+        queryset=DnsRecord.objects.select_related("ip_content", "dns_type", "host"),
     )
     def records(self, request, name=None):
         """Get DNS records for a domain."""
         domain = Domain.objects.get(name=name)
         # Pull the records for this domain
         dns_records = self.filter_queryset(self.get_queryset().filter(domain=domain))
-        # If the user doesn't have permission to view all hosts, filter on hosts
+        # If the user doesn't own the domain, filter the records to only show
+        # records for hosts they own.
         # This is not a security measure, but rather something to make the UI
         # more usable. Generally, if a user merely has "add_records_to_domain"
         # permission, they don't have permission to delete other users' records,
         # and probably only want to see their own records.
+        # The only way to determine ownership of DNS records at the moment is
+        # to check if the user has permission to change the host. Record-level
+        # permissions are not implemented.
         if not request.user.has_perm("is_owner_domain", domain):
             user_hosts = get_objects_for_user(
                 request.user,
@@ -329,7 +404,7 @@ class DhcpDnsRecordsList(generics.ListAPIView):
     filter_related_field = "host"
     filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
     filter_staff_sees_all = True
-    queryset = DhcpDnsRecord.objects.prefetch_related("domain", "host").all()
+    queryset = DhcpDnsRecord.objects.select_related("domain", "host").all()
 
     def get_queryset(self):
         queryset = super().get_queryset()

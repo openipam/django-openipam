@@ -1,7 +1,7 @@
 """Filters for dns records."""
 from django.db.models import Q
 from rest_framework import filters
-from openipam.dns.models import DnsType, Domain, DnsRecord
+from openipam.dns.models import DhcpDnsRecord, DnsType, Domain, DnsRecord
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
@@ -85,3 +85,16 @@ class DomainFilter(FilterSet):
     class Meta:
         model = Domain
         fields = ["name", "changed_by"]
+
+
+class DhcpDnsFilter(FilterSet):
+    """Filter for DHCP DNS records."""
+
+    host = CharFilter(field_name="host__hostname", lookup_expr="istartswith")
+    mac = CharFilter(field_name="host__mac", lookup_expr="iexact")
+    ip_address = CharFilter(field_name="ip_content__address", lookup_expr="istartswith")
+    domain = CharFilter(field_name="domain__name", lookup_expr="istartswith")
+
+    class Meta:
+        model = DhcpDnsRecord
+        fields = ["host", "ip_address", "domain", "mac"]

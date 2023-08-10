@@ -1,7 +1,9 @@
 from rest_framework import permissions
+from openipam.dns.models import Domain
 
 from openipam.hosts.models import Host
 from guardian.shortcuts import get_objects_for_user
+from django.db.models.functions import Length
 
 
 class APIAdminPermission(permissions.BasePermission):
@@ -141,3 +143,86 @@ class ReadRestrictObjectPermissions(permissions.DjangoObjectPermissions):
         "PATCH": ["%(app_label)s.change_%(model_name)s"],
         "DELETE": ["%(app_label)s.delete_%(model_name)s"],
     }
+
+
+class DnsRecordPermissions(permissions.DjangoModelPermissions):
+    """Permission to delete a DNS record."""
+
+    def has_permission(self, request, view):
+        # For post requests, we need to make sure the user is allowed to add
+        # records of the given type
+        if request.method == "POST":
+            # Get the record type from the request
+            record_type = request.data.get("dns_type", None)
+            if not record_type:
+                return False
+            # This isn't implemented properly, so we have to hardcode the
+            # record types that are allowed to be added by non-admins
+            allowed_types = [
+                "A",
+                "CNAME",
+                "HINFO",
+                "MX",
+                "NS",
+                "TXT",
+                "PTR",
+                "SRV",
+                "SSHFP",
+            ]
+            if request.user.is_ipamadmin:
+                return True
+            if record_type not in allowed_types:
+                return False
+            # Now, check that the user has permission to add records to the domain
+            name = request.data.get("name", None)
+            if not name:
+                return False
+            # Need the domain whose name is the end of the record name
+            name_segments = name.split(".")
+            domain_name_possibilities = [
+                ".".join(name_segments[i:]) for i in range(len(name_segments))
+            ]
+            # Get the longest domain name that this record could be a part of
+            domain = (
+                Domain.objects.filter(name__in=domain_name_possibilities)
+                .order_by(Length("name").desc())
+                .first()
+            )
+            if not domain:
+                return False
+            # Check if the user has permission to add records to this domain
+            if request.user.has_perm(
+                "dns.is_owner_domain",
+                domain,
+            ) or request.user.has_perm(
+                "dns.add_records_to_domain",
+                domain,
+            ):
+                return True
+            # Otherwise, return false
+            return False
+        # If not delete, return the default permission
+        if request.method != "DELETE":
+            return super(DnsRecordPermissions, self).has_permission(request, view)
+        # Delete requests are left up to the object-level permissions.
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        # Return true for non-delete requests
+        if request.method != "DELETE":
+            return True
+
+        # Allow deletion if the user is an admin
+        if request.user.is_ipamadmin:
+            return True
+
+        # Allow deletion if the user owns the domain
+        if request.user.has_perm("dns.is_owner_domain", obj.domain):
+            return True
+
+        # Allow deletion if the user owns the associated host
+        if request.user.has_perm("hosts.is_owner_host", obj.host):
+            return True
+
+        # Deny deletion
+        return False
