@@ -1,13 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAttributes } from "../hooks/queries/useAtributes";
+import { useApi } from "../hooks/useApi";
 
 export const Attributes = (p: {
   attributes: {
     [key: string]: string;
   };
+  mac: string;
 }) => {
+  const api = useApi();
   const attributes = useAttributes();
-  const [edit, setEdit] = React.useState<boolean>(false);
+  const [edit, setEdit] = useState<boolean>(false);
+  const [newAttributes, setNewAttributes] = useState<any>();
+  useEffect(() => {
+    setNewAttributes(p.attributes);
+  }, [p.attributes]);
+
+  const onSubmit = async () => {
+    console.log(newAttributes);
+    const results = await api.hosts.byId(p.mac).update({
+      attributes: newAttributes,
+    });
+    console.log(results);
+    alert("TODO: submitted");
+  };
+
   return (
     <div className={`card w-[80%] relative md:w-[40rem] bg-gray-600 shadow-xl`}>
       <div className="card-body">
@@ -16,7 +33,12 @@ export const Attributes = (p: {
           <div className="flex flex-col gap-2">
             {Object.entries(p.attributes ?? {}).map(([key, value]) => (
               <div className="flex flex-col gap-2">
-                <label htmlFor={`host-${key}`}>{key}</label>
+                <label
+                  htmlFor={`host-${key}`}
+                  className="font-semibold mt-2 mb-0 pb-0"
+                >
+                  {key.toUpperCase()}
+                </label>
                 <input
                   type="text"
                   id={`host-${key}`}
@@ -44,25 +66,72 @@ export const Attributes = (p: {
                 }[];
               }) => (
                 <div className="flex flex-col gap-2">
-                  <label htmlFor={`host-${name}`}>{name}</label>
-                  <input
-                    type="text"
-                    id={`host-${name}`}
-                    value={JSON.stringify(description)}
-                    onChange={() => {}}
-                    className="border border-gray-300 rounded-md p-2"
-                  />
+                  <label
+                    htmlFor={`host-${name}`}
+                    className="font-semibold mt-2 mb-0 pb-0"
+                  >
+                    {name.toUpperCase()}
+                  </label>
+                  <label htmlFor={`host-${name}`} className="text-sm m-0 p-0">
+                    {description}
+                  </label>
+                  {!choices?.length && (
+                    <input
+                      type="text"
+                      id={`host-${name}`}
+                      value={newAttributes[name] ?? ""}
+                      onChange={(v) => {
+                        setNewAttributes({
+                          ...newAttributes,
+                          [name]: v.target.value,
+                        });
+                      }}
+                      className="rounded-md p-2 input input-bordered"
+                    />
+                  )}
+                  {choices?.length && (
+                    <select
+                      id={`host-${name}`}
+                      value={newAttributes[name] ?? ""}
+                      onChange={(v) => {
+                        setNewAttributes({
+                          ...newAttributes,
+                          [name]: v.target.value,
+                        });
+                      }}
+                      className="rounded-md p-2 select select-bordered"
+                    >
+                      {choices.map((choice) => (
+                        <option value={choice.value}>{choice.value}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )
             )}
           </div>
         )}
-        <button
-          className="btn btn-primary btn-md"
-          onClick={() => setEdit(!edit)}
-        >
-          {edit ? "Save" : "Edit"}
-        </button>
+        <div className="flex flex-row gap-2">
+          <button
+            className="btn btn-primary btn-md"
+            onClick={() => {
+              if (edit) {
+                onSubmit();
+              }
+              setEdit(!edit);
+            }}
+          >
+            {edit ? "Save" : "Edit"}
+          </button>
+          {edit && (
+            <button
+              className="btn btn-outline btn-ghost btn-md font-black"
+              onClick={() => setEdit(!edit)}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
         {/* <pre>{JSON.stringify(attributes.data?.attributes, null, 2)}</pre> */}
       </div>
     </div>

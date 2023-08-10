@@ -150,7 +150,10 @@ export const HostPage = () => {
           }}
         />
         <Tab tab={tab} name={"Attributes"} data={HostInfo?.attributes ?? {}}>
-          <Attributes attributes={HostInfo?.attributes ?? {}} />
+          <Attributes
+            mac={HostInfo?.mac ?? ""}
+            attributes={HostInfo?.attributes ?? {}}
+          />
         </Tab>
       </Tabs>
       <EditHostModule
