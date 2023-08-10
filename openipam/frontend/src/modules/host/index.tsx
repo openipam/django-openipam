@@ -12,6 +12,7 @@ import { EditDnsModule } from "../domain/editDnsModule";
 import { useDhcpTable } from "./useDhcpTable";
 import { Attributes } from "../../components/atributes";
 import { useAttributes } from "../../hooks/queries/useAtributes";
+import { EditUserOwnerModule } from "./editUserOwnerModule";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -26,6 +27,13 @@ export const HostPage = () => {
     data: undefined,
   });
   const [editHost, setEditHost] = useState<{
+    show: boolean;
+    data: Host | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
+  const [editUserOwner, setEditUserOwner] = useState<{
     show: boolean;
     data: Host | undefined;
   }>({
@@ -128,7 +136,7 @@ export const HostPage = () => {
         <Tab
           tab={tab}
           name={"Users"}
-          props={"m-2"}
+          props={"m-2 pt-4"}
           data={HostInfo ?? {}}
           labels={{
             user_owners: "User Owners:",
@@ -136,6 +144,7 @@ export const HostPage = () => {
           custom={{
             user_owners: HostInfo?.user_owners?.join(",\n"),
           }}
+          edit={setEditUserOwner}
         />
         <Tab
           tab={tab}
@@ -160,6 +169,11 @@ export const HostPage = () => {
         showModule={editHost.show}
         setShowModule={setEditHost}
         HostData={editHost.data}
+      />
+      <EditUserOwnerModule
+        showModule={editUserOwner.show}
+        setShowModule={setEditUserOwner}
+        HostData={editUserOwner.data}
       />
       <AddDnsModule
         host={HostInfo?.hostname ?? ""}

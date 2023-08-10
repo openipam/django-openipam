@@ -284,9 +284,14 @@ class UserOwnerView(views.APIView):
         """Post."""
         self.action = "create"
         mac = kwargs["mac"]
+        print()
+        print()
+        print(request.data)
         host = get_object_or_404(Host, mac=mac)
         self.check_object_permissions(request, host)
+        print("here")
         for username in request.data:
+            print(username)
             user = get_object_or_404(User, username=username)
             # Check permissions
             # Create ownership record
@@ -309,7 +314,7 @@ class UserOwnerView(views.APIView):
         self.action = "list"
         mac = kwargs["mac"]
         host = get_object_or_404(Host, mac=mac)
-        serializer = HostSerializer(host)
+        serializer = HostSerializer(host, context={"request": request})
         return Response(serializer.data.get("user_owners"))
 
     def delete(self, request, *args, **kwargs):
@@ -347,6 +352,7 @@ class UserOwnerView(views.APIView):
         # Replace ownership records
         host.remove_user_owners()
         for username in request.data:
+            print(username)
             user = get_object_or_404(User, username=username)
             host.assign_owner(user)
         # Update changedby field
