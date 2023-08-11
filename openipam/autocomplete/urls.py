@@ -30,4 +30,9 @@ urlpatterns = [
         views.ContentTypeAutocomplete.as_view(),
         name="content_type_autocomplete",
     ),
+    path(
+        "dhcp-group-autocomplete/",
+        views.DhcpGroupAutocomplete.as_view(),
+        name="dhcp_group_autocomplete",
+    ),
 ]

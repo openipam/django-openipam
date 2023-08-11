@@ -1,7 +1,7 @@
 from openipam.hosts.models import (
     StructuredAttributeValue,
 )
-from openipam.network.models import AddressType, Network
+from openipam.network.models import AddressType, DhcpGroup, Network
 from openipam.user.models import User
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
@@ -184,6 +184,11 @@ PermissionsAutocomplete = (
 )
 ContentTypeAutocomplete = (
     IPAMSearchAutoComplete.searching_models(ContentType)
+    .enable_word_split()
+    .always_use_pk()
+)
+DhcpGroupAutocomplete = (
+    IPAMSearchAutoComplete.searching_models(DhcpGroup)
     .enable_word_split()
     .always_use_pk()
 )
