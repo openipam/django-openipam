@@ -71,6 +71,7 @@ class IPAMSearchAutoComplete(View):
         AddressType: ["name", "description"],
         Permission: ["name", "codename", "content_type__app_label"],
         ContentType: ["app_label", "model"],
+        DhcpGroup: ["name"],
     }
 
     _formatters = {
@@ -81,6 +82,7 @@ class IPAMSearchAutoComplete(View):
         Group: lambda x: ["Group", x],
         Permission: lambda x: ["Permission", x.content_type.app_label, x.name],
         ContentType: lambda x: ["Content Type", x.app_label, x.model],
+        DhcpGroup: lambda x: ["DHCP Group", x.name],
     }
 
     def get_queryset(self, model_class=None):
