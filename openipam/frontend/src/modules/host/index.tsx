@@ -95,6 +95,7 @@ export const HostPage = () => {
           labels={{
             hostname: "Host Name:",
             mac: "Ethernet Address",
+            last_seen: "Last Seen:",
             changed: "Last Changed:",
             changed_by: "Changed By:",
             is_dynamic: "Type:",
@@ -105,6 +106,9 @@ export const HostPage = () => {
             changed: HostInfo?.changed
               ? new Date(HostInfo.changed).toISOString().split("T")[0]
               : "",
+            last_seen: HostInfo?.last_seen
+              ? new Date(HostInfo.last_seen).toISOString().split("T")[0]
+              : "> 3 months, if ever",
             changed_by: HostInfo?.changed_by.username,
             is_dynamic: HostInfo?.is_dynamic ? "Dynamic" : "Static",
             disabled_host: HostInfo?.disabled_host ? "True" : "False",

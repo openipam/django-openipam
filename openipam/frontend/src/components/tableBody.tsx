@@ -6,23 +6,27 @@ export const TableBody = (p: {
   estimateColumnSize?: number;
   tableContainerRef: React.RefObject<HTMLDivElement>;
 }) => {
-  const tableRows = p.table.getRowModel().rows ?? [undefined];
+  const tableRows = p.table.getRowModel().rows ?? [];
+  if (!tableRows.length) {
+    return (
+      <tbody>
+        <tr>
+          <td
+            className="overflow-hidden"
+            colSpan={p.table.getVisibleFlatColumns().length}
+          >
+            <div className="flex justify-center items-center h-32">
+              <div className="text-2xl">No Results</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    );
+  }
+
   return (
     <tbody>
       {tableRows.map((row) => {
-        if (!row)
-          return (
-            <tr>
-              <td
-                className="overflow-hidden"
-                colSpan={p.table.getVisibleFlatColumns().length}
-              >
-                <div className="flex justify-center items-center h-32">
-                  <div className="text-2xl">No Results</div>
-                </div>
-              </td>
-            </tr>
-          );
         return (
           <tr
             key={row.id}

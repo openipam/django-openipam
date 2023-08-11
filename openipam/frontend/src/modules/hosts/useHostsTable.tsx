@@ -19,11 +19,16 @@ import {
   Autorenew,
   Edit,
   ExpandMore,
+  MoreVert,
   Visibility,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
-import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import {
+  BooleanRender,
+  PlainIndeterminateCheckbox,
+  booleanAccessor,
+} from "../../components/boolean";
 
 //TODO disabled columns only shows for admins.
 
@@ -107,10 +112,6 @@ export const useHostsTable = (p: {
       ?.value as (string | undefined)[])?.[0],
     expires__lt: (columnFilters.find((filter) => filter.id === "expires")
       ?.value as (string | undefined)[])?.[1],
-    changed_gt: (columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[])?.[1],
-    changed__lt: (columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[])?.[1],
   });
   const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
@@ -128,18 +129,19 @@ export const useHostsTable = (p: {
   const columnHelper = createColumnHelper<Host>();
   const columns = [
     {
-      size: 100,
+      size: 125,
       enableHiding: false,
       enableSorting: false,
       enableColumnFilter: false,
       id: "actions",
       header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            /> */}
+        // force overflow to be visible so that the tooltip can be seen
+        <div className="gap-1 items-center relative !min-w-full">
+          <PlainIndeterminateCheckbox
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
           <div className="tooltip tooltip-right" data-tip="Load More">
             <button
               className="btn btn-circle btn-ghost btn-xs mt-1"
@@ -157,16 +159,29 @@ export const useHostsTable = (p: {
           >
             <Add />
           </button>
+          <div className="dropdown mt-1">
+            <label tabIndex={0} className="btn btn-circle btn-ghost btn-xs">
+              <MoreVert />
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              <li onClick={() => {}}>
+                <a>Actions for selected columns</a>
+              </li>
+            </ul>
+          </div>
         </div>
       ),
       cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-              checked={row.getIsSelected()}
-              onChange={row.getToggleSelectedHandler()}
-              disabled={!row.getCanSelect()}
-              indeterminate={row.getIsSomeSelected()}
-            /> */}
+        <div className="gap-1 items-center !min-w-full">
+          <PlainIndeterminateCheckbox
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            disabled={!row.getCanSelect()}
+            indeterminate={row.getIsSomeSelected()}
+          />
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => navigate(`/Hosts/${row.original.mac}`)}
