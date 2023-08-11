@@ -18,21 +18,6 @@ urlpatterns = [
     path("admin/logs/", csrf_exempt(views.admin.LogEntryList.as_view())),
     path("admin/email-logs/", csrf_exempt(views.admin.EmailLogsList.as_view())),
     path(
-        "dns-types/",
-        csrf_exempt(views.dns.DnsTypeList.as_view()),
-        name="api_dns_type_list",
-    ),
-    path(
-        "dns-views/",
-        csrf_exempt(views.dns.DnsViewsList.as_view()),
-        name="api_dns_view_list",
-    ),
-    path(
-        "dhcp-dns/",
-        csrf_exempt(views.dns.DhcpDnsRecordsList.as_view()),
-        name="api_dhcp_dns_list",
-    ),
-    path(
         "user/",
         csrf_exempt(views.user.UserView.as_view()),
     ),

@@ -15,7 +15,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from openipam.user.models import User
 from .base import APIModelViewSet, APIPagination
-from ..filters.dns import DhcpDnsFilter, DnsFilter, DomainFilter
+from ..filters.dns import DhcpDnsFilter, DnsFilter, DnsTypeFilter, DomainFilter
 from ..filters.base import RelatedPermissionFilter
 from ..permissions import DnsRecordPermissions
 from ..serializers.dns import (
@@ -86,10 +86,16 @@ class DnsViewSet(APIModelViewSet):
         # We have permission, so create the record
         return super().create(request, *args, **kwargs)
 
-    @action(detail=False, methods=["get"], queryset=DnsType.objects.all())
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=DnsType.objects.all(),
+        filter_backends=[DjangoFilterBackend],
+        filterset_class=DnsTypeFilter,
+    )
     def types(self, request: Request, *args, **kwargs):
         """Return a list of DNS types."""
-        types = self.get_queryset()
+        types = self.filter_queryset(self.get_queryset())
         serializer = DnsTypeSerializer(types, many=True)
         return Response(serializer.data)
 
@@ -108,8 +114,9 @@ class DnsViewSet(APIModelViewSet):
         detail=False,
         methods=["get"],
         queryset=DhcpDnsRecord.objects.select_related("domain", "host").all(),
-        filter_backends=[RelatedPermissionFilter],
+        filter_backends=[RelatedPermissionFilter, DjangoFilterBackend],
         serializer_class=DhcpDnsRecordSerializer,
+        filterset_class=DhcpDnsFilter,
     )
     def dhcp(self, request: Request, *args, **kwargs):
         """Return a list of DHCP DNS records."""
