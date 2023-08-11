@@ -98,3 +98,14 @@ class DhcpDnsFilter(FilterSet):
     class Meta:
         model = DhcpDnsRecord
         fields = ["host", "ip_address", "domain", "mac"]
+
+
+class DnsTypeFilter(FilterSet):
+    """Filter for DNS types."""
+
+    name = CharFilter(lookup_expr="icontains")
+    description = CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = DnsType
+        fields = ["name", "description"]
