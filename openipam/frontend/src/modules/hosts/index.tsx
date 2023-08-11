@@ -3,6 +3,8 @@ import { useHostsTable } from "./useHostsTable";
 import { Table } from "../../components/table";
 import { AddHostModule } from "./addHostModule";
 import { EditHostModule } from "./editHostModule";
+import { RenewHostModule } from "../profile/renewHostModule";
+import { Host } from "../../utils/types";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
@@ -13,9 +15,17 @@ export const Hosts = () => {
     show: false,
     HostData: undefined,
   });
+  const [renewModule, setRenewModule] = useState<{
+    show: boolean;
+    data: Host | undefined;
+  }>({
+    show: false,
+    data: undefined,
+  });
   const table = useHostsTable({
     setShowAddHost,
     setEditHost,
+    setRenewModule,
   });
 
   return (
@@ -29,6 +39,12 @@ export const Hosts = () => {
         showModule={editHost.show}
         setShowModule={setEditHost}
         HostData={editHost.HostData}
+      />
+      <RenewHostModule
+        HostData={renewModule.data}
+        mac={renewModule.data?.mac ?? ""}
+        showModule={renewModule.show}
+        setShowModule={setRenewModule}
       />
     </div>
   );

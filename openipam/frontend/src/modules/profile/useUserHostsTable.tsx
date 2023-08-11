@@ -1,5 +1,6 @@
 import {
   ColumnFiltersState,
+  RowData,
   createColumnHelper,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -245,6 +246,28 @@ export const useUserHostsTable = (p: {
             row.expires
               ? new Date(row.expires).toISOString().split("T")[0]
               : null,
+          cell: ({ row }: { row: any }) => {
+            return row.original.expires ? (
+              <div className="flex flex-row justify-between mx-2">
+                <p className="flex align-middle">{`${
+                  row.original.expires
+                    ? new Date(row.original.expires).toISOString().split("T")[0]
+                    : ""
+                }`}</p>
+                <p className="flex align-middle">{`(${
+                  new Date(row.original.expires) < new Date()
+                    ? "Expired"
+                    : `${Math.ceil(
+                        (new Date(row.original.expires).getTime() -
+                          new Date().getTime()) /
+                          (1000 * 3600 * 24)
+                      )} Days Left`
+                })`}</p>
+              </div>
+            ) : (
+              ""
+            );
+          },
           meta: {
             filterType: "date",
           },
@@ -311,6 +334,16 @@ export const useUserHostsTable = (p: {
         setGlobalFilter(value);
       },
       columnVisibility,
+    },
+    meta: {
+      trProps: (row: any) => {
+        return {
+          className:
+            row.expires && new Date(row.expires) < new Date()
+              ? "bg-red-500 bg-opacity-70"
+              : "",
+        };
+      },
     },
     columns,
     filterFns: {

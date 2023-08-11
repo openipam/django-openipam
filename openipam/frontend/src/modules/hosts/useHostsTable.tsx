@@ -14,7 +14,13 @@ import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
+import {
+  Add,
+  Autorenew,
+  Edit,
+  ExpandMore,
+  Visibility,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
@@ -59,12 +65,21 @@ export const useHostsTable = (p: {
   setEditHost: React.Dispatch<
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   >;
+  setRenewModule: React.Dispatch<
+    React.SetStateAction<{ show: boolean; data: Host | undefined }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (columnFilters.length !== 0) {
+      console.log(columnFilters);
+    }
+  }, [columnFilters]);
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -75,6 +90,8 @@ export const useHostsTable = (p: {
         ])
         .map(([key, val]) => {
           switch (key) {
+            case "expires":
+              return [];
             case "mac":
               return [`mac`, val ?? ""];
             case "hostname":
@@ -86,14 +103,14 @@ export const useHostsTable = (p: {
           }
         })
     ),
-    expires__gt: columnFilters.find((filter) => filter.id === "expires")
-      ?.value as string[][0],
-    expires__lt: columnFilters.find((filter) => filter.id === "expires")
-      ?.value as string[][1],
-    changed_gt: columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[][1],
-    changed__lt: columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[][1],
+    expires__gt: (columnFilters.find((filter) => filter.id === "expires")
+      ?.value as (string | undefined)[])?.[0],
+    expires__lt: (columnFilters.find((filter) => filter.id === "expires")
+      ?.value as (string | undefined)[])?.[1],
+    changed_gt: (columnFilters.find((filter) => filter.id === "changed")
+      ?.value as string[])?.[1],
+    changed__lt: (columnFilters.find((filter) => filter.id === "changed")
+      ?.value as string[])?.[1],
   });
   const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
@@ -168,6 +185,17 @@ export const useHostsTable = (p: {
           >
             <Edit fontSize="small" />
           </button>
+          <button
+            className="btn btn-circle btn-ghost btn-xs"
+            onClick={() => {
+              p.setRenewModule({
+                show: true,
+                data: row.original,
+              });
+            }}
+          >
+            <Autorenew fontSize="small" />
+          </button>
         </div>
       ),
     },
@@ -201,11 +229,34 @@ export const useHostsTable = (p: {
       columns: [
         {
           id: "expires",
+          size: 200,
           header: "Expires",
           accessorFn: (row) =>
             row.expires
               ? new Date(row.expires).toISOString().split("T")[0]
               : null,
+          cell: ({ row }: { row: any }) => {
+            return row?.original.expires ? (
+              <div className="flex flex-col">
+                <p className="flex flex-row justify-start">{`${
+                  row.original.expires
+                    ? new Date(row.original.expires).toISOString().split("T")[0]
+                    : ""
+                }`}</p>
+                <p className="flex flex-row justify-end">{`(${
+                  new Date(row.original.expires) < new Date()
+                    ? "Expired"
+                    : `${Math.ceil(
+                        (new Date(row.original.expires).getTime() -
+                          new Date().getTime()) /
+                          (1000 * 3600 * 24)
+                      )} Days Left`
+                })`}</p>
+              </div>
+            ) : (
+              ""
+            );
+          },
           meta: {
             filterType: "date",
           },
@@ -350,6 +401,16 @@ export const useHostsTable = (p: {
         setGlobalFilter(value);
       },
       columnVisibility,
+    },
+    meta: {
+      trProps: (row: any) => {
+        return {
+          className:
+            row.expires && new Date(row.expires) < new Date()
+              ? "bg-red-500 bg-opacity-70"
+              : "",
+        };
+      },
     },
     columns,
     filterFns: {

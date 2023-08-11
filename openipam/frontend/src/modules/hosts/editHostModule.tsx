@@ -1,9 +1,17 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-import { CreateHost } from "../../utils/types";
-
+import { CreateHost, Host } from "../../utils/types";
+const choices = {
+  0: "Don't Renew",
+  1: "1 Day",
+  7: "1 Week",
+  14: "2 Weeks",
+  180: "6 Months",
+  365: "1 Year",
+  10950: "30 Years",
+};
 export const EditHostModule = (p: {
-  HostData: CreateHost | undefined;
+  HostData: Host | undefined;
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
@@ -55,7 +63,9 @@ export const EditHostModule = (p: {
                 mac: e.target[0].value,
                 hostname: e.target[1].value,
                 description: e.target[2].value,
-                expires: e.target[3].value,
+                ...(e.target[3].value
+                  ? { expire_days: e.target[3].value }
+                  : {}),
               };
               updateHost(HostData);
             }}
@@ -91,19 +101,21 @@ export const EditHostModule = (p: {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="host-last-check">Expires</label>
-              <input
-                type="date"
-                min={new Date(0).getTime()}
-                max={new Date().getTime()}
-                value={
-                  p.HostData?.expires ??
-                  new Date("2050-1-1").toISOString().split("T")[0]
-                }
-                onChange={() => {}}
-                id="host-type"
-                className="border border-gray-300 rounded-md p-2"
-              />
+              <label htmlFor="Dns-name">Expires</label>
+              <select
+                id={`expires`}
+                value={0}
+                onChange={(v) => {
+                  console.log(v);
+                }}
+                className="rounded-md p-2 select select-bordered"
+              >
+                {Object.entries(choices).map(([key, value]) => (
+                  <option value={key} key={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button

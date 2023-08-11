@@ -17,6 +17,10 @@ declare module "@tanstack/table-core" {
     filterOptions?: string[] | null;
     filterType: "string" | "date" | "exact" | "boolean" | null;
   }
+
+  interface TableMeta<TData extends RowData> {
+    trProps?: (p: TData) => Record<string, any>;
+  }
 }
 
 export const Table = (p: {

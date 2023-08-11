@@ -6,7 +6,7 @@ export const TableBody = (p: {
   estimateColumnSize?: number;
   tableContainerRef: React.RefObject<HTMLDivElement>;
 }) => {
-  const tableRows = p.table.getRowModel().rows ?? [];
+  const tableRows = p.table.getRowModel().rows ?? [undefined];
   return (
     <tbody>
       {tableRows.map((row) => {
@@ -24,7 +24,10 @@ export const TableBody = (p: {
             </tr>
           );
         return (
-          <tr key={row.id}>
+          <tr
+            key={row.id}
+            {...(p.table.options.meta?.trProps?.(row.original) ?? {})}
+          >
             {row.getVisibleCells().map((cell, i) => (
               <td
                 className="overflow-hidden"

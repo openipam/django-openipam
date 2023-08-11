@@ -31,8 +31,8 @@ export type Log = {
 export type CreateHost = {
   mac: string;
   hostname: string;
-  expires: string;
-  description: string;
+  expire_days?: string;
+  description?: string;
 };
 
 export type Host = {

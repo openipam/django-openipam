@@ -83,7 +83,9 @@ export const RenewHostModule = (p: {
                 className="rounded-md p-2 select select-bordered"
               >
                 {Object.entries(choices).map(([key, value]) => (
-                  <option value={key}>{value}</option>
+                  <option value={key} key={key}>
+                    {value}
+                  </option>
                 ))}
               </select>
             </div>
