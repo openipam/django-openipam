@@ -81,13 +81,14 @@ export const useHostsTable = (p: {
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   >;
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host | undefined }>
+    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState({});
+  const [action, setAction] = useState<string>("renew");
   const [prevData, setPrevData] = useState<Host[]>([]);
   const navigate = useNavigate();
 
@@ -217,7 +218,7 @@ export const useHostsTable = (p: {
             onClick={() => {
               p.setRenewModule({
                 show: true,
-                data: row.original,
+                data: [row.original],
               });
             }}
           >
@@ -443,7 +444,7 @@ export const useHostsTable = (p: {
               : "",
         };
       },
-      rowActions: (rows: any) => {
+      rowActions: (rows: Host[]) => {
         return (
           <div className="flex flex-col gap-2 m-2">
             <label>Actions</label>
@@ -451,8 +452,9 @@ export const useHostsTable = (p: {
               <select
                 id={`actions`}
                 onChange={(v) => {
-                  console.log(v);
+                  setAction(v.target.value);
                 }}
+                value={action}
                 className="rounded-md p-2 select select-bordered max-w-md"
               >
                 {Object.entries(actions).map(([key, value]) => (
@@ -464,7 +466,17 @@ export const useHostsTable = (p: {
               <button
                 className="btn btn-primary"
                 onClick={() => {
-                  console.log(rows);
+                  switch (action) {
+                    case "renew":
+                      p.setRenewModule({
+                        show: true,
+                        data: rows,
+                      });
+                      break;
+                    default:
+                      console.log(action);
+                      break;
+                  }
                 }}
               >
                 Go

@@ -17,7 +17,7 @@ export const Hosts = () => {
   });
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
-    data: Host | undefined;
+    data: Host[] | undefined;
   }>({
     show: false,
     data: undefined,
@@ -42,7 +42,6 @@ export const Hosts = () => {
       />
       <RenewHostModule
         HostData={renewModule.data}
-        mac={renewModule.data?.mac ?? ""}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
       />

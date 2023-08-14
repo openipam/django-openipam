@@ -12,21 +12,21 @@ const choices = {
 };
 
 export const RenewHostModule = (p: {
-  HostData: Host | undefined;
-  mac: string;
+  HostData: Host[] | undefined;
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
   const renewHost = async (expires: string) => {
-    const results = await api.hosts
-      .byId(p.mac)
-      .update({ expire_days: expires });
-    console.log(results);
-    alert(`successfully edited ${p.mac}`);
+    await Promise.all(
+      p.HostData!.map(async (host) => {
+        return await api.hosts.byId(host.mac).update({ expire_days: expires });
+      })
+    );
+    alert(`successfully renewed ${p.HostData!.length} hosts`);
     p.setShowModule({
       show: false,
-      DnsData: undefined,
+      HostData: undefined,
     });
   };
   return (

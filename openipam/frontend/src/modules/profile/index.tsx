@@ -10,7 +10,7 @@ export const Profile = () => {
   const [user, setUser] = useState<User | undefined>();
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
-    data: Host | undefined;
+    data: Host[] | undefined;
   }>({
     show: false,
     data: undefined,
@@ -47,7 +47,6 @@ export const Profile = () => {
       <p>Other Stats/Reports</p>
       <RenewHostModule
         HostData={renewModule.data}
-        mac={renewModule.data?.mac ?? ""}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
       />
