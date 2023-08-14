@@ -67,7 +67,7 @@ export const useDomainTable = (p: {
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
   const data = useInfiniteDomain({
-    ...p,
+    domain: p.domain,
     ...Object.fromEntries(
       columnFilters
         .filter((f) => DNSLookupKeys.includes(f.id))
@@ -240,6 +240,8 @@ export const useDomainTable = (p: {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     data: dns,
     state: {
       columnFilters,

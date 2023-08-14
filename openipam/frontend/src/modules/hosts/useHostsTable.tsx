@@ -132,11 +132,12 @@ export const useHostsTable = (p: {
       size: 125,
       enableHiding: false,
       enableSorting: false,
+      enableResizing: false,
       enableColumnFilter: false,
       id: "actions",
       header: ({ table }: any) => (
         // force overflow to be visible so that the tooltip can be seen
-        <div className="gap-1 items-center relative !min-w-full">
+        <div className="flex gap-1 items-center relative">
           <PlainIndeterminateCheckbox
             checked={table.getIsAllRowsSelected()}
             indeterminate={table.getIsSomeRowsSelected()}

@@ -28,7 +28,9 @@ export const useInfiniteDhcp = (p: {
   const query = useInfiniteQuery({
     queryKey: ["dhcp", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.dns.dhcp({ page: pageParam, ...p });
+      const results = await api.domains
+        .byId(p.domain)
+        .dhcp.get({ page: pageParam, ...p });
       return {
         dhcp: results.results,
         page: pageParam,

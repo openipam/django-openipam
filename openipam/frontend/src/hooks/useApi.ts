@@ -10,7 +10,7 @@ export const useApi = () => {
       create: requestGenerator(HttpMethod.POST, "dns/"),
       types: requestGenerator(HttpMethod.GET, "dns-types/"),
       veiws: requestGenerator(HttpMethod.GET, "dns-views/"),
-      dhcp: requestGenerator(HttpMethod.GET, "dhcp-dns/"),
+      dhcp: requestGenerator(HttpMethod.GET, "dns/dhcp"),
       byId(id: number) {
         return {
           get: requestGenerator(HttpMethod.GET, `dns/${id}/`),
@@ -37,6 +37,17 @@ export const useApi = () => {
                 delete: requestGenerator(HttpMethod.DELETE, `dns/${dnsId}/`),
               };
             },
+          },
+          dhcp: {
+            get: requestGenerator(HttpMethod.GET, `domains/${id}/dhcp/`),
+            create: requestGenerator(HttpMethod.POST, `domains/${id}/dhcp/`),
+            // byId(dhcpId: string) {
+            //   return {
+            //     get: requestGenerator(HttpMethod.GET, `dhcp/${dhcpId}/`),
+            //     update: requestGenerator(HttpMethod.PATCH, `dhcp/${dhcpId}/`),
+            //     delete: requestGenerator(HttpMethod.DELETE, `dhcp/${dhcpId}/`),
+            //   };
+            // }
           },
         };
       },

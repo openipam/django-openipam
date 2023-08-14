@@ -5,7 +5,7 @@ from openipam.dns.models import DhcpDnsRecord, DnsType, Domain, DnsRecord
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-from django_filters import FilterSet, CharFilter, ModelChoiceFilter
+from django_filters import FilterSet, CharFilter
 
 User = get_user_model()
 
@@ -14,10 +14,7 @@ class ContentFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
-                qs = qs.filter(
-                    Q(ip_content__address__icontains=value)
-                    | Q(text_content__icontains=value)
-                ).distinct()
+                qs = qs.filter(Q(ip_content__address__icontains=value) | Q(text_content__icontains=value)).distinct()
             except ValidationError:
                 qs = qs.none()
         return qs
@@ -26,15 +23,13 @@ class ContentFilter(CharFilter):
 class DnsFilter(FilterSet):
     """Filter for dns records."""
 
-    name = CharFilter(lookup_expr="icontains")
+    name = CharFilter(method="filter_name", label="Name")
     content = CharFilter(method="filter_content", label="Content")
-    type = ModelChoiceFilter(
-        queryset=DnsType.objects.all(), field_name="dns_type", to_field_name="name"
-    )
+    dns_type = CharFilter(method="filter_dns_type", label="DNS Type")
 
     class Meta:
         model = DnsRecord
-        fields = ["name", "content", "type"]
+        fields = ["name", "content", "dns_type"]
 
     def filter_content(self, queryset, _, value):
         """Filter based on content."""
@@ -42,11 +37,22 @@ class DnsFilter(FilterSet):
         if value:
             try:
                 queryset = queryset.filter(
-                    Q(ip_content__address__istartswith=value)
-                    | Q(text_content__icontains=value)
+                    Q(ip_content__address__istartswith=value) | Q(text_content__icontains=value)
                 ).distinct()
             except ValidationError:
                 queryset = queryset.none()
+        return queryset
+
+    def filter_name(self, queryset, _, value):
+        """Filter based on name."""
+        if value:
+            queryset = queryset.filter(name__istartswith=value)
+        return queryset
+
+    def filter_dns_type(self, queryset, _, value):
+        """Filter based on dns_type."""
+        if value:
+            queryset = queryset.filter(dns_type__name__istartswith=value)
         return queryset
 
 
@@ -79,8 +85,20 @@ class UserFilter(filters.SearchFilter):
 class DomainFilter(FilterSet):
     """Filter for domains."""
 
-    name = CharFilter(lookup_expr="icontains")
-    changed_by = CharFilter(field_name="changed_by__username", lookup_expr="iexact")
+    name = CharFilter(method="filter_name", label="Name")
+    changed_by = CharFilter(method="filter_changed_by", label="Changed By")
+
+    def filter_changed_by(self, queryset, _, value):
+        """Filter based on changed_by."""
+        if value:
+            queryset = queryset.filter(changed_by__username__iexact=value)
+        return queryset
+
+    def filter_name(self, queryset, _, value):
+        """Filter based on name."""
+        if value:
+            queryset = queryset.filter(name__istartswith=value)
+        return queryset
 
     class Meta:
         model = Domain
@@ -90,10 +108,34 @@ class DomainFilter(FilterSet):
 class DhcpDnsFilter(FilterSet):
     """Filter for DHCP DNS records."""
 
-    host = CharFilter(field_name="host__hostname", lookup_expr="istartswith")
-    mac = CharFilter(field_name="host__mac", lookup_expr="iexact")
-    ip_address = CharFilter(field_name="ip_content__address", lookup_expr="istartswith")
-    domain = CharFilter(field_name="domain__name", lookup_expr="istartswith")
+    host = CharFilter(method="filter_host", label="Host")
+    mac = CharFilter(method="filter_mac", label="MAC")
+    ip_address = CharFilter(method="filter_ip_address", label="IP Address")
+    domain = CharFilter(method="filter_domain", label="Domain")
+
+    def filter_host(self, queryset, _, value):
+        """Filter based on host."""
+        if value:
+            queryset = queryset.filter(host__hostname__istartswith=value)
+        return queryset
+
+    def filter_domain(self, queryset, _, value):
+        """Filter based on domain."""
+        if value:
+            queryset = queryset.filter(domain__name__istartswith=value)
+        return queryset
+
+    def filter_mac(self, queryset, _, value):
+        """Filter based on mac."""
+        if value:
+            queryset = queryset.filter(host__mac__istartswith=value)
+        return queryset
+
+    def filter_ip_address(self, queryset, _, value):
+        """Filter based on ip_address."""
+        if value:
+            queryset = queryset.filter(ip_content__address__istartswith=value)
+        return queryset
 
     class Meta:
         model = DhcpDnsRecord

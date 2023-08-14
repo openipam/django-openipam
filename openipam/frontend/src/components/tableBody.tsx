@@ -11,10 +11,7 @@ export const TableBody = (p: {
     return (
       <tbody>
         <tr>
-          <td
-            className="overflow-hidden"
-            colSpan={p.table.getVisibleFlatColumns().length}
-          >
+          <td className="overflow-hidden" colSpan={2}>
             <div className="flex justify-center items-center h-32">
               <div className="text-2xl">No Results</div>
             </div>

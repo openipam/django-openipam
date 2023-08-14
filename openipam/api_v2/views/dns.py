@@ -65,7 +65,7 @@ class DnsViewSet(APIModelViewSet):
             object_id=instance.pk,
             object_repr=force_text(instance),
             action_flag=DELETION,
-            change_message=f"Deleting DNS record",
+            change_message="Deleting DNS record",
         )
         super().perform_destroy(instance)
 
@@ -76,9 +76,9 @@ class DnsViewSet(APIModelViewSet):
         domain_name = ".".join(request.data.get("name").split(".")[1:])
         domain = get_object_or_404(Domain, name=domain_name)
 
-        if not request.user.has_perm(
-            "dns.add_records_to_domain", domain
-        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -130,9 +130,7 @@ class DomainViewSet(APIModelViewSet):
     """API endpoint that allows domains to be viewed or edited."""
 
     queryset = (
-        Domain.objects.select_related("changed_by")
-        .annotate(record_count=Count("dnsrecord"))
-        .order_by("-record_count")
+        Domain.objects.select_related("changed_by").annotate(record_count=Count("dnsrecord")).order_by("-record_count")
     )
     serializer_class = DomainSerializer
     permission_classes = [permissions.DjangoObjectPermissions]
@@ -163,9 +161,7 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            return self.queryset.filter(pk__in=allowed_domains).select_related(
-                "changed_by"
-            )
+            return self.queryset.filter(pk__in=allowed_domains).select_related("changed_by")
         return self.queryset
 
     def update(self, *args, **kwargs):
@@ -208,9 +204,9 @@ class DomainViewSet(APIModelViewSet):
         dhcp_records = self.filter_queryset(self.get_queryset().filter(domain=domain))
         # If the user doesn't own the domain, filter the records to only show
         # records for hosts they own.
-        if not request.user.has_perm(
-            "dns.add_records_to_domain", domain
-        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
             user_hosts = get_objects_for_user(
                 request.user,
                 [
@@ -274,9 +270,9 @@ class DomainViewSet(APIModelViewSet):
         domain = get_object_or_404(Domain, name=name)
         # check permissions on domain. Can't rely on the permission class, since
         # we're not modifying the domain itself.
-        if not request.user.has_perm(
-            "dns.add_records_to_domain", domain
-        ) and not request.user.has_perm("dns.is_owner_domain", domain):
+        if not request.user.has_perm("dns.add_records_to_domain", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
             return Response(
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -327,9 +323,7 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove users from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {
-                    "detail": "You do not have permission to remove users from this domain."
-                },
+                {"detail": "You do not have permission to remove users from this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         user = get_object_or_404(User, username=request.data.get("user"))
@@ -370,9 +364,7 @@ class DomainViewSet(APIModelViewSet):
         # Only admins can remove groups from domains
         if not request.user.is_ipamadmin:
             return Response(
-                {
-                    "detail": "You do not have permission to remove groups from this domain."
-                },
+                {"detail": "You do not have permission to remove groups from this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         group = get_object_or_404(Group, name=request.data.get("group"))
