@@ -73,8 +73,22 @@ class DnsViewSet(APIModelViewSet):
         """Create a DNS record."""
         # check permissions on domain. Can't rely on the permission class
         # because we don't have the domain name yet.
-        domain_name = ".".join(request.data.get("name").split(".")[1:])
-        domain = get_object_or_404(Domain, name=domain_name)
+        domain_segments = request.data["name"].split(".")
+        domain_possibilities = [
+            ".".join(domain_segments[i:]) for i in range(len(domain_segments))
+        ].reverse()
+        domain = None
+        for domain_name in domain_possibilities:
+            try:
+                domain = Domain.objects.get(name=domain_name)
+                break
+            except Domain.DoesNotExist:
+                pass
+        if not domain:
+            return Response(
+                {"detail": "Domain does not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if not request.user.has_perm(
             "dns.add_records_to_domain", domain
@@ -99,7 +113,12 @@ class DnsViewSet(APIModelViewSet):
         serializer = DnsTypeSerializer(types, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["get"], queryset=DnsView.objects.all())
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=DnsView.objects.all(),
+        filter_backends=[],
+    )
     def views(self, request: Request, *args, **kwargs):
         """Return a list of DNS views."""
         views = self.get_queryset()
