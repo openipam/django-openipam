@@ -20,6 +20,7 @@ declare module "@tanstack/table-core" {
 
   interface TableMeta<TData extends RowData> {
     trProps?: (p: TData) => Record<string, any>;
+    rowActions?: (p: TData) => React.ReactNode;
   }
 }
 

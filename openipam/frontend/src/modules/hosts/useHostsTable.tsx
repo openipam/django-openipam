@@ -32,6 +32,16 @@ import {
 
 //TODO disabled columns only shows for admins.
 
+const actions = {
+  renew: "Renew",
+  disable: "Disable",
+  enable: "Enable",
+  delete: "Delete",
+  export: "Export to CSV",
+  populate: "Populate DNS",
+  changeNetwork: "Change Network",
+};
+
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
@@ -76,6 +86,7 @@ export const useHostsTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
+  const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
   const navigate = useNavigate();
@@ -184,7 +195,7 @@ export const useHostsTable = (p: {
             indeterminate={row.getIsSomeSelected()}
           />
           <button
-            className="btn btn-circle btn-ghost btn-xs"
+            className="btn btn-circle btn-ghost btn-xs ml-1"
             onClick={() => navigate(`/Hosts/${row.original.mac}`)}
             disabled={!row.original.mac}
           >
@@ -406,10 +417,15 @@ export const useHostsTable = (p: {
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
+    // Row Selection
+    enableRowSelection: true,
+    enableMultiRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     onColumnVisibilityChange: setColumnVisibility,
     data: Hosts,
     state: {
       columnFilters,
+      rowSelection,
       get globalFilter() {
         return globalFilter;
       },
@@ -426,6 +442,36 @@ export const useHostsTable = (p: {
               ? "bg-red-500 bg-opacity-70"
               : "",
         };
+      },
+      rowActions: (rows: any) => {
+        return (
+          <div className="flex flex-col gap-2 m-2">
+            <label>Actions</label>
+            <div className="flex flex-row gap-2">
+              <select
+                id={`actions`}
+                onChange={(v) => {
+                  console.log(v);
+                }}
+                className="rounded-md p-2 select select-bordered max-w-md"
+              >
+                {Object.entries(actions).map(([key, value]) => (
+                  <option value={key} key={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  console.log(rows);
+                }}
+              >
+                Go
+              </button>
+            </div>
+          </div>
+        );
       },
     },
     columns,

@@ -16,6 +16,7 @@ export const PrimaryTable = (p: {
     p.table.getState().globalFilter,
     p.table.setGlobalFilter,
   ];
+  const selectedRows = p.table.getSelectedRowModel();
 
   return (
     <div
@@ -24,6 +25,18 @@ export const PrimaryTable = (p: {
         p.className || ""
       }`}
     >
+      {selectedRows?.rows?.length > 0 && (
+        <div className="flex flex-col justify-between">
+          <div className="flex gap-4 text-white">
+            <p className="text-white">
+              {selectedRows.rows.length} Rows Selected
+            </p>
+          </div>
+          {p.table.options.meta?.rowActions?.(
+            selectedRows.rows.map((r) => r.original)
+          )}
+        </div>
+      )}
       {!p.hideGlobalFilter && (
         <div>
           <DebouncedInput
