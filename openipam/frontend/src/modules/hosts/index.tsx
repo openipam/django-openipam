@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { useHostsTable } from "./useHostsTable";
 import { Table } from "../../components/table";
 import { AddHostModule } from "./addHostModule";
 import { EditHostModule } from "./editHostModule";
 import { RenewHostModule } from "../profile/renewHostModule";
 import { Host } from "../../utils/types";
+import { SingleActionModule } from "../../components/singleActionModule";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
@@ -14,6 +15,19 @@ export const Hosts = () => {
   }>({
     show: false,
     HostData: undefined,
+  });
+  const [actionModule, setActionModule] = useState<{
+    show: boolean;
+    data: Host[] | undefined;
+    title: string;
+    onSubmit: (data: Host[]) => void;
+    children: ReactNode;
+  }>({
+    show: false,
+    data: undefined,
+    title: "",
+    onSubmit: () => {},
+    children: <></>,
   });
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
@@ -26,6 +40,7 @@ export const Hosts = () => {
     setShowAddHost,
     setEditHost,
     setRenewModule,
+    setActionModule,
   });
 
   return (
@@ -44,6 +59,14 @@ export const Hosts = () => {
         HostData={renewModule.data}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
+      />
+      <SingleActionModule
+        showModule={actionModule.show}
+        setShowModule={setActionModule}
+        data={actionModule.data ?? []}
+        title={actionModule.title}
+        onSubmit={actionModule.onSubmit}
+        children={actionModule.children}
       />
     </div>
   );

@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
@@ -82,6 +82,15 @@ export const useHostsTable = (p: {
   >;
   setRenewModule: React.Dispatch<
     React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
+  >;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      title: string;
+      onSubmit: (data: Host[]) => void;
+      children: ReactNode;
+    }>
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -405,7 +414,7 @@ export const useHostsTable = (p: {
     //   ],
     // }),
   ];
-
+  const api = useApi();
   const table = useReactTable({
     getCoreRowModel: getCoreRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
@@ -473,8 +482,70 @@ export const useHostsTable = (p: {
                         data: rows,
                       });
                       break;
+                    case "disable":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Disable Hosts",
+                        onSubmit: (data) => {
+                          rows.forEach((host) => {
+                            api.hosts.byId(host.mac).disable({
+                              reason: data,
+                            });
+                          });
+                        },
+                        children: (
+                          <div>
+                            <label className="label">Reason</label>
+                            <input
+                              type="test"
+                              className="input input-bordered"
+                            />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "enable":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Enable Hosts",
+                        onSubmit: () => {
+                          rows.forEach((host) => {
+                            api.hosts.byId(host.mac).enable();
+                          });
+                        },
+                        children: (
+                          <div>
+                            <input className="hidden" />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "delete":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Delete Hosts",
+                        onSubmit: () => {
+                          rows.forEach((host) => {
+                            api.hosts.byId(host.mac).delete();
+                          });
+                        },
+                        children: (
+                          <div>
+                            <input className="hidden" />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "export":
+                      break;
+                    case "populate":
+                      break;
+                    case "changeNetwork":
+                      break;
                     default:
-                      console.log(action);
                       break;
                   }
                 }}
