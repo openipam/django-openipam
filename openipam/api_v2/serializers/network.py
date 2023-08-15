@@ -22,6 +22,37 @@ class NetworkSerializer(ModelSerializer):
     """Serializer for network objects."""
 
     vlans = VlanSerializer(many=True)
+    buildings = SerializerMethodField()
+    shared_network = SerializerMethodField()
+    gateway = SerializerMethodField()
+
+    def get_gateway(self, obj):
+        if obj.gateway:
+            return str(obj.gateway.ip)
+        else:
+            return None
+
+    def get_shared_network(self, obj):
+        if obj.shared_network:
+            return {
+                "id": obj.shared_network.id,
+                "name": obj.shared_network.name,
+                "description": obj.shared_network.description,
+            }
+        else:
+            return None
+
+    def get_buildings(self, obj):
+        # Buildings are linked to vlans, so we need to get the vlans for the network
+        # and then get the buildings for those vlans
+        buildings = []
+        for vlan in obj.vlans.all():
+            buildings.extend(
+                vlan.buildings.all().values(
+                    "id", "name", "abbreviation", "number", "city"
+                )
+            )
+        return buildings
 
     class Meta:
         """Meta class for network serializer."""
@@ -35,7 +66,7 @@ class SimpleNetworkSerializer(Field):
 
     def to_representation(self, value):
         """Convert network object to CIDR format."""
-        return value.network
+        return str(value.network)
 
     def to_internal_value(self, data):
         """Find network object based on CIDR."""
@@ -83,7 +114,15 @@ class AddressSerializer(ModelSerializer):
         """Meta class for address serializer."""
 
         model = Address
-        fields = ("address", "pool", "reserved", "network", "changed", "gateway")
+        fields = (
+            "address",
+            "pool",
+            "reserved",
+            "network",
+            "changed",
+            "gateway",
+            "host",
+        )
 
 
 class SimpleAddressSerializer(Field):

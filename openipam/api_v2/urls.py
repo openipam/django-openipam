@@ -11,6 +11,7 @@ router.register(r"hosts", views.hosts.HostViewSet)
 router.register(r"dns", views.dns.DnsViewSet)
 router.register(r"domains", views.dns.DomainViewSet)
 router.register(r"attributes", misc.AttributeViewSet)
+router.register(r"networks", views.network.NetworkViewSet)
 
 # TODO: figure out how to get CSRF protection working with the new API
 urlpatterns = [
