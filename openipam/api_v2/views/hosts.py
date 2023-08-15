@@ -38,9 +38,7 @@ from rest_framework import filters as rest_filters
 class HostViewSet(APIModelViewSet):
     """API endpoint that allows hosts to be viewed or edited."""
 
-    queryset = Host.objects.prefetch_related(
-        "addresses", "leases", "pools"
-    ).select_related("dhcp_group", "changed_by")
+    queryset = Host.objects.prefetch_related("addresses", "leases", "pools").select_related("dhcp_group", "changed_by")
 
     lookup_field = "mac"
 
@@ -201,9 +199,7 @@ class DisableView(views.APIView):
         """Post."""
         mac = kwargs["mac"]
         reason = request.data.get("reason", "No reason given")
-        disabled = DisabledHost.objects.create(
-            mac=mac, reason=reason, changed_by=request.user
-        )
+        disabled = DisabledHost.objects.create(mac=mac, reason=reason, changed_by=request.user)
         serializer = DisabledHostSerializer(disabled)
         data = serializer.data.copy()
         data["disabled"] = True
@@ -231,6 +227,7 @@ class DisableView(views.APIView):
         """Delete."""
         mac = kwargs["mac"]
         disabled = get_object_or_404(DisabledHost, mac=mac)
+        disabledCopy = DisabledHost.objects.get(mac=mac)
         disabled.delete()
         data = {"disabled": False}
 
@@ -240,13 +237,12 @@ class DisableView(views.APIView):
             message = f"Enabled host {mac}"
         else:
             message = f"Enabled host {host.mac} ({host.hostname})"
-
         # Log the event
         LogEntry.objects.log_action(
             user_id=request.user.pk,
-            content_type_id=ContentType.objects.get_for_model(disabled).pk,
-            object_id=disabled.pk,
-            object_repr=disabled.mac,
+            content_type_id=ContentType.objects.get_for_model(disabledCopy).pk,
+            object_id=disabledCopy.pk,
+            object_repr=disabledCopy.mac,
             action_flag=DELETION,
             change_message=message,
         )
@@ -464,14 +460,10 @@ class HostAttributesView(views.APIView):
         structured_attrs = StructuredAttributeToHost.objects.select_related(
             "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related(
-            "attribute"
-        ).filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related("attribute").filter(host=host)
         attributes = {}
         for attr in structured_attrs:
-            attributes[
-                attr.structured_attribute_value.attribute.name
-            ] = attr.structured_attribute_value.value
+            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return Response(attributes, status=status.HTTP_200_OK)
@@ -570,9 +562,7 @@ class AddressView(views.APIView):
             )
 
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
                 {"detail": "You do not have permission to add addresses to this host."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -628,13 +618,9 @@ class AddressView(views.APIView):
         address = request.data.get("address")
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(
-            request, self, host
-        ):
+        if not api_permissions.HostPermission().has_object_permission(request, self, host):
             return Response(
-                {
-                    "detail": "You do not have permission to remove addresses from this host."
-                },
+                {"detail": "You do not have permission to remove addresses from this host."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -674,9 +660,7 @@ class LeasesView(views.APIView):
         # If the user asks for expired leases, return them all
         if request.query_params.get("show_expired") is None:
             leases = leases.filter(ends__gt=timezone.now())
-        elif not api_permissions.HostPermission().has_object_permission(
-            request, self, host, check_for_read=True
-        ):
+        elif not api_permissions.HostPermission().has_object_permission(request, self, host, check_for_read=True):
             # If the user asks for expired leases and does not have
             # permission to view historical data, restrict them to
             # active ones anyways.

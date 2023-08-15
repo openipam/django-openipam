@@ -74,7 +74,7 @@ export const useUserHostsTable = (p: {
   //     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   //   >;
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host | undefined }>
+    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -190,7 +190,7 @@ export const useUserHostsTable = (p: {
             onClick={() => {
               p.setRenewModule({
                 show: true,
-                data: row.original,
+                data: [row.original],
               });
             }}
           >

@@ -1,34 +1,14 @@
-import React from "react";
-import { useApi } from "../../hooks/useApi";
-import { Host } from "../../utils/types";
+import React, { ReactNode } from "react";
 
-const choices = {
-  1: "1 Day",
-  7: "1 Week",
-  14: "2 Weeks",
-  180: "6 Months",
-  365: "1 Year",
-  10950: "30 Years",
-};
-
-export const RenewHostModule = (p: {
-  HostData: Host[] | undefined;
+export const SingleActionModule = (p: {
+  data: any[];
+  title: string;
   showModule: boolean;
   setShowModule: (show: any) => void;
+  onSubmit?: (any: any) => void;
+  children: ReactNode;
+  multiple?: boolean;
 }) => {
-  const api = useApi();
-  const renewHost = async (expires: string) => {
-    await Promise.all(
-      p.HostData!.map(async (host) => {
-        return await api.hosts.byId(host.mac).update({ expire_days: expires });
-      })
-    );
-    alert(`successfully renewed ${p.HostData!.length} hosts`);
-    p.setShowModule({
-      show: false,
-      HostData: undefined,
-    });
-  };
   return (
     <>
       <input
@@ -46,7 +26,7 @@ export const RenewHostModule = (p: {
             onClick={() =>
               p.setShowModule({
                 show: false,
-                HostData: undefined,
+                DnsData: undefined,
               })
             }
             className="absolute top-0 right-0 p-4 cursor-pointer"
@@ -63,49 +43,38 @@ export const RenewHostModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Renew Host</h1>
+          <h1 className="text-2xl font-bold mb-4">{p.title}</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              const expires = e.target[0].value;
-              renewHost(expires);
+              if (p.multiple) {
+                p.onSubmit?.(e);
+                return;
+              }
+              const data = e.target[0].value;
+              p.onSubmit?.(data);
             }}
           >
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-name">Expires</label>
-              <select
-                id={`expires`}
-                value={365}
-                onChange={(v) => {
-                  console.log(v);
-                }}
-                className="rounded-md p-2 select select-bordered"
-              >
-                {Object.entries(choices).map(([key, value]) => (
-                  <option value={key} key={key}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+            {p.children}
             <div className="flex justify-end gap-4 mt-4">
               <button
                 className="btn btn-outline btn-ghost"
                 onClick={() =>
                   p.setShowModule({
                     show: false,
-                    HostData: undefined,
+                    data: undefined,
                   })
                 }
                 type="reset"
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                Renew
-              </button>
+              {p.onSubmit && (
+                <button type="submit" className="btn btn-primary">
+                  Submit
+                </button>
+              )}
             </div>
           </form>
         </div>

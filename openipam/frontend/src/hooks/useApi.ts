@@ -57,12 +57,14 @@ export const useApi = () => {
       mine: requestGenerator(HttpMethod.GET, "hosts/mine/"),
       attributes: requestGenerator(HttpMethod.GET, "attributes/"),
       create: requestGenerator(HttpMethod.POST, "hosts/"),
+      disabled: requestGenerator(HttpMethod.GET, `hosts/disabled/`),
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `hosts/${id}/`),
           update: requestGenerator(HttpMethod.PATCH, `hosts/${id}/`),
           delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
-          disabled: requestGenerator(HttpMethod.GET, `hosts/${id}/disabled/`),
+          disable: requestGenerator(HttpMethod.POST, `hosts/${id}/disabled/`),
+          enable: requestGenerator(HttpMethod.DELETE, `hosts/${id}/disabled/`),
           users: {
             get: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
             put: requestGenerator(HttpMethod.PUT, `hosts/${id}/users/`),

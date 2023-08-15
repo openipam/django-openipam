@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { useHostsTable } from "./useHostsTable";
 import { Table } from "../../components/table";
 import { AddHostModule } from "./addHostModule";
 import { EditHostModule } from "./editHostModule";
 import { RenewHostModule } from "../profile/renewHostModule";
 import { Host } from "../../utils/types";
+import { SingleActionModule } from "../../components/singleActionModule";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
@@ -15,9 +16,23 @@ export const Hosts = () => {
     show: false,
     HostData: undefined,
   });
+  const [actionModule, setActionModule] = useState<{
+    show: boolean;
+    data: Host[] | undefined;
+    title: string;
+    onSubmit?: (data: Host[]) => void;
+    children: ReactNode;
+    multiple?: boolean;
+  }>({
+    show: false,
+    data: undefined,
+    title: "",
+    onSubmit: () => {},
+    children: <></>,
+  });
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
-    data: Host | undefined;
+    data: Host[] | undefined;
   }>({
     show: false,
     data: undefined,
@@ -26,6 +41,7 @@ export const Hosts = () => {
     setShowAddHost,
     setEditHost,
     setRenewModule,
+    setActionModule,
   });
 
   return (
@@ -42,9 +58,17 @@ export const Hosts = () => {
       />
       <RenewHostModule
         HostData={renewModule.data}
-        mac={renewModule.data?.mac ?? ""}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
+      />
+      <SingleActionModule
+        showModule={actionModule.show}
+        setShowModule={setActionModule}
+        data={actionModule.data ?? []}
+        title={actionModule.title}
+        onSubmit={actionModule.onSubmit}
+        children={actionModule.children}
+        multiple={actionModule.multiple ?? false}
       />
     </div>
   );
