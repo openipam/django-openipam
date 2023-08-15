@@ -65,6 +65,10 @@ export const useApi = () => {
           delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
           disable: requestGenerator(HttpMethod.POST, `hosts/${id}/disabled/`),
           enable: requestGenerator(HttpMethod.DELETE, `hosts/${id}/disabled/`),
+          populateDns: requestGenerator(
+            HttpMethod.POST,
+            `hosts/${id}/populateDns/`
+          ),
           users: {
             get: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
             put: requestGenerator(HttpMethod.PUT, `hosts/${id}/users/`),

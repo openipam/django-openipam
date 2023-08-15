@@ -568,8 +568,155 @@ export const useHostsTable = (p: {
                       });
                       break;
                     case "populate":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Populate DNS Records",
+                        onSubmit: () => {
+                          rows.forEach((host) => {
+                            api.hosts.byId(host.mac).populateDns();
+                          });
+                        },
+                        children: (
+                          <div>
+                            <input className="hidden" />
+                          </div>
+                        ),
+                      });
                       break;
                     case "changeNetwork":
+                      break;
+                    case "addOwners":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Add Owners",
+                        multiple: true,
+                        onSubmit: (e: any) => {
+                          const group = e.target[0].value.split(",");
+                          const users = e.target[1].value.split(",");
+                          rows.forEach((host) => {
+                            api.hosts
+                              .byId(host.mac)
+                              .users.create(
+                                Object.fromEntries(
+                                  users.map((user: string) => [user, user])
+                                )
+                              );
+                            api.hosts
+                              .byId(host.mac)
+                              .groups.create(
+                                Object.fromEntries(
+                                  group.map((group: string) => [group, group])
+                                )
+                              );
+                          });
+                        },
+                        children: (
+                          <div>
+                            <p>
+                              Tip: add multiple owners by separating with a
+                              comma
+                            </p>
+                            <label className="label">Group Owners</label>
+                            <input className="input input-bordered" />
+                            <label className="label">User Owners</label>
+                            <input className="input input-bordered" />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "replaceOwners":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Replace Owners",
+                        multiple: true,
+                        onSubmit: (e: any) => {
+                          const group = e.target[0].value.split(",");
+                          const users = e.target[1].value.split(",");
+                          rows.forEach((host) => {
+                            api.hosts
+                              .byId(host.mac)
+                              .users.put(
+                                Object.fromEntries(
+                                  users.map((user: string) => [user, user])
+                                )
+                              );
+                            api.hosts
+                              .byId(host.mac)
+                              .groups.put(
+                                Object.fromEntries(
+                                  group.map((group: string) => [group, group])
+                                )
+                              );
+                          });
+                        },
+                        children: (
+                          <div>
+                            <p>
+                              Tip: separate owners by comma. All previous owners
+                              will be removed.
+                            </p>
+                            <label className="label">Group Owners</label>
+                            <input className="input input-bordered" />
+                            <label className="label">User Owners</label>
+                            <input className="input input-bordered" />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "removeOwners":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Remove Owners",
+                        multiple: true,
+                        onSubmit: (e: any) => {
+                          const group = e.target[0].value.split(",");
+                          const users = e.target[1].value.split(",");
+                          rows.forEach((host) => {
+                            api.hosts
+                              .byId(host.mac)
+                              .users.put(
+                                Object.fromEntries(
+                                  host.user_owners
+                                    .filter((u) => !users.includes(u))
+                                    .map((user: string) => [user, user])
+                                )
+                              );
+                            api.hosts
+                              .byId(host.mac)
+                              .groups.put(
+                                Object.fromEntries(
+                                  host.group_owners
+                                    .filter((u) => !group.includes(u))
+                                    .map((group: string) => [group, group])
+                                )
+                              );
+                          });
+                        },
+                        children: (
+                          <div>
+                            <p>
+                              Tip: remove multiple owners by separating with a
+                              comma
+                            </p>
+                            <label className="label">Group Owners</label>
+                            <input className="input input-bordered" />
+                            <label className="label">User Owners</label>
+                            <input className="input input-bordered" />
+                          </div>
+                        ),
+                      });
+                      break;
+                    case "addAttribute":
+                      break;
+                    case "deleteAttribute":
+                      break;
+                    case "setDhcpGroup":
+                      break;
+                    case "deleteDhcpGroup":
                       break;
                     default:
                       break;
