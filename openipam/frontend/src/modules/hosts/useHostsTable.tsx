@@ -29,6 +29,7 @@ import {
   PlainIndeterminateCheckbox,
   booleanAccessor,
 } from "../../components/boolean";
+import { ExportToCsv } from "../../components/download";
 
 //TODO disabled columns only shows for admins.
 
@@ -37,9 +38,17 @@ const actions = {
   disable: "Disable",
   enable: "Enable",
   delete: "Delete",
+  rename: "Rename",
   export: "Export to CSV",
   populate: "Populate DNS",
   changeNetwork: "Change Network",
+  addOwners: "Add Owners",
+  replaceOwners: "Replace Owners",
+  removeOwners: "Remove Owners",
+  addAttribute: "Add Attribute",
+  deleteAttribute: "Delete Attribute",
+  setDhcpGroup: "Set DHCP Group",
+  deleteDhcpGroup: "Delete DHCP Group",
 };
 
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
@@ -88,8 +97,9 @@ export const useHostsTable = (p: {
       show: boolean;
       data: Host[] | undefined;
       title: string;
-      onSubmit: (data: Host[]) => void;
+      onSubmit?: (data: Host[]) => void;
       children: ReactNode;
+      multiple?: boolean;
     }>
   >;
 }) => {
@@ -325,10 +335,7 @@ export const useHostsTable = (p: {
             );
           },
           accessorFn: (row) =>
-            `${row.master_ip_address ?? row.addresses?.leased?.[0]}
-             (${
-               row.addresses?.leased?.length + row.addresses?.static?.length
-             })`,
+            row.master_ip_address ?? row.addresses?.leased?.[0],
           meta: {
             filterType: "string",
           },
@@ -371,7 +378,7 @@ export const useHostsTable = (p: {
           id: "user_owners",
           header: "User Owners",
           size: 200,
-          accessorFn: (row) => row.user_owners?.join(",\n"),
+          accessorFn: (row) => row.user_owners?.join(", "),
           meta: {
             filterType: "string",
           },
@@ -380,39 +387,13 @@ export const useHostsTable = (p: {
           id: "group_owners",
           header: "Group Owners",
           size: 200,
-          accessorFn: (row) => row.group_owners?.join(",\n"),
+          accessorFn: (row) => row.group_owners?.join(", "),
           meta: {
             filterType: "string",
           },
         },
       ],
     }),
-    // columnHelper.group({
-    //   id: "Changed",
-    //   header: "Changed",
-    //   columns: [
-    //     {
-    //       id: "changed",
-    //       header: "Last Changed",
-    //       accessorFn: (row) =>
-    //         row.changed
-    //           ? new Date(row.changed).toISOString().split("T")[0]
-    //           : null,
-    //       meta: {
-    //         filterType: "date",
-    //       },
-    //       filterFn: betweenDatesFilter,
-    //     },
-    //     {
-    //       id: "changedBy",
-    //       header: "Changed By",
-    //       accessorFn: (row) => row.changed_by.username,
-    //       meta: {
-    //         filterType: "string",
-    //       },
-    //     },
-    //   ],
-    // }),
   ];
   const api = useApi();
   const table = useReactTable({
@@ -539,7 +520,52 @@ export const useHostsTable = (p: {
                         ),
                       });
                       break;
+                    case "rename":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        multiple: true,
+                        title: "Rename Hosts",
+                        onSubmit: (e: any) => {
+                          const regex = e.target[0].value;
+                          const replacement = e.target[1].value;
+                          rows.forEach((host) => {
+                            api.hosts.byId(host.mac).update({
+                              hostname: host.hostname.replace(
+                                regex,
+                                replacement
+                              ),
+                            });
+                          });
+                        },
+                        children: (
+                          <div>
+                            <label className="label">Regex</label>
+                            <input className="input input-bordered" />
+                            <label className="label">Replacement</label>
+                            <input className="input input-bordered" />
+                          </div>
+                        ),
+                      });
+                      break;
                     case "export":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Download CSV",
+                        children: (
+                          <div className="m-auto mt-10">
+                            <ExportToCsv
+                              rows={rows}
+                              columns={table
+                                .getAllLeafColumns()
+                                .slice(1)
+                                .map((col) => col.columnDef)}
+                              fileName="Hosts"
+                            />
+                          </div>
+                        ),
+                      });
                       break;
                     case "populate":
                       break;

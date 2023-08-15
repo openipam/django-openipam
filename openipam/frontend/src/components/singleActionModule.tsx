@@ -5,8 +5,9 @@ export const SingleActionModule = (p: {
   title: string;
   showModule: boolean;
   setShowModule: (show: any) => void;
-  onSubmit: (any: any) => void;
+  onSubmit?: (any: any) => void;
   children: ReactNode;
+  multiple?: boolean;
 }) => {
   return (
     <>
@@ -47,8 +48,12 @@ export const SingleActionModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
+              if (p.multiple) {
+                p.onSubmit?.(e);
+                return;
+              }
               const data = e.target[0].value;
-              p.onSubmit(data);
+              p.onSubmit?.(data);
             }}
           >
             {p.children}
@@ -65,9 +70,11 @@ export const SingleActionModule = (p: {
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                Submit
-              </button>
+              {p.onSubmit && (
+                <button type="submit" className="btn btn-primary">
+                  Submit
+                </button>
+              )}
             </div>
           </form>
         </div>

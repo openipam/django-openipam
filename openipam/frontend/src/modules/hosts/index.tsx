@@ -20,8 +20,9 @@ export const Hosts = () => {
     show: boolean;
     data: Host[] | undefined;
     title: string;
-    onSubmit: (data: Host[]) => void;
+    onSubmit?: (data: Host[]) => void;
     children: ReactNode;
+    multiple?: boolean;
   }>({
     show: false,
     data: undefined,
@@ -67,6 +68,7 @@ export const Hosts = () => {
         title={actionModule.title}
         onSubmit={actionModule.onSubmit}
         children={actionModule.children}
+        multiple={actionModule.multiple ?? false}
       />
     </div>
   );
