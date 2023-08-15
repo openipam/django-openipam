@@ -33,7 +33,7 @@ const routes: RouteObject[] = [
             element: <Networks />,
           },
           {
-            path: ":network",
+            path: ":network/:subnet",
             lazy: async () => {
               const { Network } = await import("../modules/network");
               return {

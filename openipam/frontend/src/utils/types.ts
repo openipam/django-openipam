@@ -126,6 +126,48 @@ export type CreateDnsRecord = Omit<
   "id" | "url" | "host" | "content"
 >;
 
+export type Address = {
+  address: string;
+  pool: {
+    id: number;
+    name: string;
+    description: string;
+  };
+  reserved: boolean;
+  network: string;
+  changed: string;
+  gateway: string;
+  host: string;
+};
+
+export type Network = {
+  network: string;
+  name: string;
+  description: string;
+  vlans: {
+    id: number;
+    vlan_id: number;
+    name: string;
+    description: string;
+  }[];
+  buildings: {
+    id: number;
+    name: string;
+    abbreviation: string;
+    number: string;
+    city: string;
+  }[];
+  shared_network: {
+    id: number;
+    name: string;
+    description: string;
+  };
+  gateway: string;
+  changed_by: number;
+  changed: string;
+  dhcp_group: number;
+};
+
 export const DNS_TYPES = [
   "A",
   "A6",

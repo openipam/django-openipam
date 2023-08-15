@@ -140,6 +140,17 @@ export const useApi = () => {
       get: requestGenerator(HttpMethod.GET, "admin/logs/"),
       getEmails: requestGenerator(HttpMethod.GET, "admin/email-logs/"),
     },
+    networks: {
+      get: requestGenerator(HttpMethod.GET, "networks/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `networks/${id}/`),
+          addresses: {
+            get: requestGenerator(HttpMethod.GET, `networks/${id}/addresses/`),
+          },
+        };
+      },
+    },
   };
 
   return api;

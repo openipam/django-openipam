@@ -1,12 +1,20 @@
 import React from "react";
+import { useNetworksTable } from "./useNetworksTable";
+import { Table } from "../../components/table";
 
 export const Networks = () => {
+  const [showModule, setShowModule] = React.useState(false);
+  const [editModule, setEditModule] = React.useState(false);
+  const data = useNetworksTable({
+    setShowModule,
+    setEditModule,
+  });
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Networks TODO</h1>
-      <p>Allow administrators to define and manage networks and subnets.</p>
-      <p>Display network hierarchy and subnets.</p>
-      <p>IP allocation</p>
+      <h1 className="text-4xl">Networks</h1>
+      <div className="flex flex-col gap-4 m-8 w-[90%]">
+        <Table table={data.table} loading={data.loading} />
+      </div>
     </div>
   );
 };

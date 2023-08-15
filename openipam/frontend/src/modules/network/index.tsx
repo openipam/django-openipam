@@ -1,21 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useAddressesTable } from "./useAddressesTable";
+import { Table } from "../../components/table";
 
 export const Network = () => {
+  const { network, subnet } = useParams();
+  const [showModule, setShowModule] = useState(false);
+  const [editModule, setEditModule] = useState(false);
+  const data = useAddressesTable({
+    network: network ?? "",
+    subnet: subnet ?? "",
+    setShowModule,
+    setEditModule,
+  });
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Network TODO</h1>
-      <p>Allow administrators to define and manage subnets.</p>
-      <p>Display network hierarchy and subnet details.</p>
-      <p>Highlight IP allocation status within each subnet.</p>
-      <p>On the network detail page:</p>
-      <p>List and manage IP addresses within each network.</p>
+      <h1 className="text-4xl">
+        {network}/{subnet}
+      </h1>
       <p>
         Provide filtering and searching capabilities based on status (used,
         available, reserved), network, or domain.
       </p>
-      <p>
-        Name, Gateway, Description, DHCP group, Shared Network, Tags, Changed By
-      </p>
+      <div className="flex flex-col gap-4 m-8 w-[90%]">
+        <Table table={data.table} loading={data.loading} />
+      </div>
     </div>
   );
 };
