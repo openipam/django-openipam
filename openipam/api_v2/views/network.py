@@ -3,10 +3,15 @@ from rest_framework import permissions as base_permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
-from ..serializers.network import NetworkSerializer, AddressSerializer
+from ..serializers.network import (
+    DhcpGroupSerializer,
+    NetworkSerializer,
+    AddressSerializer,
+    PoolSerializer,
+)
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
-from openipam.network.models import Address, Network
+from openipam.network.models import Address, DhcpGroup, Network, Pool
 from netfields import NetManager  # noqa
 
 
@@ -48,3 +53,28 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
         paginated = self.paginate_queryset(addresses)
         serializer = self.get_serializer(paginated, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint that allows address pools to be viewed"""
+
+    queryset = Pool.objects.all().select_related("dhcp_group")
+    serializer_class = PoolSerializer
+    # Only admins should have access to network data
+    permission_classes = [base_permissions.IsAdminUser]
+    # No need for filters, there are only a few pools
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "changed"]
+    pagination_class = APIPagination
+
+
+class DhcpGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint that allows DHCP groups to be viewed"""
+
+    queryset = DhcpGroup.objects.all()
+    serializer_class = DhcpGroupSerializer
+    # Only admins should have access to network data
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "changed"]
+    pagination_class = APIPagination

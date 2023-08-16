@@ -1,6 +1,7 @@
 """Serializers for network objects."""
 
-from openipam.network.models import Address, Vlan, Network
+from openipam.api_v2.serializers.base import ChangedBySerializer
+from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import ModelSerializer, Field, SerializerMethodField
 from .users import UserNestedSerializer
@@ -74,23 +75,49 @@ class SimpleNetworkSerializer(Field):
         return network
 
 
+class DhcpGroupSerializer(ModelSerializer):
+    """Serializer for dhcp group objects."""
+
+    changed_by = ChangedBySerializer()
+
+    class Meta:
+        """Meta class for dhcp group serializer."""
+
+        model = DhcpGroup
+        fields = "__all__"
+
+
+class SimpleDhcpGroupSerializer(Field):
+    """Dhcp Group serializer that functions on name format only."""
+
+    def to_representation(self, value):
+        """Convert dhcp group object to name format."""
+        return str(value.name)
+
+    def to_internal_value(self, data):
+        """Find dhcp group object based on name."""
+        dhcp_group = get_object_or_404(DhcpGroup, name=data)
+        return dhcp_group
+
+
+class PoolSerializer(ModelSerializer):
+    """Address pool serializer."""
+
+    dhcp_group = SimpleDhcpGroupSerializer()
+
+    class Meta:
+        """Meta class for pool serializer."""
+
+        model = Pool
+        fields = "__all__"
+
+
 class AddressSerializer(ModelSerializer):
     """Serializer for address objects."""
 
     network = SimpleNetworkSerializer()
     gateway = SerializerMethodField()
-    pool = SerializerMethodField()
-
-    def get_pool(self, obj):
-        """Return pool name for network."""
-        if obj.pool:
-            return {
-                "id": obj.pool.id,
-                "name": obj.pool.name,
-                "description": obj.pool.description,
-            }
-        else:
-            return None
+    pool = PoolSerializer()
 
     def get_gateway(self, obj):
         """Return gateway address for network."""
