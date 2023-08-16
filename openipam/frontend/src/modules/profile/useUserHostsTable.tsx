@@ -22,7 +22,6 @@ export const useUserHostsTable = (p: {
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
@@ -195,16 +194,9 @@ export const useUserHostsTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: Hosts,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     meta: {
       trProps: (row: any) => {

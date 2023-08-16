@@ -14,7 +14,6 @@ export const useNetworksTable = (p: {
   setEditModule: any;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<Network[]>([]);
 
   const data = useInfiniteNetworks({
@@ -107,16 +106,9 @@ export const useNetworksTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

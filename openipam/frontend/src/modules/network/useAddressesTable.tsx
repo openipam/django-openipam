@@ -17,7 +17,6 @@ export const useAddressesTable = (p: {
   setEditModule: any;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<Address[]>([]);
 
   const data = useInfiniteNetworkAddresses({
@@ -111,16 +110,9 @@ export const useAddressesTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

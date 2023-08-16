@@ -166,6 +166,7 @@ export const HostTableActions = (p: {
                 });
                 break;
               case "changeNetwork":
+                alert("Not implemented yet");
                 break;
               case "addOwners":
                 p.setActionModule({

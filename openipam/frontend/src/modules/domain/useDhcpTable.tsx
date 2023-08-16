@@ -12,7 +12,6 @@ const DhcpLookupKeys = ["host", "ip_content"];
 
 export const useDhcpTable = (p: { domain: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const navigate = useNavigate();
   const data = useInfiniteDhcpRecords({
@@ -98,16 +97,9 @@ export const useDhcpTable = (p: { domain: string }) => {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: dhcp,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

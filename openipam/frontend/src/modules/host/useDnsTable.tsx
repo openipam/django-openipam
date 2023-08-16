@@ -15,7 +15,6 @@ export const useDnsTable = (p: {
   setEditModule: any;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
   const data = useInfiniteHostDnsRecords({
@@ -106,16 +105,9 @@ export const useDnsTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

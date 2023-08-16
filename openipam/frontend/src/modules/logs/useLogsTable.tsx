@@ -12,7 +12,6 @@ const logSearchFields = ["user", "action_flag"];
 
 export const useLogsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<Log[]>([]);
   const [emailView, setEmailView] = useState<boolean>(false);
 
@@ -143,16 +142,9 @@ export const useLogsTable = () => {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: logs,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

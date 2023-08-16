@@ -43,7 +43,6 @@ export const useDomainsTable = (p: {
   setEditDomain: any;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState();
   const [prevData, setPrevData] = useState<Domain[]>([]);
   const navigate = useNavigate();
 
@@ -156,16 +155,9 @@ export const useDomainsTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
-    setGlobalFilter: setGlobalFilter,
     data: domains,
     state: {
       columnFilters,
-      get globalFilter() {
-        return globalFilter;
-      },
-      set globalFilter(value) {
-        setGlobalFilter(value);
-      },
     },
     columns,
   });

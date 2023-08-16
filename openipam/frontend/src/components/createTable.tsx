@@ -13,7 +13,6 @@ import { fuzzyFilter } from "./filters";
 
 export const CreateTable = (p: {
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
-  setGlobalFilter: React.Dispatch<React.SetStateAction<undefined>>;
   setRowSelection?: React.Dispatch<React.SetStateAction<{}>>;
   data: any;
   state: any;
@@ -30,8 +29,6 @@ export const CreateTable = (p: {
     // Filters
     onColumnFiltersChange: p.setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: p.setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
     // Row Selection
     enableRowSelection: true,
     enableMultiRowSelection: true,

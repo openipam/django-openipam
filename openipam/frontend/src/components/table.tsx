@@ -45,7 +45,6 @@ export const Table = (p: {
       <PrimaryTable
         table={p.table}
         estimateColumnSize={p.estimateColumnSize}
-        hideGlobalFilter={p.hideGlobalFilter}
         className={p.className}
       />
     </div>
