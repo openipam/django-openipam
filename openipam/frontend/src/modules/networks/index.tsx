@@ -12,9 +12,7 @@ export const Networks = () => {
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Networks</h1>
-      <div className="flex flex-col gap-4 m-8 w-[90%]">
-        <Table table={data.table} loading={data.loading} />
-      </div>
+      <Table table={data.table} loading={data.loading} />
     </div>
   );
 };

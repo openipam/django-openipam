@@ -11,14 +11,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import {
-  Add,
   Autorenew,
-  Edit,
   ExpandMore,
   People,
   PeopleOutline,
@@ -26,47 +22,11 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
-import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { useInfiniteMyHosts } from "../../hooks/queries/useInfiniteMyHosts";
 
 //TODO disabled columns only shows for admins.
 // add quick renew button
 // show groups toggle
-
-export const useInfiniteHosts = (p: {
-  show_groups: false;
-  [key: string]: string | number | boolean;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["Hosts, mine", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.hosts.mine({
-        page: pageParam,
-        ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
-      });
-      return {
-        results: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useUserHostsTable = (p: {
   //   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
@@ -84,7 +44,7 @@ export const useUserHostsTable = (p: {
   const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
 
-  const data = useInfiniteHosts({
+  const data = useInfiniteMyHosts({
     ...Object.fromEntries(
       columnFilters
         .map((filter) => [

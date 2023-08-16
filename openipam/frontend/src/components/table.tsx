@@ -32,7 +32,7 @@ export const Table = (p: {
   className?: string;
 }) => {
   return (
-    <div>
+    <div className="flex flex-col overflow-scroll gap-4 m-8 w-[90%]">
       <div className="flex justify-between items-center">
         {p.loading ? (
           <div className="flex gap-4 text-white">

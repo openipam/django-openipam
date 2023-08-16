@@ -10,51 +10,15 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
 import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { Add, Edit, ExpandMore } from "@mui/icons-material";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
+import { useInfiniteDnsRecords } from "../../hooks/queries/useInfiniteDnsRecords";
 
 //TODO search permissions
 
 const DNSLookupKeys = ["name", "content", "dns_type", "host"];
-
-export const useInfiniteDomain = (p: {
-  domain: string;
-  [key: string]: string;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["domain", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains
-        .byId(p.domain)
-        .dns.get({ page: pageParam, ...p });
-      return {
-        dns: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useDomainTable = (p: {
   domain: string;
@@ -66,7 +30,7 @@ export const useDomainTable = (p: {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
-  const data = useInfiniteDomain({
+  const data = useInfiniteDnsRecords({
     domain: p.domain,
     ...Object.fromEntries(
       columnFilters

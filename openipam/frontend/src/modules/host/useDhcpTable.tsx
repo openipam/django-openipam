@@ -10,52 +10,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExpandMore, Visibility } from "@mui/icons-material";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
+import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
 
 const DhcpLookupKeys = ["host", "ip_content"];
-
-export const useInfiniteDhcp = (p: {
-  host?: string | undefined;
-  mac?: string | undefined;
-  [key: string]: string | undefined;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["dhcp, host", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.dns.dhcp({
-        page: pageParam,
-        ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
-      });
-      return {
-        dhcp: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useDhcpTable = (p: { host?: string; mac?: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -63,7 +25,7 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const navigate = useNavigate();
-  const data = useInfiniteDhcp({
+  const data = useInfiniteHostDhcpRecords({
     ...p,
     ...Object.fromEntries(
       columnFilters

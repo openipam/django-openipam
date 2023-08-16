@@ -10,52 +10,15 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
+import { Add, Edit, ExpandMore } from "@mui/icons-material";
 import { Address } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { useInfiniteNetworkAddresses } from "../../hooks/queries/useInfiniteNetworkAddresses";
 
 const AddressLookupKeys = ["address", "name", "gateway", "description"];
-
-export const useInfiniteAddresses = (p: {
-  network: string;
-  subnet: string;
-  [key: string]: string | undefined;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["network, Addresses", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.networks
-        .byId(`${p.network}/${p.subnet}`)
-        .addresses.get({ page: pageParam, ...p });
-      return {
-        addresses: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useAddressesTable = (p: {
   network: string;
@@ -68,7 +31,7 @@ export const useAddressesTable = (p: {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Address[]>([]);
 
-  const data = useInfiniteAddresses({
+  const data = useInfiniteNetworkAddresses({
     network: p.network,
     subnet: p.subnet,
     ...Object.fromEntries(

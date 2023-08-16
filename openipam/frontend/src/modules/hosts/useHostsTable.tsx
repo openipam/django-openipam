@@ -11,9 +11,8 @@ import {
 } from "@tanstack/react-table";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   Add,
   Autorenew,
@@ -30,6 +29,7 @@ import {
   booleanAccessor,
 } from "../../components/boolean";
 import { ExportToCsv } from "../../components/download";
+import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
 
 //TODO disabled columns only shows for admins.
 
@@ -49,39 +49,6 @@ const actions = {
   deleteAttribute: "Delete Attribute",
   setDhcpGroup: "Set DHCP Group",
   deleteDhcpGroup: "Delete DHCP Group",
-};
-
-export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["Hosts, all", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.hosts.get({
-        page: pageParam,
-        ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
-      });
-      return {
-        results: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
 };
 
 export const useHostsTable = (p: {

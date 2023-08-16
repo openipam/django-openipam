@@ -22,9 +22,7 @@ export const Network = () => {
         Provide filtering and searching capabilities based on status (used,
         available, reserved), network, or domain.
       </p>
-      <div className="flex flex-col gap-4 m-8 w-[90%]">
-        <Table table={data.table} loading={data.loading} />
-      </div>
+      <Table table={data.table} loading={data.loading} />
     </div>
   );
 };
