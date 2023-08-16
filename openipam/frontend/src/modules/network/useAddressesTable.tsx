@@ -12,11 +12,10 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { Add, Edit, ExpandMore } from "@mui/icons-material";
 import { Address } from "../../utils/types";
-import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 import { useInfiniteNetworkAddresses } from "../../hooks/queries/useInfiniteNetworkAddresses";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 const AddressLookupKeys = ["address", "name", "gateway", "description"];
 
@@ -52,70 +51,21 @@ export const useAddressesTable = (p: {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.addresses)]);
     }
   }, [data.data]);
-  const navigate = useNavigate();
   const columnHelper = createColumnHelper<Address>();
   const columns = [
-    {
+    ...ActionsColumn({
+      data,
       size: 80,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
-              /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowModule(true);
-            }}
-          >
-            <Add />
-          </button>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-                checked={row.getIsSelected()}
-                onChange={row.getToggleSelectedHandler()}
-                disabled={!row.getCanSelect()}
-                indeterminate={row.getIsSomeSelected()}
-              /> */}
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/Addresses/${row.original.Address}`)}
-            disabled={!row.original.Address}
-          >
-            <Visibility fontSize="small" />
-          </button> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditModule({
-                show: true,
-                DnsData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
-        </div>
-      ),
-    },
+      onAdd: () => {
+        p.setShowModule(true);
+      },
+      onEdit: (row) => {
+        p.setEditModule({
+          show: true,
+          Address: row.address,
+        });
+      },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

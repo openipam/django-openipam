@@ -10,11 +10,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import React from "react";
 import { fuzzyFilter } from "../../components/filters";
-import { Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 type Address = {
   name: string;
@@ -63,66 +63,13 @@ export const useAddressesTable = (p: {
   }, [data.data]);
 
   const columns: ColumnDef<Address>[] = [
-    {
+    ...ActionsColumn({
       size: 100,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            {/* <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button> */}
-          </div>
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowAddDomain((prev: boolean) => !prev);
-            }}
-          >
-            <Add />
-          </button> */}
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-              checked={row.getIsSelected()}
-              onChange={row.getToggleSelectedHandler()}
-              disabled={!row.getCanSelect()}
-              indeterminate={row.getIsSomeSelected()}
-            /> */}
-          <a
-            className="btn btn-circle btn-ghost btn-xs"
-            href={`#/addresses/${row.original.name}`}
-          >
-            <Visibility fontSize="small" />
-          </a>
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditDomain({
-                show: true,
-                domainData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button> */}
-        </div>
-      ),
-    },
+      data,
+      onView: (row) => {
+        navigate(`/addresses/${row.name}`);
+      },
+    }),
     {
       id: "name",
       header: "Name",

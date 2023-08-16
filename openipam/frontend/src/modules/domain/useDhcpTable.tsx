@@ -12,10 +12,10 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { ExpandMore, Visibility } from "@mui/icons-material";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteDhcpRecords } from "../../hooks/queries/useInfiniteDhcpRecords";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
@@ -33,7 +33,7 @@ export const useDhcpTable = (p: { domain: string }) => {
         .map((filter) => [filter.id, filter.value as string])
     ),
   });
-  const dns = useMemo<DhcpRecord[]>(() => {
+  const dhcp = useMemo<DhcpRecord[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
@@ -48,66 +48,13 @@ export const useDhcpTable = (p: { domain: string }) => {
 
   const columnHelper = createColumnHelper<DhcpRecord>();
   const columns = [
-    {
+    ...ActionsColumn({
       size: 100,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
-              /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowModule(true);
-            }}
-          >
-            <Add />
-          </button> */}
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-                checked={row.getIsSelected()}
-                onChange={row.getToggleSelectedHandler()}
-                disabled={!row.getCanSelect()}
-                indeterminate={row.getIsSomeSelected()}
-              /> */}
-          <a
-            className="btn btn-circle btn-ghost btn-xs"
-            href={`#/hosts/${row.original.host}`}
-          >
-            <Visibility fontSize="small" />
-          </a>
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditModule({
-                show: true,
-                DnsData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button> */}
-        </div>
-      ),
-    },
+      onView: (row) => {
+        navigate(`/dhcp/${row.id}`);
+      },
+      data,
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",
@@ -181,7 +128,7 @@ export const useDhcpTable = (p: { domain: string }) => {
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: fuzzyFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    data: dns,
+    data: dhcp,
     state: {
       columnFilters,
       get globalFilter() {

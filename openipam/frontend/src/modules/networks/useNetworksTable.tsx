@@ -16,6 +16,7 @@ import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { Network } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 const NetworkLookupKeys = ["network", "name", "gateway", "description"];
 
@@ -51,67 +52,22 @@ export const useNetworksTable = (p: {
   const navigate = useNavigate();
   const columnHelper = createColumnHelper<Network>();
   const columns = [
-    {
+    ...ActionsColumn({
+      data,
       size: 80,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
-              /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowModule(true);
-            }}
-          >
-            <Add />
-          </button>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-                checked={row.getIsSelected()}
-                onChange={row.getToggleSelectedHandler()}
-                disabled={!row.getCanSelect()}
-                indeterminate={row.getIsSomeSelected()}
-              /> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/networks/${row.original.network}`)}
-            disabled={!row.original.network}
-          >
-            <Visibility fontSize="small" />
-          </button>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditModule({
-                show: true,
-                DnsData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
-        </div>
-      ),
-    },
+      onAdd: () => {
+        p.setShowModule(true);
+      },
+      onView: (row) => {
+        navigate(`/networks/${row.network}`);
+      },
+      onEdit: (row) => {
+        p.setEditModule({
+          show: true,
+          Network: row.network,
+        });
+      },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

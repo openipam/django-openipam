@@ -13,43 +13,14 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import {
-  Add,
-  Autorenew,
-  Edit,
-  ExpandMore,
-  MoreVert,
-  Visibility,
-} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
-import {
-  BooleanRender,
-  PlainIndeterminateCheckbox,
-  booleanAccessor,
-} from "../../components/boolean";
+import { BooleanRender, booleanAccessor } from "../../components/boolean";
 import { ExportToCsv } from "../../components/download";
 import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 //TODO disabled columns only shows for admins.
-
-const actions = {
-  renew: "Renew",
-  disable: "Disable",
-  enable: "Enable",
-  delete: "Delete",
-  rename: "Rename",
-  export: "Export to CSV",
-  populate: "Populate DNS",
-  changeNetwork: "Change Network",
-  addOwners: "Add Owners",
-  replaceOwners: "Replace Owners",
-  removeOwners: "Remove Owners",
-  addAttribute: "Add Attribute",
-  deleteAttribute: "Delete Attribute",
-  setDhcpGroup: "Set DHCP Group",
-  deleteDhcpGroup: "Delete DHCP Group",
-};
 
 export const useHostsTable = (p: {
   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
@@ -70,6 +41,7 @@ export const useHostsTable = (p: {
     }>
   >;
 }) => {
+  const api = useApi();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [rowSelection, setRowSelection] = useState({});
@@ -77,12 +49,6 @@ export const useHostsTable = (p: {
   const [action, setAction] = useState<string>("renew");
   const [prevData, setPrevData] = useState<Host[]>([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (columnFilters.length !== 0) {
-      console.log(columnFilters);
-    }
-  }, [columnFilters]);
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -111,6 +77,7 @@ export const useHostsTable = (p: {
     expires__lt: (columnFilters.find((filter) => filter.id === "expires")
       ?.value as (string | undefined)[])?.[1],
   });
+
   const Hosts = useMemo<Host[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
@@ -126,93 +93,28 @@ export const useHostsTable = (p: {
 
   const columnHelper = createColumnHelper<Host>();
   const columns = [
-    {
-      size: 125,
-      enableHiding: false,
-      enableSorting: false,
-      enableResizing: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        // force overflow to be visible so that the tooltip can be seen
-        <div className="flex gap-1 items-center relative">
-          <PlainIndeterminateCheckbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowAddHost((prev: boolean) => !prev);
-            }}
-          >
-            <Add />
-          </button>
-          <div className="dropdown mt-1">
-            <label tabIndex={0} className="btn btn-circle btn-ghost btn-xs">
-              <MoreVert />
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-            >
-              <li onClick={() => {}}>
-                <a>Actions for selected columns</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="gap-1 items-center !min-w-full">
-          <PlainIndeterminateCheckbox
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-          />
-          <button
-            className="btn btn-circle btn-ghost btn-xs ml-1"
-            onClick={() => navigate(`/Hosts/${row.original.mac}`)}
-            disabled={!row.original.mac}
-          >
-            <Visibility fontSize="small" />
-          </button>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditHost({
-                show: true,
-                HostData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setRenewModule({
-                show: true,
-                data: [row.original],
-              });
-            }}
-          >
-            <Autorenew fontSize="small" />
-          </button>
-        </div>
-      ),
-    },
+    ...ActionsColumn({
+      data: Hosts,
+      enableSelection: true,
+      onAdd: () => {
+        p.setShowAddHost((prev: boolean) => !prev);
+      },
+      onEdit: (data) => {
+        p.setEditHost({
+          show: true,
+          HostData: data,
+        });
+      },
+      onView: (data) => {
+        navigate(`/Hosts/${data.mac}`);
+      },
+      onRenew: (data) => {
+        p.setRenewModule({
+          show: true,
+          data: [data],
+        });
+      },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",
@@ -362,7 +264,6 @@ export const useHostsTable = (p: {
       ],
     }),
   ];
-  const api = useApi();
   const table = useReactTable({
     getCoreRowModel: getCoreRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
@@ -707,4 +608,22 @@ export const useHostsTable = (p: {
     table,
     data.isFetching,
   ]);
+};
+
+const actions = {
+  renew: "Renew",
+  disable: "Disable",
+  enable: "Enable",
+  delete: "Delete",
+  rename: "Rename",
+  export: "Export to CSV",
+  populate: "Populate DNS",
+  changeNetwork: "Change Network",
+  addOwners: "Add Owners",
+  replaceOwners: "Replace Owners",
+  removeOwners: "Remove Owners",
+  addAttribute: "Add Attribute",
+  deleteAttribute: "Delete Attribute",
+  setDhcpGroup: "Set DHCP Group",
+  deleteDhcpGroup: "Delete DHCP Group",
 };

@@ -36,7 +36,7 @@ export const Profile = () => {
         Welcome, {user?.first_name.charAt(0).toUpperCase()}
         {user?.first_name.slice(1)}
       </h1>
-      <p className="mt-8 ml-8">Your Hosts:</p>
+      <p className="mt-8">Your Hosts:</p>
       <Table table={hosts.table} loading={hosts.loading} />
       <h2>For admins</h2>
       <p>Display total number of IP addresses, Domains, Networks, Hosts</p>
