@@ -1,20 +1,10 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteHostDnsRecords } from "../../hooks/queries/useInfiniteHostDnsRecords";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
 
@@ -26,7 +16,6 @@ export const useDnsTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
   const data = useInfiniteHostDnsRecords({
@@ -73,9 +62,6 @@ export const useDnsTable = (p: {
           id: "name",
           header: "Name",
           accessorFn: (row) => row.name,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "content",
@@ -93,9 +79,6 @@ export const useDnsTable = (p: {
             );
           },
           accessorFn: (row) => row.content,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -116,27 +99,14 @@ export const useDnsTable = (p: {
           id: "ttl",
           header: "Ttl",
           accessorFn: (row) => row.ttl,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
@@ -146,12 +116,8 @@ export const useDnsTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(

@@ -1,20 +1,9 @@
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import React from "react";
-import { fuzzyFilter } from "../../components/filters";
 import { useNavigate } from "react-router";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 type Address = {
   name: string;
@@ -29,7 +18,6 @@ export const useAddressesTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const navigate = useNavigate();
   const data = useMemo(() => {
     return {
@@ -74,9 +62,6 @@ export const useAddressesTable = (p: {
       id: "name",
       header: "Name",
       accessorFn: (row) => row.name,
-      meta: {
-        filterType: "string",
-      },
     },
     {
       id: "is_leased",
@@ -89,19 +74,9 @@ export const useAddressesTable = (p: {
     },
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: addresses,
     state: {
       columnFilters,
@@ -111,12 +86,8 @@ export const useAddressesTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(() => ({ table, loading: false }), [p.data]);

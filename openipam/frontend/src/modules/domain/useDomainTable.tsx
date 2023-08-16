@@ -1,20 +1,10 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteDnsRecords } from "../../hooks/queries/useInfiniteDnsRecords";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 //TODO search permissions
 
@@ -27,7 +17,6 @@ export const useDomainTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
   const data = useInfiniteDnsRecords({
@@ -74,9 +63,6 @@ export const useDomainTable = (p: {
           id: "name",
           header: "Name",
           accessorFn: (row) => row.name,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "content",
@@ -94,9 +80,6 @@ export const useDomainTable = (p: {
             );
           },
           accessorFn: (row) => row.content,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -117,9 +100,6 @@ export const useDomainTable = (p: {
           id: "ttl",
           header: "Ttl",
           accessorFn: (row) => row.ttl,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "host",
@@ -135,29 +115,14 @@ export const useDomainTable = (p: {
             );
           },
           accessorFn: (row) => row.host,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
@@ -167,12 +132,8 @@ export const useDomainTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(

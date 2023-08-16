@@ -1,20 +1,10 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { Log, LogActions, LogTypes } from "../../utils/types";
 import { useInfiniteLogs } from "../../hooks/queries/useInfiniteLogs";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 //TODO search permissions
 
@@ -23,7 +13,6 @@ const logSearchFields = ["user", "action_flag"];
 export const useLogsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Log[]>([]);
   const [emailView, setEmailView] = useState<boolean>(false);
 
@@ -85,9 +74,6 @@ export const useLogsTable = () => {
           id: emailView ? "to" : "user",
           header: emailView ? "To" : "User",
           accessorFn: (row) => row.user ?? row.to,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -155,19 +141,9 @@ export const useLogsTable = () => {
         }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: logs,
     state: {
       columnFilters,
@@ -177,12 +153,8 @@ export const useLogsTable = () => {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(

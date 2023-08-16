@@ -1,28 +1,18 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { betweenDatesFilter } from "../../components/filters";
 import React from "react";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
 export const useDhcpTable = (p: { host?: string; mac?: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const navigate = useNavigate();
   const data = useInfiniteHostDhcpRecords({
@@ -63,9 +53,6 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
           id: "domain",
           header: "Domain",
           accessorFn: (row) => row.domain,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "ip_content",
@@ -81,9 +68,6 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
             );
           },
           accessorFn: (row) => row.ip_content,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -95,9 +79,6 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
           id: "ttl",
           header: "TTL",
           accessorFn: (row) => row.ttl,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "changed",
@@ -115,19 +96,9 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
@@ -137,12 +108,8 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(

@@ -1,21 +1,12 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { betweenDatesFilter } from "../../components/filters";
 import React from "react";
 import { Address } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 import { useInfiniteNetworkAddresses } from "../../hooks/queries/useInfiniteNetworkAddresses";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 const AddressLookupKeys = ["address", "name", "gateway", "description"];
 
@@ -27,7 +18,6 @@ export const useAddressesTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Address[]>([]);
 
   const data = useInfiniteNetworkAddresses({
@@ -74,25 +64,16 @@ export const useAddressesTable = (p: {
           id: "address",
           header: "Address",
           accessorFn: (row) => row.address,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "host",
           header: "host",
           accessorFn: (row) => row.host,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "gateway",
           header: "Gateway",
           accessorFn: (row) => row.gateway,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -113,9 +94,6 @@ export const useAddressesTable = (p: {
           id: "pool",
           header: "Pool",
           accessorFn: (row) => row.pool?.name,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "changed",
@@ -131,19 +109,9 @@ export const useAddressesTable = (p: {
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
@@ -153,12 +121,8 @@ export const useAddressesTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(

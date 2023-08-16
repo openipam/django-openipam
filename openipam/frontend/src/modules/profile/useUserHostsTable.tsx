@@ -1,22 +1,12 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { fuzzyFilter } from "../../components/filters";
 import React from "react";
 import { People, PeopleOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { useInfiniteMyHosts } from "../../hooks/queries/useInfiniteMyHosts";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 //TODO disabled columns only shows for admins.
 // add quick renew button
@@ -33,7 +23,6 @@ export const useUserHostsTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
@@ -123,19 +112,11 @@ export const useUserHostsTable = (p: {
           id: "mac",
           header: "Mac",
           accessorFn: (row) => row.mac,
-          meta: {
-            filterType: "string",
-          },
-          filterFn: undefined,
         },
         {
           id: "hostname",
           header: "Hostname",
           accessorFn: (row) => row.hostname,
-          meta: {
-            filterType: "string",
-          },
-          filterFn: undefined,
         },
       ],
     }),
@@ -207,27 +188,14 @@ export const useUserHostsTable = (p: {
              (${
                row.addresses?.leased?.length + row.addresses?.static?.length
              })`,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: Hosts,
     state: {
       columnFilters,
@@ -237,7 +205,6 @@ export const useUserHostsTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     meta: {
       trProps: (row: any) => {
@@ -250,9 +217,6 @@ export const useUserHostsTable = (p: {
       },
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(() => ({ table, loading: data.isFetching }), [

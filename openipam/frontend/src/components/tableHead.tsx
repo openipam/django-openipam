@@ -94,7 +94,7 @@ function Filter({
     [column.getFacetedUniqueValues()]
   );
 
-  const filterType = header.column.columnDef.meta?.filterType;
+  const filterType = header.column.columnDef.meta?.filterType ?? "string";
   switch (filterType) {
     case "string":
       return (

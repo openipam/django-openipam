@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { Domain } from "../../utils/types";
 import { useInfiniteDomains } from "../../hooks/queries/useInfiniteDomains";
 import { ActionsColumn } from "../../components/actionsColumn";
+import { CreateTable } from "../../components/createTable";
 
 //TODO search permissions
 
@@ -43,7 +44,6 @@ export const useDomainsTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
-  const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<Domain[]>([]);
   const navigate = useNavigate();
 
@@ -94,17 +94,11 @@ export const useDomainsTable = (p: {
           id: "name",
           header: "Name",
           accessorFn: (row) => row.name,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "description",
           header: "Description",
           accessorFn: (row) => row.description,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
@@ -119,9 +113,6 @@ export const useDomainsTable = (p: {
           cell: ({ row }: { row: any }) => {
             return getPerms(row.original.user_perms);
           },
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "group_perms",
@@ -129,9 +120,6 @@ export const useDomainsTable = (p: {
           header: "Group Permissions",
           cell: ({ row }: { row: any }) => {
             return getPerms(row.original.group_perms);
-          },
-          meta: {
-            filterType: "string",
           },
         },
       ],
@@ -144,9 +132,6 @@ export const useDomainsTable = (p: {
           id: "master",
           header: "Master",
           accessorFn: (row) => row.master,
-          meta: {
-            filterType: "string",
-          },
         },
         {
           id: "changed",
@@ -164,27 +149,14 @@ export const useDomainsTable = (p: {
           id: "changedBy",
           header: "Changed By",
           accessorFn: (row) => row.changed_by,
-          meta: {
-            filterType: "string",
-          },
         },
       ],
     }),
   ];
 
-  const table = useReactTable({
-    getCoreRowModel: getCoreRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // Sorting
-    getSortedRowModel: getSortedRowModel(),
-    // Filters
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+  const table = CreateTable({
+    setColumnFilters: setColumnFilters,
+    setGlobalFilter: setGlobalFilter,
     data: domains,
     state: {
       columnFilters,
@@ -194,12 +166,8 @@ export const useDomainsTable = (p: {
       set globalFilter(value) {
         setGlobalFilter(value);
       },
-      columnVisibility,
     },
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
   });
 
   return useMemo(() => ({ table, loading: data.isFetching }), [
