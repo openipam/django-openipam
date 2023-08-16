@@ -10,52 +10,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
-import { fuzzyFilter, stringFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { ExpandMore } from "@mui/icons-material";
 import { Log, LogActions, LogTypes } from "../../utils/types";
+import { useInfiniteLogs } from "../../hooks/queries/useInfiniteLogs";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 //TODO search permissions
-
-export const useInfiniteLogs = (p: { [key: string]: string }) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["logs", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      if (p.type === "email") {
-        const results = await api.logs.getEmails({ page: pageParam, ...p });
-        return {
-          emails: results.results,
-          page: pageParam,
-          nextPage: results.next,
-        };
-      }
-      const results = await api.logs.get({ page: pageParam, ...p });
-      return {
-        logs: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 const logSearchFields = ["user", "action_flag"];
 
@@ -103,48 +64,10 @@ export const useLogsTable = () => {
 
   const columnHelper = createColumnHelper<Log>();
   const columns = [
-    {
-      size: 100,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
-              /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-                checked={row.getIsSelected()}
-                onChange={row.getToggleSelectedHandler()}
-                disabled={!row.getCanSelect()}
-                indeterminate={row.getIsSomeSelected()}
-              /> */}
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            // onClick={() => navigate(`/domain/${row.original.name}`)}
-            disabled={!row.original.name}
-          >
-            <Visibility fontSize="small" />
-          </button> */}
-        </div>
-      ),
-    },
+    ...ActionsColumn({
+      data,
+      size: 50,
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

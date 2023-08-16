@@ -65,6 +65,10 @@ export const useApi = () => {
           delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/`),
           disable: requestGenerator(HttpMethod.POST, `hosts/${id}/disabled/`),
           enable: requestGenerator(HttpMethod.DELETE, `hosts/${id}/disabled/`),
+          populateDns: requestGenerator(
+            HttpMethod.POST,
+            `hosts/${id}/populateDns/`
+          ),
           users: {
             get: requestGenerator(HttpMethod.GET, `hosts/${id}/users/`),
             put: requestGenerator(HttpMethod.PUT, `hosts/${id}/users/`),
@@ -135,6 +139,17 @@ export const useApi = () => {
     logs: {
       get: requestGenerator(HttpMethod.GET, "admin/logs/"),
       getEmails: requestGenerator(HttpMethod.GET, "admin/email-logs/"),
+    },
+    networks: {
+      get: requestGenerator(HttpMethod.GET, "networks/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `networks/${id}/`),
+          addresses: {
+            get: requestGenerator(HttpMethod.GET, `networks/${id}/addresses/`),
+          },
+        };
+      },
     },
   };
 

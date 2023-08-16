@@ -105,6 +105,15 @@ class HostViewSet(APIModelViewSet):
         """Delete attributes."""
         return HostAttributesView().delete(request, *args, mac=mac, **kwargs)
 
+    @action(detail=True, methods=["post"])
+    def populateDns(self, request, *args, mac, **kwargs):
+        """Populate DNS."""
+        host = get_object_or_404(Host, mac=mac)
+        user = request.user
+        host.delete_dns_records(user=user)
+        host.add_dns_records(user=user)
+        return Response(status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def users(self, request, *args, mac, **kwargs):
         """Get users."""

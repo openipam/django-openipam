@@ -10,48 +10,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
 import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore } from "@mui/icons-material";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
+import { useInfiniteHostDnsRecords } from "../../hooks/queries/useInfiniteHostDnsRecords";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
-
-export const useInfiniteDomain = (p: {
-  host?: string | undefined;
-  mac?: string | undefined;
-  [key: string]: string | undefined;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["host, dns", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.dns.get({ page: pageParam, ...p });
-      return {
-        dns: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useDnsTable = (p: {
   host?: string;
@@ -64,7 +29,7 @@ export const useDnsTable = (p: {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
 
-  const data = useInfiniteDomain({
+  const data = useInfiniteHostDnsRecords({
     ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
     ...Object.fromEntries(
       columnFilters
@@ -87,67 +52,19 @@ export const useDnsTable = (p: {
 
   const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
-    {
+    ...ActionsColumn({
       size: 80,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
-              /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowModule(true);
-            }}
-          >
-            <Add />
-          </button>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-                checked={row.getIsSelected()}
-                onChange={row.getToggleSelectedHandler()}
-                disabled={!row.getCanSelect()}
-                indeterminate={row.getIsSomeSelected()}
-              /> */}
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            // onClick={() => navigate(`/domain/${row.original.name}`)}
-            disabled={!row.original.name}
-          >
-            <Visibility fontSize="small" />
-          </button> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditModule({
-                show: true,
-                DnsData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
-        </div>
-      ),
-    },
+      data,
+      onAdd: () => {
+        p.setShowModule(true);
+      },
+      onEdit: (row) => {
+        p.setEditModule({
+          show: true,
+          DnsData: row.original,
+        });
+      },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

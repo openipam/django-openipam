@@ -1,6 +1,5 @@
 import {
   ColumnFiltersState,
-  RowData,
   createColumnHelper,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -11,62 +10,17 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import {
-  Add,
-  Autorenew,
-  Edit,
-  ExpandMore,
-  People,
-  PeopleOutline,
-  Visibility,
-} from "@mui/icons-material";
+import { People, PeopleOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
-import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { useInfiniteMyHosts } from "../../hooks/queries/useInfiniteMyHosts";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 //TODO disabled columns only shows for admins.
 // add quick renew button
 // show groups toggle
-
-export const useInfiniteHosts = (p: {
-  show_groups: false;
-  [key: string]: string | number | boolean;
-}) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["Hosts, mine", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.hosts.mine({
-        page: pageParam,
-        ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
-      });
-      return {
-        results: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
-};
 
 export const useUserHostsTable = (p: {
   //   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
@@ -84,7 +38,7 @@ export const useUserHostsTable = (p: {
   const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
 
-  const data = useInfiniteHosts({
+  const data = useInfiniteMyHosts({
     ...Object.fromEntries(
       columnFilters
         .map((filter) => [
@@ -129,88 +83,38 @@ export const useUserHostsTable = (p: {
 
   const columnHelper = createColumnHelper<Host>();
   const columns = [
-    {
+    ...ActionsColumn({
+      data,
       size: 100,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <div
-            className="tooltip tooltip-right"
-            data-tip={`${showGroups ? "Hide" : "Show"} Groups`}
-          >
-            <button
-              className="btn btn-circle btn-ghost btn-xs"
-              onClick={() => {
-                setShowGroups((prev) => !prev);
-              }}
-            >
-              {showGroups ? (
-                <People fontSize="small" />
-              ) : (
-                <PeopleOutline fontSize="small" />
-              )}
-            </button>
-          </div>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-              checked={row.getIsSelected()}
-              onChange={row.getToggleSelectedHandler()}
-              disabled={!row.getCanSelect()}
-              indeterminate={row.getIsSomeSelected()}
-            /> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/Hosts/${row.original.mac}`)}
-            disabled={!row.original.mac}
-          >
-            <Visibility fontSize="small" />
-          </button>
+      onView: (row) => {
+        navigate(`/Hosts/${row.mac}`);
+      },
+      onRenew: (row) => {
+        p.setRenewModule({
+          show: true,
+          data: [row],
+        });
+      },
+      customHead: (
+        <div
+          className="tooltip tooltip-right"
+          data-tip={`${showGroups ? "Hide" : "Show"} Groups`}
+        >
           <button
             className="btn btn-circle btn-ghost btn-xs"
             onClick={() => {
-              p.setRenewModule({
-                show: true,
-                data: [row.original],
-              });
+              setShowGroups((prev) => !prev);
             }}
           >
-            <Autorenew fontSize="small" />
+            {showGroups ? (
+              <People fontSize="small" />
+            ) : (
+              <PeopleOutline fontSize="small" />
+            )}
           </button>
-
-          {/* <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditHost({
-                show: true,
-                HostData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button> */}
         </div>
       ),
-    },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

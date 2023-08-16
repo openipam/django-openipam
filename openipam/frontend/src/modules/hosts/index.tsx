@@ -47,9 +47,7 @@ export const Hosts = () => {
   return (
     <div className="mt-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Hosts</h1>
-      <div className="flex flex-col overflow-scroll gap-4 m-8">
-        <Table table={table.table} loading={table.loading} />
-      </div>
+      <Table table={table.table} loading={table.loading} />
       <AddHostModule showModule={showAddHost} setShowModule={setShowAddHost} />
       <EditHostModule
         showModule={editHost.show}

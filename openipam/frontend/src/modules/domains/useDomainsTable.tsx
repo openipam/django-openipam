@@ -10,13 +10,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../../hooks/useApi";
 import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Domain } from "../../utils/types";
+import { useInfiniteDomains } from "../../hooks/queries/useInfiniteDomains";
+import { ActionsColumn } from "../../components/actionsColumn";
 
 //TODO search permissions
 
@@ -36,36 +35,6 @@ const getPerms = (perms: Record<string, string>) => {
       ))}
     </div>
   );
-};
-
-export const useInfiniteDomains = (p: { [key: string]: string | number }) => {
-  const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["domains, all", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.domains.get({ page: pageParam, ...p });
-      return {
-        results: results.results,
-        page: pageParam,
-        nextPage: results.next,
-      };
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
-  });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
-  return query;
 };
 
 export const useDomainsTable = (p: {
@@ -101,67 +70,22 @@ export const useDomainsTable = (p: {
 
   const columnHelper = createColumnHelper<Domain>();
   const columns = [
-    {
+    ...ActionsColumn({
       size: 100,
-      enableHiding: false,
-      enableSorting: false,
-      enableColumnFilter: false,
-      id: "actions",
-      header: ({ table }: any) => (
-        <div className="flex gap-1 items-center relative">
-          {/* <PlainIndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            /> */}
-          <div className="tooltip tooltip-right" data-tip="Load More">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
-              onClick={() => data.fetchNextPage?.()}
-              disabled={!data.hasNextPage || data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </div>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setShowAddDomain((prev: boolean) => !prev);
-            }}
-          >
-            <Add />
-          </button>
-        </div>
-      ),
-      cell: ({ row }: { row: any }) => (
-        <div className="flex gap-1 items-center">
-          {/* <PlainIndeterminateCheckbox
-              checked={row.getIsSelected()}
-              onChange={row.getToggleSelectedHandler()}
-              disabled={!row.getCanSelect()}
-              indeterminate={row.getIsSomeSelected()}
-            /> */}
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => navigate(`/domains/${row.original.name}`)}
-            disabled={!row.original.name}
-          >
-            <Visibility fontSize="small" />
-          </button>
-          <button
-            className="btn btn-circle btn-ghost btn-xs"
-            onClick={() => {
-              p.setEditDomain({
-                show: true,
-                domainData: row.original,
-              });
-            }}
-          >
-            <Edit fontSize="small" />
-          </button>
-        </div>
-      ),
-    },
+      data,
+      onAdd: () => {
+        p.setShowAddDomain((prev: boolean) => !prev);
+      },
+      onView: (row: any) => {
+        navigate(`/domains/${row.name}`);
+      },
+      onEdit: (row: any) => {
+        p.setEditDomain({
+          show: true,
+          domainData: row,
+        });
+      },
+    }),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

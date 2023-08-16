@@ -115,9 +115,7 @@ export const HostPage = () => {
           }}
         />
         <Tab tab={tab} name={"DNS"} props={"m-2"} data={HostInfo ?? {}}>
-          <div className="flex flex-col gap-4 m-8 w-[80%]">
-            <Table table={dns.table} loading={dns.loading} />
-          </div>
+          <Table table={dns.table} loading={dns.loading} />
         </Tab>
         <Tab
           tab={tab}
@@ -131,8 +129,8 @@ export const HostPage = () => {
             dhcp_group: HostInfo?.dhcp_group?.name,
           }}
         >
-          <div className="flex flex-col gap-4 m-8 w-[50rem]">
-            <h2 className="text-2xl">DHCP-DNS Records</h2>
+          <div className="flex flex-col gap-4 m-8 w-[80rem]">
+            <h2 className="text-2xl ml-8">DHCP-DNS Records</h2>
             <Table table={dhcpTable.table} loading={dhcpTable.loading} />
           </div>
         </Tab>
@@ -142,7 +140,7 @@ export const HostPage = () => {
           props={"m-2"}
           data={HostInfo?.addresses ?? {}}
         >
-          <div className="flex flex-col gap-4 m-8 w-[50rem]">
+          <div className="flex flex-col gap-4 m-8 w-[80rem]">
             <Table table={data.table} loading={data.loading} />
           </div>
         </Tab>

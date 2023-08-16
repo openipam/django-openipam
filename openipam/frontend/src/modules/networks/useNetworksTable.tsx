@@ -10,49 +10,62 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import { fuzzyFilter } from "../../components/filters";
 import React from "react";
-import { DhcpRecord } from "../../utils/types";
+import { Add, Edit, ExpandMore, Visibility } from "@mui/icons-material";
+import { Network } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
-import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
+import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 import { ActionsColumn } from "../../components/actionsColumn";
 
-const DhcpLookupKeys = ["host", "ip_content"];
+const NetworkLookupKeys = ["network", "name", "gateway", "description"];
 
-export const useDhcpTable = (p: { host?: string; mac?: string }) => {
+export const useNetworksTable = (p: {
+  setShowModule: any;
+  setEditModule: any;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState();
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
-  const navigate = useNavigate();
-  const data = useInfiniteHostDhcpRecords({
-    ...p,
+  const [prevData, setPrevData] = useState<Network[]>([]);
+
+  const data = useInfiniteNetworks({
+    ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
     ...Object.fromEntries(
       columnFilters
-        .filter((f) => DhcpLookupKeys.includes(f.id))
+        .filter((f) => NetworkLookupKeys.includes(f.id) && f.value)
         .map((filter) => [filter.id, filter.value as string])
     ),
   });
-  const dns = useMemo<DhcpRecord[]>(() => {
+  const dns = useMemo<Network[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
-    return data.data.pages.flatMap((page) => page.dhcp);
+    return data.data.pages.flatMap((page) => page.networks);
   }, [data.data]);
 
   useEffect(() => {
     if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.dhcp)]);
+      setPrevData(() => [...data.data.pages.flatMap((page) => page.networks)]);
     }
   }, [data.data]);
-
-  const columnHelper = createColumnHelper<DhcpRecord>();
+  const navigate = useNavigate();
+  const columnHelper = createColumnHelper<Network>();
   const columns = [
     ...ActionsColumn({
-      size: 100,
       data,
+      size: 80,
+      onAdd: () => {
+        p.setShowModule(true);
+      },
       onView: (row) => {
-        navigate(`/domains/${row.domain}`);
+        navigate(`/networks/${row.network}`);
+      },
+      onEdit: (row) => {
+        p.setEditModule({
+          show: true,
+          Network: row.network,
+        });
       },
     }),
     columnHelper.group({
@@ -60,27 +73,25 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
       header: "Identification",
       columns: [
         {
-          id: "domain",
-          header: "Domain",
-          accessorFn: (row) => row.domain,
+          id: "network",
+          header: "Network",
+          accessorFn: (row) => row.network,
           meta: {
             filterType: "string",
           },
         },
         {
-          id: "ip_content",
-          header: "IP Content",
-          cell: ({ row }: { row: { original: DhcpRecord } }) => {
-            return (
-              <a
-                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
-                href={`#/addresses/${row.original.ip_content}`}
-              >
-                {row.original.ip_content}
-              </a>
-            );
+          id: "name",
+          header: "Name",
+          accessorFn: (row) => row.name,
+          meta: {
+            filterType: "string",
           },
-          accessorFn: (row) => row.ip_content,
+        },
+        {
+          id: "gateway",
+          header: "Gateway",
+          accessorFn: (row) => row.gateway,
           meta: {
             filterType: "string",
           },
@@ -92,24 +103,36 @@ export const useDhcpTable = (p: { host?: string; mac?: string }) => {
       header: "Other Details",
       columns: [
         {
-          id: "ttl",
-          header: "TTL",
-          accessorFn: (row) => row.ttl,
+          id: "description",
+          header: "Description",
+          accessorFn: (row) => row.description,
           meta: {
             filterType: "string",
           },
         },
         {
-          id: "changed",
-          header: "Changed",
-          accessorFn: (row) =>
-            row.changed
-              ? new Date(row.changed).toISOString().split("T")[0]
-              : "",
+          id: "shared_network",
+          header: "Shared Network",
+          accessorFn: (row) => row.shared_network?.name,
           meta: {
-            filterType: "date",
+            filterType: "string",
           },
-          filterFn: betweenDatesFilter,
+        },
+        {
+          id: "vlans",
+          header: "Vlans",
+          accessorFn: (row) => row.vlans?.length ?? "0",
+          meta: {
+            filterType: "string",
+          },
+        },
+        {
+          id: "buildings",
+          header: "Buildings",
+          accessorFn: (row) => row.buildings?.length ?? "0",
+          meta: {
+            filterType: "string",
+          },
         },
       ],
     }),
