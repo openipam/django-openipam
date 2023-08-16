@@ -111,10 +111,17 @@ export const useApi = () => {
               ),
             };
           },
-          attributes: requestGenerator(
-            HttpMethod.GET,
-            `hosts/${id}/attributes/`
-          ),
+          attributes: {
+            get: requestGenerator(HttpMethod.GET, `hosts/${id}/attributes/`),
+            create: requestGenerator(
+              HttpMethod.POST,
+              `hosts/${id}/attributes/`
+            ),
+            delete: requestGenerator(
+              HttpMethod.DELETE,
+              `hosts/${id}/attributes/`
+            ),
+          },
           addresses: requestGenerator(HttpMethod.GET, `hosts/${id}/addresses/`),
           byAddress(addressId: string) {
             return {

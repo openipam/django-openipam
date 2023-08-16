@@ -6,6 +6,7 @@ import { EditHostModule } from "./editHostModule";
 import { RenewHostModule } from "../profile/renewHostModule";
 import { Host } from "../../utils/types";
 import { SingleActionModule } from "../../components/singleActionModule";
+import { AttributeModule } from "./attributeModule";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
@@ -30,6 +31,15 @@ export const Hosts = () => {
     onSubmit: () => {},
     children: <></>,
   });
+  const [attributeModule, setAttributeModule] = useState<{
+    show: boolean;
+    data: Host[] | undefined;
+    delete?: boolean;
+  }>({
+    show: false,
+    data: undefined,
+    delete: false,
+  });
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
     data: Host[] | undefined;
@@ -42,6 +52,7 @@ export const Hosts = () => {
     setEditHost,
     setRenewModule,
     setActionModule,
+    setAttributeModule,
   });
 
   return (
@@ -67,6 +78,12 @@ export const Hosts = () => {
         onSubmit={actionModule.onSubmit}
         children={actionModule.children}
         multiple={actionModule.multiple ?? false}
+      />
+      <AttributeModule
+        showModule={attributeModule.show}
+        setShowModule={setAttributeModule}
+        data={attributeModule.data ?? []}
+        delete={attributeModule.delete}
       />
     </div>
   );

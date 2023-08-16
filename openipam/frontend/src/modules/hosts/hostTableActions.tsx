@@ -17,11 +17,19 @@ export const HostTableActions = (p: {
       multiple?: boolean;
     }>
   >;
+  setAttributeModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      delete?: boolean;
+    }>
+  >;
   rows: Host[];
   table: any;
 }) => {
   const [action, setAction] = useState<string>("renew");
   const api = useApi();
+
   return (
     <div className="flex flex-col gap-2 m-2">
       <label>Actions</label>
@@ -289,8 +297,18 @@ export const HostTableActions = (p: {
                 });
                 break;
               case "addAttribute":
+                p.setAttributeModule({
+                  show: true,
+                  data: p.rows,
+                  delete: false,
+                });
                 break;
               case "deleteAttribute":
+                p.setAttributeModule({
+                  show: true,
+                  data: p.rows,
+                  delete: true,
+                });
                 break;
               case "setDhcpGroup":
                 break;

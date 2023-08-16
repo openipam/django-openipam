@@ -27,6 +27,13 @@ export const useHostsTable = (p: {
       multiple?: boolean;
     }>
   >;
+  setAttributeModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      delete?: boolean;
+    }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -97,6 +104,7 @@ export const useHostsTable = (p: {
             table={table}
             setActionModule={p.setActionModule}
             setRenewModule={p.setRenewModule}
+            setAttributeModule={p.setAttributeModule}
           />
         );
       },
