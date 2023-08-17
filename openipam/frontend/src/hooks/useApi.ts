@@ -144,6 +144,7 @@ export const useApi = () => {
             set: requestGenerator(HttpMethod.POST, `hosts/${id}/dhcp/`),
             delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/dhcp/`),
           },
+          setNetwork: requestGenerator(HttpMethod.POST, `hosts/${id}/network/`),
         };
       },
     },

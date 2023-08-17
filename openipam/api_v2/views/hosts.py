@@ -82,6 +82,28 @@ class HostViewSet(APIModelViewSet):
         """Delete addresses."""
         return AddressView().delete(request, *args, mac=mac, **kwargs)
 
+    @action(detail=True, methods=["post"])
+    def network(self, request, *args, mac, **kwargs):
+        host = get_object_or_404(Host, mac=mac)
+        network = request.data.get("network")
+
+        valid = network_models.Network.objects.filter(network=network).exists()
+
+        if not valid:
+            return Response({"detail": "Invalid Network"}, status=status.HTTP_400_BAD_REQUEST)
+
+        host.network = network_models.Network.objects.get(network=network)
+        host.save(user=request.user)
+        LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(host).pk,
+            object_id=host.pk,
+            object_repr=force_text(host),
+            action_flag=CHANGE,
+            change_message=f"Network changed to {host.network}.",
+        )
+        return Response(status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["post", "delete"])
     def dhcp(self, request, *args, mac, **kwargs):
         host = get_object_or_404(Host, mac=mac)

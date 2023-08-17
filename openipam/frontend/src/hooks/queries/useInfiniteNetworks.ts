@@ -3,7 +3,8 @@ import { useApi } from "../useApi";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 export const useInfiniteNetworks = (p: {
-  [key: string]: string | undefined;
+  getAll?: boolean;
+  [key: string]: string | boolean | undefined;
 }) => {
   const api = useApi();
   const query = useInfiniteQuery({
@@ -22,7 +23,11 @@ export const useInfiniteNetworks = (p: {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
+    if (
+      query.hasNextPage &&
+      !query.isFetchingNextPage &&
+      (p.getAll || currentPage < 1)
+    ) {
       query.fetchNextPage();
     }
   }, [
