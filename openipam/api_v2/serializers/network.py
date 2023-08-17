@@ -3,7 +3,12 @@
 from openipam.api_v2.serializers.base import ChangedBySerializer
 from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool
 from rest_framework import serializers as base_serializers
-from rest_framework.serializers import ModelSerializer, Field, SerializerMethodField
+from rest_framework.serializers import (
+    ModelSerializer,
+    Field,
+    SerializerMethodField,
+    HyperlinkedModelSerializer,
+)
 from .users import UserNestedSerializer
 from django.shortcuts import get_object_or_404
 import ipaddress
@@ -139,20 +144,20 @@ class AddressSerializer(ModelSerializer):
     gateway = SerializerMethodField()
     pool = PoolSerializer()
     address = SimpleAddressSerializer()
+    hostname = SerializerMethodField()
     host = SerializerMethodField()
-    host_name = SerializerMethodField()
 
-    def get_host_name(self, obj):
+    def get_hostname(self, obj):
         """Return host name for address."""
-        if obj.host_name:
-            return str(obj.host_name)
+        if obj.host:
+            return obj.host.hostname
         else:
             return None
 
     def get_host(self, obj):
         """Return host name for address."""
-        if obj.host_mac:
-            return str(obj.host_mac)
+        if obj.host:
+            return str(obj.host.mac)
         else:
             return None
 
@@ -186,7 +191,7 @@ class AddressSerializer(ModelSerializer):
             "changed",
             "gateway",
             "host",
-            "host_name",
+            "hostname",
         )
 
 

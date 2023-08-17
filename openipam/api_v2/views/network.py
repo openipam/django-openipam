@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions as base_permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from django.db.models import Prefetch, F
+from rest_framework.response import Response
 
 from openipam.hosts.models import Host
 from ..serializers.network import (
@@ -15,6 +15,17 @@ from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
 from openipam.network.models import Address, DhcpGroup, Network, Pool
 from netfields import NetManager  # noqa
+from ipaddress import ip_network, ip_address
+
+
+class AddressPagination(APIPagination):
+    """Pagination for address views"""
+
+    # I think it makes sense to have address page sizes be powers of 2,
+    # since the only way to view a list of addresses is from a network view,
+    # and networks are always CIDR blocks, which are powers of 2.
+    page_size = 16
+    max_page_size = 256
 
 
 class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,12 +54,12 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["get"],
-        queryset=Address.objects.all()
-        .select_related("host")
-        .annotate(host_mac=F("host"), host_name=F("host__hostname")),
+        queryset=Address.objects.all().select_related("host"),
         serializer_class=AddressSerializer,
         filterset_class=AddressFilterSet,
+        pagination_class=AddressPagination,
         ordering_fields=["address", "changed"],
+        url_name="address-list",
     )
     def addresses(self, request, pk=None):
         """Return all addresses in a given network."""
@@ -57,6 +68,34 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
         paginated = self.paginate_queryset(addresses)
         serializer = self.get_serializer(paginated, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        queryset=Address.objects.all().select_related("host"),
+        serializer_class=AddressSerializer,
+        filterset_class=AddressFilterSet,
+        pagination_class=AddressPagination,
+        ordering_fields=["address", "changed"],
+        url_path=r"addresses/(?P<address>(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))",
+        url_name="address-detail",
+    )
+    def address(self, request, pk=None, address=None):
+        """Return a single address in a given network."""
+        network = Network.objects.get(network=pk)
+        addr = ip_address(address)
+        try:
+            address = self.get_queryset().select_related("network").get(address=address)
+        except Address.DoesNotExist:
+            return Response(status=404, data={"detail": "Address not found."})
+        if address.network != network:
+            network = str(address.network.network)
+            return Response(
+                status=404,
+                data={"detail": f"Address not in this network, try {network} instead."},
+            )
+        serializer = self.get_serializer(address)
+        return Response(serializer.data)
 
 
 class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
