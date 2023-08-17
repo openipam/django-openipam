@@ -148,8 +148,8 @@ export const HostTableColumns = (p: {
         },
         {
           id: "disabled_host",
-          size: 75,
-          header: "Disabled Host",
+          size: 80,
+          header: "Disabled",
           accessorFn: booleanAccessor("disabled_host"),
           cell: BooleanRender,
           meta: {
@@ -158,13 +158,13 @@ export const HostTableColumns = (p: {
         },
         {
           id: "is_dynamic",
-          size: 75,
+          size: 80,
           header: "Dynamic",
           cell: BooleanRender,
-          accessorFn: booleanAccessor("is_dynamic"),
-          meta: {
-            filterType: "boolean",
-          },
+          // accessorFn: booleanAccessor("is_dynamic"),
+          // meta: {
+          //   filterType: "boolean",
+          // },
         },
       ],
     }),

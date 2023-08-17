@@ -6,6 +6,7 @@ import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
 import { HostTableActions } from "./hostTableActions";
 import { HostTableColumns } from "./hostTableColumns";
 import { CreateTable } from "../../components/createTable";
+import { useAuth } from "../../hooks/useAuth";
 
 //TODO disabled columns only shows for admins.
 
@@ -38,6 +39,7 @@ export const useHostsTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
+  const auth = useAuth();
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -76,8 +78,6 @@ export const useHostsTable = (p: {
     }
     return data.data.pages.flatMap((page) => page.results);
   }, [data.data]);
-
-  console.log(Hosts);
 
   useEffect(() => {
     if (data.data) {
