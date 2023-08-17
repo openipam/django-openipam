@@ -3,7 +3,13 @@ import { HttpMethod, requestGenerator } from "../api";
 export const useApi = () => {
   const api = {
     user: {
-      get: requestGenerator(HttpMethod.GET, "user/"),
+      get: requestGenerator(HttpMethod.GET, "users/"),
+      me: requestGenerator(HttpMethod.GET, "users/me/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `users/${id}/`),
+        };
+      },
     },
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
@@ -57,7 +63,7 @@ export const useApi = () => {
       mine: requestGenerator(HttpMethod.GET, "hosts/mine/"),
       attributes: requestGenerator(HttpMethod.GET, "attributes/"),
       create: requestGenerator(HttpMethod.POST, "hosts/"),
-      disabled: requestGenerator(HttpMethod.GET, `hosts/disabled/`),
+      disabled: requestGenerator(HttpMethod.GET, `hosts/disabledHosts/`),
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `hosts/${id}/`),

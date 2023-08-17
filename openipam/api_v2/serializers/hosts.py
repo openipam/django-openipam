@@ -26,14 +26,15 @@ class DisabledHostSerializer(serializers.ModelSerializer):
     """Disabled Host serializer."""
 
     changed_by = serializer_base.ChangedBySerializer()
+    hostname = serializers.SerializerMethodField()
+
+    def get_hostname(self, obj):
+        """Get hostname."""
+        return obj.host
 
     class Meta:
         model = DisabledHostDetails
-        fields = (
-            "reason",
-            "changed",
-            "changed_by",
-        )
+        fields = ("reason", "changed", "changed_by", "hostname", "mac")
 
     def validate(self, data):
         """Validate data."""

@@ -68,20 +68,27 @@ export const useHostsTable = (p: {
   });
 
   const Hosts = useMemo<Host[]>(() => {
+    if (data.isFetching) {
+      return [];
+    }
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
     return data.data.pages.flatMap((page) => page.results);
   }, [data.data]);
 
+  console.log(Hosts);
+
   useEffect(() => {
     if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.results)]);
+      setPrevData(() => [
+        ...data.data.pages.flatMap((page) => page.results ?? []),
+      ]);
     }
   }, [data.data]);
 
   const table = CreateTable({
-    data: Hosts,
+    data: Hosts ?? [],
     setColumnFilters: setColumnFilters,
     setRowSelection: setRowSelection,
     state: {
@@ -110,7 +117,7 @@ export const useHostsTable = (p: {
       },
     },
     columns: HostTableColumns({
-      data: Hosts,
+      data: Hosts ?? [],
       setShowAddHost: p.setShowAddHost,
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
@@ -121,5 +128,6 @@ export const useHostsTable = (p: {
   return useMemo(() => ({ table, loading: data.isFetching }), [
     table,
     data.isFetching,
+    Hosts,
   ]);
 };

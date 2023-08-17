@@ -17,7 +17,7 @@ from ..serializers.hosts import (
 )
 from .. import permissions as api_permissions
 from rest_framework import permissions as base_permissions, views
-from .base import APIModelViewSet
+from .base import APIModelViewSet, APIPagination
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
@@ -212,6 +212,11 @@ class HostViewSet(APIModelViewSet):
         """Put groups."""
         return GroupOwnerView().put(request, *args, mac=mac, **kwargs)
 
+    @action(detail=False, methods=["get"])
+    def disabledHosts(self, request, *args, **kwargs):
+        """Get disabled."""
+        return DisableView().list(request, *args, **kwargs)
+
     @action(detail=True, methods=["get"])
     def disabled(self, request, *args, mac, **kwargs):
         """Get disabled."""
@@ -261,6 +266,13 @@ class DisableView(views.APIView):
         base_permissions.DjangoModelPermissions,
     ]
     queryset = DisabledHost.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        """List."""
+        pagination_class = APIPagination()
+        pagination = pagination_class.paginate_queryset(self.queryset, request)
+        serializer = DisabledHostSerializer(pagination, many=True)
+        return pagination_class.get_paginated_response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         """Post."""
