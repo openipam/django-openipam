@@ -88,7 +88,7 @@ export const useHostsTable = (p: {
   }, [data.data]);
 
   const table = CreateTable({
-    data: Hosts ?? [],
+    data: Hosts,
     setColumnFilters: setColumnFilters,
     setRowSelection: setRowSelection,
     state: {
@@ -117,7 +117,7 @@ export const useHostsTable = (p: {
       },
     },
     columns: HostTableColumns({
-      data: Hosts ?? [],
+      data,
       setShowAddHost: p.setShowAddHost,
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
@@ -129,5 +129,6 @@ export const useHostsTable = (p: {
     table,
     data.isFetching,
     Hosts,
+    data.data,
   ]);
 };

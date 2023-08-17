@@ -4,9 +4,17 @@ import { Host } from "../../utils/types";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { UseInfiniteQueryResult } from "@tanstack/react-query";
 
 export const HostTableColumns = (p: {
-  data: Host[];
+  data: UseInfiniteQueryResult<
+    {
+      results: any;
+      page: any;
+      nextPage: any;
+    },
+    unknown
+  >;
   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
   setEditHost: React.Dispatch<
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
