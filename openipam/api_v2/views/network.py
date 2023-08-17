@@ -1,8 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions as base_permissions, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
+from django.db.models import Prefetch, F
+
+from openipam.hosts.models import Host
 from ..serializers.network import (
     DhcpGroupSerializer,
     NetworkSerializer,
@@ -41,7 +43,9 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["get"],
-        queryset=Address.objects.all(),
+        queryset=Address.objects.all()
+        .select_related("host")
+        .annotate(host_mac=F("host"), host_name=F("host__hostname")),
         serializer_class=AddressSerializer,
         filterset_class=AddressFilterSet,
         ordering_fields=["address", "changed"],

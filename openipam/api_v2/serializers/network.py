@@ -26,6 +26,13 @@ class NetworkSerializer(ModelSerializer):
     buildings = SerializerMethodField()
     shared_network = SerializerMethodField()
     gateway = SerializerMethodField()
+    addresses = SerializerMethodField()
+
+    def get_addresses(self, obj):
+        """Return a link to the address listing"""
+        return self.context["request"].build_absolute_uri(
+            f"/api/v2/networks/{obj.pk}/addresses/"
+        )
 
     def get_gateway(self, obj):
         if obj.gateway:
@@ -112,12 +119,42 @@ class PoolSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class SimpleAddressSerializer(Field):
+    """Address serializer that functions string representation only."""
+
+    def to_representation(self, value):
+        """Convert address object to string."""
+        return str(value)
+
+    def to_internal_value(self, data):
+        """Find address object based on string."""
+        address = get_object_or_404(Address, address=data)
+        return address
+
+
 class AddressSerializer(ModelSerializer):
     """Serializer for address objects."""
 
     network = SimpleNetworkSerializer()
     gateway = SerializerMethodField()
     pool = PoolSerializer()
+    address = SimpleAddressSerializer()
+    host = SerializerMethodField()
+    host_name = SerializerMethodField()
+
+    def get_host_name(self, obj):
+        """Return host name for address."""
+        if obj.host_name:
+            return str(obj.host_name)
+        else:
+            return None
+
+    def get_host(self, obj):
+        """Return host name for address."""
+        if obj.host_mac:
+            return str(obj.host_mac)
+        else:
+            return None
 
     def get_gateway(self, obj):
         """Return gateway address for network."""
@@ -149,20 +186,8 @@ class AddressSerializer(ModelSerializer):
             "changed",
             "gateway",
             "host",
+            "host_name",
         )
-
-
-class SimpleAddressSerializer(Field):
-    """Address serializer that functions string representation only."""
-
-    def to_representation(self, value):
-        """Convert address object to string."""
-        return value.address
-
-    def to_internal_value(self, data):
-        """Find address object based on string."""
-        address = get_object_or_404(Address, address=data)
-        return address
 
 
 class LeaseSerializer(ModelSerializer):
