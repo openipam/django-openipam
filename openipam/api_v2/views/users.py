@@ -62,11 +62,9 @@ class UserViewSet(viewsets.ModelViewSet):
         """Return a single user by username."""
         username = username__iexact.lower()
         if username == self.request.user.username.lower():
-            print("redirecting")
             # Redirect to the "me" endpoint, which returns the current user with all fields
             # even if the user is not an admin.
             return Response(status=302, headers={"Location": self.reverse_action("me")})
-        print("not redirecting")
         return super(UserViewSet, self).retrieve(request, username__iexact)
 
     @action(
