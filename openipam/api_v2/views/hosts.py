@@ -33,6 +33,8 @@ from netfields import NetManager  # noqa: F401 needed for net_contains
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.hosts import HostFilter
 from rest_framework import filters as rest_filters
+from django.utils.encoding import force_text
+from openipam.network.models import DhcpGroup
 
 
 class HostViewSet(APIModelViewSet):
@@ -79,6 +81,40 @@ class HostViewSet(APIModelViewSet):
     def addresses_delete(self, request, *args, mac, **kwargs):
         """Delete addresses."""
         return AddressView().delete(request, *args, mac=mac, **kwargs)
+
+    @action(detail=True, methods=["post", "delete"])
+    def dhcp(self, request, *args, mac, **kwargs):
+        host = get_object_or_404(Host, mac=mac)
+        if request.method == "DELETE":
+            host.dhcp_group = None
+            host.save(user=request.user)
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(host).pk,
+                object_id=host.pk,
+                object_repr=force_text(host),
+                action_flag=CHANGE,
+                change_message="DHCP Group unset.",
+            )
+            return Response(status=status.HTTP_200_OK)
+
+        """Post dhcp."""
+        dhcp_group = request.data.get("dhcp_group")
+        # check if dhcp group is valid
+        valid = DhcpGroup.objects.filter(name=dhcp_group).exists()
+        if not valid:
+            return Response({"detail": "Invalid DHCP Group"}, status=status.HTTP_400_BAD_REQUEST)
+        host.dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
+        host.save(user=request.user)
+        LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(host).pk,
+            object_id=host.pk,
+            object_repr=force_text(host),
+            action_flag=CHANGE,
+            change_message="DHCP Group set.",
+        )
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
     def leases(self, request, *args, mac, **kwargs):
