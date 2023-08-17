@@ -3,7 +3,12 @@
 from openipam.api_v2.serializers.base import ChangedBySerializer
 from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool
 from rest_framework import serializers as base_serializers
-from rest_framework.serializers import ModelSerializer, Field, SerializerMethodField
+from rest_framework.serializers import (
+    ModelSerializer,
+    Field,
+    SerializerMethodField,
+    HyperlinkedModelSerializer,
+)
 from .users import UserNestedSerializer
 from django.shortcuts import get_object_or_404
 import ipaddress
@@ -26,6 +31,13 @@ class NetworkSerializer(ModelSerializer):
     buildings = SerializerMethodField()
     shared_network = SerializerMethodField()
     gateway = SerializerMethodField()
+    addresses = SerializerMethodField()
+
+    def get_addresses(self, obj):
+        """Return a link to the address listing"""
+        return self.context["request"].build_absolute_uri(
+            f"/api/v2/networks/{obj.pk}/addresses/"
+        )
 
     def get_gateway(self, obj):
         if obj.gateway:
@@ -112,12 +124,42 @@ class PoolSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class SimpleAddressSerializer(Field):
+    """Address serializer that functions string representation only."""
+
+    def to_representation(self, value):
+        """Convert address object to string."""
+        return str(value)
+
+    def to_internal_value(self, data):
+        """Find address object based on string."""
+        address = get_object_or_404(Address, address=data)
+        return address
+
+
 class AddressSerializer(ModelSerializer):
     """Serializer for address objects."""
 
     network = SimpleNetworkSerializer()
     gateway = SerializerMethodField()
     pool = PoolSerializer()
+    address = SimpleAddressSerializer()
+    hostname = SerializerMethodField()
+    host = SerializerMethodField()
+
+    def get_hostname(self, obj):
+        """Return host name for address."""
+        if obj.host:
+            return obj.host.hostname
+        else:
+            return None
+
+    def get_host(self, obj):
+        """Return host name for address."""
+        if obj.host:
+            return str(obj.host.mac)
+        else:
+            return None
 
     def get_gateway(self, obj):
         """Return gateway address for network."""
@@ -149,20 +191,8 @@ class AddressSerializer(ModelSerializer):
             "changed",
             "gateway",
             "host",
+            "hostname",
         )
-
-
-class SimpleAddressSerializer(Field):
-    """Address serializer that functions string representation only."""
-
-    def to_representation(self, value):
-        """Convert address object to string."""
-        return value.address
-
-    def to_internal_value(self, data):
-        """Find address object based on string."""
-        address = get_object_or_404(Address, address=data)
-        return address
 
 
 class LeaseSerializer(ModelSerializer):
