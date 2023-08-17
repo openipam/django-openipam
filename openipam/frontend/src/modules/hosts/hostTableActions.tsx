@@ -1,7 +1,9 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useMemo, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Host } from "../../utils/types";
 import { ExportToCsv } from "../../components/download";
+import { useDhcpGroups } from "../../hooks/queries/useDhcpGroups";
+import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 
 export const HostTableActions = (p: {
   setRenewModule: React.Dispatch<
@@ -29,6 +31,23 @@ export const HostTableActions = (p: {
 }) => {
   const [action, setAction] = useState<string>("renew");
   const api = useApi();
+  const dhcpGroups = useDhcpGroups();
+
+  const dhcp = useMemo<any[]>(() => {
+    if (!dhcpGroups.data) {
+      return [];
+    }
+    return dhcpGroups.data.pages.flatMap((page) => page.dhcpGroups);
+  }, [dhcpGroups.data]);
+
+  const networkList = useInfiniteNetworks({ getAll: true });
+
+  const networks = useMemo<any[]>(() => {
+    if (!networkList.data) {
+      return [];
+    }
+    return networkList.data.pages.flatMap((page) => page.networks);
+  }, [networkList.data]);
 
   return (
     <div className="flex flex-col gap-2 m-2">
@@ -40,7 +59,7 @@ export const HostTableActions = (p: {
             setAction(v.target.value);
           }}
           value={action}
-          className="rounded-md p-2 select select-bordered max-w-md"
+          className="rounded-md p-2 select select-bordered max-w-lg"
         >
           {Object.entries(actions).map(([key, value]) => (
             <option value={key} key={key}>
@@ -174,7 +193,36 @@ export const HostTableActions = (p: {
                 });
                 break;
               case "changeNetwork":
-                alert("Not implemented yet");
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Change Network",
+                  onSubmit: (v) => {
+                    p.rows.forEach((host) => {
+                      api.hosts.byId(host.mac).setNetwork({
+                        network: v,
+                      });
+                    });
+                  },
+                  children: (
+                    <div>
+                      <p>
+                        Note: If not all networks are loaded, close and reopen
+                        the module
+                      </p>
+                      <select
+                        id={`network`}
+                        className="rounded-md p-2 select select-bordered max-w-md"
+                      >
+                        {networks.map((group: any) => (
+                          <option value={group.network} key={group.network}>
+                            {group.network}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ),
+                });
                 break;
               case "addOwners":
                 p.setActionModule({
@@ -311,8 +359,49 @@ export const HostTableActions = (p: {
                 });
                 break;
               case "setDhcpGroup":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Set DHCP Group",
+                  onSubmit: (v) => {
+                    p.rows.forEach((host) => {
+                      api.hosts.byId(host.mac).dhcp.set({
+                        dhcp_group: v,
+                      });
+                    });
+                  },
+                  children: (
+                    <div>
+                      <select
+                        id={`dhcp_group`}
+                        className="rounded-md p-2 select select-bordered max-w-md"
+                      >
+                        {dhcp.map((group: any) => (
+                          <option value={group.name} key={group.name}>
+                            {group.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ),
+                });
                 break;
               case "deleteDhcpGroup":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Confirm Delete DHCP Group",
+                  onSubmit: () => {
+                    p.rows.forEach((host) => {
+                      api.hosts.byId(host.mac).dhcp.delete();
+                    });
+                  },
+                  children: (
+                    <div>
+                      <input className="hidden" />
+                    </div>
+                  ),
+                });
                 break;
               default:
                 break;

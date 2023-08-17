@@ -140,12 +140,20 @@ export const useApi = () => {
             };
           },
           leases: requestGenerator(HttpMethod.GET, `hosts/${id}/leases/`),
+          dhcp: {
+            set: requestGenerator(HttpMethod.POST, `hosts/${id}/dhcp/`),
+            delete: requestGenerator(HttpMethod.DELETE, `hosts/${id}/dhcp/`),
+          },
+          setNetwork: requestGenerator(HttpMethod.POST, `hosts/${id}/network/`),
         };
       },
     },
     logs: {
       get: requestGenerator(HttpMethod.GET, "admin/logs/"),
       getEmails: requestGenerator(HttpMethod.GET, "admin/email-logs/"),
+    },
+    dhcpGroups: {
+      get: requestGenerator(HttpMethod.GET, "dhcp-groups/"),
     },
     networks: {
       get: requestGenerator(HttpMethod.GET, "networks/"),

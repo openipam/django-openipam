@@ -1,18 +1,16 @@
-import React, { useEffect } from "react";
-import { useApi } from "../useApi";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useApi } from "../useApi";
+import { useEffect } from "react";
+import { get } from "http";
 
-export const useInfiniteNetworks = (p: {
-  getAll?: boolean;
-  [key: string]: string | boolean | undefined;
-}) => {
+export const useDhcpGroups = () => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["networks", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.networks.get({ page: pageParam, ...p });
+    queryKey: ["dhcpGroups"],
+    queryFn: async ({ pageParam = 0 }) => {
+      const results = await api.dhcpGroups.get({ page: pageParam + 1 });
       return {
-        networks: results.results,
+        dhcpGroups: results.results,
         page: pageParam,
         nextPage: results.next,
       };
@@ -23,11 +21,7 @@ export const useInfiniteNetworks = (p: {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (
-      query.hasNextPage &&
-      !query.isFetchingNextPage &&
-      (p.getAll || currentPage < 1)
-    ) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 15) {
       query.fetchNextPage();
     }
   }, [
