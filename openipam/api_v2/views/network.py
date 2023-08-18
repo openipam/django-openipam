@@ -1,10 +1,9 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions as base_permissions, viewsets
+from rest_framework import permissions as base_permissions, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
-from openipam.hosts.models import Host
 from ..serializers.network import (
     DhcpGroupSerializer,
     NetworkSerializer,
@@ -15,7 +14,7 @@ from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
 from openipam.network.models import Address, DhcpGroup, Network, Pool
 from netfields import NetManager  # noqa
-from ipaddress import ip_network, ip_address
+from ipaddress import ip_address
 
 
 class AddressPagination(APIPagination):
@@ -34,11 +33,7 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     # TODO: figure out how to support editing networks. This is a read-only viewset
     # for now.
 
-    queryset = (
-        Network.objects.all()
-        .prefetch_related("vlans__buildings")
-        .select_related("changed_by", "shared_network")
-    )
+    queryset = Network.objects.all().prefetch_related("vlans__buildings").select_related("changed_by", "shared_network")
     serializer_class = NetworkSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
@@ -47,7 +42,9 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = NetworkFilter
 
     # The primary key is the network CIDR, so yay, we get to use regex to parse an IP address
-    lookup_value_regex = r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
+    lookup_value_regex = (
+        r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
+    )
 
     ordering_fields = ["network", "name", "changed"]
 
@@ -83,7 +80,6 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     def address(self, request, pk=None, address=None):
         """Return a single address in a given network."""
         network = Network.objects.get(network=pk)
-        addr = ip_address(address)
         try:
             address = self.get_queryset().select_related("network").get(address=address)
         except Address.DoesNotExist:
@@ -94,6 +90,41 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
                 status=404,
                 data={"detail": f"Address not in this network, try {network} instead."},
             )
+        serializer = self.get_serializer(address)
+        return Response(serializer.data)
+
+    # To not need the network to get an address
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=Address.objects.all().select_related("host"),
+        serializer_class=AddressSerializer,
+        filterset_class=AddressFilterSet,
+        pagination_class=AddressPagination,
+        ordering_fields=["address", "changed"],
+        url_path=r"addresses/(?P<address>(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))",
+        url_name="address-detail",
+    )
+    def address_detail(self, request, address=None):
+        return AddressViewSet.get(self, request, address=address)
+
+
+class AddressViewSet(views.APIView):
+    """API endpoint that allows any address to be viewed"""
+
+    queryset = Address.objects.all().select_related("host", "network")
+    serializer_class = AddressSerializer
+    # Only admins should have access to network data
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = AddressFilterSet
+
+    def get(self, request, *args, **kwargs):
+        """Return a single address in a given network."""
+        try:
+            address = self.get_queryset().get(address=kwargs["address"])
+        except Address.DoesNotExist:
+            return Response(status=404, data={"detail": "Address not found."})
         serializer = self.get_serializer(address)
         return Response(serializer.data)
 
