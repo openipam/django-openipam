@@ -10,12 +10,17 @@ import { CreateTable } from "../../components/createTable";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
-export const useDhcpTable = (p: { host?: string; mac?: string }) => {
+export const useDhcpTable = (p: {
+  host?: string;
+  mac?: string;
+  owner: boolean;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const navigate = useNavigate();
   const data = useInfiniteHostDhcpRecords({
-    ...p,
+    host: p.host,
+    mac: p.mac,
     ...Object.fromEntries(
       columnFilters
         .filter((f) => DhcpLookupKeys.includes(f.id))

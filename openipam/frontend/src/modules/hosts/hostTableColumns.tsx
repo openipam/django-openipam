@@ -32,33 +32,41 @@ export const HostTableColumns = (p: {
       multiple?: boolean;
     }>
   >;
-  auth: User;
+  auth: User | undefined;
 }) => {
   const columnHelper = createColumnHelper<Host>();
   const navigate = useNavigate();
   return [
-    ...ActionsColumn({
-      data: p.data,
-      enableSelection: true,
-      onAdd: () => {
-        p.setShowAddHost((prev: boolean) => !prev);
-      },
-      onEdit: (data) => {
-        p.setEditHost({
-          show: true,
-          HostData: data,
-        });
-      },
-      onView: (data) => {
-        navigate(`/Hosts/${data.mac}`);
-      },
-      onRenew: (data) => {
-        p.setRenewModule({
-          show: true,
-          data: [data],
-        });
-      },
-    }),
+    ...(p.auth?.is_ipamadmin
+      ? ActionsColumn({
+          data: p.data,
+          enableSelection: true,
+          onAdd: () => {
+            p.setShowAddHost((prev: boolean) => !prev);
+          },
+          onEdit: (data) => {
+            p.setEditHost({
+              show: true,
+              HostData: data,
+            });
+          },
+          onView: (data) => {
+            navigate(`/Hosts/${data.mac}`);
+          },
+          onRenew: (data) => {
+            p.setRenewModule({
+              show: true,
+              data: [data],
+            });
+          },
+        })
+      : ActionsColumn({
+          size: 80,
+          data: p.data,
+          onView: (data) => {
+            navigate(`/Hosts/${data.mac}`);
+          },
+        })),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

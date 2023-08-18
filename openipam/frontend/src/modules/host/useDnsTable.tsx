@@ -13,6 +13,7 @@ export const useDnsTable = (p: {
   mac?: string;
   setShowModule: any;
   setEditModule: any;
+  owner: boolean;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
@@ -43,15 +44,23 @@ export const useDnsTable = (p: {
     ...ActionsColumn({
       size: 80,
       data,
-      onAdd: () => {
-        p.setShowModule(true);
-      },
-      onEdit: (row) => {
-        p.setEditModule({
-          show: true,
-          DnsData: row.original,
-        });
-      },
+      ...(p.owner
+        ? {
+            onAdd: () => {
+              p.setShowModule(true);
+            },
+          }
+        : {}),
+      ...(p.owner
+        ? {
+            onEdit: (row) => {
+              p.setEditModule({
+                show: true,
+                DnsData: row.original,
+              });
+            },
+          }
+        : {}),
     }),
     columnHelper.group({
       id: "Identification",

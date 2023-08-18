@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
@@ -11,13 +11,24 @@ import { AddDnsModule } from "../domain/addDnsModule";
 import { EditDnsModule } from "../domain/editDnsModule";
 import { useDhcpTable } from "./useDhcpTable";
 import { Attributes } from "../../components/atributes";
-import { useAttributes } from "../../hooks/queries/useAtributes";
 import { EditUserOwnerModule } from "./editUserOwnerModule";
 import { EditGroupOwnerModule } from "./editGroupOwnerModule";
+import { useAuth } from "../../hooks/useAuth";
 
 export const HostPage = () => {
   const { mac } = useParams();
+  const auth = useAuth();
   const [HostInfo, setHostInfo] = useState<Host | undefined>();
+  const owner: boolean = useMemo(
+    () =>
+      Boolean(
+        auth?.is_ipamadmin ||
+          (auth &&
+            (HostInfo?.user_owners.includes(auth?.username) ||
+              HostInfo?.group_owners.some((g) => auth.groups.includes(g))))
+      ),
+    [auth, HostInfo]
+  );
   const [tab, setTab] = useState<typeof tabs[number]>("Info");
   const [showModule, setShowModule] = useState<boolean>(false);
   const [showEditDnsModule, setShowEditDnsModule] = useState<{
@@ -75,11 +86,13 @@ export const HostPage = () => {
     mac: HostInfo?.mac,
     setShowModule: setShowModule,
     setEditModule: setShowEditDnsModule,
+    owner,
   });
 
   const dhcpTable = useDhcpTable({
     host: HostInfo?.hostname,
     mac: HostInfo?.mac,
+    owner,
   });
 
   return (
@@ -90,7 +103,7 @@ export const HostPage = () => {
           tab={tab}
           name={"Info"}
           props={"m-2 pt-4"}
-          edit={setEditHost}
+          edit={owner ? setEditHost : undefined}
           data={HostInfo ?? {}}
           labels={{
             hostname: "Host Name:",
@@ -155,7 +168,7 @@ export const HostPage = () => {
           custom={{
             user_owners: HostInfo?.user_owners?.join(",\n"),
           }}
-          edit={setEditUserOwner}
+          edit={owner ? setEditUserOwner : undefined}
         />
         <Tab
           tab={tab}
@@ -168,12 +181,14 @@ export const HostPage = () => {
           custom={{
             group_owners: HostInfo?.group_owners?.join(",\n"),
           }}
-          edit={setEditGroupOwner}
+          edit={owner ? setEditGroupOwner : undefined}
         />
+
         <Tab tab={tab} name={"Attributes"} data={HostInfo?.attributes ?? {}}>
           <Attributes
             mac={HostInfo?.mac ?? ""}
             attributes={HostInfo?.attributes ?? {}}
+            owner={owner}
           />
         </Tab>
       </Tabs>

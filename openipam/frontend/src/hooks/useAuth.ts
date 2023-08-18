@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "./useApi";
+import { User } from "../utils/types";
 
 export const useAuth = () => {
   const api = useApi();
@@ -13,5 +14,5 @@ export const useAuth = () => {
     },
   });
 
-  return query.data?.auth;
+  return query.data?.auth as User | undefined;
 };

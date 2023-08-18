@@ -40,7 +40,7 @@ export const useDhcpTable = (p: { domain: string }) => {
     ...ActionsColumn({
       size: 100,
       onView: (row) => {
-        navigate(`/dhcp/${row.id}`);
+        navigate(`/hosts/${row.host}`);
       },
       data,
     }),

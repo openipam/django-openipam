@@ -17,6 +17,7 @@ import { Domain } from "../../utils/types";
 import { useInfiniteDomains } from "../../hooks/queries/useInfiniteDomains";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { CreateTable } from "../../components/createTable";
+import { useAuth } from "../../hooks/useAuth";
 
 //TODO search permissions
 
@@ -45,6 +46,7 @@ export const useDomainsTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<Domain[]>([]);
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const data = useInfiniteDomains({
     ...Object.fromEntries(
@@ -69,22 +71,30 @@ export const useDomainsTable = (p: {
 
   const columnHelper = createColumnHelper<Domain>();
   const columns = [
-    ...ActionsColumn({
-      size: 100,
-      data,
-      onAdd: () => {
-        p.setShowAddDomain((prev: boolean) => !prev);
-      },
-      onView: (row: any) => {
-        navigate(`/domains/${row.name}`);
-      },
-      onEdit: (row: any) => {
-        p.setEditDomain({
-          show: true,
-          domainData: row,
-        });
-      },
-    }),
+    ...(auth?.is_ipamadmin
+      ? ActionsColumn({
+          size: 100,
+          data,
+          onAdd: () => {
+            p.setShowAddDomain((prev: boolean) => !prev);
+          },
+          onView: (row: any) => {
+            navigate(`/domains/${row.name}`);
+          },
+          onEdit: (row: any) => {
+            p.setEditDomain({
+              show: true,
+              domainData: row,
+            });
+          },
+        })
+      : ActionsColumn({
+          size: 90,
+          data,
+          onView: (row: any) => {
+            navigate(`/domains/${row.name}`);
+          },
+        })),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

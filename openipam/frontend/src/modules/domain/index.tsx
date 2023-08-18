@@ -10,10 +10,12 @@ import { EditDomainModule } from "../domains/editDomainModule";
 import { DnsRecord, Domain } from "../../utils/types";
 import { Tab, Tabs } from "../../components/tabs";
 import { useDhcpTable } from "./useDhcpTable";
+import { useAuth } from "../../hooks/useAuth";
 
 const tabs = ["DNS", "DHCP"];
 
 export const DomainPage = () => {
+  const auth = useAuth();
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [tab, setTab] = useState<typeof tabs[number]>("DNS");
@@ -59,19 +61,21 @@ export const DomainPage = () => {
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
         <div className="card w-[80%] md:w-[50rem] bg-gray-600 shadow-xl">
           <div className="card-body relative">
-            <div className="absolute r-2">
-              <button
-                className="btn btn-circle btn-ghost btn-xs"
-                onClick={() => {
-                  setShowEditDomainModule({
-                    show: true,
-                    domainData: domainInfo,
-                  });
-                }}
-              >
-                <Edit />
-              </button>
-            </div>
+            {auth?.is_ipamadmin && (
+              <div className="absolute r-2">
+                <button
+                  className="btn btn-circle btn-ghost btn-xs"
+                  onClick={() => {
+                    setShowEditDomainModule({
+                      show: true,
+                      domainData: domainInfo,
+                    });
+                  }}
+                >
+                  <Edit />
+                </button>
+              </div>
+            )}
             <div className="card-title text-2xl justify-center">
               Domain Info
             </div>

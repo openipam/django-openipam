@@ -7,6 +7,7 @@ export const Attributes = (p: {
     [key: string]: string;
   };
   mac: string;
+  owner: boolean;
 }) => {
   const api = useApi();
   const attributes = useAttributes();
@@ -111,27 +112,29 @@ export const Attributes = (p: {
             )}
           </div>
         )}
-        <div className="flex flex-row gap-2">
-          <button
-            className="btn btn-primary btn-md"
-            onClick={() => {
-              if (edit) {
-                onSubmit();
-              }
-              setEdit(!edit);
-            }}
-          >
-            {edit ? "Save" : "Edit"}
-          </button>
-          {edit && (
+        {p.owner && (
+          <div className="flex flex-row gap-2">
             <button
-              className="btn btn-outline btn-ghost btn-md font-black"
-              onClick={() => setEdit(!edit)}
+              className="btn btn-primary btn-md"
+              onClick={() => {
+                if (edit) {
+                  onSubmit();
+                }
+                setEdit(!edit);
+              }}
             >
-              Cancel
+              {edit ? "Save" : "Edit"}
             </button>
-          )}
-        </div>
+            {edit && (
+              <button
+                className="btn btn-outline btn-ghost btn-md font-black"
+                onClick={() => setEdit(!edit)}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        )}
         {/* <pre>{JSON.stringify(attributes.data?.attributes, null, 2)}</pre> */}
       </div>
     </div>
