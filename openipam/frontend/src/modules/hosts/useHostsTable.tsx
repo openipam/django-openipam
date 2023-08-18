@@ -58,6 +58,8 @@ export const useHostsTable = (p: {
               return [`hostname`, val ?? ""];
             case "group_owners":
               return [`group`, val ?? ""];
+            case "disabled_host":
+              return [`disabled`, !!val];
             default:
               return [key, val ?? ""];
           }
@@ -122,6 +124,7 @@ export const useHostsTable = (p: {
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
       setActionModule: p.setActionModule,
+      auth,
     }),
   });
 

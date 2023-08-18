@@ -143,9 +143,9 @@ function Filter({
             indeterminate={value === ""}
             checked={value === "Y"}
             onChange={() => {
-              header.column.setFilterValue((v: "Y" | "N" | "" | undefined) => {
+              header.column.setFilterValue((v: "Y" | "" | undefined) => {
                 if (v === "" || v === undefined) return "Y";
-                if (v === "Y") return "N";
+                if (v === "Y") return "";
                 return "";
               });
             }}

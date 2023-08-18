@@ -1,6 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import React, { ReactNode } from "react";
-import { Host } from "../../utils/types";
+import { Host, User } from "../../utils/types";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
@@ -32,6 +32,7 @@ export const HostTableColumns = (p: {
       multiple?: boolean;
     }>
   >;
+  auth: User;
 }) => {
   const columnHelper = createColumnHelper<Host>();
   const navigate = useNavigate();
@@ -147,16 +148,6 @@ export const HostTableColumns = (p: {
           accessorFn: (row) => row.dhcp_group?.name,
         },
         {
-          id: "disabled_host",
-          size: 80,
-          header: "Disabled",
-          accessorFn: booleanAccessor("disabled_host"),
-          cell: BooleanRender,
-          meta: {
-            filterType: "boolean",
-          },
-        },
-        {
           id: "is_dynamic",
           size: 80,
           header: "Dynamic",
@@ -168,23 +159,52 @@ export const HostTableColumns = (p: {
         },
       ],
     }),
-    columnHelper.group({
-      id: "Owners",
-      header: "Owners",
-      columns: [
-        {
-          id: "user_owners",
-          header: "User Owners",
-          size: 200,
-          accessorFn: (row) => row.user_owners?.join(", "),
-        },
-        {
-          id: "group_owners",
-          header: "Group Owners",
-          size: 200,
-          accessorFn: (row) => row.group_owners?.join(", "),
-        },
-      ],
-    }),
+    p.auth?.is_staff
+      ? columnHelper.group({
+          id: "Secondary Details",
+          header: "Secondary Details",
+          columns: [
+            {
+              id: "disabled_host",
+              size: 80,
+              header: "Disabled",
+              accessorFn: booleanAccessor("disabled_host"),
+              cell: BooleanRender,
+              meta: {
+                filterType: "boolean",
+              },
+            },
+            {
+              id: "user_owners",
+              header: "User Owners",
+              size: 200,
+              accessorFn: (row) => row.user_owners?.join(", "),
+            },
+            {
+              id: "group_owners",
+              header: "Group Owners",
+              size: 200,
+              accessorFn: (row) => row.group_owners?.join(", "),
+            },
+          ],
+        })
+      : columnHelper.group({
+          id: "Owners",
+          header: "Owners",
+          columns: [
+            {
+              id: "user_owners",
+              header: "User Owners",
+              size: 200,
+              accessorFn: (row) => row.user_owners?.join(", "),
+            },
+            {
+              id: "group_owners",
+              header: "Group Owners",
+              size: 200,
+              accessorFn: (row) => row.group_owners?.join(", "),
+            },
+          ],
+        }),
   ];
 };
