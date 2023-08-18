@@ -3,7 +3,7 @@ from rest_framework import filters
 import django_filters as df
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-from django.db.models import functions as dfn
+from django.db.models import functions as dfn, Q
 
 User = get_user_model()
 
@@ -11,14 +11,14 @@ User = get_user_model()
 class UserFilterSet(df.FilterSet):
     """Filterset for users."""
 
-    username = df.CharFilter(lookup_expr="icontains")
+    username = df.CharFilter(lookup_expr="icontains", label="Username")
     full_name = df.CharFilter(method="filter_full_name", label="Full Name")
-    email = df.CharFilter(lookup_expr="icontains")
+    email = df.CharFilter(lookup_expr="icontains", label="Email")
     groups = df.CharFilter(method="filter_groups", label="Groups")
-    is_active = df.BooleanFilter()
-    is_staff = df.BooleanFilter()
-    is_superuser = df.BooleanFilter()
-    is_ipamadmin = df.BooleanFilter()
+    is_active = df.BooleanFilter(label="Active")
+    is_staff = df.BooleanFilter(label="Staff")
+    is_superuser = df.BooleanFilter(label="Superuser")
+    is_ipamadmin = df.BooleanFilter(label="IPAM Admin", method="filter_is_ipamadmin")
 
     class Meta:
         model = User
@@ -32,6 +32,17 @@ class UserFilterSet(df.FilterSet):
             "is_staff",
             "is_superuser",
         ]
+
+    def filter_is_ipamadmin(self, queryset, _, value):
+        """Filter based on is_ipamadmin."""
+        if value:
+            return queryset.filter(
+                Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)
+            ).distinct()
+        else:
+            return queryset.exclude(
+                Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)
+            ).distinct()
 
     def filter_full_name(self, queryset, _, value):
         """Filter based on full name."""
