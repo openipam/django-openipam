@@ -7,6 +7,11 @@ export const useAttributes = () => {
     queryKey: ["attributes"],
     queryFn: async () => {
       const results = await api.hosts.attributes();
+      if (results.detail) {
+        return {
+          attributes: [],
+        };
+      }
       return {
         attributes: results,
       };
