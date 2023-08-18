@@ -1,9 +1,13 @@
-import { HttpMethod, requestGenerator } from "../api";
-
 export const useApi = () => {
-  const api = {
+  return {
     user: {
-      get: requestGenerator(HttpMethod.GET, "user/"),
+      get: requestGenerator(HttpMethod.GET, "users/"),
+      me: requestGenerator(HttpMethod.GET, "users/me/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `users/${id}/`),
+        };
+      },
     },
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
@@ -57,7 +61,7 @@ export const useApi = () => {
       mine: requestGenerator(HttpMethod.GET, "hosts/mine/"),
       attributes: requestGenerator(HttpMethod.GET, "attributes/"),
       create: requestGenerator(HttpMethod.POST, "hosts/"),
-      disabled: requestGenerator(HttpMethod.GET, `hosts/disabled/`),
+      disabled: requestGenerator(HttpMethod.GET, `hosts/disabledHosts/`),
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `hosts/${id}/`),
@@ -167,6 +171,37 @@ export const useApi = () => {
       },
     },
   };
-
-  return api;
 };
+
+const BASE_URL = "/api/v2";
+
+enum HttpMethod {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  PATCH = "PATCH",
+}
+
+function requestGenerator(method: string, url: string) {
+  url = `${BASE_URL}/${url}`;
+  switch (method) {
+    case "GET":
+      return async (params?: { [key: string]: any }) => {
+        const query = new URLSearchParams(params ?? {}).toString();
+        const response = await fetch(`${url}?${query}`);
+        return response.json();
+      };
+    default:
+      return async (data?: { [key: string]: any }) => {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data ?? {}),
+        });
+        return response.json();
+      };
+  }
+}

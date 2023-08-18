@@ -6,6 +6,7 @@ import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
 import { HostTableActions } from "./hostTableActions";
 import { HostTableColumns } from "./hostTableColumns";
 import { CreateTable } from "../../components/createTable";
+import { useAuth } from "../../hooks/useAuth";
 
 //TODO disabled columns only shows for admins.
 
@@ -38,6 +39,7 @@ export const useHostsTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
+  const auth = useAuth();
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -68,6 +70,9 @@ export const useHostsTable = (p: {
   });
 
   const Hosts = useMemo<Host[]>(() => {
+    if (data.isFetching) {
+      return [];
+    }
     if (!data.data) {
       return prevData.length ? prevData : [];
     }
@@ -76,7 +81,9 @@ export const useHostsTable = (p: {
 
   useEffect(() => {
     if (data.data) {
-      setPrevData(() => [...data.data.pages.flatMap((page) => page.results)]);
+      setPrevData(() => [
+        ...data.data.pages.flatMap((page) => page.results ?? []),
+      ]);
     }
   }, [data.data]);
 
@@ -110,7 +117,7 @@ export const useHostsTable = (p: {
       },
     },
     columns: HostTableColumns({
-      data: Hosts,
+      data,
       setShowAddHost: p.setShowAddHost,
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
@@ -121,5 +128,7 @@ export const useHostsTable = (p: {
   return useMemo(() => ({ table, loading: data.isFetching }), [
     table,
     data.isFetching,
+    Hosts,
+    data.data,
   ]);
 };

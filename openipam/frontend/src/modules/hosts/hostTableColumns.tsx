@@ -4,9 +4,17 @@ import { Host } from "../../utils/types";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { UseInfiniteQueryResult } from "@tanstack/react-query";
 
 export const HostTableColumns = (p: {
-  data: Host[];
+  data: UseInfiniteQueryResult<
+    {
+      results: any;
+      page: any;
+      nextPage: any;
+    },
+    unknown
+  >;
   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
   setEditHost: React.Dispatch<
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
@@ -140,8 +148,8 @@ export const HostTableColumns = (p: {
         },
         {
           id: "disabled_host",
-          size: 75,
-          header: "Disabled Host",
+          size: 80,
+          header: "Disabled",
           accessorFn: booleanAccessor("disabled_host"),
           cell: BooleanRender,
           meta: {
@@ -150,13 +158,13 @@ export const HostTableColumns = (p: {
         },
         {
           id: "is_dynamic",
-          size: 75,
+          size: 80,
           header: "Dynamic",
           cell: BooleanRender,
-          accessorFn: booleanAccessor("is_dynamic"),
-          meta: {
-            filterType: "boolean",
-          },
+          // accessorFn: booleanAccessor("is_dynamic"),
+          // meta: {
+          //   filterType: "boolean",
+          // },
         },
       ],
     }),
