@@ -23,7 +23,14 @@ class GroupField(serializers.RelatedField):
         return value.name
 
     def to_internal_value(self, data):
-        return data
+        try:
+            return Group.objects.get(name=data)
+        except Group.DoesNotExist:
+            raise serializers.ValidationError(f"Group {data} does not exist")
+        except Group.MultipleObjectsReturned:
+            raise serializers.ValidationError(
+                f"Multiple groups named {data}, this should not happen, please contact the network team"
+            )
 
 
 class RestrictedUserSerializer(serializers.ModelSerializer):
@@ -37,7 +44,7 @@ class RestrictedUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    groups = GroupField(many=True, read_only=False, queryset=Group.objects.all())
+    groups = GroupField(many=True, queryset=Group.objects.all())
 
     class Meta:
         model = User

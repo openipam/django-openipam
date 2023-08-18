@@ -3,6 +3,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from ..filters.dns import UserFilter
+
 from .base import APIPagination
 from ..serializers.users import RestrictedUserSerializer, UserSerializer
 from rest_framework import permissions
@@ -41,6 +43,8 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     lookup_field = "username__iexact"
+    filterset_class = UserFilter
+    ordering_fields = ["username", "first_name", "last_name", "email", "is_active"]
 
     def get_serializer_class(self):
         """Use a restricted serializer for non-admin users."""
