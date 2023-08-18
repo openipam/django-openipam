@@ -4,10 +4,11 @@ import { Host, User } from "../../utils/types";
 import { useUserHostsTable } from "./useUserHostsTable";
 import { Table } from "../../components/table";
 import { RenewHostModule } from "./renewHostModule";
+import { useAuth } from "../../hooks/useAuth";
 
 export const Profile = () => {
   const api = useApi();
-  const [user, setUser] = useState<User | undefined>();
+  const auth = useAuth();
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
     data: Host[] | undefined;
@@ -15,16 +16,6 @@ export const Profile = () => {
     show: false,
     data: undefined,
   });
-  useEffect(() => {
-    api.user
-      .get()
-      .then((res) => {
-        setUser(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
 
   const hosts = useUserHostsTable({
     setRenewModule,
@@ -33,8 +24,8 @@ export const Profile = () => {
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">
-        Welcome, {user?.first_name.charAt(0).toUpperCase()}
-        {user?.first_name.slice(1)}
+        Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
+        {auth?.first_name?.slice(1)}
       </h1>
       <p className="mt-8">Your Hosts:</p>
       <Table table={hosts.table} loading={hosts.loading} />
