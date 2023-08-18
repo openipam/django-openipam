@@ -113,6 +113,15 @@ const routes: RouteObject[] = [
               };
             },
           },
+          {
+            path: "users",
+            lazy: async () => {
+              const { Users } = await import("../modules/users");
+              return {
+                element: <Users />,
+              };
+            },
+          },
         ],
       },
     ],

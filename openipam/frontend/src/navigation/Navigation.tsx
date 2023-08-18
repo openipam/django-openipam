@@ -46,6 +46,14 @@ export const Navigation = () => {
                 Logs
               </Link>
             </button>
+            <button className="btn btn-ghost btn-primary">
+              <Link
+                className="link-hover text-white font-semibold text-lg"
+                to="/admin/users"
+              >
+                Users
+              </Link>
+            </button>
           </>
         )}
       </div>

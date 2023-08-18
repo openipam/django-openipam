@@ -37,7 +37,7 @@ class UserView(generics.RetrieveAPIView):
 class UserViewSet(viewsets.ModelViewSet):
     """Viewset for user objects. Does not allow user creation."""
 
-    queryset = User.objects.prefetch_related("groups").all()
+    queryset = User.objects.prefetch_related("groups").all().order_by("-last_login")
     serializer_class = UserSerializer
     pagination_class = APIPagination
     permission_classes = [permissions.DjangoModelPermissions]
