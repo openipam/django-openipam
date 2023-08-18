@@ -10,6 +10,7 @@ from openipam.network import models as network_models
 from openipam.user.models import User
 from ..serializers import network as network_serializers
 from ..serializers.hosts import (
+    DisabledHostListSerializer,
     HostSerializer,
     HostCreateUpdateSerializer,
     DisabledHostSerializer,
@@ -232,6 +233,24 @@ class HostViewSet(APIModelViewSet):
     def disabled_delete(self, request, *args, mac, **kwargs):
         """Delete disabled."""
         return DisableView().delete(request, *args, mac=mac, **kwargs)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_name="disabled",
+        url_path="disabled",
+        queryset=DisabledHost.objects.all(),
+        serializer_class=DisabledHostListSerializer,
+        permission_classes=[base_permissions.IsAdminUser],
+        ordering_fields=["mac", "changed_at"],
+        filterset_class=None,
+    )
+    def disabled_list(self, request, *args, **kwargs):
+        """Get disabled."""
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        serializer = DisabledHostListSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(methods=["get"], detail=False)
     def mine(self, request, *args, **kwargs):

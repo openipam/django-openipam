@@ -22,6 +22,32 @@ from django.db.models import Q
 from django.utils import timezone
 
 
+class DisabledHostListSerializer(serializers.ModelSerializer):
+    """Disabled Host serializer for list view."""
+
+    changed_by = serializer_base.ChangedBySerializer()
+    mac = serializers.CharField()
+    hostname = serializers.SerializerMethodField()
+
+    def get_hostname(self, obj):
+        """Get hostname for host."""
+        try:
+            host = Host.objects.get(mac=obj.mac)
+            return host.hostname
+        except Host.DoesNotExist:
+            return None
+
+    class Meta:
+        model = DisabledHostDetails
+        fields = (
+            "reason",
+            "changed",
+            "changed_by",
+            "mac",
+            "hostname",
+        )
+
+
 class DisabledHostSerializer(serializers.ModelSerializer):
     """Disabled Host serializer."""
 
@@ -38,8 +64,12 @@ class DisabledHostSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Validate data."""
         # Check if the user has permission to disable the host (add_disabled)
-        if not self.context["request"].user.has_perm("hosts.add_disabled", self.context["host"]):
-            raise serializers.ValidationError("You do not have permission to disable this host.")
+        if not self.context["request"].user.has_perm(
+            "hosts.add_disabled", self.context["host"]
+        ):
+            raise serializers.ValidationError(
+                "You do not have permission to disable this host."
+            )
 
 
 class HostSerializer(serializers.ModelSerializer):
@@ -83,14 +113,20 @@ class HostSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         """Get attributes for host."""
 
-        structured_attrs = StructuredAttributeToHost.objects.filter(host=obj).select_related(
+        structured_attrs = StructuredAttributeToHost.objects.filter(
+            host=obj
+        ).select_related(
             "structured_attribute_value__attribute",
             "structured_attribute_value",
         )
-        freeform_attrs = FreeformAttributeToHost.objects.filter(host=obj).select_related("attribute")
+        freeform_attrs = FreeformAttributeToHost.objects.filter(
+            host=obj
+        ).select_related("attribute")
         attributes = {}
         for attr in structured_attrs:
-            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
+            attributes[
+                attr.structured_attribute_value.attribute.name
+            ] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return attributes
@@ -145,8 +181,12 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
     pool = serializers.ChoiceField(choices=[], required=False, allow_blank=True)
     ip_address = serializer_base.IPAddressField(required=False, allow_blank=True)
     dhcp_group = serializers.ChoiceField(choices=[], required=False, allow_blank=True)
-    user_owners = serializers.ListField(child=serializers.CharField(), required=False, allow_empty=True)
-    group_owners = serializers.ListField(child=serializers.CharField(), required=False, allow_empty=True)
+    user_owners = serializers.ListField(
+        child=serializers.CharField(), required=False, allow_empty=True
+    )
+    group_owners = serializers.ListField(
+        child=serializers.CharField(), required=False, allow_empty=True
+    )
 
     class Meta:
         model = Host
@@ -167,9 +207,13 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         super(HostCreateUpdateSerializer, self).__init__(*args, **kwargs)
 
         # Get all the networks that the current user has access to
-        self.fields["network"].choices = [network.network for network in Network.objects.all()]
+        self.fields["network"].choices = [
+            network.network for network in Network.objects.all()
+        ]
         self.fields["pool"].choices = [pool.name for pool in Pool.objects.all()]
-        self.fields["dhcp_group"].choices = [group.name for group in DhcpGroup.objects.all()]
+        self.fields["dhcp_group"].choices = [
+            group.name for group in DhcpGroup.objects.all()
+        ]
 
     def to_representation(self, instance):
         rep = super(HostCreateUpdateSerializer, self).to_representation(instance)
@@ -192,18 +236,29 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
             object_id=self.instance.pk,
             object_repr=force_text(self.instance),
             action_flag=ADDITION if is_new else CHANGE,
-            change_message="Host was added via API" if is_new else "Host was updated via API",
+            change_message="Host was added via API"
+            if is_new
+            else "Host was updated via API",
         )
 
     def validate(self, data):
         if not self.instance and not data.get("hostname"):
             raise serializers.ValidationError("Hostname is required.")
-        if not self.instance and not data.get("ip_address") and not data.get("network") and not data.get("pool"):
-            raise serializers.ValidationError("Either IP address, network or pool is required.")
+        if (
+            not self.instance
+            and not data.get("ip_address")
+            and not data.get("network")
+            and not data.get("pool")
+        ):
+            raise serializers.ValidationError(
+                "Either IP address, network or pool is required."
+            )
         net_fields = set(["ip_address", "network", "pool"])
         attr_fields = set([key if value else None for key, value in list(data.items())])
         if len(net_fields.intersection(attr_fields)) > 1:
-            raise serializers.ValidationError("Only one of IP address, network or pool can be specified.")
+            raise serializers.ValidationError(
+                "Only one of IP address, network or pool can be specified."
+            )
         return data
 
     def validate_expire_days(self, value):
@@ -239,7 +294,9 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                     host.delete(user=self.context["request"].user)
                 else:
                     # Host is already registered
-                    raise serializers.ValidationError(f"MAC {mac} is already registered as {host.hostname}.")
+                    raise serializers.ValidationError(
+                        f"MAC {mac} is already registered as {host.hostname}."
+                    )
         return value
 
     def validate_hostname(self, value):
@@ -259,7 +316,9 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                     host.delete(user=self.context["request"].user)
                 else:
                     # Hostname is already in use
-                    raise serializers.ValidationError(f"Hostname {hostname} already points to {host.mac}.")
+                    raise serializers.ValidationError(
+                        f"Hostname {hostname} already points to {host.mac}."
+                    )
 
         # Validate that the user has permission to add a record to the domain
         user_domains = get_objects_for_user(
@@ -297,7 +356,9 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
             ).order_by("address")
 
             if not address.exists():
-                raise serializers.ValidationError("No available addresses in this network.")
+                raise serializers.ValidationError(
+                    "No available addresses in this network."
+                )
         return value
 
     def validate_pool(self, value):
@@ -336,15 +397,21 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
             # check that address is free, and that we are allowed to use it
             addresses = Address.objects.filter(
-                Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
-                Q(leases__isnull=True) | Q(leases__ends__lte=timezone.now()) | Q(leases__abandoned=True),
+                Q(pool__in=user_pools)
+                | Q(pool__isnull=True)
+                | Q(network__in=user_nets),
+                Q(leases__isnull=True)
+                | Q(leases__ends__lte=timezone.now())
+                | Q(leases__abandoned=True),
                 Q(host__isnull=True) | Q(host=self.instance),
                 address=ip_address,
                 reserved=False,
             ).values_list("address", flat=True)
 
             if ip_address not in map(str, addresses):
-                raise serializers.ValidationError("The IP address is not available for use.")
+                raise serializers.ValidationError(
+                    "The IP address is not available for use."
+                )
 
         return value
 
@@ -363,7 +430,8 @@ class AttributeSerializer(serializers.Serializer):
                 choices = [choice.value for choice in attrs.first().choices.all()]
                 if val not in choices:
                     raise serializers.ValidationError(
-                        f"{val} is not a valid choice for {key}." f"Please specify one of {','.join(choices)}."
+                        f"{val} is not a valid choice for {key}."
+                        f"Please specify one of {','.join(choices)}."
                     )
         return attributes
 
@@ -381,9 +449,13 @@ class AttributeSerializer(serializers.Serializer):
                 # Structured attribute
                 val = attr.choices.get(value=val)
                 # Delete existing attribute values
-                StructuredAttributeToHost.objects.filter(host=host, structured_attribute_value__attribute=attr).delete()
+                StructuredAttributeToHost.objects.filter(
+                    host=host, structured_attribute_value__attribute=attr
+                ).delete()
                 # Create new attribute value
-                StructuredAttributeToHost.objects.create(host=host, structured_attribute_value=val, changed_by=user)
+                StructuredAttributeToHost.objects.create(
+                    host=host, structured_attribute_value=val, changed_by=user
+                )
             else:
                 # Freeform attribute
                 (
