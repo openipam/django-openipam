@@ -1,6 +1,6 @@
 """Filters for hosts."""
 from django_filters import rest_framework as filters
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, Disabled
 from netfields import NetManager  # noqa
 from guardian.shortcuts import get_objects_for_user, get_objects_for_group
 from openipam.user.models import User
@@ -14,12 +14,25 @@ from openipam.network.models import Lease
 class HostFilter(filters.FilterSet):
     """Filter for hosts."""
 
-    ip_address = filters.CharFilter(method="filter_ip_address", lookup_expr="icontains")
-    dhcp_group = filters.CharFilter(method="filter_dhcp_group", lookup_expr="icontains")
-    user = filters.CharFilter(method="filter_user", lookup_expr="icontains")
-    group = filters.CharFilter(method="filter_group", lookup_expr="icontains")
-    mac = filters.CharFilter(method="filter_mac", lookup_expr="icontains")
-    hostname = filters.CharFilter(method="filter_hostname", lookup_expr="icontains")
+    ip_address = filters.CharFilter(
+        method="filter_ip_address", lookup_expr="icontains", label="IP Address"
+    )
+    dhcp_group = filters.CharFilter(
+        method="filter_dhcp_group", lookup_expr="icontains", label="DHCP Group"
+    )
+    user = filters.CharFilter(
+        method="filter_user", lookup_expr="icontains", label="User"
+    )
+    group = filters.CharFilter(
+        method="filter_group", lookup_expr="icontains", label="Group"
+    )
+    mac = filters.CharFilter(
+        method="filter_mac", lookup_expr="icontains", label="MAC Address"
+    )
+    hostname = filters.CharFilter(
+        method="filter_hostname", lookup_expr="icontains", label="Hostname"
+    )
+    disabled = filters.BooleanFilter(method="filter_disabled", label="Disabled")
     # Expiration date filters
     expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
     expires__lt = filters.DateTimeFilter(method="filter_expires__lt", lookup_expr="lt")
@@ -45,6 +58,19 @@ class HostFilter(filters.FilterSet):
             "expires__gt",
             "expires__lt",
         ]
+
+    def filter_disabled(self, queryset, name, value):
+        """Filter based on disabled."""
+        # No foreign-key relationship to the disabled field (since unregistered MACs can be
+        # disabled), so we have to do a subquery.
+        if value:
+            return queryset.filter(
+                mac__in=Disabled.objects.values_list("mac", flat=True)
+            )
+        else:
+            return queryset.exclude(
+                mac__in=Disabled.objects.values_list("mac", flat=True)
+            )
 
     def filter_expires__gt(self, queryset, name, value):
         return queryset.filter(expires__gte=value)
