@@ -140,12 +140,12 @@ function Filter({
       return (
         <div className="">
           <PlainIndeterminateCheckbox
-            indeterminate={value === ""}
+            indeterminate={value === "N"}
             checked={value === "Y"}
             onChange={() => {
-              header.column.setFilterValue((v: "Y" | "" | undefined) => {
+              header.column.setFilterValue((v: "Y" | "" | "N" | undefined) => {
                 if (v === "" || v === undefined) return "Y";
-                if (v === "Y") return "";
+                if (v === "Y") return "N";
                 return "";
               });
             }}

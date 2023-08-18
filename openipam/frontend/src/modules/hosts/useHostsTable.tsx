@@ -59,7 +59,7 @@ export const useHostsTable = (p: {
             case "group_owners":
               return [`group`, val ?? ""];
             case "disabled_host":
-              return [`disabled`, !!val];
+              return [`disabled`, val];
             default:
               return [key, val ?? ""];
           }

@@ -173,6 +173,7 @@ export const HostTableColumns = (p: {
               meta: {
                 filterType: "boolean",
               },
+              filterFn: undefined,
             },
             {
               id: "user_owners",

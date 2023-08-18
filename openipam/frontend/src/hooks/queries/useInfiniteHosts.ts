@@ -7,10 +7,19 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const query = useInfiniteQuery({
     queryKey: ["Hosts, all", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.hosts.get({
-        page: pageParam,
-        ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
-      });
+      let results;
+      if (p.disabled === "N") {
+        results = await api.hosts.disabled({
+          page: pageParam,
+          ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
+        });
+      } else {
+        results = await api.hosts.get({
+          page: pageParam,
+          ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
+          disabled: !!p.disabled,
+        });
+      }
       return {
         results: results.results,
         page: pageParam,
