@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useDomainTable } from "./useDomainTable";
@@ -11,6 +11,7 @@ import { DnsRecord, Domain } from "../../utils/types";
 import { Tab, Tabs } from "../../components/tabs";
 import { useDhcpTable } from "./useDhcpTable";
 import { useAuth } from "../../hooks/useAuth";
+import { SingleActionModule } from "../../components/singleActionModule";
 
 const tabs = ["DNS", "DHCP"];
 
@@ -20,6 +21,21 @@ export const DomainPage = () => {
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [tab, setTab] = useState<typeof tabs[number]>("DNS");
   const [showModule, setShowModule] = useState<boolean>(false);
+  const [actionModule, setActionModule] = useState<{
+    show: boolean;
+    data: DnsRecord[] | undefined;
+    title: string;
+    onSubmit?: (data: DnsRecord[]) => void;
+    children: ReactNode;
+    multiple?: boolean;
+  }>({
+    show: false,
+    data: undefined,
+    title: "",
+    onSubmit: () => {},
+    children: <></>,
+  });
+
   const [showEditDomainModule, setShowEditDomainModule] = useState<{
     show: boolean;
     domainData: Domain | undefined;
@@ -38,6 +54,7 @@ export const DomainPage = () => {
     domain: domain ?? "",
     setShowModule,
     setEditModule,
+    setActionModule,
   });
   const api = useApi();
   const getDomainInfo = async (domain: string) => {
@@ -153,6 +170,15 @@ export const DomainPage = () => {
         domainData={domainInfo}
         showModule={showEditDomainModule.show}
         setShowModule={setShowEditDomainModule}
+      />
+      <SingleActionModule
+        showModule={actionModule.show}
+        setShowModule={setActionModule}
+        data={actionModule.data ?? []}
+        title={actionModule.title}
+        onSubmit={actionModule.onSubmit}
+        children={actionModule.children}
+        multiple={actionModule.multiple ?? false}
       />
     </div>
   );

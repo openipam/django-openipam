@@ -1,10 +1,11 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteHostDnsRecords } from "../../hooks/queries/useInfiniteHostDnsRecords";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { CreateTable } from "../../components/createTable";
+import { useApi } from "../../hooks/useApi";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
 
@@ -14,9 +15,22 @@ export const useDnsTable = (p: {
   setShowModule: any;
   setEditModule: any;
   owner: boolean;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: DnsRecord[] | undefined;
+      title: string;
+      onSubmit?: (data: DnsRecord[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [action, setAction] = useState<string>("delete");
+  const api = useApi();
 
   const data = useInfiniteHostDnsRecords({
     ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
@@ -49,6 +63,7 @@ export const useDnsTable = (p: {
             onAdd: () => {
               p.setShowModule(true);
             },
+            enableSelection: true,
           }
         : {}),
       ...(p.owner
@@ -114,11 +129,63 @@ export const useDnsTable = (p: {
 
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
+    setRowSelection: setRowSelection,
     data: dns,
     state: {
       columnFilters,
+      rowSelection,
     },
     columns,
+    meta: {
+      rowActions: (rows: DnsRecord[]) => {
+        return (
+          <div className="flex flex-col gap-2 m-2">
+            <label>Actions</label>
+            <div className="flex flex-row gap-2">
+              <select
+                id={`actions`}
+                onChange={(v) => {
+                  setAction(v.target.value);
+                }}
+                value={action}
+                className="rounded-md p-2 select select-bordered w-full"
+              >
+                {Object.entries(actions).map(([key, value]) => (
+                  <option value={key} key={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  switch (action) {
+                    case "delete":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Delete Records",
+                        onSubmit: () => {
+                          rows.forEach((row) => {
+                            api.dns.byId(row.id).delete();
+                          });
+                        },
+                        children: <div></div>,
+                      });
+                      break;
+                    default:
+                      break;
+                  }
+                }}
+                disabled={rows.length === 0}
+              >
+                Go
+              </button>
+            </div>
+          </div>
+        );
+      },
+    },
   });
 
   return useMemo(
@@ -128,4 +195,8 @@ export const useDnsTable = (p: {
     }),
     [data.data, data.isFetching]
   );
+};
+
+const actions = {
+  delete: "Delete",
 };

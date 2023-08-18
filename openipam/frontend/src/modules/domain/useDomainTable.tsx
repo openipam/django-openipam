@@ -1,10 +1,11 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteDnsRecords } from "../../hooks/queries/useInfiniteDnsRecords";
 import { ActionsColumn } from "../../components/actionsColumn";
 import { CreateTable } from "../../components/createTable";
+import { useApi } from "../../hooks/useApi";
 
 //TODO search permissions
 
@@ -14,10 +15,22 @@ export const useDomainTable = (p: {
   domain: string;
   setShowModule: any;
   setEditModule: any;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: DnsRecord[] | undefined;
+      title: string;
+      onSubmit?: (data: DnsRecord[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
-
+  const [rowSelection, setRowSelection] = useState({});
+  const [action, setAction] = useState<string>("delete");
+  const api = useApi();
   const data = useInfiniteDnsRecords({
     domain: p.domain,
     ...Object.fromEntries(
@@ -43,6 +56,7 @@ export const useDomainTable = (p: {
   const columns = [
     ...ActionsColumn({
       size: 80,
+      enableSelection: true,
       onAdd: () => {
         p.setShowModule(true);
       },
@@ -120,12 +134,64 @@ export const useDomainTable = (p: {
   ];
 
   const table = CreateTable({
-    setColumnFilters: setColumnFilters,
+    setColumnFilters,
+    setRowSelection,
     data: dns,
     state: {
       columnFilters,
+      rowSelection,
     },
     columns,
+    meta: {
+      rowActions: (rows: DnsRecord[]) => {
+        return (
+          <div className="flex flex-col gap-2 m-2">
+            <label>Actions</label>
+            <div className="flex flex-row gap-2">
+              <select
+                id={`actions`}
+                onChange={(v) => {
+                  setAction(v.target.value);
+                }}
+                value={action}
+                className="rounded-md p-2 select select-bordered w-full"
+              >
+                {Object.entries(actions).map(([key, value]) => (
+                  <option value={key} key={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  switch (action) {
+                    case "delete":
+                      p.setActionModule({
+                        show: true,
+                        data: rows,
+                        title: "Delete Records",
+                        onSubmit: () => {
+                          rows.forEach((row) => {
+                            api.dns.byId(row.id).delete();
+                          });
+                        },
+                        children: <div></div>,
+                      });
+                      break;
+                    default:
+                      break;
+                  }
+                }}
+                disabled={rows.length === 0}
+              >
+                Go
+              </button>
+            </div>
+          </div>
+        );
+      },
+    },
   });
 
   return useMemo(
@@ -135,4 +201,8 @@ export const useDomainTable = (p: {
     }),
     [data.data, data.isFetching]
   );
+};
+
+const actions = {
+  delete: "Delete",
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import { Table } from "../../components/table";
 import { useParams } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
@@ -14,6 +14,7 @@ import { Attributes } from "../../components/atributes";
 import { EditUserOwnerModule } from "./editUserOwnerModule";
 import { EditGroupOwnerModule } from "./editGroupOwnerModule";
 import { useAuth } from "../../hooks/useAuth";
+import { SingleActionModule } from "../../components/singleActionModule";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -81,12 +82,28 @@ export const HostPage = () => {
     }
   }, [mac]);
 
+  const [actionModule, setActionModule] = useState<{
+    show: boolean;
+    data: DnsRecord[] | undefined;
+    title: string;
+    onSubmit?: (data: DnsRecord[]) => void;
+    children: ReactNode;
+    multiple?: boolean;
+  }>({
+    show: false,
+    data: undefined,
+    title: "",
+    onSubmit: () => {},
+    children: <></>,
+  });
+
   const dns = useDnsTable({
     host: HostInfo?.hostname,
     mac: HostInfo?.mac,
     setShowModule: setShowModule,
     setEditModule: setShowEditDnsModule,
     owner,
+    setActionModule,
   });
 
   const dhcpTable = useDhcpTable({
@@ -217,6 +234,15 @@ export const HostPage = () => {
         showModule={showEditDnsModule.show}
         setShowModule={setShowEditDnsModule}
         DnsData={showEditDnsModule.data}
+      />
+      <SingleActionModule
+        showModule={actionModule.show}
+        setShowModule={setActionModule}
+        data={actionModule.data ?? []}
+        title={actionModule.title}
+        onSubmit={actionModule.onSubmit}
+        children={actionModule.children}
+        multiple={actionModule.multiple ?? false}
       />
     </div>
   );

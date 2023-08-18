@@ -59,7 +59,7 @@ export const HostTableActions = (p: {
             setAction(v.target.value);
           }}
           value={action}
-          className="rounded-md p-2 select select-bordered max-w-lg"
+          className="rounded-md p-2 select select-bordered w-full"
         >
           {Object.entries(actions).map(([key, value]) => (
             <option value={key} key={key}>
