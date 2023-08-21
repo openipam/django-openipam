@@ -4,6 +4,7 @@ import { Host } from "../../utils/types";
 import { ExportToCsv } from "../../components/download";
 import { useDhcpGroups } from "../../hooks/queries/useDhcpGroups";
 import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
+import { NetworkAutocomplete } from "../../components/networkAutocomplete";
 
 export const HostTableActions = (p: {
   setRenewModule: React.Dispatch<
@@ -39,15 +40,6 @@ export const HostTableActions = (p: {
     }
     return dhcpGroups.data.pages.flatMap((page) => page.dhcpGroups);
   }, [dhcpGroups.data]);
-
-  const networkList = useInfiniteNetworks({ getAll: true });
-
-  const networks = useMemo<any[]>(() => {
-    if (!networkList.data) {
-      return [];
-    }
-    return networkList.data.pages.flatMap((page) => page.networks);
-  }, [networkList.data]);
 
   return (
     <div className="flex flex-col gap-2 m-2">
@@ -198,6 +190,7 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   title: "Change Network",
                   onSubmit: (v) => {
+                    console.log("\nnetwork is\n", v);
                     p.rows.forEach((host) => {
                       api.hosts.byId(host.mac).setNetwork({
                         network: v,
@@ -205,21 +198,12 @@ export const HostTableActions = (p: {
                     });
                   },
                   children: (
-                    <div>
-                      <p>
-                        Note: If not all networks are loaded, close and reopen
-                        the module
-                      </p>
-                      <select
-                        id={`network`}
-                        className="rounded-md p-2 select select-bordered max-w-md"
-                      >
-                        {networks.map((group: any) => (
-                          <option value={group.network} key={group.network}>
-                            {group.network}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="h-96">
+                      <NetworkAutocomplete
+                        onNetworkChange={(network) => {
+                          console.log(network);
+                        }}
+                      />
                     </div>
                   ),
                 });

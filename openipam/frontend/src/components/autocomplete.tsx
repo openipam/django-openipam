@@ -94,6 +94,7 @@ export const AutocompleteSelect = (props: {
                   ? "bordered"
                   : ""
               }`}
+              key={i}
             >
               <a
                 className={`cursor-default ${hovering === i ? "active" : ""} ${

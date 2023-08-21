@@ -3,7 +3,6 @@ import { useApi } from "../useApi";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 export const useInfiniteNetworks = (p: {
-  getAll?: boolean;
   [key: string]: string | boolean | undefined;
 }) => {
   const api = useApi();

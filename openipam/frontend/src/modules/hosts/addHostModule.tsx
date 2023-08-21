@@ -4,6 +4,7 @@ import { CreateHost } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 import { NetworkAutocomplete } from "../../components/networkAutocomplete";
 import { AddressAutocomplete } from "../../components/addressAutocomplete";
+import { useNavigate } from "react-router-dom";
 const choices = {
   1: "1 Day",
   7: "1 Week",
@@ -51,8 +52,9 @@ export const AddHostModule = (p: {
   const addressTypes = useAddressTypes().data?.addressTypes;
   const addHost = async (hostData: CreateHost) => {
     const results = await api.hosts.create({ ...hostData });
-    alert(`successfully created ${hostData.hostname}`);
+    console.log(results);
     p.setShowModule(false);
+    window.location.href = "/ui/#/hosts/" + hostData.mac;
   };
   return (
     <>
@@ -97,6 +99,9 @@ export const AddHostModule = (p: {
                 type="text"
                 id="host-mac"
                 className="border border-gray-300 rounded-md p-2"
+                onChange={(e) =>
+                  dispatch({ type: "mac", payload: e.target.value })
+                }
               />
             </div>
             <div className="flex flex-col gap-2">
