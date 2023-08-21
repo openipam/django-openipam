@@ -172,6 +172,7 @@ export const useApi = () => {
     },
     addresses: {
       types: requestGenerator(HttpMethod.GET, "address-types/"),
+      get: requestGenerator(HttpMethod.GET, "addresses/"),
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `addresses/${id}`),

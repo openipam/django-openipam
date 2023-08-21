@@ -78,7 +78,7 @@ class AddressFilterSet(df.FilterSet):
     # We could relate this to the network table, but that would require a join,
     # and unless we have significant data integrity errors, searching by address
     # will have the same result as searching by network
-    network = NetworkCIDRFilter(
+    address = NetworkCIDRFilter(
         field_name="address",
         lookup_expr="net_contained_or_equal",
         label="Address in Network",
@@ -121,7 +121,7 @@ class AddressFilterSet(df.FilterSet):
         model = Address
 
         fields = [
-            "network",
+            "address",
             "pool",
             "changed_by",
             "host",

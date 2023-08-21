@@ -2,8 +2,8 @@ import React, { useMemo, useReducer } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
-import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 import { NetworkAutocomplete } from "../../components/networkAutocomplete";
+import { AddressAutocomplete } from "../../components/addressAutocomplete";
 const choices = {
   1: "1 Day",
   7: "1 Week",
@@ -24,6 +24,12 @@ const hostReducer = (state: any, action: any) => {
       return { ...state, description: action.payload };
     case "expire_days":
       return { ...state, expire_days: action.payload };
+    case "disabled_host":
+      return { ...state, disabled_host: action.payload };
+    case "network":
+      return { ...state, network: action.payload };
+    case "address":
+      return { ...state, address: action.payload };
     default:
       return state;
   }
@@ -38,6 +44,7 @@ export const AddHostModule = (p: {
     hostname: "",
     network: { id: 0, network: "" },
     address_type: "Dynamic",
+    address: { id: 0, address: "" },
     description: "",
     expire_days: 365,
   });
@@ -126,7 +133,16 @@ export const AddHostModule = (p: {
                 onNetworkChange={(network) => {
                   dispatch({ type: "network", payload: network });
                 }}
-                networkId={host.network.id}
+                networkId={host.network?.id}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="network">IP Address</label>
+              <AddressAutocomplete
+                onAddressChange={(address) => {
+                  dispatch({ type: "address", payload: address });
+                }}
+                addressId={host.address?.id}
               />
             </div>
             <div className="flex flex-col gap-2">
