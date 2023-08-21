@@ -459,7 +459,7 @@ class Address(models.Model):
         from openipam.hosts.models import GulRecentArpBymac
 
         gul_mac = (
-            GulRecentArpBymac.objects.filter(mac=self.mac)
+            GulRecentArpBymac.objects.filter(host=self.host_id)
             .order_by("-stopstamp")
             .first()
         )
