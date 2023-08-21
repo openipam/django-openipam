@@ -63,9 +63,9 @@ The following device registrations are going to expire soon.
 
 If you would like to continue using the USU network for another year:
 
-1. If you are on the USU network, you can log in at https://register.bluezone.usu.edu/ .
+1. If you are on the USU network, you can log in at https://netreg.usu.edu/ .
    However, if you are not on the USU network you must first connect your device to the
-   network using VPN and then go to https://register.bluezone.usu.edu/ and login.
+   network using VPN and then go to https://netreg.usu.edu/ and login.
 2. Click "Renew" next to the following devices:
 
 %(rows)s
