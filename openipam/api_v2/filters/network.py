@@ -2,7 +2,9 @@
 import django_filters as df
 from netfields import NetManager  # noqa
 from ipaddress import ip_interface, ip_address
+from openipam.hosts.models import GulRecentArpByaddress
 from openipam.network.models import Network, Address
+from django.db.models import F
 
 
 class NetworkCIDRFilter(df.CharFilter):
@@ -97,8 +99,44 @@ class AddressFilterSet(df.FilterSet):
     hostname = df.CharFilter(
         field_name="host__hostname", lookup_expr="icontains", label="Hostname"
     )
+    last_seen__lt = df.DateFilter(
+        method="filter_last_seen_before", label="Last Seen Before"
+    )
+    last_seen__gt = df.DateFilter(
+        method="filter_last_seen_after", label="Last Seen After"
+    )
+
+    def filter_last_seen_before(self, queryset, _, value):
+        """Filter based on last_seen."""
+        # Last seen is on the related (but not by foreign key) GulRecentArpByaddress table
+        # They are linked by the address field.
+        if value:
+            queryset = queryset.filter(
+                address__in=GulRecentArpByaddress.objects.filter(
+                    stopstamp__lte=value
+                ).values_list("address", flat=True)
+            )
+        return queryset
+
+    def filter_last_seen_after(self, queryset, _, value):
+        """Filter based on last_seen."""
+        if value:
+            queryset = queryset.filter(
+                address__in=GulRecentArpByaddress.objects.filter(
+                    stopstamp__gte=value
+                ).values_list("address", flat=True)
+            )
+        return queryset
 
     class Meta:
         model = Address
 
-        fields = ["network", "pool", "changed_by", "host", "hostname"]
+        fields = [
+            "network",
+            "pool",
+            "changed_by",
+            "host",
+            "hostname",
+            "last_seen__lt",
+            "last_seen__gt",
+        ]
