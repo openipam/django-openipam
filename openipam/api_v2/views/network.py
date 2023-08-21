@@ -33,11 +33,7 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     # TODO: figure out how to support editing networks. This is a read-only viewset
     # for now.
 
-    queryset = (
-        Network.objects.all()
-        .prefetch_related("vlans__buildings")
-        .select_related("changed_by", "shared_network")
-    )
+    queryset = Network.objects.all().prefetch_related("vlans__buildings").select_related("changed_by", "shared_network")
     serializer_class = NetworkSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
@@ -46,7 +42,9 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = NetworkFilter
 
     # The primary key is the network CIDR, so yay, we get to use regex to parse an IP address
-    lookup_value_regex = r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
+    lookup_value_regex = (
+        r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
+    )
 
     ordering_fields = ["network", "name", "changed"]
 

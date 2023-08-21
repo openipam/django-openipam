@@ -5,6 +5,8 @@ import { ActionsColumn } from "../../components/actionsColumn";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/boolean";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
+import { Info } from "@mui/icons-material";
+import { ToolTip } from "../../components/tooltip";
 
 export const HostTableColumns = (p: {
   data: UseInfiniteQueryResult<
@@ -185,7 +187,18 @@ export const HostTableColumns = (p: {
             },
             {
               id: "user_owners",
-              header: "User Owners",
+              // header: "User Owners",
+              header: ({ table }: any) => (
+                <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+                  <p className="flex text-center">User Owners</p>
+                  <ToolTip
+                    text="Case Sensitive"
+                    props="rounded-br-none right-4 bottom-4"
+                  >
+                    <Info fontSize="small" />
+                  </ToolTip>
+                </div>
+              ),
               size: 200,
               accessorFn: (row) => row.user_owners?.join(", "),
             },

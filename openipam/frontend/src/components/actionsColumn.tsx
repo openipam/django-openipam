@@ -7,6 +7,7 @@ import {
   ExpandMore,
   Visibility,
 } from "@mui/icons-material";
+import { ToolTip } from "./tooltip";
 
 export const ActionsColumn = (p: {
   size?: number;
@@ -37,7 +38,7 @@ export const ActionsColumn = (p: {
               onChange={table.getToggleAllRowsSelectedHandler()}
             />
           )}
-          <div className="tooltip tooltip-right" data-tip="Load More">
+          <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
             <button
               className="btn btn-circle btn-ghost btn-xs mt-1"
               onClick={() => p.data.fetchNextPage?.()}
@@ -45,7 +46,7 @@ export const ActionsColumn = (p: {
             >
               <ExpandMore />
             </button>
-          </div>
+          </ToolTip>
           {p.onAdd && (
             <button
               className="btn btn-circle btn-ghost btn-xs"
