@@ -58,8 +58,12 @@ export const useHostsTable = (p: {
               return [`hostname`, val ?? ""];
             case "group_owners":
               return [`group`, val ?? ""];
+            case "user_owners":
+              return [`user`, val ?? ""];
             case "disabled_host":
               return [`disabled`, val];
+            case "ip_addresses":
+              return [`ip_address`, val ?? ""];
             default:
               return [key, val ?? ""];
           }

@@ -14,24 +14,12 @@ from openipam.network.models import Lease
 class HostFilter(filters.FilterSet):
     """Filter for hosts."""
 
-    ip_address = filters.CharFilter(
-        method="filter_ip_address", lookup_expr="icontains", label="IP Address"
-    )
-    dhcp_group = filters.CharFilter(
-        method="filter_dhcp_group", lookup_expr="icontains", label="DHCP Group"
-    )
-    user = filters.CharFilter(
-        method="filter_user", lookup_expr="icontains", label="User"
-    )
-    group = filters.CharFilter(
-        method="filter_group", lookup_expr="icontains", label="Group"
-    )
-    mac = filters.CharFilter(
-        method="filter_mac", lookup_expr="icontains", label="MAC Address"
-    )
-    hostname = filters.CharFilter(
-        method="filter_hostname", lookup_expr="icontains", label="Hostname"
-    )
+    ip_address = filters.CharFilter(method="filter_ip_address", lookup_expr="icontains", label="IP Address")
+    dhcp_group = filters.CharFilter(method="filter_dhcp_group", lookup_expr="icontains", label="DHCP Group")
+    user = filters.CharFilter(method="filter_user", lookup_expr="icontains", label="User")
+    group = filters.CharFilter(method="filter_group", lookup_expr="icontains", label="Group")
+    mac = filters.CharFilter(method="filter_mac", lookup_expr="icontains", label="MAC Address")
+    hostname = filters.CharFilter(method="filter_hostname", lookup_expr="icontains", label="Hostname")
     disabled = filters.BooleanFilter(method="filter_disabled", label="Disabled")
     # Expiration date filters
     expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
@@ -64,13 +52,9 @@ class HostFilter(filters.FilterSet):
         # No foreign-key relationship to the disabled field (since unregistered MACs can be
         # disabled), so we have to do a subquery.
         if value:
-            return queryset.filter(
-                mac__in=Disabled.objects.values_list("mac", flat=True)
-            )
+            return queryset.filter(mac__in=Disabled.objects.values_list("mac", flat=True))
         else:
-            return queryset.exclude(
-                mac__in=Disabled.objects.values_list("mac", flat=True)
-            )
+            return queryset.exclude(mac__in=Disabled.objects.values_list("mac", flat=True))
 
     def filter_expires__gt(self, queryset, name, value):
         return queryset.filter(expires__gte=value)
@@ -150,10 +134,7 @@ class HostFilter(filters.FilterSet):
                     leases__pk__in=valid_leases,
                 )
             )
-        # Otherwise, search for partial matches. Add a trailing dot to the search if
-        # it doesn't already have one.
-        if value[-1] != ".":
-            value = value + "."
+        # Otherwise, search for partial matches.
         valid_leases = Lease.objects.filter(
             starts__lte=timezone.now(),
             ends__gte=timezone.now(),

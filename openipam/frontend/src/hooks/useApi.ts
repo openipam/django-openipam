@@ -172,7 +172,7 @@ export const useApi = () => {
     },
     address(id: string) {
       return {
-        get: requestGenerator(HttpMethod.GET, `networks/addresses/${id}`),
+        get: requestGenerator(HttpMethod.GET, `addresses/${id}`),
       };
     },
   };
