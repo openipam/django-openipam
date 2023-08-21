@@ -3,6 +3,7 @@ from django.contrib import admin
 from openipam.hosts.models import (
     Host,
     Attribute,
+    AttributeCategory,
     Disabled,
     GuestTicket,
     ExpirationType,
@@ -89,6 +90,10 @@ class AttributeAdmin(ChangedAdmin):
     pass
 
 
+class AttributeCategoryAdmin(ChangedAdmin):
+    list_display = ("name", "changed_by", "changed")
+
+
 class ExpirationTypeAdmin(GuardedModelAdmin):
     form = ExpirationTypeAdminForm
 
@@ -105,6 +110,7 @@ class StructuredAttributeValueAdmin(ChangedAdmin):
 
 admin.site.register(Host, HostAdmin)
 admin.site.register(Attribute, AttributeAdmin)
+admin.site.register(AttributeCategory, AttributeCategoryAdmin)
 admin.site.register(StructuredAttributeValue, StructuredAttributeValueAdmin)
 admin.site.register(Notification)
 admin.site.register(ExpirationType, ExpirationTypeAdmin)
