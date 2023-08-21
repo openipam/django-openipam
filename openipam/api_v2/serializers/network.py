@@ -147,7 +147,7 @@ class AddressSerializer(ModelSerializer):
     hostname = SerializerMethodField()
     host = SerializerMethodField()
     last_seen = SerializerMethodField()
-    # last_mac_seen = SerializerMethodField()
+    last_mac_seen = SerializerMethodField()
 
     def get_last_seen(self, obj):
         """Return last seen date for address."""
@@ -167,7 +167,7 @@ class AddressSerializer(ModelSerializer):
     def get_host(self, obj):
         """Return host name for address."""
         if obj.host:
-            return str(obj.host.mac)
+            return str(obj.host_id)
         else:
             return None
 
@@ -203,7 +203,7 @@ class AddressSerializer(ModelSerializer):
             "host",
             "hostname",
             "last_seen",
-            # "last_mac_seen",
+            "last_mac_seen",
         )
 
 

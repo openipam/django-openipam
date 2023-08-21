@@ -2,7 +2,7 @@
 import django_filters as df
 from netfields import NetManager  # noqa
 from ipaddress import ip_interface, ip_address
-from openipam.hosts.models import GulRecentArpByaddress
+from openipam.hosts.models import GulRecentArpByaddress, GulRecentArpBymac
 from openipam.network.models import Network, Address
 from django.db.models import F
 
@@ -94,7 +94,7 @@ class AddressFilterSet(df.FilterSet):
         field_name="changed_by__username", lookup_expr="iexact", label="Changed by"
     )
     host = df.CharFilter(
-        field_name="host", lookup_expr="istartswith", label="Host MAC Address"
+        field_name="host_id", lookup_expr="istartswith", label="Host MAC Address"
     )
     hostname = df.CharFilter(
         field_name="host__hostname", lookup_expr="icontains", label="Hostname"
@@ -105,6 +105,17 @@ class AddressFilterSet(df.FilterSet):
     last_seen__gt = df.DateFilter(
         method="filter_last_seen_after", label="Last Seen After"
     )
+    last_mac_seen = df.CharFilter(method="filter_last_mac_seen", label="Last MAC Seen")
+
+    def filter_last_mac_seen(self, queryset, _, value):
+        """Filter based on last_mac_seen."""
+        if value:
+            queryset = queryset.filter(
+                address__in=GulRecentArpBymac.objects.filter(host=value).values_list(
+                    "address", flat=True
+                )
+            )
+        return queryset
 
     def filter_last_seen_before(self, queryset, _, value):
         """Filter based on last_seen."""
