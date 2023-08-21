@@ -33,7 +33,11 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     # TODO: figure out how to support editing networks. This is a read-only viewset
     # for now.
 
-    queryset = Network.objects.all().prefetch_related("vlans__buildings").select_related("changed_by", "shared_network")
+    queryset = (
+        Network.objects.all()
+        .prefetch_related("vlans__buildings")
+        .select_related("changed_by", "shared_network")
+    )
     serializer_class = NetworkSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
@@ -42,16 +46,14 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = NetworkFilter
 
     # The primary key is the network CIDR, so yay, we get to use regex to parse an IP address
-    lookup_value_regex = (
-        r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
-    )
+    lookup_value_regex = r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
 
     ordering_fields = ["network", "name", "changed"]
 
     @action(
         detail=True,
         methods=["get"],
-        queryset=Address.objects.all().select_related("host"),
+        queryset=Address.objects.all().select_related("host", "pool"),
         serializer_class=AddressSerializer,
         filterset_class=AddressFilterSet,
         pagination_class=AddressPagination,
@@ -69,7 +71,7 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["get"],
-        queryset=Address.objects.all().select_related("host"),
+        queryset=Address.objects.all().select_related("host", "pool"),
         serializer_class=AddressSerializer,
         filterset_class=AddressFilterSet,
         pagination_class=AddressPagination,
@@ -93,46 +95,26 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(address)
         return Response(serializer.data)
 
-    # To not need the network to get an address
-    @action(
-        detail=False,
-        methods=["get"],
-        queryset=Address.objects.all().select_related("host"),
-        serializer_class=AddressSerializer,
-        filterset_class=AddressFilterSet,
-        pagination_class=AddressPagination,
-        ordering_fields=["address", "changed"],
-        url_path=r"addresses/(?P<address>(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))",
-        url_name="address-detail",
-    )
-    def address_detail(self, request, address=None):
-        return AddressViewSet.get(self, request, address=address)
+    # don't need the action here, use the viewset below
 
 
-class AddressViewSet(views.APIView):
+class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint that allows any address to be viewed"""
 
-    queryset = Address.objects.all().select_related("host", "network")
+    queryset = Address.objects.all().select_related("host")
     serializer_class = AddressSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    pagination_class = AddressPagination
     filterset_class = AddressFilterSet
-
-    def get(self, request, *args, **kwargs):
-        """Return a single address in a given network."""
-        try:
-            address = self.get_queryset().get(address=kwargs["address"])
-        except Address.DoesNotExist:
-            return Response(status=404, data={"detail": "Address not found."})
-        serializer = self.get_serializer(address)
-        return Response(serializer.data)
+    ordering_fields = ["address", "changed"]
 
 
 class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint that allows address pools to be viewed"""
 
-    queryset = Pool.objects.all().select_related("dhcp_group")
+    queryset = Pool.objects.all().select_related("dhcp_group", "pool")
     serializer_class = PoolSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
