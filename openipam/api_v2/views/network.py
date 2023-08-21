@@ -46,7 +46,7 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = NetworkFilter
 
     # The primary key is the network CIDR, so yay, we get to use regex to parse an IP address
-    lookup_value_regex = r"(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d)"
+    lookup_value_regex = r"((?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d))|(?:[0-9a-fA-F:]+\/\d{1,3})"
 
     ordering_fields = ["network", "name", "changed"]
 
