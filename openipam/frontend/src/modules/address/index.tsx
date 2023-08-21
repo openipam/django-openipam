@@ -13,7 +13,7 @@ export const Address = () => {
     getAddressInfo();
   }, [address]);
   const getAddressInfo = async () => {
-    const response = await api.address(address!).get();
+    const response = await api.addresses.byId(address!).get();
     setAddressInfo(response);
   };
 

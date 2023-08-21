@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useMemo, useReducer } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost } from "../../utils/types";
+import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
+import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
+import { NetworkAutocomplete } from "../../components/networkAutocomplete";
 const choices = {
   1: "1 Day",
   7: "1 Week",
@@ -9,11 +12,36 @@ const choices = {
   365: "1 Year",
   10950: "30 Years",
 };
+const hostReducer = (state: any, action: any) => {
+  switch (action.type) {
+    case "mac":
+      return { ...state, mac: action.payload };
+    case "hostname":
+      return { ...state, hostname: action.payload };
+    case "address_type":
+      return { ...state, address_type: action.payload };
+    case "description":
+      return { ...state, description: action.payload };
+    case "expire_days":
+      return { ...state, expire_days: action.payload };
+    default:
+      return state;
+  }
+};
 export const AddHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
+  const [host, dispatch] = useReducer(hostReducer, {
+    mac: "",
+    hostname: "",
+    network: { id: 0, network: "" },
+    address_type: "Dynamic",
+    description: "",
+    expire_days: 365,
+  });
+  const addressTypes = useAddressTypes().data?.addressTypes;
   const addHost = async (hostData: CreateHost) => {
     const results = await api.hosts.create({ ...hostData });
     alert(`successfully created ${hostData.hostname}`);
@@ -53,13 +81,7 @@ export const AddHostModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              const hostData = {
-                mac: e.target[0].value,
-                hostname: e.target[1].value,
-                description: e.target[2].value,
-                expire_days: e.target[3].value,
-              };
-              addHost(hostData);
+              addHost(host);
             }}
           >
             <div className="flex flex-col gap-2">
@@ -76,6 +98,35 @@ export const AddHostModule = (p: {
                 type="text"
                 id="host-name"
                 className="border border-gray-300 rounded-md p-2"
+                onChange={(e) =>
+                  dispatch({ type: "hostname", payload: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="type">Address Type</label>
+              <select
+                id={`type`}
+                value={host.address_type}
+                onChange={(v) => {
+                  dispatch({ type: "address_type", payload: v.target.value });
+                }}
+                className="rounded-md p-2 select select-bordered"
+              >
+                {addressTypes?.map(({ name, id }) => (
+                  <option value={name} key={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="network">Network</label>
+              <NetworkAutocomplete
+                onNetworkChange={(network) => {
+                  dispatch({ type: "network", payload: network });
+                }}
+                networkId={host.network.id}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -83,15 +134,18 @@ export const AddHostModule = (p: {
               <textarea
                 id="host-description"
                 className="border border-gray-300 rounded-md p-2"
+                onChange={(e) =>
+                  dispatch({ type: "description", payload: e.target.value })
+                }
               />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="Dns-name">Expires</label>
               <select
                 id={`expires`}
-                value={365}
+                value={host.expire_days}
                 onChange={(v) => {
-                  console.log(v);
+                  dispatch({ type: "expire_days", payload: v.target.value });
                 }}
                 className="rounded-md p-2 select select-bordered"
               >

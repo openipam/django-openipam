@@ -16,6 +16,7 @@ router.register(r"pools", views.network.AddressPoolViewSet)
 router.register(r"dhcp-groups", views.network.DhcpGroupViewSet)
 router.register(r"users", views.users.UserViewSet)
 router.register(r"addresses", views.network.AddressViewSet)
+router.register(r"address-types", views.network.AddressTypeViewSet)
 
 # TODO: figure out how to get CSRF protection working with the new API
 urlpatterns = [

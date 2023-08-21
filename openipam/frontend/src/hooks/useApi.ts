@@ -170,10 +170,13 @@ export const useApi = () => {
         };
       },
     },
-    address(id: string) {
-      return {
-        get: requestGenerator(HttpMethod.GET, `addresses/${id}`),
-      };
+    addresses: {
+      types: requestGenerator(HttpMethod.GET, "address-types/"),
+      byId(id: string) {
+        return {
+          get: requestGenerator(HttpMethod.GET, `addresses/${id}`),
+        };
+      },
     },
   };
 };

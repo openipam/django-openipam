@@ -9,10 +9,11 @@ from ..serializers.network import (
     NetworkSerializer,
     AddressSerializer,
     PoolSerializer,
+    AddressTypeSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
-from openipam.network.models import Address, DhcpGroup, Network, Pool
+from openipam.network.models import Address, DhcpGroup, Network, Pool, AddressType
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
 
@@ -132,3 +133,10 @@ class DhcpGroupViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [OrderingFilter]
     ordering_fields = ["name", "changed"]
     pagination_class = APIPagination
+
+
+class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint that allows AddressTypes to be viewed or edited."""
+
+    queryset = AddressType.objects.all()
+    serializer_class = AddressTypeSerializer

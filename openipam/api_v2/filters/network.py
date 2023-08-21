@@ -8,17 +8,23 @@ from django.db.models import F
 
 
 class NetworkCIDRFilter(df.CharFilter):
-    def __init__(self, *args, allow_ip_fragments=False, **kwargs):
+    def __init__(self, *args, allow_ip_fragments=True, **kwargs):
         self.allow_ip_fragments = allow_ip_fragments
         super().__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         """Filter on network CIDR."""
+        print()
+        print()
+        print(value)
         if not value:
             return qs.all()
         try:
             iface = ip_interface(value)
+            print("iface")
+            print(iface)
         except ValueError:
+            print(self.allow_ip_fragments)
             if self.allow_ip_fragments:
                 # Treat the input value as an IP address fragment, search for any networks that begin with it
                 # Case-insensitive search is used to make IPv6 addresses more searchable if we ever
@@ -28,9 +34,7 @@ class NetworkCIDRFilter(df.CharFilter):
                 # Otherwise, return no results
                 return qs.none()
         else:
-            return qs.filter(
-                **{f"{self.field_name}__{self.lookup_expr}": iface.network}
-            )
+            return qs.filter(**{f"{self.field_name}__{self.lookup_expr}": iface.network})
 
 
 class IPAddressFilter(df.CharFilter):
@@ -56,19 +60,11 @@ class IPAddressFilter(df.CharFilter):
 class NetworkFilter(df.FilterSet):
     """Filter for network objects."""
 
-    network = NetworkCIDRFilter(
-        field_name="network", lookup_expr="net_contained_or_equal", label="Network CIDR"
-    )
-    vlan_id = df.NumberFilter(
-        field_name="vlan__vlan_id", lookup_expr="exact", label="VLAN ID"
-    )
-    vlan_name = df.CharFilter(
-        field_name="vlan__name", lookup_expr="icontains", label="VLAN Name"
-    )
+    network = NetworkCIDRFilter(field_name="network", lookup_expr="net_contained_or_equal", label="Network CIDR")
+    vlan_id = df.NumberFilter(field_name="vlan__vlan_id", lookup_expr="exact", label="VLAN ID")
+    vlan_name = df.CharFilter(field_name="vlan__name", lookup_expr="icontains", label="VLAN Name")
     gateway = df.CharFilter(method="filter_gateway", label="Gateway IP")
-    changed_by = df.CharFilter(
-        field_name="changed_by__username", lookup_expr="iexact", label="Changed by"
-    )
+    changed_by = df.CharFilter(field_name="changed_by__username", lookup_expr="iexact", label="Changed by")
     name = df.CharFilter(field_name="name", lookup_expr="icontains", label="Name")
 
     class Meta:
@@ -87,24 +83,12 @@ class AddressFilterSet(df.FilterSet):
         lookup_expr="net_contained_or_equal",
         label="Address in Network",
     )
-    pool = df.CharFilter(
-        field_name="pool__name", lookup_expr="icontains", label="Pool Name"
-    )
-    changed_by = df.CharFilter(
-        field_name="changed_by__username", lookup_expr="iexact", label="Changed by"
-    )
-    host = df.CharFilter(
-        field_name="host", lookup_expr="istartswith", label="Host MAC Address"
-    )
-    hostname = df.CharFilter(
-        field_name="host__hostname", lookup_expr="icontains", label="Hostname"
-    )
-    last_seen__lt = df.DateFilter(
-        method="filter_last_seen_before", label="Last Seen Before"
-    )
-    last_seen__gt = df.DateFilter(
-        method="filter_last_seen_after", label="Last Seen After"
-    )
+    pool = df.CharFilter(field_name="pool__name", lookup_expr="icontains", label="Pool Name")
+    changed_by = df.CharFilter(field_name="changed_by__username", lookup_expr="iexact", label="Changed by")
+    host = df.CharFilter(field_name="host", lookup_expr="istartswith", label="Host MAC Address")
+    hostname = df.CharFilter(field_name="host__hostname", lookup_expr="icontains", label="Hostname")
+    last_seen__lt = df.DateFilter(method="filter_last_seen_before", label="Last Seen Before")
+    last_seen__gt = df.DateFilter(method="filter_last_seen_after", label="Last Seen After")
 
     def filter_last_seen_before(self, queryset, _, value):
         """Filter based on last_seen."""
@@ -112,9 +96,7 @@ class AddressFilterSet(df.FilterSet):
         # They are linked by the address field.
         if value:
             queryset = queryset.filter(
-                address__in=GulRecentArpByaddress.objects.filter(
-                    stopstamp__lte=value
-                ).values_list("address", flat=True)
+                address__in=GulRecentArpByaddress.objects.filter(stopstamp__lte=value).values_list("address", flat=True)
             )
         return queryset
 
@@ -122,9 +104,7 @@ class AddressFilterSet(df.FilterSet):
         """Filter based on last_seen."""
         if value:
             queryset = queryset.filter(
-                address__in=GulRecentArpByaddress.objects.filter(
-                    stopstamp__gte=value
-                ).values_list("address", flat=True)
+                address__in=GulRecentArpByaddress.objects.filter(stopstamp__gte=value).values_list("address", flat=True)
             )
         return queryset
 

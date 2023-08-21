@@ -31,8 +31,14 @@ export type Log = {
 export type CreateHost = {
   mac: string;
   hostname: string;
-  expire_days?: string;
+  address_type: string;
+  expire_days: string;
   description?: string;
+  network?: string;
+  ip_address?: string;
+  dhcp_group?: string;
+  user_owners?: string[];
+  group_owners?: string[];
 };
 
 export type Host = {
@@ -140,6 +146,15 @@ export type Address = {
   changed: string;
   gateway: string;
   host: string;
+};
+
+export type AddressType = {
+  id: number;
+  name: string;
+  description: string;
+  is_default: boolean;
+  pool: number;
+  ranges: number[];
 };
 
 export type Network = {

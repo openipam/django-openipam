@@ -1,7 +1,7 @@
 """Serializers for network objects."""
 
 from openipam.api_v2.serializers.base import ChangedBySerializer
-from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool
+from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool, AddressType
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
     ModelSerializer,
@@ -35,9 +35,7 @@ class NetworkSerializer(ModelSerializer):
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
-        return self.context["request"].build_absolute_uri(
-            f"/api/v2/networks/{obj.pk}/addresses/"
-        )
+        return self.context["request"].build_absolute_uri(f"/api/v2/networks/{obj.pk}/addresses/")
 
     def get_gateway(self, obj):
         if obj.gateway:
@@ -60,11 +58,7 @@ class NetworkSerializer(ModelSerializer):
         # and then get the buildings for those vlans
         buildings = []
         for vlan in obj.vlans.all():
-            buildings.extend(
-                vlan.buildings.all().values(
-                    "id", "name", "abbreviation", "number", "city"
-                )
-            )
+            buildings.extend(vlan.buildings.all().values("id", "name", "abbreviation", "number", "city"))
         return buildings
 
     class Meta:
@@ -205,6 +199,12 @@ class AddressSerializer(ModelSerializer):
             "last_seen",
             # "last_mac_seen",
         )
+
+
+class AddressTypeSerializer(ModelSerializer):
+    class Meta:
+        model = AddressType
+        fields = "__all__"
 
 
 class LeaseSerializer(ModelSerializer):

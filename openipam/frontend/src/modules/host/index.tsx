@@ -5,7 +5,7 @@ import { useApi } from "../../hooks/useApi";
 import { DnsRecord, Host } from "../../utils/types";
 import { useAddressesTable } from "./useAddressesTable";
 import { Tab, Tabs } from "../../components/tabs";
-import { EditHostModule } from "./editHostModule";
+import { EditHostModule } from "../hosts/editHostModule";
 import { useDnsTable } from "./useDnsTable";
 import { AddDnsModule } from "../domain/addDnsModule";
 import { EditDnsModule } from "../domain/editDnsModule";
