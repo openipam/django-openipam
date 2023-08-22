@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost, Host } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
@@ -25,6 +25,10 @@ export const EditHostModule = (p: {
   const isDynamic = (addressType: string) => {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);
   };
+  useEffect(() => {
+    if (p.HostData)
+      dispatch({ type: "reset", payload: { ...p.HostData, expires_days: 0 } });
+  }, [p.HostData]);
   return (
     <>
       <input
@@ -271,6 +275,8 @@ const hostReducer = (state: any, action: any) => {
       return { ...state, address: action.payload };
     case "dhcp_group":
       return { ...state, dhcp_group: action.payload };
+    case "reset":
+      return { ...action.payload };
     default:
       return state;
   }
