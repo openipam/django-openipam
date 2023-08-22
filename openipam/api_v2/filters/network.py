@@ -15,17 +15,11 @@ class NetworkCIDRFilter(df.CharFilter):
 
     def filter(self, qs, value):
         """Filter on network CIDR."""
-        print()
-        print()
-        print(value)
         if not value:
             return qs.all()
         try:
             iface = ip_interface(value)
-            print("iface")
-            print(iface)
         except ValueError:
-            print(self.allow_ip_fragments)
             if self.allow_ip_fragments:
                 # Treat the input value as an IP address fragment, search for any networks that begin with it
                 # Case-insensitive search is used to make IPv6 addresses more searchable if we ever
