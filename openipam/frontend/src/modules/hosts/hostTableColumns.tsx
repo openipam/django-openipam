@@ -159,75 +159,66 @@ export const HostTableColumns = (p: {
           header: "DHCP Group",
           accessorFn: (row) => row.dhcp_group?.name,
         },
+      ],
+    }),
+    ...(p.auth?.is_staff
+      ? [
+          columnHelper.group({
+            id: "Secondary Details",
+            header: "Secondary Details",
+            columns: [
+              {
+                id: "address_type",
+                header: "Address Type",
+                accessorFn: (row) => row.address_type,
+                meta: {
+                  filterType: "exact",
+                  filterOptions: addressTypes?.map((t) => t.name) ?? [],
+                },
+              },
+              {
+                id: "disabled_host",
+                size: 80,
+                header: "Disabled",
+                accessorFn: booleanAccessor("disabled_host"),
+                cell: BooleanRender,
+                meta: {
+                  filterType: "boolean",
+                },
+                filterFn: undefined,
+              },
+            ],
+          }),
+        ]
+      : []),
+    columnHelper.group({
+      id: "Owners",
+      header: "Owners",
+      columns: [
         {
-          id: "address_type",
-          header: "Address Type",
-          accessorFn: (row) => row.address_type,
-          meta: {
-            filterType: "exact",
-            filterOptions: addressTypes?.map((t) => t.name) ?? [],
-          },
+          id: "user_owners",
+          // header: "User Owners",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center">User Owners</p>
+              <ToolTip
+                text="Case Sensitive"
+                props="rounded-br-none right-4 bottom-4"
+              >
+                <Info fontSize="small" />
+              </ToolTip>
+            </div>
+          ),
+          size: 200,
+          accessorFn: (row) => row.user_owners?.join(", "),
+        },
+        {
+          id: "group_owners",
+          header: "Group Owners",
+          size: 200,
+          accessorFn: (row) => row.group_owners?.join(", "),
         },
       ],
     }),
-    p.auth?.is_staff
-      ? columnHelper.group({
-          id: "Secondary Details",
-          header: "Secondary Details",
-          columns: [
-            {
-              id: "disabled_host",
-              size: 80,
-              header: "Disabled",
-              accessorFn: booleanAccessor("disabled_host"),
-              cell: BooleanRender,
-              meta: {
-                filterType: "boolean",
-              },
-              filterFn: undefined,
-            },
-            {
-              id: "user_owners",
-              // header: "User Owners",
-              header: ({ table }: any) => (
-                <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-                  <p className="flex text-center">User Owners</p>
-                  <ToolTip
-                    text="Case Sensitive"
-                    props="rounded-br-none right-4 bottom-4"
-                  >
-                    <Info fontSize="small" />
-                  </ToolTip>
-                </div>
-              ),
-              size: 200,
-              accessorFn: (row) => row.user_owners?.join(", "),
-            },
-            {
-              id: "group_owners",
-              header: "Group Owners",
-              size: 200,
-              accessorFn: (row) => row.group_owners?.join(", "),
-            },
-          ],
-        })
-      : columnHelper.group({
-          id: "Owners",
-          header: "Owners",
-          columns: [
-            {
-              id: "user_owners",
-              header: "User Owners",
-              size: 200,
-              accessorFn: (row) => row.user_owners?.join(", "),
-            },
-            {
-              id: "group_owners",
-              header: "Group Owners",
-              size: 200,
-              accessorFn: (row) => row.group_owners?.join(", "),
-            },
-          ],
-        }),
   ];
 };
