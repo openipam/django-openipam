@@ -77,6 +77,25 @@ class NetworkFilter(df.FilterSet):
         field_name="changed_by__username", lookup_expr="iexact", label="Changed by"
     )
     name = df.CharFilter(field_name="name", lookup_expr="icontains", label="Name")
+    address_type = df.ModelChoiceFilter(
+        method="filter_address_type",
+        queryset=AddressType.objects.all(),
+        label="Address Type",
+    )
+
+    def filter_address_type(self, queryset, _, value):
+        """Filter based on address type."""
+        if value:
+            ranges = value.ranges.all()
+            if ranges:
+                query = reduce(
+                    lambda x, y: x | y,
+                    [Q(network__net_contained_or_equal=r) for r in ranges],
+                )
+                queryset = queryset.filter(query)
+            else:
+                queryset = queryset.none()
+        return queryset
 
     class Meta:
         model = Network
