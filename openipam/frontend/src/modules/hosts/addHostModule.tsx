@@ -1,40 +1,11 @@
-import React, { useMemo, useReducer } from "react";
+import React, { useReducer } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
-import { NetworkAutocomplete } from "../../components/networkAutocomplete";
-import { AddressAutocomplete } from "../../components/addressAutocomplete";
-import { useNavigate } from "react-router-dom";
-const choices = {
-  1: "1 Day",
-  7: "1 Week",
-  14: "2 Weeks",
-  180: "6 Months",
-  365: "1 Year",
-  10950: "30 Years",
-};
-const hostReducer = (state: any, action: any) => {
-  switch (action.type) {
-    case "mac":
-      return { ...state, mac: action.payload };
-    case "hostname":
-      return { ...state, hostname: action.payload };
-    case "address_type":
-      return { ...state, address_type: action.payload };
-    case "description":
-      return { ...state, description: action.payload };
-    case "expire_days":
-      return { ...state, expire_days: action.payload };
-    case "disabled_host":
-      return { ...state, disabled_host: action.payload };
-    case "network":
-      return { ...state, network: action.payload };
-    case "address":
-      return { ...state, address: action.payload };
-    default:
-      return state;
-  }
-};
+import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
+import { AddressAutocomplete } from "../../components/autocomplete/addressAutocomplete";
+import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
+
 export const AddHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
@@ -132,36 +103,30 @@ export const AddHostModule = (p: {
                 ))}
               </select>
             </div>
+            {networkAddressTypes.includes(host.address_type) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="network">Network</label>
+                <NetworkAutocomplete
+                  onNetworkChange={(network) => {
+                    dispatch({ type: "network", payload: network });
+                  }}
+                  networkId={host.network?.id}
+                />
+              </div>
+            )}
+            {ipAddressTypes.includes(host.address_type) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="network">IP Address</label>
+                <AddressAutocomplete
+                  onAddressChange={(address) => {
+                    dispatch({ type: "address", payload: address });
+                  }}
+                  addressId={host.address?.id}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
-              <label htmlFor="network">Network</label>
-              <NetworkAutocomplete
-                onNetworkChange={(network) => {
-                  dispatch({ type: "network", payload: network });
-                }}
-                networkId={host.network?.id}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="network">IP Address</label>
-              <AddressAutocomplete
-                onAddressChange={(address) => {
-                  dispatch({ type: "address", payload: address });
-                }}
-                addressId={host.address?.id}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-description">Description</label>
-              <textarea
-                id="host-description"
-                className="border border-gray-300 rounded-md p-2"
-                onChange={(e) =>
-                  dispatch({ type: "description", payload: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-name">Expires</label>
+              <label htmlFor="host-expires">Expires</label>
               <select
                 id={`expires`}
                 value={host.expire_days}
@@ -176,6 +141,26 @@ export const AddHostModule = (p: {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="dhcpGroup" className="label">
+                DHCP Group (Leave blank unless otherwise directed)
+              </label>
+              <DhcpAutocomplete
+                onDhcpChange={(dhcp) => {
+                  dispatch({ type: "dhcp_group", payload: dhcp });
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="host-description">Description</label>
+              <textarea
+                id="host-description"
+                className="border border-gray-300 rounded-md p-2"
+                onChange={(e) =>
+                  dispatch({ type: "description", payload: e.target.value })
+                }
+              />
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
@@ -198,4 +183,42 @@ export const AddHostModule = (p: {
       </dialog>
     </>
   );
+};
+
+const choices = {
+  1: "1 Day",
+  7: "1 Week",
+  14: "2 Weeks",
+  180: "6 Months",
+  365: "1 Year",
+  10950: "30 Years",
+};
+
+const networkAddressTypes = ["Management", "Quarantine"];
+
+const ipAddressTypes = ["IPV6", "Non-routable", "Routable"];
+
+const hostReducer = (state: any, action: any) => {
+  switch (action.type) {
+    case "mac":
+      return { ...state, mac: action.payload };
+    case "hostname":
+      return { ...state, hostname: action.payload };
+    case "address_type":
+      return { ...state, address_type: action.payload };
+    case "description":
+      return { ...state, description: action.payload };
+    case "expire_days":
+      return { ...state, expire_days: action.payload };
+    case "disabled_host":
+      return { ...state, disabled_host: action.payload };
+    case "network":
+      return { ...state, network: action.payload };
+    case "address":
+      return { ...state, address: action.payload };
+    case "dhcp_group":
+      return { ...state, dhcp_group: action.payload };
+    default:
+      return state;
+  }
 };

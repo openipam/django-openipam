@@ -4,8 +4,8 @@ import React from "react";
 import { Network } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 
 const NetworkLookupKeys = ["network", "name", "gateway", "description"];
 

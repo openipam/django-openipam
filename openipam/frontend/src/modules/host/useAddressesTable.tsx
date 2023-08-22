@@ -2,8 +2,8 @@ import { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import React from "react";
 import { useNavigate } from "react-router";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 
 type Address = {
   name: string;

@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useMemo, useState } from "react";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { useParams } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
 import { DnsRecord, Host } from "../../utils/types";

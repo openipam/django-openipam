@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Host, User } from "../../utils/types";
 import { useUserHostsTable } from "./useUserHostsTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { RenewHostModule } from "./renewHostModule";
 import { useAuth } from "../../hooks/useAuth";
 

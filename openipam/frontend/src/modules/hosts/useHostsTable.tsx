@@ -5,7 +5,7 @@ import { Host } from "../../utils/types";
 import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
 import { HostTableActions } from "./hostTableActions";
 import { HostTableColumns } from "./hostTableColumns";
-import { CreateTable } from "../../components/createTable";
+import { CreateTable } from "../../components/table/createTable";
 import { useAuth } from "../../hooks/useAuth";
 
 //TODO disabled columns only shows for admins.

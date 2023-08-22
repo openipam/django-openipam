@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 import { useHostsTable } from "./useHostsTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { AddHostModule } from "./addHostModule";
 import { EditHostModule } from "./editHostModule";
 import { RenewHostModule } from "../profile/renewHostModule";

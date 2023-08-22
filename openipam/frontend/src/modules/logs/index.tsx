@@ -1,6 +1,6 @@
 import React from "react";
 import { useLogsTable } from "./useLogsTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { useAuth } from "../../hooks/useAuth";
 
 export const Logs = () => {

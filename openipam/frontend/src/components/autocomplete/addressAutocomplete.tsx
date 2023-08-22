@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AutocompleteSelect } from "./autocomplete";
 import { Place } from "@mui/icons-material";
-import { Address } from "../utils/types";
-import { useInfiniteAddresses } from "../hooks/queries/useInfiniteAddresses";
+import { Address } from "../../utils/types";
+import { useInfiniteAddresses } from "../../hooks/queries/useInfiniteAddresses";
 
 export const AddressAutocomplete = (p: {
   onAddressChange: (Address: any) => void;

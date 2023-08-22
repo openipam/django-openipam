@@ -1,12 +1,12 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter } from "../../components/filters";
+import { betweenDatesFilter } from "../../components/table/filters";
 import React from "react";
 import { User } from "../../utils/types";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 import { useInfiniteUsers } from "../../hooks/queries/useInfiniteUsers";
-import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 
 export const useUsersTable = (p: {}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);

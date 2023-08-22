@@ -1,9 +1,9 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import React, { ReactNode } from "react";
 import { Host, User } from "../../utils/types";
-import { ActionsColumn } from "../../components/actionsColumn";
+import { ActionsColumn } from "../../components/table/actionsColumn";
 import { useNavigate } from "react-router-dom";
-import { BooleanRender, booleanAccessor } from "../../components/boolean";
+import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { Info } from "@mui/icons-material";
 import { ToolTip } from "../../components/tooltip";

@@ -4,7 +4,8 @@ import { Host } from "../../utils/types";
 import { ExportToCsv } from "../../components/download";
 import { useDhcpGroups } from "../../hooks/queries/useDhcpGroups";
 import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
-import { NetworkAutocomplete } from "../../components/networkAutocomplete";
+import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
+import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
 
 export const HostTableActions = (p: {
   setRenewModule: React.Dispatch<
@@ -32,14 +33,6 @@ export const HostTableActions = (p: {
 }) => {
   const [action, setAction] = useState<string>("renew");
   const api = useApi();
-  const dhcpGroups = useDhcpGroups();
-
-  const dhcp = useMemo<any[]>(() => {
-    if (!dhcpGroups.data) {
-      return [];
-    }
-    return dhcpGroups.data.pages.flatMap((page) => page.dhcpGroups);
-  }, [dhcpGroups.data]);
 
   return (
     <div className="flex flex-col gap-2 m-2">
@@ -355,17 +348,13 @@ export const HostTableActions = (p: {
                     });
                   },
                   children: (
-                    <div>
-                      <select
-                        id={`dhcp_group`}
-                        className="rounded-md p-2 select select-bordered max-w-md"
-                      >
-                        {dhcp.map((group: any) => (
-                          <option value={group.name} key={group.name}>
-                            {group.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="h-80">
+                      <label className="label">Search by name...</label>
+                      <DhcpAutocomplete
+                        onDhcpChange={(dhcp) => {
+                          console.log(dhcp);
+                        }}
+                      />
                     </div>
                   ),
                 });

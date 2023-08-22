@@ -5,8 +5,8 @@ import { People, PeopleOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Host } from "../../utils/types";
 import { useInfiniteMyHosts } from "../../hooks/queries/useInfiniteMyHosts";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 
 //TODO disabled columns only shows for admins.
 // add quick renew button

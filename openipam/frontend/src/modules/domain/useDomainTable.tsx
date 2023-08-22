@@ -3,8 +3,8 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteDnsRecords } from "../../hooks/queries/useInfiniteDnsRecords";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 import { useApi } from "../../hooks/useApi";
 
 //TODO search permissions

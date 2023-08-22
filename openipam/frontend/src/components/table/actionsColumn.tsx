@@ -7,7 +7,7 @@ import {
   ExpandMore,
   Visibility,
 } from "@mui/icons-material";
-import { ToolTip } from "./tooltip";
+import { ToolTip } from "../tooltip";
 
 export const ActionsColumn = (p: {
   size?: number;

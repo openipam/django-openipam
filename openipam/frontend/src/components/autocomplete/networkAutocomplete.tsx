@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useInfiniteNetworks } from "../hooks/queries/useInfiniteNetworks";
+import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 import { AutocompleteSelect } from "./autocomplete";
 import { Hub } from "@mui/icons-material";
-import { Network } from "../utils/types";
+import { Network } from "../../utils/types";
 
 export const NetworkAutocomplete = (p: {
   onNetworkChange: (network: any) => void;

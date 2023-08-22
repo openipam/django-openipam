@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { useParams } from "react-router-dom";
 import { useDomainTable } from "./useDomainTable";
 import { useApi } from "../../hooks/useApi";

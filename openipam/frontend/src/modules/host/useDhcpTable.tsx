@@ -1,12 +1,12 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter } from "../../components/filters";
+import { betweenDatesFilter } from "../../components/table/filters";
 import React from "react";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 

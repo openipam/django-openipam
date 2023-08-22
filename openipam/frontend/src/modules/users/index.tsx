@@ -1,6 +1,6 @@
 import React from "react";
 import { useUsersTable } from "./useUsersTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 
 export const Users = () => {
   const data = useUsersTable({});

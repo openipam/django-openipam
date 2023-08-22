@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAddressesTable } from "./useAddressesTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { useAuth } from "../../hooks/useAuth";
 
 export const Network = () => {

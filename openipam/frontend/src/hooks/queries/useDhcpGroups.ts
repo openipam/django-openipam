@@ -1,14 +1,15 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useApi } from "../useApi";
 import { useEffect } from "react";
-import { get } from "http";
 
-export const useDhcpGroups = () => {
+export const useDhcpGroups = (p: {
+  [key: string]: string | boolean | undefined;
+}) => {
   const api = useApi();
   const query = useInfiniteQuery({
     queryKey: ["dhcpGroups"],
     queryFn: async ({ pageParam = 0 }) => {
-      const results = await api.dhcpGroups.get({ page: pageParam + 1 });
+      const results = await api.dhcpGroups.get({ page: pageParam + 1, ...p });
       return {
         dhcpGroups: results.results,
         page: pageParam,

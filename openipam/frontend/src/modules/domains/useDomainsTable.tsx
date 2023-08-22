@@ -10,13 +10,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter, fuzzyFilter } from "../../components/filters";
+import {
+  betweenDatesFilter,
+  fuzzyFilter,
+} from "../../components/table/filters";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Domain } from "../../utils/types";
 import { useInfiniteDomains } from "../../hooks/queries/useInfiniteDomains";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 import { useAuth } from "../../hooks/useAuth";
 
 //TODO search permissions

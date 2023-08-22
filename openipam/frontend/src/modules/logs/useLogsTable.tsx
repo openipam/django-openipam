@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import React from "react";
 import { Log, LogActions, LogTypes } from "../../utils/types";
 import { useInfiniteLogs } from "../../hooks/queries/useInfiniteLogs";
-import { ActionsColumn } from "../../components/actionsColumn";
-import { CreateTable } from "../../components/createTable";
+import { ActionsColumn } from "../../components/table/actionsColumn";
+import { CreateTable } from "../../components/table/createTable";
 
 //TODO search permissions
 

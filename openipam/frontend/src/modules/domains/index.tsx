@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDomainsTable } from "./useDomainsTable";
-import { Table } from "../../components/table";
+import { Table } from "../../components/table/table";
 import { AddDomainModule } from "./addDomainModule";
 import { EditDomainModule } from "./editDomainModule";
 import { CreateDomain } from "../../utils/types";
