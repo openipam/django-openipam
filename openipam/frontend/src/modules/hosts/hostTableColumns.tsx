@@ -7,6 +7,7 @@ import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { Info } from "@mui/icons-material";
 import { ToolTip } from "../../components/tooltip";
+import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 
 export const HostTableColumns = (p: {
   data: UseInfiniteQueryResult<
@@ -37,6 +38,7 @@ export const HostTableColumns = (p: {
   auth: User | undefined;
 }) => {
   const columnHelper = createColumnHelper<Host>();
+  const addressTypes = useAddressTypes().data?.addressTypes;
   const navigate = useNavigate();
   return [
     ...(p.auth?.is_ipamadmin
@@ -158,14 +160,13 @@ export const HostTableColumns = (p: {
           accessorFn: (row) => row.dhcp_group?.name,
         },
         {
-          id: "is_dynamic",
-          size: 80,
-          header: "Dynamic",
-          cell: BooleanRender,
-          // accessorFn: booleanAccessor("is_dynamic"),
-          // meta: {
-          //   filterType: "boolean",
-          // },
+          id: "address_type",
+          header: "Address Type",
+          accessorFn: (row) => row.address_type,
+          meta: {
+            filterType: "exact",
+            filterOptions: addressTypes?.map((t) => t.name) ?? [],
+          },
         },
       ],
     }),

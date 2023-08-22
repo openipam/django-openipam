@@ -7,9 +7,13 @@ import { Network } from "../../utils/types";
 export const NetworkAutocomplete = (p: {
   onNetworkChange: (network: any) => void;
   networkId?: any;
+  addressType?: number;
 }) => {
   const [filter, setFilter] = useState("");
-  const networkList = useInfiniteNetworks({ network: filter });
+  const networkList = useInfiniteNetworks({
+    network: filter,
+    address_type: p.addressType,
+  });
 
   const networks = useMemo<any[]>(() => {
     if (!networkList.data) {

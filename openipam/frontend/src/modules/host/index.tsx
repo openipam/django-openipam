@@ -128,7 +128,7 @@ export const HostPage = () => {
             last_seen: "Last Seen:",
             changed: "Last Changed:",
             changed_by: "Changed By:",
-            is_dynamic: "Type:",
+            address_type: "Type:",
             disabled_host: "Disabled Host:",
             description: "Description:",
           }}
@@ -140,7 +140,6 @@ export const HostPage = () => {
               ? new Date(HostInfo.last_seen).toISOString().split("T")[0]
               : "> 3 months, if ever",
             changed_by: HostInfo?.changed_by.username,
-            is_dynamic: HostInfo?.is_dynamic ? "Dynamic" : "Static",
             disabled_host: HostInfo?.disabled_host ? "True" : "False",
           }}
         />
