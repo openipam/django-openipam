@@ -33,7 +33,7 @@ export const Attributes = (p: {
         {p.attributes && !edit && (
           <div className="flex flex-col gap-2">
             {Object.entries(p.attributes ?? {}).map(([key, value]) => (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2" key={key}>
                 <label
                   htmlFor={`host-${key}`}
                   className="font-semibold mt-2 mb-0 pb-0"
@@ -66,7 +66,7 @@ export const Attributes = (p: {
                   [key: string]: string;
                 }[];
               }) => (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2" key={name}>
                   <label
                     htmlFor={`host-${name}`}
                     className="font-semibold mt-2 mb-0 pb-0"
@@ -103,7 +103,9 @@ export const Attributes = (p: {
                       className="rounded-md p-2 select select-bordered"
                     >
                       {choices.map((choice) => (
-                        <option value={choice.value}>{choice.value}</option>
+                        <option value={choice.value} key={choice.value}>
+                          {choice.value}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -135,22 +137,7 @@ export const Attributes = (p: {
             )}
           </div>
         )}
-        {/* <pre>{JSON.stringify(attributes.data?.attributes, null, 2)}</pre> */}
       </div>
     </div>
   );
 };
-
-{
-  /* <div className="flex flex-col gap-2">
-              <label htmlFor="host-mac">Mac</label>
-              <input
-                type="text"
-                id="host-mac"
-                value={p.HostData?.mac ?? ""}
-                disabled
-                onChange={() => {}}
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div> */
-}

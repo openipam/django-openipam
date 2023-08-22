@@ -2,33 +2,10 @@ import React, { useReducer } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost, Host } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
-const choices = {
-  0: "Don't Renew",
-  1: "1 Day",
-  7: "1 Week",
-  14: "2 Weeks",
-  180: "6 Months",
-  365: "1 Year",
-  10950: "30 Years",
-};
-const hostReducer = (state: any, action: any) => {
-  switch (action.type) {
-    case "mac":
-      return { ...state, mac: action.payload };
-    case "hostname":
-      return { ...state, hostname: action.payload };
-    case "address_type":
-      return { ...state, address_type: action.payload };
-    case "description":
-      return { ...state, description: action.payload };
-    case "expire_days":
-      return { ...state, expire_days: action.payload };
-    case "disabled_host":
-      return { ...state, disabled_host: action.payload };
-    default:
-      return state;
-  }
-};
+import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
+import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
+import { AddressAutocomplete } from "../../components/autocomplete/addressAutocomplete";
+
 export const EditHostModule = (p: {
   HostData: Host | undefined;
   showModule: boolean;
@@ -78,7 +55,7 @@ export const EditHostModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Edit Host</h1>
+          <h1 className="text-2xl font-bold mb-4">Update Host</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -126,17 +103,28 @@ export const EditHostModule = (p: {
                 ))}
               </select>
             </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-description">Description</label>
-              <textarea
-                id="host-description"
-                value={host.description}
-                onChange={(e) =>
-                  dispatch({ type: "description", payload: e.target.value })
-                }
-                className="border border-gray-300 rounded-md p-2"
-              />
-            </div>
+            {networkAddressTypes.includes(host.address_type) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="network">Network</label>
+                <NetworkAutocomplete
+                  onNetworkChange={(network) => {
+                    dispatch({ type: "network", payload: network });
+                  }}
+                  networkId={host.network?.id}
+                />
+              </div>
+            )}
+            {ipAddressTypes.includes(host.address_type) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="network">IP Address</label>
+                <AddressAutocomplete
+                  onAddressChange={(address) => {
+                    dispatch({ type: "address", payload: address });
+                  }}
+                  addressId={host.address?.id}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <label htmlFor="Dns-name">Expires</label>
               <select
@@ -153,6 +141,27 @@ export const EditHostModule = (p: {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="dhcpGroup" className="label">
+                DHCP Group (Leave blank unless otherwise directed)
+              </label>
+              <DhcpAutocomplete
+                onDhcpChange={(dhcp) => {
+                  dispatch({ type: "dhcp_group", payload: dhcp });
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="host-description">Description</label>
+              <textarea
+                id="host-description"
+                value={host.description}
+                onChange={(e) =>
+                  dispatch({ type: "description", payload: e.target.value })
+                }
+                className="border border-gray-300 rounded-md p-2"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="host-last-check">Disable Host</label>
@@ -212,4 +221,43 @@ export const EditHostModule = (p: {
       </dialog>
     </>
   );
+};
+
+const choices = {
+  0: "Don't Renew",
+  1: "1 Day",
+  7: "1 Week",
+  14: "2 Weeks",
+  180: "6 Months",
+  365: "1 Year",
+  10950: "30 Years",
+};
+
+const networkAddressTypes = ["Management", "Quarantine"];
+
+const ipAddressTypes = ["IPV6", "Non-routable", "Routable"];
+
+const hostReducer = (state: any, action: any) => {
+  switch (action.type) {
+    case "mac":
+      return { ...state, mac: action.payload };
+    case "hostname":
+      return { ...state, hostname: action.payload };
+    case "address_type":
+      return { ...state, address_type: action.payload };
+    case "description":
+      return { ...state, description: action.payload };
+    case "expire_days":
+      return { ...state, expire_days: action.payload };
+    case "disabled_host":
+      return { ...state, disabled_host: action.payload };
+    case "network":
+      return { ...state, network: action.payload };
+    case "address":
+      return { ...state, address: action.payload };
+    case "dhcp_group":
+      return { ...state, dhcp_group: action.payload };
+    default:
+      return state;
+  }
 };

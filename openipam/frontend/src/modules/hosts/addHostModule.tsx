@@ -56,7 +56,7 @@ export const AddHostModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add host</h1>
+          <h1 className="text-2xl font-bold mb-4">Add Host</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -175,7 +175,7 @@ export const AddHostModule = (p: {
                 className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
                 onClick={() => p.setShowModule(false)}
               >
-                Add host
+                Add Host
               </button>
             </div>
           </form>
@@ -210,8 +210,6 @@ const hostReducer = (state: any, action: any) => {
       return { ...state, description: action.payload };
     case "expire_days":
       return { ...state, expire_days: action.payload };
-    case "disabled_host":
-      return { ...state, disabled_host: action.payload };
     case "network":
       return { ...state, network: action.payload };
     case "address":
