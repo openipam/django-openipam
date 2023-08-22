@@ -12,7 +12,7 @@ const AddressLookupKeys = ["address", "name", "gateway", "description"];
 
 export const useAddressesTable = (p: {
   network: string;
-  subnet: string;
+  range: string;
   setShowModule: any;
   setEditModule: any;
 }) => {
@@ -21,7 +21,7 @@ export const useAddressesTable = (p: {
 
   const data = useInfiniteNetworkAddresses({
     network: p.network,
-    subnet: p.subnet,
+    range: p.range,
     ...Object.fromEntries(
       columnFilters
         .filter((f) => AddressLookupKeys.includes(f.id) && f.value)

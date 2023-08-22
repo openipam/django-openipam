@@ -100,9 +100,9 @@ export const AddHostModule = (p: {
                 }}
                 className="rounded-md p-2 select select-bordered"
               >
-                {addressTypes?.map(({ name, id }) => (
+                {addressTypes?.map(({ name, description, id }) => (
                   <option value={name} key={id}>
-                    {name}
+                    {description}
                   </option>
                 ))}
               </select>

@@ -4,7 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 
 export const useInfiniteNetworkAddresses = (p: {
   network: string;
-  subnet: string;
+  range: string;
   [key: string]: string | undefined;
 }) => {
   const api = useApi();
@@ -12,7 +12,7 @@ export const useInfiniteNetworkAddresses = (p: {
     queryKey: ["network, Addresses", ...Object.entries(p).flat()],
     queryFn: async ({ pageParam = 1 }) => {
       const results = await api.networks
-        .byId(`${p.network}/${p.subnet}`)
+        .byId(`${p.network}/${p.range}`)
         .addresses.get({ page: pageParam, ...p });
       return {
         addresses: results.results,

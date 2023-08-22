@@ -6,12 +6,12 @@ import { useAuth } from "../../hooks/useAuth";
 
 export const Network = () => {
   const auth = useAuth();
-  const { network, subnet } = useParams();
+  const { network, range } = useParams();
   const [showModule, setShowModule] = useState(false);
   const [editModule, setEditModule] = useState(false);
   const data = useAddressesTable({
     network: network ?? "",
-    subnet: subnet ?? "",
+    range: range ?? "",
     setShowModule,
     setEditModule,
   });
@@ -25,7 +25,7 @@ export const Network = () => {
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">
-        {network}/{subnet}
+        {network}/{range}
       </h1>
       <p>
         Provide filtering and searching capabilities based on status (used,
