@@ -173,7 +173,10 @@ class AddressSerializer(ModelSerializer):
 
     def get_gateway(self, obj):
         """Return gateway address for network."""
-        return str(obj.network.gateway.ip)
+        if obj.network.gateway:
+            return str(obj.network.gateway.ip)
+        else:
+            return None
 
     def validate_network(self, value):
         """Validate that the network contains the address."""
