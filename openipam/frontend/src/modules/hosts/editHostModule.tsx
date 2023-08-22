@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost, Host } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
@@ -11,6 +11,7 @@ export const EditHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: any) => void;
 }) => {
+  const [networkToggle, setNetworkToggle] = useState(true);
   const api = useApi();
   const [host, dispatch] = useReducer(hostReducer, {
     ...p.HostData,
@@ -20,6 +21,9 @@ export const EditHostModule = (p: {
   const updateHost = async (HostData: CreateHost) => {
     const results = await api.hosts.byId(HostData.mac).update({ ...HostData });
     alert(`successfully edited ${HostData.mac}`);
+  };
+  const isDynamic = (addressType: string) => {
+    return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);
   };
   return (
     <>
@@ -103,7 +107,21 @@ export const EditHostModule = (p: {
                 ))}
               </select>
             </div>
-            {networkAddressTypes.includes(host.address_type) && (
+            {!isDynamic(host.address_type) && (
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex flex-row w-full m-auto justify-center gap-1">
+                  <label>IP Address</label>
+                  <input
+                    type="checkbox"
+                    className="toggle toggle-primary mx-8"
+                    checked={networkToggle}
+                    onChange={() => setNetworkToggle(!networkToggle)}
+                  />
+                  <label>Network</label>
+                </div>
+              </div>
+            )}
+            {!isDynamic(host.address_type) && networkToggle && (
               <div className="flex flex-col gap-2">
                 <label htmlFor="network">Network</label>
                 <NetworkAutocomplete
@@ -114,7 +132,7 @@ export const EditHostModule = (p: {
                 />
               </div>
             )}
-            {ipAddressTypes.includes(host.address_type) && (
+            {!isDynamic(host.address_type) && !networkToggle && (
               <div className="flex flex-col gap-2">
                 <label htmlFor="network">IP Address</label>
                 <AddressAutocomplete
@@ -232,10 +250,6 @@ const choices = {
   365: "1 Year",
   10950: "30 Years",
 };
-
-const networkAddressTypes = ["Management", "Quarantine"];
-
-const ipAddressTypes = ["IPV6", "Non-routable", "Routable"];
 
 const hostReducer = (state: any, action: any) => {
   switch (action.type) {
