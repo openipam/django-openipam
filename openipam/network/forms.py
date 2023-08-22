@@ -90,7 +90,7 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
 
 
 class NetworkForm(forms.ModelForm):
-    tags = TaggitField(widget=TaggitWidget("TagAutocomplete"))
+    tags = TaggitField(widget=TaggitWidget("TagAutocomplete"), required=False)
 
     class Meta:
         exclude = ("changed", "tags")
