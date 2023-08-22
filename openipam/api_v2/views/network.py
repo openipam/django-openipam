@@ -124,12 +124,25 @@ class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Address.objects.all().select_related("host").order_by("address")
     serializer_class = AddressSerializer
     # Only admins should have access to network data
-    permission_classes = [base_permissions.IsAdminUser]
+    permission_classes = [base_permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     pagination_class = AddressPagination
     filterset_class = AddressFilterSet
     ordering_fields = ["address", "changed"]
     lookup_value_regex = r"(?:(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))|(?:[0-9a-fA-F:]+)"
+
+    def get_queryset(self):
+        """Restrict to only addresses that are a part of networks we are allowed to add records to."""
+        # Don't waste time if the user is an admin
+        if self.request.user.is_ipamadmin:
+            return self.queryset
+        allowed_nets = get_objects_for_user(
+            self.request.user,
+            ["network.add_records_to_network", "network.is_owner_network"],
+            Network,
+            any_perm=True,
+        )
+        return self.queryset.filter(network__in=allowed_nets)
 
 
 class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
