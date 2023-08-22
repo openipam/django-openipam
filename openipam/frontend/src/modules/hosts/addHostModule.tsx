@@ -16,17 +16,22 @@ export const AddHostModule = (p: {
     hostname: "",
     network: { id: 0, network: "" },
     address_type: "Dynamic",
-    address: { id: 0, address: "" },
+    ip_address: { id: 0, address: "" },
     description: "",
     expire_days: 365,
   });
   const [networkToggle, setNetworkToggle] = useState(true);
   const addressTypes = useAddressTypes().data?.addressTypes;
-  const addHost = async (hostData: CreateHost) => {
-    const results = await api.hosts.create({ ...hostData });
+  const addHost = async () => {
+    const results = await api.hosts.create({ 
+      ...host,
+       network: host.network?.network,
+        ip_address: host.ip_address?.address,
+      dhcp_group: host.dhcp_group?.name,
+      } satisfies CreateHost);
     console.log(results);
     p.setShowModule(false);
-    window.location.href = "/ui/#/hosts/" + hostData.mac;
+    window.location.href = "/ui/#/hosts/" + host.mac;
   };
   const isDynamic = (addressType: string) => {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);
@@ -65,7 +70,7 @@ export const AddHostModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              addHost(host);
+              addHost();
             }}
           >
             <div className="flex flex-col gap-2">
@@ -128,7 +133,7 @@ export const AddHostModule = (p: {
                   onNetworkChange={(network) => {
                     dispatch({ type: "network", payload: network });
                   }}
-                  networkId={host.network?.id}
+                  networkId={host.network?.network}
                   addressType={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
@@ -142,7 +147,7 @@ export const AddHostModule = (p: {
                   onAddressChange={(address) => {
                     dispatch({ type: "address", payload: address });
                   }}
-                  addressId={host.address?.id}
+                  addressId={host.ip_address?.address}
                   type={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
@@ -225,7 +230,7 @@ const hostReducer = (state: any, action: any) => {
     case "hostname":
       return { ...state, hostname: action.payload };
     case "address_type":
-      return { ...state, address_type: action.payload };
+      return { ...state, address_type: action.payload, network: null, ip_address: null };
     case "description":
       return { ...state, description: action.payload };
     case "expire_days":
@@ -233,7 +238,7 @@ const hostReducer = (state: any, action: any) => {
     case "network":
       return { ...state, network: action.payload };
     case "address":
-      return { ...state, address: action.payload };
+      return { ...state, ip_address: action.payload };
     case "dhcp_group":
       return { ...state, dhcp_group: action.payload };
     default:

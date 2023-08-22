@@ -6,7 +6,7 @@ import { Network } from "../../utils/types";
 
 export const NetworkAutocomplete = (p: {
   onNetworkChange: (network: any) => void;
-  networkId?: any;
+  networkId?: string;
   addressType?: number;
 }) => {
   const [filter, setFilter] = useState("");
@@ -29,10 +29,15 @@ export const NetworkAutocomplete = (p: {
   }, [network]);
 
   useEffect(() => {
-    if (!p.networkId) return;
-    const network = networks.find((n) => n.id === p.networkId);
-    if (network) {
-      setNetwork(network);
+    console.log(p.networkId, network);
+    if (!p.networkId) {
+      setNetwork(undefined);
+      setFilter("");
+      return;
+    }
+    const n = networks.find((n) => n.network === p.networkId);
+    if (n) {
+      setNetwork(n);
     }
   }, [p.networkId]);
 

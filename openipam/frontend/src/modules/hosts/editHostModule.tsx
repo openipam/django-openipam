@@ -18,16 +18,29 @@ export const EditHostModule = (p: {
     expires_days: 0,
   });
   const addressTypes = useAddressTypes().data?.addressTypes;
-  const updateHost = async (HostData: CreateHost) => {
-    const results = await api.hosts.byId(HostData.mac).update({ ...HostData });
-    alert(`successfully edited ${HostData.mac}`);
+  const updateHost = async () => {
+    if (host.expire_days === 0) delete host.expire_days;
+    const results = await api.hosts.byId(host.mac).update({ 
+      ...host,
+       network: host.network?.network,
+        ip_address: host.ip_address?.address,
+      dhcp_group: host.dhcp_group?.name,
+      } satisfies CreateHost);
+    alert(`successfully edited ${host.mac}`);
   };
   const isDynamic = (addressType: string) => {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);
   };
   useEffect(() => {
     if (p.HostData)
-      dispatch({ type: "reset", payload: { ...p.HostData, expires_days: 0 } });
+      dispatch({
+        type: "reset",
+        payload: {
+          ...p.HostData,
+          expire_days: 0,
+          dhcp_group: p.HostData?.dhcp_group?.name,
+        },
+      });
   }, [p.HostData]);
   return (
     <>
@@ -68,7 +81,7 @@ export const EditHostModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              updateHost(host);
+              updateHost();
             }}
           >
             <div className="flex flex-col gap-2">
@@ -87,7 +100,7 @@ export const EditHostModule = (p: {
               <input
                 type="text"
                 id="host-name"
-                value={host.hostname}
+                value={host.hostname ?? ''}
                 onChange={(e) =>
                   dispatch({ type: "hostname", payload: e.target.value })
                 }
@@ -98,7 +111,7 @@ export const EditHostModule = (p: {
               <label htmlFor="type">Address Type</label>
               <select
                 id={`type`}
-                value={host.address_type}
+                value={host.address_type ?? 'Other'}
                 onChange={(v) => {
                   dispatch({ type: "address_type", payload: v.target.value });
                 }}
@@ -113,6 +126,7 @@ export const EditHostModule = (p: {
             </div>
             {!isDynamic(host.address_type) && (
               <div className="flex flex-col gap-2 mt-2">
+                <label>Note: Leave blank to keep the same</label>
                 <div className="flex flex-row w-full m-auto justify-center gap-1">
                   <label>IP Address</label>
                   <input
@@ -132,7 +146,10 @@ export const EditHostModule = (p: {
                   onNetworkChange={(network) => {
                     dispatch({ type: "network", payload: network });
                   }}
-                  networkId={host.network?.id}
+                  networkId={host.network?.network}
+                  addressType={
+                    addressTypes?.find((t) => t.name === host.address_type)?.id
+                  }
                 />
               </div>
             )}
@@ -143,7 +160,10 @@ export const EditHostModule = (p: {
                   onAddressChange={(address) => {
                     dispatch({ type: "address", payload: address });
                   }}
-                  addressId={host.address?.id}
+                  addressId={host.ip_address?.address}
+                  type={
+                    addressTypes?.find((t) => t.name === host.address_type)?.id
+                  }
                 />
               </div>
             )}
@@ -151,7 +171,7 @@ export const EditHostModule = (p: {
               <label htmlFor="Dns-name">Expires</label>
               <select
                 id={`expires`}
-                value={host.expire_days}
+                value={host.expire_days ?? 0}
                 onChange={(v) => {
                   dispatch({ type: "expire_days", payload: v.target.value });
                 }}
@@ -172,13 +192,14 @@ export const EditHostModule = (p: {
                 onDhcpChange={(dhcp) => {
                   dispatch({ type: "dhcp_group", payload: dhcp });
                 }}
+                DhcpId={host.dhcp_group?.id}
               />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="host-description">Description</label>
               <textarea
                 id="host-description"
-                value={host.description}
+                value={host.description ?? ''}
                 onChange={(e) =>
                   dispatch({ type: "description", payload: e.target.value })
                 }
@@ -205,9 +226,11 @@ export const EditHostModule = (p: {
               <div className="flex flex-col gap-2">
                 <label htmlFor="host-last-check">Reason to Disable</label>
                 <textarea
-                  id="host-description"
-                  value={p.HostData?.description ?? ""}
-                  onChange={() => {}}
+                  id="host-reason"
+                  value={""}
+                  onChange={(e) => {
+                    dispatch({ type: "reason", payload: e.target.value });
+                  }}
                   className="border border-gray-300 rounded-md p-2"
                 />
               </div>
@@ -262,7 +285,7 @@ const hostReducer = (state: any, action: any) => {
     case "hostname":
       return { ...state, hostname: action.payload };
     case "address_type":
-      return { ...state, address_type: action.payload };
+      return { ...state, address_type: action.payload, network: null, ip_address: null };
     case "description":
       return { ...state, description: action.payload };
     case "expire_days":
@@ -272,9 +295,11 @@ const hostReducer = (state: any, action: any) => {
     case "network":
       return { ...state, network: action.payload };
     case "address":
-      return { ...state, address: action.payload };
+      return { ...state, ip_address: action.payload };
     case "dhcp_group":
       return { ...state, dhcp_group: action.payload };
+    case "reason":
+      return { ...state, reason: action.payload };
     case "reset":
       return { ...action.payload };
     default:

@@ -27,8 +27,12 @@ export const AddressAutocomplete = (p: {
   }, [Address]);
 
   useEffect(() => {
-    if (!p.addressId) return;
-    const Address = Addresss.find((n) => n.id === p.addressId);
+    if (!p.addressId) {
+      setAddress(undefined);
+      setFilter("");
+      return;
+    }
+    const Address = Addresss.find((n) => n.address === p.addressId);
     if (Address) {
       setAddress(Address);
     }

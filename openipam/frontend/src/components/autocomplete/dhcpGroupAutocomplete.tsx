@@ -23,7 +23,11 @@ export const DhcpAutocomplete = (p: {
   }, [Dhcp]);
 
   useEffect(() => {
-    if (!p.DhcpId) return;
+    if (!p.DhcpId) {
+      setDhcp(undefined);
+      setFilter("");
+      return;
+    }
     const Dhcp = Dhcps.find((n) => n.id === p.DhcpId);
     if (Dhcp) {
       setDhcp(Dhcp);
