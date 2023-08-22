@@ -7,6 +7,7 @@ import { HostTableActions } from "./hostTableActions";
 import { HostTableColumns } from "./hostTableColumns";
 import { CreateTable } from "../../components/table/createTable";
 import { useAuth } from "../../hooks/useAuth";
+import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 
 //TODO disabled columns only shows for admins.
 
@@ -40,6 +41,7 @@ export const useHostsTable = (p: {
   const [rowSelection, setRowSelection] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
   const auth = useAuth();
+  const addressTypes = useAddressTypes().data?.addressTypes;
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -64,6 +66,11 @@ export const useHostsTable = (p: {
               return [`disabled`, val];
             case "ip_addresses":
               return [`ip_address`, val ?? ""];
+            case "address_type":
+              return [
+                `address_type`,
+                addressTypes?.find((t) => t.name === val)?.id ?? "",
+              ];
             default:
               return [key, val ?? ""];
           }

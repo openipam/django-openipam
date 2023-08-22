@@ -21,6 +21,7 @@ class HostFilter(filters.FilterSet):
     mac = filters.CharFilter(method="filter_mac", lookup_expr="icontains", label="MAC Address")
     hostname = filters.CharFilter(method="filter_hostname", lookup_expr="icontains", label="Hostname")
     disabled = filters.BooleanFilter(method="filter_disabled", label="Disabled")
+    address_type = filters.CharFilter(method="filter_address_type", label="Address Type")
     # Expiration date filters
     expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
     expires__lt = filters.DateTimeFilter(method="filter_expires__lt", lookup_expr="lt")
@@ -46,6 +47,10 @@ class HostFilter(filters.FilterSet):
             "expires__gt",
             "expires__lt",
         ]
+
+    def filter_address_type(self, queryset, name, value):
+        """Filter based on address type."""
+        return queryset.filter(address_type_id=value)
 
     def filter_disabled(self, queryset, name, value):
         """Filter based on disabled."""

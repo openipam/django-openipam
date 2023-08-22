@@ -71,6 +71,7 @@ export type Host = {
     description: string;
   };
   last_seen: string;
+  address_type: string;
 };
 
 export type Domain = {

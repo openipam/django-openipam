@@ -129,6 +129,9 @@ export const AddHostModule = (p: {
                     dispatch({ type: "network", payload: network });
                   }}
                   networkId={host.network?.id}
+                  addressType={
+                    addressTypes?.find((t) => t.name === host.address_type)?.id
+                  }
                 />
               </div>
             )}
@@ -140,6 +143,9 @@ export const AddHostModule = (p: {
                     dispatch({ type: "address", payload: address });
                   }}
                   addressId={host.address?.id}
+                  type={
+                    addressTypes?.find((t) => t.name === host.address_type)?.id
+                  }
                 />
               </div>
             )}

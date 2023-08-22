@@ -3,13 +3,15 @@ import { AutocompleteSelect } from "./autocomplete";
 import { Place } from "@mui/icons-material";
 import { Address } from "../../utils/types";
 import { useInfiniteAddresses } from "../../hooks/queries/useInfiniteAddresses";
+import { type } from "os";
 
 export const AddressAutocomplete = (p: {
   onAddressChange: (Address: any) => void;
   addressId?: any;
+  type?: number;
 }) => {
   const [filter, setFilter] = useState("");
-  const AddressList = useInfiniteAddresses({ address: filter });
+  const AddressList = useInfiniteAddresses({ address: filter, type: p.type });
 
   const Addresss = useMemo<any[]>(() => {
     if (!AddressList.data) {
