@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
+from ..permissions import ReadRestrictObjectPermissions
+
 from ..serializers.network import (
     DhcpGroupSerializer,
     NetworkSerializer,
@@ -16,6 +18,7 @@ from .base import APIPagination
 from openipam.network.models import Address, DhcpGroup, Network, Pool, AddressType
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
+from guardian.shortcuts import get_objects_for_user
 
 
 class AddressPagination(APIPagination):
@@ -41,7 +44,7 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = NetworkSerializer
     # Only admins should have access to network data
-    permission_classes = [base_permissions.IsAdminUser]
+    permission_classes = [base_permissions.DjangoObjectPermissions]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     pagination_class = APIPagination
     filterset_class = NetworkFilter
@@ -50,6 +53,22 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_value_regex = r"((?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\/(?:3[0-2]|[0-2]?\d))|(?:[0-9a-fA-F:]+\/\d{1,3})"
 
     ordering_fields = ["network", "name", "changed"]
+
+    def get_queryset(self):
+        """Filter out networks that the user does not have read access to."""
+        # Don't waste time if the user is an admin
+        if self.request.user.is_ipamadmin:
+            return self.queryset
+        return get_objects_for_user(
+            self.request.user,
+            [
+                "network.add_records_to_network",
+                "network.is_owner_network",
+                "network.change_network",
+            ],
+            self.queryset,
+            any_perm=True,
+        )
 
     @action(
         detail=True,
