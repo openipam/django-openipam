@@ -9,6 +9,7 @@ from openipam.network.models import (
     Building,
     BuildingToVlan,
 )
+
 from autocomplete_light import shortcuts as al
 from autocomplete_light.contrib.taggit_field import TaggitField, TaggitWidget
 
@@ -86,6 +87,13 @@ class DhcpOptionToDhcpGroupAdminForm(forms.ModelForm):
     class Meta:
         model = DhcpOptionToDhcpGroup
         exclude = ("value",)
+
+
+class NetworkForm(forms.ModelForm):
+    tags = TaggitField(widget=TaggitWidget("TagAutocomplete"))
+
+    class Meta:
+        exclude = ("changed", "tags")
 
 
 class NetworkTagForm(forms.Form):

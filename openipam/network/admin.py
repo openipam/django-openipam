@@ -30,6 +30,7 @@ from openipam.network.forms import (
     DhcpOptionToDhcpGroupAdminForm,
     AddressAdminForm,
     LeaseAdminForm,
+    NetworkForm,
     NetworkReziseForm,
     VlanForm,
     BuildingAssignForm,
@@ -49,7 +50,7 @@ class NetworkAdmin(ChangedAdmin):
         "changed",
     )
     list_filter = (("tags__name", custom_titled_filter("Tags")), "shared_network__name")
-    form = al.modelform_factory(Network, exclude=("changed,"))
+    form = NetworkForm
     search_fields = ("^network", "^name", "^shared_network__name")
     actions = ["tag_network", "resize_network", "release_abandoned_leases"]
 
