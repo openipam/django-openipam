@@ -35,7 +35,9 @@ class NetworkSerializer(ModelSerializer):
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
-        return self.context["request"].build_absolute_uri(f"/api/v2/networks/{obj.pk}/addresses/")
+        return self.context["request"].build_absolute_uri(
+            f"/api/v2/networks/{obj.pk}/addresses/"
+        )
 
     def get_gateway(self, obj):
         if obj.gateway:
@@ -58,7 +60,11 @@ class NetworkSerializer(ModelSerializer):
         # and then get the buildings for those vlans
         buildings = []
         for vlan in obj.vlans.all():
-            buildings.extend(vlan.buildings.all().values("id", "name", "abbreviation", "number", "city"))
+            buildings.extend(
+                vlan.buildings.all().values(
+                    "id", "name", "abbreviation", "number", "city"
+                )
+            )
         return buildings
 
     class Meta:
@@ -201,7 +207,23 @@ class AddressSerializer(ModelSerializer):
         )
 
 
+class AddressCidrField(Field):
+    def to_representation(self, value):
+        """Convert address object to string."""
+        return str(value)
+
+    def to_internal_value(self, data):
+        """Find address object based on string."""
+        return ipaddress.ip_interface(data)
+
+
 class AddressTypeSerializer(ModelSerializer):
+    ranges = SerializerMethodField()
+
+    def get_ranges(self, obj):
+        """Return a list of ranges for the address type."""
+        return [str(range) for range in obj.ranges.values_list("range", flat=True)]
+
     class Meta:
         model = AddressType
         fields = "__all__"
