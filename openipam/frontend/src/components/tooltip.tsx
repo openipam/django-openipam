@@ -1,7 +1,8 @@
+import { Info, InfoOutlined } from "@mui/icons-material";
 import React, { useState } from "react";
 
 export const ToolTip = (p: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   text: string;
   props?: string;
 }) => {
@@ -18,7 +19,13 @@ export const ToolTip = (p: {
     <div className="relative">
       {/* Hover over this div to hide/show <HoverText /> */}
       <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-        {p.children}
+        {p.children ?? (
+          <>
+            <div className="pl-0.5 pb-0.5">
+              <InfoOutlined fontSize="inherit" />
+            </div>
+          </>
+        )}
       </div>
       {isHovering && (
         <div

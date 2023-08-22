@@ -77,7 +77,15 @@ export const HostTableColumns = (p: {
       columns: [
         {
           id: "mac",
-          header: "Mac",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center">Mac</p>
+              <ToolTip
+                text="Use XX:XX:XX:XX:XX:XX Format"
+                props="rounded-br-none right-4 bottom-4"
+              />
+            </div>
+          ),
           accessorFn: (row) => row.mac,
         },
         {
@@ -94,7 +102,15 @@ export const HostTableColumns = (p: {
         {
           id: "expires",
           size: 200,
-          header: "Expires",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center">Expires</p>
+              <ToolTip
+                text="YYYY-MM-DD (Days Until Expiration)"
+                props="rounded-br-none right-4 bottom-4"
+              />
+            </div>
+          ),
           accessorFn: (row) =>
             row.expires
               ? new Date(row.expires).toISOString().split("T")[0]
@@ -128,7 +144,15 @@ export const HostTableColumns = (p: {
         },
         {
           id: "ip_addresses",
-          header: "IP Addresses",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center">IP Addresses</p>
+              <ToolTip
+                text="XX.XX.XX.XX (Total)"
+                props="rounded-br-none right-4 bottom-4"
+              />
+            </div>
+          ),
           cell: ({ row }: { row: any }) => {
             return row.original.master_ip_address ||
               row.addresses?.leased?.[0] ? (
@@ -153,6 +177,7 @@ export const HostTableColumns = (p: {
           },
           accessorFn: (row) =>
             row.master_ip_address ?? row.addresses?.leased?.[0],
+          filterFn: undefined,
         },
         {
           id: "dhcp_group",
@@ -202,11 +227,9 @@ export const HostTableColumns = (p: {
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center">User Owners</p>
               <ToolTip
-                text="Case Sensitive"
+                text="By Username"
                 props="rounded-br-none right-4 bottom-4"
-              >
-                <Info fontSize="small" />
-              </ToolTip>
+              />
             </div>
           ),
           size: 200,
@@ -214,7 +237,15 @@ export const HostTableColumns = (p: {
         },
         {
           id: "group_owners",
-          header: "Group Owners",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center">Group Owners</p>
+              <ToolTip
+                text="Use Full Name"
+                props="rounded-br-none right-4 bottom-4"
+              />
+            </div>
+          ),
           size: 200,
           accessorFn: (row) => row.group_owners?.join(", "),
         },
