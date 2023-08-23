@@ -77,6 +77,12 @@ class NetworkFilter(df.FilterSet):
         label="Address Type",
     )
 
+    shared_network = df.CharFilter(
+        field_name="shared_network__name",
+        lookup_expr="icontains",
+        label="Shared Network Name",
+    )
+
     def filter_address_type(self, queryset, _, value):
         """Filter based on address type."""
         if value:
