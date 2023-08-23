@@ -1,8 +1,11 @@
+from functools import reduce
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions as base_permissions, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
+
+from django.db.models import Q
 
 from ..permissions import ReadRestrictObjectPermissions
 
@@ -15,7 +18,14 @@ from ..serializers.network import (
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
-from openipam.network.models import Address, DhcpGroup, Network, Pool, AddressType
+from openipam.network.models import (
+    Address,
+    DhcpGroup,
+    Network,
+    NetworkRange,
+    Pool,
+    AddressType,
+)
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
 from guardian.shortcuts import get_objects_for_user
@@ -175,3 +185,39 @@ class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = AddressType.objects.prefetch_related("ranges").all()
     serializer_class = AddressTypeSerializer
+    permission_classes = [base_permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Restrict to address types that have a range that the user can add records to."""
+        # Don't waste time if the user is an admin
+        if self.request.user.is_ipamadmin:
+            return self.queryset
+
+        # This is stupid, object-level permissions for address types are not implemented
+        # so we need to do this using network and pool permissions. This is slow and hits
+        # the database a lot, but it's the only way to do it right now.
+        allowed_networks = get_objects_for_user(
+            self.request.user,
+            ["network.add_records_to_network", "network.is_owner_network"],
+            Network,
+            any_perm=True,
+        ).values_list("network", flat=True)
+        allowed_pools = get_objects_for_user(
+            self.request.user,
+            ["network.add_records_to_pool"],
+            Pool,
+            any_perm=True,
+        )
+        query = Q(pk__in=[])
+        if allowed_networks:
+            query |= reduce(
+                lambda x, y: x | y,
+                [Q(ranges__range__net_overlaps=net) for net in allowed_networks],
+            )
+        if allowed_pools:
+            query |= reduce(
+                lambda x, y: x | y,
+                [Q(pool__in=allowed_pools)],
+            )
+
+        return self.queryset.filter(query).distinct()
