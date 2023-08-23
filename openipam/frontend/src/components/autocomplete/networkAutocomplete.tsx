@@ -12,7 +12,7 @@ export const NetworkAutocomplete = (p: {
   const [filter, setFilter] = useState("");
   const networkList = useInfiniteNetworks({
     network: filter,
-    address_type: p.addressType,
+    ...(p.addressType ? { address_type: p.addressType } : {}),
   });
 
   const networks = useMemo<any[]>(() => {

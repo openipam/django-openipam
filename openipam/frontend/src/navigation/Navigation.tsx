@@ -8,39 +8,30 @@ export const Navigation = () => {
     <div className="bg-base-100">
       <div className="w-full navbar menu menu-horizontal items-center flex flex-row bg-base-300">
         <button className="btn btn-ghost btn-primary">
-          <Link className="link-hover text-white font-semibold text-lg" to="/">
+          <Link className="link-hover font-semibold text-lg" to="/">
             Home
           </Link>
         </button>
         <button className="btn btn-ghost btn-primary">
-          <Link
-            className="link-hover text-white font-semibold text-lg"
-            to="/hosts"
-          >
+          <Link className="link-hover font-semibold text-lg" to="/hosts">
             Hosts
           </Link>
         </button>
         <button className="btn btn-ghost btn-primary">
-          <Link
-            className="link-hover text-white font-semibold text-lg"
-            to="/domains"
-          >
+          <Link className="link-hover font-semibold text-lg" to="/domains">
             Domains
           </Link>
         </button>
         {auth?.is_ipamadmin && (
           <>
             <button className="btn btn-ghost btn-primary">
-              <Link
-                className="link-hover text-white font-semibold text-lg"
-                to="/networks"
-              >
+              <Link className="link-hover font-semibold text-lg" to="/networks">
                 Networks
               </Link>
             </button>
             <button className="btn btn-ghost btn-primary">
               <Link
-                className="link-hover text-white font-semibold text-lg"
+                className="link-hover font-semibold text-lg"
                 to="/admin/logs"
               >
                 Logs
@@ -48,7 +39,7 @@ export const Navigation = () => {
             </button>
             <button className="btn btn-ghost btn-primary">
               <Link
-                className="link-hover text-white font-semibold text-lg"
+                className="link-hover font-semibold text-lg"
                 to="/admin/users"
               >
                 Users

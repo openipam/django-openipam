@@ -6,6 +6,7 @@ import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { useInfiniteNetworkAddresses } from "../../hooks/queries/useInfiniteNetworkAddresses";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
+import { useNavigate } from "react-router";
 
 const AddressLookupKeys = ["address", "name", "gateway", "description"];
 
@@ -33,7 +34,7 @@ export const useAddressesTable = (p: {
     }
     return data.data.pages.flatMap((page) => page.addresses);
   }, [data.data]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (data.data) {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.addresses)]);
@@ -46,6 +47,9 @@ export const useAddressesTable = (p: {
       size: 80,
       onAdd: () => {
         p.setShowModule(true);
+      },
+      onView: (row) => {
+        navigate(`/addresses/${row.address}`);
       },
       onEdit: (row) => {
         p.setEditModule({
@@ -66,6 +70,19 @@ export const useAddressesTable = (p: {
         {
           id: "host",
           header: "host",
+          cell: ({ row }: { row: { original: Address } }) => {
+            return row.original.host ? (
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/hosts/${row.original.host}`}
+              >
+                {row.original.host}
+              </a>
+            ) : (
+              <></>
+            );
+          },
+
           accessorFn: (row) => row.host,
         },
         {

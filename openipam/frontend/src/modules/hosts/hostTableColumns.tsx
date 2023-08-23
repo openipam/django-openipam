@@ -79,7 +79,7 @@ export const HostTableColumns = (p: {
           id: "mac",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center">Mac</p>
+              <p className="flex text-center text-secondary-content">Mac</p>
               <ToolTip
                 text="Use XX:XX:XX:XX:XX:XX Format"
                 props="rounded-br-none right-4 bottom-4"
@@ -104,9 +104,9 @@ export const HostTableColumns = (p: {
           size: 200,
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center">Expires</p>
+              <p className="flex text-center text-secondary-content">Expires</p>
               <ToolTip
-                text="YYYY-MM-DD (Days Until Expiration)"
+                text="From - To"
                 props="rounded-br-none right-4 bottom-4"
               />
             </div>
@@ -145,9 +145,11 @@ export const HostTableColumns = (p: {
           id: "ip_addresses",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center">IP Addresses</p>
+              <p className="flex text-center text-secondary-content">
+                IP Addresses
+              </p>
               <ToolTip
-                text="XX.XX.XX.XX (Total)"
+                text="XX.XX.XX.XX"
                 props="rounded-br-none right-4 bottom-4"
               />
             </div>
@@ -224,7 +226,9 @@ export const HostTableColumns = (p: {
           // header: "User Owners",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center">User Owners</p>
+              <p className="flex text-center text-secondary-content">
+                User Owners
+              </p>
               <ToolTip
                 text="By Username"
                 props="rounded-br-none right-4 bottom-4"
@@ -238,7 +242,9 @@ export const HostTableColumns = (p: {
           id: "group_owners",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center">Group Owners</p>
+              <p className="flex text-center text-secondary-content">
+                Group Owners
+              </p>
               <ToolTip
                 text="Use Full Name"
                 props="rounded-br-none right-4 bottom-4"

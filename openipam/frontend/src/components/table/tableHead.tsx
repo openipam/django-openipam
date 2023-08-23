@@ -45,7 +45,7 @@ const TableHeaderLabel = (p: {
   const header = p.header;
   return (
     <div
-      className={`whitespace-nowrap ${
+      className={`whitespace-nowrap text-secondary-content ${
         header.column.getCanSort() && !p.hideSorting
           ? "cursor-pointer select-none"
           : ""
@@ -198,7 +198,7 @@ export const TableHeaderCell = (p: {
   return (
     <th
       {...thProps}
-      className={`sticky top-0 text-center bg-gray-500 text-white ${headerBorderClasses} ${
+      className={`sticky top-0 text-center bg-gray-500 text-secondary-content ${headerBorderClasses} ${
         thProps.className ?? ""
       }`}
       colSpan={header.colSpan}
