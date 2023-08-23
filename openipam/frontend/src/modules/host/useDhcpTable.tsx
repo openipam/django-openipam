@@ -1,6 +1,5 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter } from "../../components/table/filters";
 import React from "react";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
@@ -94,7 +93,6 @@ export const useDhcpTable = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
         },
       ],
     }),

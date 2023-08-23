@@ -57,20 +57,20 @@ export const useAddressesTable = (p: {
         navigate(`/addresses/${row.name}`);
       },
     }),
-    {
-      id: "name",
-      header: "Name",
-      accessorFn: (row) => row.name,
-    },
-    {
-      id: "is_leased",
-      header: "Type",
-      accessorFn: (row) => (row.is_leased ? "Leased" : "Static"),
-      meta: {
-        filterType: "exact",
-        filterOptions: ["Leased", "Static"],
-      },
-    },
+    // {
+    //   id: "name",
+    //   header: "Name",
+    //   accessorFn: (row) => row.name,
+    // },
+    // {
+    //   id: "is_leased",
+    //   header: "Type",
+    //   accessorFn: (row) => (row.is_leased ? "Leased" : "Static"),
+    //   meta: {
+    //     filterType: "exact",
+    //     filterOptions: ["Leased", "Static"],
+    //   },
+    // },
   ];
 
   const table = CreateTable({

@@ -140,7 +140,6 @@ export const HostTableColumns = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: undefined,
         },
         {
           id: "ip_addresses",

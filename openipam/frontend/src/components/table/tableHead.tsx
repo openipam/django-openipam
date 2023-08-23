@@ -80,35 +80,18 @@ function Filter({
   table: Table<any>;
   header: Header<any, unknown>;
 }) {
-  const firstValue = table
-    .getPreFilteredRowModel()
-    ?.flatRows[0]?.getValue(column.id);
-
   const columnFilterValue = column.getFilterValue();
-
-  const sortedUniqueValues = useMemo(
-    () =>
-      typeof firstValue === "number"
-        ? []
-        : Array.from(column.getFacetedUniqueValues().keys()).sort(),
-    [column.getFacetedUniqueValues()]
-  );
 
   const filterType = header.column.columnDef.meta?.filterType ?? "string";
   switch (filterType) {
     case "string":
       return (
         <>
-          <datalist id={column.id + "list"}>
-            {sortedUniqueValues.slice(0, 5000).map((value: any, i: number) => (
-              <option value={value} key={i} />
-            ))}
-          </datalist>
           <DebouncedInput
             type="text"
             value={(columnFilterValue ?? "") as string}
             onChange={(value) => column.setFilterValue(value)}
-            placeholder={`Search (${column.getFacetedUniqueValues().size})`}
+            placeholder={`Search`}
             className="w-full border shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
           />
@@ -211,6 +194,7 @@ export const TableHeaderCell = (p: {
     visibleCols
   );
   const thProps = header.column.columnDef.meta?.thProps?.() || {};
+  const leafColumns = p.table.getAllLeafColumns().map((c) => c.id);
   return (
     <th
       {...thProps}
@@ -225,9 +209,10 @@ export const TableHeaderCell = (p: {
             header={header}
             hideSorting={Boolean(p.hideSorting)}
           />
-          {header.column.getCanFilter() && !p.hideFilter && (
-            <Filter column={header.column} table={p.table} header={header} />
-          )}
+          {!header.column.columnDef.meta?.hideFilter &&
+            leafColumns.includes(header.column.id) && (
+              <Filter column={header.column} table={p.table} header={header} />
+            )}
         </>
       )}
     </th>

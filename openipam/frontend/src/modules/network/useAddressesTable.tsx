@@ -1,6 +1,5 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter } from "../../components/table/filters";
 import React from "react";
 import { Address } from "../../utils/types";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
@@ -102,7 +101,6 @@ export const useAddressesTable = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
         },
       ],
     }),

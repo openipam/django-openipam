@@ -1,6 +1,5 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { betweenDatesFilter } from "../../components/table/filters";
 import React from "react";
 import { User } from "../../utils/types";
 import { ActionsColumn } from "../../components/table/actionsColumn";
@@ -104,7 +103,6 @@ export const useUsersTable = (p: {}) => {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
         },
         {
           id: "date_joined",
@@ -116,7 +114,6 @@ export const useUsersTable = (p: {}) => {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
         },
       ],
     }),

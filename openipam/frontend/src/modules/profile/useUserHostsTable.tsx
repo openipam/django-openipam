@@ -155,7 +155,6 @@ export const useUserHostsTable = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: undefined,
         },
         {
           id: "ip_addresses",

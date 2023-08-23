@@ -27,6 +27,10 @@ export const ActionsColumn = (p: {
       enableSorting: false,
       enableResizing: false,
       enableColumnFilter: false,
+      accessorFn: () => null,
+      meta: {
+        hideFilter: true,
+      },
       id: "actions",
       header: ({ table }: any) => (
         // force overflow to be visible so that the tooltip can be seen

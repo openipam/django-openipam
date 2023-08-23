@@ -15,7 +15,8 @@ declare module "@tanstack/table-core" {
       className?: Component<HTMLTableCellElement>["props"]["className"];
     };
     filterOptions?: string[] | null;
-    filterType: "string" | "date" | "exact" | "boolean" | null;
+    filterType?: "string" | "date" | "exact" | "boolean" | null;
+    hideFilter?: boolean;
   }
 
   interface TableMeta<TData extends RowData> {

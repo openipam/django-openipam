@@ -1,19 +1,5 @@
-import {
-  ColumnFiltersState,
-  createColumnHelper,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import {
-  betweenDatesFilter,
-  fuzzyFilter,
-} from "../../components/table/filters";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Domain } from "../../utils/types";
@@ -125,6 +111,9 @@ export const useDomainsTable = (p: {
           cell: ({ row }: { row: any }) => {
             return getPerms(row.original.user_perms);
           },
+          meta: {
+            hideFilter: true,
+          },
         },
         {
           id: "group_perms",
@@ -132,6 +121,9 @@ export const useDomainsTable = (p: {
           header: "Group Permissions",
           cell: ({ row }: { row: any }) => {
             return getPerms(row.original.group_perms);
+          },
+          meta: {
+            hideFilter: true,
           },
         },
       ],
@@ -155,7 +147,6 @@ export const useDomainsTable = (p: {
           meta: {
             filterType: "date",
           },
-          filterFn: betweenDatesFilter,
         },
         {
           id: "changedBy",

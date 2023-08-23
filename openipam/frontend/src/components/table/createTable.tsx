@@ -1,5 +1,6 @@
 import {
   ColumnFiltersState,
+  GroupColumnDef,
   getCoreRowModel,
   getFacetedMinMaxValues,
   getFacetedRowModel,
@@ -9,7 +10,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import React from "react";
-import { fuzzyFilter } from "./filters";
 
 export const CreateTable = (p: {
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
@@ -31,14 +31,19 @@ export const CreateTable = (p: {
     getFilteredRowModel: getFilteredRowModel(),
     // Row Selection
     enableRowSelection: true,
+    enableFilters: false,
     enableMultiRowSelection: true,
     ...(p.setRowSelection ? { onRowSelectionChange: p.setRowSelection } : {}),
     data: p.data,
     state: p.state,
     ...(p.meta ? { meta: p.meta } : {}),
-    columns: p.columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
+    columns: p.columns.map((c: any) => ({
+      ...c,
+      columns:
+        c.columns?.map((c: any) => ({
+          ...c,
+          filterFn: undefined,
+        })) ?? [],
+    })),
   });
 };
