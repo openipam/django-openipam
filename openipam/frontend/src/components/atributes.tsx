@@ -18,11 +18,9 @@ export const Attributes = (p: {
   }, [p.attributes]);
 
   const onSubmit = async () => {
-    console.log(newAttributes);
     const results = await api.hosts.byId(p.mac).update({
       attributes: newAttributes,
     });
-    console.log(results);
     alert("TODO: submitted");
   };
 

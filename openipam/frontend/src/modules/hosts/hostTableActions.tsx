@@ -183,7 +183,6 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   title: "Change Network",
                   onSubmit: (v) => {
-                    console.log("\nnetwork is\n", v);
                     p.rows.forEach((host) => {
                       api.hosts.byId(host.mac).setNetwork({
                         network: v,
@@ -192,11 +191,7 @@ export const HostTableActions = (p: {
                   },
                   children: (
                     <div className="h-96">
-                      <NetworkAutocomplete
-                        onNetworkChange={(network) => {
-                          console.log(network);
-                        }}
-                      />
+                      <NetworkAutocomplete onNetworkChange={(network) => {}} />
                     </div>
                   ),
                 });
@@ -350,11 +345,7 @@ export const HostTableActions = (p: {
                   children: (
                     <div className="h-80">
                       <label className="label">Search by name...</label>
-                      <DhcpAutocomplete
-                        onDhcpChange={(dhcp) => {
-                          console.log(dhcp);
-                        }}
-                      />
+                      <DhcpAutocomplete onDhcpChange={(dhcp) => {}} />
                     </div>
                   ),
                 });

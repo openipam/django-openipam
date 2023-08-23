@@ -101,29 +101,21 @@ export const HostTableColumns = (p: {
       columns: [
         {
           id: "expires",
-          size: 200,
-          header: ({ table }: any) => (
-            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center text-secondary-content">Expires</p>
-              <ToolTip
-                text="From - To"
-                props="rounded-br-none right-4 bottom-4"
-              />
-            </div>
-          ),
+          size: 120,
+          header: "Expires",
           accessorFn: (row) =>
             row.expires
               ? new Date(row.expires).toISOString().split("T")[0]
               : null,
           cell: ({ row }: { row: any }) => {
             return row?.original.expires ? (
-              <div className="flex flex-col">
-                <p className="flex flex-row justify-start">{`${
+              <div className="flex flex-row flex-wrap justify-around">
+                {/* <p className="flex flex-row justify-start">{`${
                   row.original.expires
                     ? new Date(row.original.expires).toISOString().split("T")[0]
                     : ""
-                }`}</p>
-                <p className="flex flex-row justify-end">{`(${
+                }`}</p> */}
+                <p className="flex flex-row justify-center">{`${
                   new Date(row.original.expires) < new Date()
                     ? "Expired"
                     : `${Math.ceil(
@@ -131,14 +123,15 @@ export const HostTableColumns = (p: {
                           new Date().getTime()) /
                           (1000 * 3600 * 24)
                       )} Days Left`
-                })`}</p>
+                }`}</p>
               </div>
             ) : (
               ""
             );
           },
           meta: {
-            filterType: "date",
+            filterType: "exact",
+            filterOptions: expiredFilterOptions.map((t) => t),
           },
         },
         {
@@ -258,3 +251,11 @@ export const HostTableColumns = (p: {
     }),
   ];
 };
+
+export const expiredFilterOptions = [
+  "Expired",
+  "1 Day Left",
+  "7 Days Left",
+  "30 Days Left",
+  "Unexpired",
+] as const;

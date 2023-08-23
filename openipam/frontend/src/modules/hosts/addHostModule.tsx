@@ -29,7 +29,6 @@ export const AddHostModule = (p: {
         ip_address: host.ip_address?.address,
       dhcp_group: host.dhcp_group?.name,
       } satisfies CreateHost);
-    console.log(results);
     p.setShowModule(false);
     window.location.href = "/ui/#/hosts/" + host.mac;
   };

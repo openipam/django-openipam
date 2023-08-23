@@ -29,7 +29,6 @@ export const NetworkAutocomplete = (p: {
   }, [network]);
 
   useEffect(() => {
-    console.log(p.networkId, network);
     if (!p.networkId) {
       setNetwork(undefined);
       setFilter("");

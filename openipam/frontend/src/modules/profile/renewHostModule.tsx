@@ -77,9 +77,7 @@ export const RenewHostModule = (p: {
               <select
                 id={`expires`}
                 value={365}
-                onChange={(v) => {
-                  console.log(v);
-                }}
+                onChange={(v) => {}}
                 className="rounded-md p-2 select select-bordered"
               >
                 {Object.entries(choices).map(([key, value]) => (
