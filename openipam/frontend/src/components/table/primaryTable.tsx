@@ -52,7 +52,7 @@ export const PrimaryTable = (p: {
           <div className="flex flex-col justify-between">
             <div className="flex flex-row gap-4">
               <p className="text-primary-content">
-                Showing {rows.length} of {total} rows
+                Loaded {rows.length} of {total} rows
               </p>
             </div>
             <div className="flex flex-row gap-4 text-primary-content">

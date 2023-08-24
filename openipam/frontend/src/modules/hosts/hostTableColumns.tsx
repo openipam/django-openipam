@@ -46,7 +46,6 @@ export const HostTableColumns = (p: {
   return [
     ...(p.auth?.is_ipamadmin
       ? ActionsColumn({
-          size: 150,
           data: p.data,
           pageSize: p.pageSize,
           setPageSize: p.setPageSize,
@@ -124,6 +123,7 @@ export const HostTableColumns = (p: {
           accessorFn: (row) => row.mac,
         },
         {
+          size: 150,
           id: "hostname",
           header: "Hostname",
           accessorFn: (row) => row.hostname,
