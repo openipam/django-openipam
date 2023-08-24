@@ -1,7 +1,15 @@
 """Serializers for network objects."""
 
 from openipam.api_v2.serializers.base import ChangedBySerializer
-from openipam.network.models import Address, DhcpGroup, Vlan, Network, Pool, AddressType
+from openipam.network.models import (
+    Address,
+    Building,
+    DhcpGroup,
+    Vlan,
+    Network,
+    Pool,
+    AddressType,
+)
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
     ModelSerializer,
@@ -32,6 +40,8 @@ class NetworkSerializer(ModelSerializer):
     shared_network = SerializerMethodField()
     gateway = SerializerMethodField()
     addresses = SerializerMethodField()
+    changed_by = ChangedBySerializer()
+    dhcp_group = base_serializers.CharField(source="dhcp_group.name", read_only=True)
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
@@ -58,14 +68,12 @@ class NetworkSerializer(ModelSerializer):
     def get_buildings(self, obj):
         # Buildings are linked to vlans, so we need to get the vlans for the network
         # and then get the buildings for those vlans
-        buildings = []
+        buildings = Building.objects.none()
         for vlan in obj.vlans.all():
-            buildings.extend(
-                vlan.buildings.all().values(
-                    "id", "name", "abbreviation", "number", "city"
-                )
-            )
-        return buildings
+            buildings |= vlan.buildings.all()
+        return buildings.distinct().values(
+            "id", "name", "abbreviation", "number", "city"
+        )
 
     class Meta:
         """Meta class for network serializer."""

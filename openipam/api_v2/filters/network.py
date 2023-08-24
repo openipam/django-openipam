@@ -61,10 +61,10 @@ class NetworkFilter(df.FilterSet):
         field_name="network", lookup_expr="net_contained_or_equal", label="Network CIDR"
     )
     vlan_id = df.NumberFilter(
-        field_name="vlan__vlan_id", lookup_expr="exact", label="VLAN ID"
+        field_name="vlans__vlan_id", lookup_expr="exact", label="VLAN ID"
     )
     vlan_name = df.CharFilter(
-        field_name="vlan__name", lookup_expr="icontains", label="VLAN Name"
+        field_name="vlans__name", lookup_expr="icontains", label="VLAN Name"
     )
     gateway = df.CharFilter(method="filter_gateway", label="Gateway IP")
     changed_by = df.CharFilter(
@@ -80,12 +80,6 @@ class NetworkFilter(df.FilterSet):
         field_name="shared_network__name",
         lookup_expr="icontains",
         label="Shared Network Name",
-    )
-
-    vlan = df.ModelMultipleChoiceFilter(
-        field_name="vlans",
-        queryset=Vlan.objects.all(),
-        label="VLAN",
     )
 
     def filter_address_type(self, queryset, _, value):
