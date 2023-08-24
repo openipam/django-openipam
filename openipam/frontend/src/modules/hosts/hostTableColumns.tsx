@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { ToolTip } from "../../components/tooltip";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
+import { MoreVert } from "@mui/icons-material";
 
 export const HostTableColumns = (p: {
   data: UseInfiniteQueryResult<
@@ -36,6 +37,7 @@ export const HostTableColumns = (p: {
   >;
   pageSize: number;
   setPageSize: React.Dispatch<React.SetStateAction<number>>;
+  setSelectAll: React.Dispatch<React.SetStateAction<boolean>>;
   auth: User | undefined;
 }) => {
   const columnHelper = createColumnHelper<Host>();
@@ -48,6 +50,7 @@ export const HostTableColumns = (p: {
           data: p.data,
           pageSize: p.pageSize,
           setPageSize: p.setPageSize,
+          setSelectAll: p.setSelectAll,
           enableSelection: true,
           onAdd: () => {
             p.setShowAddHost((prev: boolean) => !prev);
@@ -67,6 +70,32 @@ export const HostTableColumns = (p: {
               data: [data],
             });
           },
+          customHead: (
+            <>
+              <div className="dropdown mt-1">
+                <label tabIndex={0} className="btn btn-circle btn-ghost btn-xs">
+                  <MoreVert />
+                </label>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-gray-700 rounded-box w-40 mt-2"
+                >
+                  <li
+                    onClick={() => {
+                      p.setSelectAll(true);
+                    }}
+                  >
+                    <ToolTip
+                      text="Caution! Includes Unseen Rows!"
+                      props="rounded-tr-none top-10 right-2"
+                    >
+                      <a>Select ALL rows</a>
+                    </ToolTip>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ),
         })
       : ActionsColumn({
           size: 100,

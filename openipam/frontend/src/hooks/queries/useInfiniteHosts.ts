@@ -5,7 +5,12 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   const api = useApi();
   const query = useInfiniteQuery({
-    queryKey: ["Hosts, all", ...Object.entries(p).flat()],
+    queryKey: [
+      "Hosts, all",
+      ...Object.entries(p)
+        .filter(([key, _]) => key !== "selectAll")
+        .flat(),
+    ],
     queryFn: async ({ pageParam = 1 }) => {
       let results;
       if (p.disabled === "N") {
@@ -33,7 +38,11 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
+    if (
+      query.hasNextPage &&
+      !query.isFetchingNextPage &&
+      (p.selectAll || currentPage < 3)
+    ) {
       query.fetchNextPage();
     }
   }, [
@@ -41,6 +50,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     query.isFetchingNextPage,
     query.fetchNextPage,
     query.data,
+    p.selectAll,
   ]);
   return query;
 };

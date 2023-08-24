@@ -21,23 +21,29 @@ export const TableBody = (p: {
     );
   }
 
+  const pageSize = p.table.options.meta?.pageSize;
+
   return (
     <tbody>
-      {tableRows.map((row) => {
+      {tableRows.slice(undefined, pageSize).map((row) => {
         return (
           <tr
             key={row.id}
             {...(p.table.options.meta?.trProps?.(row.original) ?? {})}
           >
-            {row.getVisibleCells().map((cell, i) => (
-              <td
-                className="overflow-hidden text-text border border-opacity-25 border-gray-400"
-                key={cell.id}
-                {...(cell.column.columnDef.meta?.tdProps?.(row.original) ?? {})}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
+            {row
+              .getVisibleCells()
+
+              .map((cell, i) => (
+                <td
+                  className="overflow-hidden text-text border border-opacity-25 border-gray-400"
+                  key={cell.id}
+                  {...(cell.column.columnDef.meta?.tdProps?.(row.original) ??
+                    {})}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
           </tr>
         );
       })}

@@ -1,4 +1,4 @@
-import type { Table } from "@tanstack/react-table";
+import type { Row, RowSelectionState, Table } from "@tanstack/react-table";
 import { useRef } from "react";
 import { DebouncedInput } from "./debouncedInput";
 import { TableBody } from "./tableBody";
@@ -36,7 +36,7 @@ export const PrimaryTable = (p: {
       <div className="w-full grid grid-cols-3 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
-            <div className="flex gap-4 text-primary-content">
+            <div className="flex flex-row gap-4 text-primary-content">
               <p className="text-primary-content">
                 {selectedRows.rows.length} Rows Selected
               </p>
@@ -90,7 +90,7 @@ export const PrimaryTable = (p: {
         </div>
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col gap-2 w-full justify-between">
-            <label className="text-primary-content">Global Search:</label>
+            <label className="text-primary-content m-1">Global Search:</label>
             <DebouncedInput
               value={globalFilter ?? ""}
               onChange={(value) => setGlobalFilter(String(value))}

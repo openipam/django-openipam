@@ -8,6 +8,7 @@ import {
   Visibility,
 } from "@mui/icons-material";
 import { ToolTip } from "../tooltip";
+import { Table } from "@tanstack/table-core";
 const pageSizes = [10, 25, 50, 100, 250, 500];
 
 export const ActionsColumn = (p: {
@@ -22,6 +23,7 @@ export const ActionsColumn = (p: {
   customCell?: ReactNode;
   pageSize?: number;
   setPageSize?: React.Dispatch<React.SetStateAction<number>>;
+  setSelectAll?: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return [
     {
@@ -35,56 +37,81 @@ export const ActionsColumn = (p: {
         hideFilter: true,
       },
       id: "actions",
-      header: ({ table }: any) => (
+      header: ({ table }: { table: Table<any> }) => (
         // force overflow to be visible so that the tooltip can be seen
-        <div className="flex gap-1 items-center relative text-secondary-content">
-          {p.enableSelection && (
-            <PlainIndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            />
-          )}
-          <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
-            <button
-              className="btn btn-circle btn-ghost btn-xs mt-1 text-secondary-content"
-              onClick={() => p.data.fetchNextPage?.()}
-              disabled={!p.data.hasNextPage || p.data.isFetchingNextPage}
-            >
-              <ExpandMore />
-            </button>
-          </ToolTip>
-          {p.onAdd && (
-            <button
-              className="btn btn-circle btn-ghost btn-xs text-secondary-content"
-              onClick={p.onAdd}
-            >
-              <Add />
-            </button>
-          )}
-          {p.pageSize && p.setPageSize && (
-            <>
-              <ToolTip
-                text="Page Size"
-                props="bottom-8 right-1 rounded-br-none"
-              >
-                <select
-                  className="select select-ghost select-sm text-secondary-content"
-                  value={p.pageSize}
-                  onChange={(e) => {
-                    p.setPageSize!(Number(e.target.value));
-                  }}
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-1 relative text-secondary-content">
+            {p.pageSize && p.setPageSize && (
+              <>
+                <ToolTip
+                  text="Page Size"
+                  props="bottom-8 right-1 rounded-br-none"
                 >
-                  {pageSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </ToolTip>
-            </>
-          )}
-          {p.customHead}
+                  <select
+                    className="select select-ghost select-sm text-secondary-content"
+                    value={p.pageSize}
+                    onChange={(e) => {
+                      p.setPageSize!(Number(e.target.value));
+                    }}
+                  >
+                    {pageSizes.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </ToolTip>
+              </>
+            )}
+          </div>
+          <div className="flex gap-1 items-center relative text-secondary-content">
+            {p.enableSelection && (
+              <PlainIndeterminateCheckbox
+                checked={
+                  table.getRowModel().rows.filter((row) => row.getIsSelected())
+                    .length === table.getRowModel().rows.length ||
+                  table.getRowModel().rows.filter((row) => row.getIsSelected())
+                    .length === p.pageSize
+                }
+                indeterminate={table.getIsSomeRowsSelected()}
+                onChange={(e) => {
+                  console.log("toggle all rows", e);
+                  p.setSelectAll?.(false);
+                  if (!e.target.checked) {
+                    table.resetRowSelection(true);
+                  } else {
+                    const array = Array.from(
+                      p.pageSize
+                        ? table.getRowModel().rows.slice(0, p.pageSize)
+                        : table.getRowModel().rows
+                    );
+                    table.setRowSelection(
+                      Object.fromEntries(array.map((row) => [row.id, true]))
+                    );
+                  }
+                }}
+              />
+            )}
+            <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
+              <button
+                className="btn btn-circle btn-ghost btn-xs mt-1 text-secondary-content"
+                onClick={() => p.data.fetchNextPage?.()}
+                disabled={!p.data.hasNextPage || p.data.isFetchingNextPage}
+              >
+                <ExpandMore />
+              </button>
+            </ToolTip>
+            {p.onAdd && (
+              <button
+                className="btn btn-circle btn-ghost btn-xs text-secondary-content"
+                onClick={p.onAdd}
+              >
+                <Add />
+              </button>
+            )}
+
+            {p.customHead}
+          </div>
         </div>
       ),
       cell: ({ row }: { row: any }) => (

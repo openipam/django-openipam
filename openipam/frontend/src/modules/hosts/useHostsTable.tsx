@@ -44,6 +44,7 @@ export const useHostsTable = (p: {
   const [pageSize, setPageSize] = useState<number>(10);
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
+  const [selectAll, setSelectAll] = useState<boolean>(false);
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -84,6 +85,7 @@ export const useHostsTable = (p: {
         | undefined
     ),
     page_size: pageSize,
+    selectAll,
   });
 
   const Hosts = useMemo<Host[]>(() => {
@@ -113,6 +115,7 @@ export const useHostsTable = (p: {
       columnFilters,
       rowSelection,
       globalFilter,
+      pageSize,
     },
     meta: {
       total: data.data?.pages?.[0]?.count,
@@ -135,6 +138,7 @@ export const useHostsTable = (p: {
           />
         );
       },
+      pageSize,
     },
     columns: HostTableColumns({
       data,
@@ -144,9 +148,16 @@ export const useHostsTable = (p: {
       setActionModule: p.setActionModule,
       pageSize,
       setPageSize,
+      setSelectAll,
       auth,
     }),
   });
+
+  useEffect(() => {
+    if (!selectAll || table.getIsAllRowsSelected()) return;
+    table.resetRowSelection(true);
+    table.toggleAllRowsSelected();
+  }, [Hosts, selectAll]);
 
   return useMemo(() => ({ table, loading: data.isFetching }), [
     table,

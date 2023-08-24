@@ -23,6 +23,7 @@ declare module "@tanstack/table-core" {
     trProps?: (p: TData) => Record<string, any>;
     rowActions?: (p: TData) => React.ReactNode;
     total?: number;
+    pageSize?: number;
   }
 }
 
