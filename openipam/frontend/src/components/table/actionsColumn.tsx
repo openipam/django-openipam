@@ -9,7 +9,7 @@ import {
 } from "@mui/icons-material";
 import { ToolTip } from "../tooltip";
 import { Table } from "@tanstack/table-core";
-const pageSizes = [10, 25, 50, 100, 250, 500];
+const pageSizes = [10, 25, 50, 100, 200];
 
 export const ActionsColumn = (p: {
   size?: number;

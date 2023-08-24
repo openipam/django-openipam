@@ -8,7 +8,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     queryKey: [
       "Hosts, all",
       ...Object.entries(p)
-        .filter(([key, _]) => key !== "selectAll")
+        .filter(([key, _]) => key !== "selectAll" && key !== "page_size")
         .flat(),
     ],
     queryFn: async ({ pageParam = 1 }) => {
@@ -16,12 +16,16 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
       if (p.disabled === "N") {
         results = await api.hosts.disabled({
           page: pageParam,
-          ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
+          ...Object.fromEntries(
+            Object.entries(p).filter(([key, val]) => val && key !== "page_size")
+          ),
         });
       } else {
         results = await api.hosts.get({
           page: pageParam,
-          ...Object.fromEntries(Object.entries(p).filter(([_, val]) => val)),
+          ...Object.fromEntries(
+            Object.entries(p).filter(([key, val]) => val && key !== "page_size")
+          ),
           disabled: !!p.disabled,
         });
       }
@@ -41,7 +45,10 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     if (
       query.hasNextPage &&
       !query.isFetchingNextPage &&
-      (p.selectAll || currentPage < 3)
+      (p.selectAll ||
+        (query.data?.pages?.length ?? 0) <
+          ((p.page_size ?? 10) as number) / 10 ||
+        currentPage < 5)
     ) {
       query.fetchNextPage();
     }
@@ -51,6 +58,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     query.fetchNextPage,
     query.data,
     p.selectAll,
+    p.page_size,
   ]);
   return query;
 };
