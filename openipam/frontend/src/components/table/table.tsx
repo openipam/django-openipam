@@ -22,6 +22,7 @@ declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
     trProps?: (p: TData) => Record<string, any>;
     rowActions?: (p: TData) => React.ReactNode;
+    total?: number;
   }
 }
 
@@ -29,7 +30,6 @@ export const Table = (p: {
   estimateColumnSize?: number;
   table: ReactTable<any>;
   loading: boolean;
-  hideGlobalFilter?: boolean;
   className?: string;
 }) => {
   return (

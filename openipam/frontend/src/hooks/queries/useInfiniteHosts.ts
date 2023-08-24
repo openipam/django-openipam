@@ -22,6 +22,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
       }
       return {
         results: results.results,
+        count: results.count,
         page: pageParam,
         nextPage: results.next,
       };

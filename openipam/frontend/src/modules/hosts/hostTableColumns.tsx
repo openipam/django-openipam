@@ -5,7 +5,6 @@ import { ActionsColumn } from "../../components/table/actionsColumn";
 import { useNavigate } from "react-router-dom";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
-import { Info } from "@mui/icons-material";
 import { ToolTip } from "../../components/tooltip";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 
@@ -15,6 +14,7 @@ export const HostTableColumns = (p: {
       results: any;
       page: any;
       nextPage: any;
+      count: number;
     },
     unknown
   >;

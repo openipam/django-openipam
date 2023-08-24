@@ -31,7 +31,7 @@ export const TableBody = (p: {
           >
             {row.getVisibleCells().map((cell, i) => (
               <td
-                className="overflow-hidden text-text"
+                className="overflow-hidden text-text border border-opacity-25 border-gray-400"
                 key={cell.id}
                 {...(cell.column.columnDef.meta?.tdProps?.(row.original) ?? {})}
               >

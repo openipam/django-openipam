@@ -40,6 +40,7 @@ export const useHostsTable = (p: {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
 
@@ -103,13 +104,16 @@ export const useHostsTable = (p: {
 
   const table = CreateTable({
     data: Hosts,
-    setColumnFilters: setColumnFilters,
-    setRowSelection: setRowSelection,
+    setColumnFilters,
+    setRowSelection,
+    setGlobalFilter,
     state: {
       columnFilters,
       rowSelection,
+      globalFilter,
     },
     meta: {
+      total: data.data?.pages?.[0]?.count,
       trProps: (row: any) => {
         return {
           className:

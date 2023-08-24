@@ -1,6 +1,5 @@
 import {
   ColumnFiltersState,
-  GroupColumnDef,
   getCoreRowModel,
   getFacetedMinMaxValues,
   getFacetedRowModel,
@@ -14,6 +13,7 @@ import React from "react";
 export const CreateTable = (p: {
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   setRowSelection?: React.Dispatch<React.SetStateAction<{}>>;
+  setGlobalFilter?: React.Dispatch<React.SetStateAction<string>>;
   data: any;
   state: any;
   meta?: any;
@@ -29,6 +29,8 @@ export const CreateTable = (p: {
     // Filters
     onColumnFiltersChange: p.setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    // Global Filter
+    onGlobalFilterChange: p.setGlobalFilter,
     // Row Selection
     enableRowSelection: true,
     enableFilters: false,
