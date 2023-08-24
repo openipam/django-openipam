@@ -4,7 +4,7 @@ import django_filters as df
 from netfields import NetManager  # noqa
 from ipaddress import ip_interface, ip_address
 from openipam.hosts.models import GulRecentArpByaddress, GulRecentArpBymac
-from openipam.network.models import AddressType, Network, Address
+from openipam.network.models import AddressType, Network, Address, Vlan
 from django.db.models import Q
 
 
@@ -76,11 +76,16 @@ class NetworkFilter(df.FilterSet):
         queryset=AddressType.objects.all(),
         label="Address Type",
     )
-
     shared_network = df.CharFilter(
         field_name="shared_network__name",
         lookup_expr="icontains",
         label="Shared Network Name",
+    )
+
+    vlan = df.ModelMultipleChoiceFilter(
+        field_name="vlans",
+        queryset=Vlan.objects.all(),
+        label="VLAN",
     )
 
     def filter_address_type(self, queryset, _, value):
