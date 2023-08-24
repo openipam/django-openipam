@@ -8,6 +8,7 @@ import {
   Visibility,
 } from "@mui/icons-material";
 import { ToolTip } from "../tooltip";
+const pageSizes = [10, 25, 50, 100, 250, 500];
 
 export const ActionsColumn = (p: {
   size?: number;
@@ -19,6 +20,8 @@ export const ActionsColumn = (p: {
   onRenew?: (row: any) => void;
   customHead?: ReactNode;
   customCell?: ReactNode;
+  pageSize?: number;
+  setPageSize?: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   return [
     {
@@ -34,7 +37,7 @@ export const ActionsColumn = (p: {
       id: "actions",
       header: ({ table }: any) => (
         // force overflow to be visible so that the tooltip can be seen
-        <div className="flex gap-1 items-center relative">
+        <div className="flex gap-1 items-center relative text-secondary-content">
           {p.enableSelection && (
             <PlainIndeterminateCheckbox
               checked={table.getIsAllRowsSelected()}
@@ -44,7 +47,7 @@ export const ActionsColumn = (p: {
           )}
           <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
             <button
-              className="btn btn-circle btn-ghost btn-xs mt-1"
+              className="btn btn-circle btn-ghost btn-xs mt-1 text-secondary-content"
               onClick={() => p.data.fetchNextPage?.()}
               disabled={!p.data.hasNextPage || p.data.isFetchingNextPage}
             >
@@ -53,11 +56,33 @@ export const ActionsColumn = (p: {
           </ToolTip>
           {p.onAdd && (
             <button
-              className="btn btn-circle btn-ghost btn-xs"
+              className="btn btn-circle btn-ghost btn-xs text-secondary-content"
               onClick={p.onAdd}
             >
               <Add />
             </button>
+          )}
+          {p.pageSize && p.setPageSize && (
+            <>
+              <ToolTip
+                text="Page Size"
+                props="bottom-8 right-1 rounded-br-none"
+              >
+                <select
+                  className="select select-ghost select-sm text-secondary-content"
+                  value={p.pageSize}
+                  onChange={(e) => {
+                    p.setPageSize!(Number(e.target.value));
+                  }}
+                >
+                  {pageSizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </ToolTip>
+            </>
           )}
           {p.customHead}
         </div>

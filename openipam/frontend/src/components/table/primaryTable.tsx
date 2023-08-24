@@ -4,6 +4,7 @@ import { DebouncedInput } from "./debouncedInput";
 import { TableBody } from "./tableBody";
 import { TableHead, TableHeaderCell } from "./tableHead";
 import React from "react";
+import { useAuth } from "../../hooks/useAuth";
 
 const capitalizeWord = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -14,6 +15,7 @@ export const PrimaryTable = (p: {
   table: Table<any>;
   className?: string;
 }) => {
+  const auth = useAuth();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const selectedRows = p.table.getSelectedRowModel();
   const activeFilters = p.table.getState().columnFilters;
@@ -32,16 +34,20 @@ export const PrimaryTable = (p: {
       }`}
     >
       <div className="w-full grid grid-cols-3 gap-10">
-        <div className="flex flex-col justify-between w-full max-w-2xl">
-          <div className="flex gap-4 text-primary-content">
-            <p className="text-primary-content">
-              {selectedRows.rows.length} Rows Selected
-            </p>
+        {auth?.is_ipamadmin ? (
+          <div className="flex flex-col justify-between w-full max-w-2xl">
+            <div className="flex gap-4 text-primary-content">
+              <p className="text-primary-content">
+                {selectedRows.rows.length} Rows Selected
+              </p>
+            </div>
+            {p.table.options.meta?.rowActions?.(
+              selectedRows.rows.map((r) => r.original)
+            )}
           </div>
-          {p.table.options.meta?.rowActions?.(
-            selectedRows.rows.map((r) => r.original)
-          )}
-        </div>
+        ) : (
+          <div></div>
+        )}
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col justify-between">
             <div className="flex flex-row gap-4">
@@ -84,7 +90,7 @@ export const PrimaryTable = (p: {
         </div>
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col gap-2 w-full justify-between">
-            <label className="text-primary-content">Search All Columns:</label>
+            <label className="text-primary-content">Global Search:</label>
             <DebouncedInput
               value={globalFilter ?? ""}
               onChange={(value) => setGlobalFilter(String(value))}

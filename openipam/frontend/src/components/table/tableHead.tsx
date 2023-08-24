@@ -92,7 +92,7 @@ function Filter({
             value={(columnFilterValue ?? "") as string}
             onChange={(value) => column.setFilterValue(value)}
             placeholder={`Search`}
-            className="w-full border shadow rounded input input-xs input-bordered"
+            className="w-full text-primary-content border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
           />
           <div className="h-1" />
@@ -112,7 +112,7 @@ function Filter({
             value={(columnFilterValue ?? "") as string}
             onChange={(value) => column.setFilterValue(value)}
             placeholder={`Search (${uniqueValues.length})`}
-            className="w-full border shadow rounded input input-xs input-bordered"
+            className="w-full text-primary-content border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
           />
           <div className="h-1" />

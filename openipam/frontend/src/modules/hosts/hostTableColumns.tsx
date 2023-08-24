@@ -3,7 +3,6 @@ import React, { ReactNode } from "react";
 import { Host, User } from "../../utils/types";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { useNavigate } from "react-router-dom";
-import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { ToolTip } from "../../components/tooltip";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
@@ -35,6 +34,8 @@ export const HostTableColumns = (p: {
       multiple?: boolean;
     }>
   >;
+  pageSize: number;
+  setPageSize: React.Dispatch<React.SetStateAction<number>>;
   auth: User | undefined;
 }) => {
   const columnHelper = createColumnHelper<Host>();
@@ -43,7 +44,10 @@ export const HostTableColumns = (p: {
   return [
     ...(p.auth?.is_ipamadmin
       ? ActionsColumn({
+          size: 150,
           data: p.data,
+          pageSize: p.pageSize,
+          setPageSize: p.setPageSize,
           enableSelection: true,
           onAdd: () => {
             p.setShowAddHost((prev: boolean) => !prev);
@@ -65,8 +69,10 @@ export const HostTableColumns = (p: {
           },
         })
       : ActionsColumn({
-          size: 80,
+          size: 100,
           data: p.data,
+          pageSize: p.pageSize,
+          setPageSize: p.setPageSize,
           onView: (data) => {
             navigate(`/Hosts/${data.mac}`);
           },
@@ -173,6 +179,21 @@ export const HostTableColumns = (p: {
             row.master_ip_address ?? row.addresses?.leased?.[0],
           filterFn: undefined,
         },
+      ],
+    }),
+    columnHelper.group({
+      id: "Secondary Details",
+      header: "Secondary Details",
+      columns: [
+        {
+          id: "address_type",
+          header: "Address Type",
+          accessorFn: (row) => row.address_type,
+          meta: {
+            filterType: "exact",
+            filterOptions: addressTypes?.map((t) => t.name) ?? [],
+          },
+        },
         {
           id: "dhcp_group",
           header: "DHCP Group",
@@ -180,36 +201,6 @@ export const HostTableColumns = (p: {
         },
       ],
     }),
-    ...(p.auth?.is_staff
-      ? [
-          columnHelper.group({
-            id: "Secondary Details",
-            header: "Secondary Details",
-            columns: [
-              {
-                id: "address_type",
-                header: "Address Type",
-                accessorFn: (row) => row.address_type,
-                meta: {
-                  filterType: "exact",
-                  filterOptions: addressTypes?.map((t) => t.name) ?? [],
-                },
-              },
-              {
-                id: "disabled_host",
-                size: 80,
-                header: "Disabled",
-                accessorFn: booleanAccessor("disabled_host"),
-                cell: BooleanRender,
-                meta: {
-                  filterType: "boolean",
-                },
-                filterFn: undefined,
-              },
-            ],
-          }),
-        ]
-      : []),
     columnHelper.group({
       id: "Owners",
       header: "Owners",

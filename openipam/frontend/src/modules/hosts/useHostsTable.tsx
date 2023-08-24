@@ -41,6 +41,7 @@ export const useHostsTable = (p: {
   const [rowSelection, setRowSelection] = useState({});
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [pageSize, setPageSize] = useState<number>(10);
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
 
@@ -82,6 +83,7 @@ export const useHostsTable = (p: {
         | string
         | undefined
     ),
+    page_size: pageSize,
   });
 
   const Hosts = useMemo<Host[]>(() => {
@@ -140,6 +142,8 @@ export const useHostsTable = (p: {
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
       setActionModule: p.setActionModule,
+      pageSize,
+      setPageSize,
       auth,
     }),
   });

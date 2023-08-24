@@ -1,9 +1,7 @@
-import React, { ReactNode, useMemo, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Host } from "../../utils/types";
 import { ExportToCsv } from "../../components/download";
-import { useDhcpGroups } from "../../hooks/queries/useDhcpGroups";
-import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
 import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
 
@@ -60,43 +58,6 @@ export const HostTableActions = (p: {
                 p.setRenewModule({
                   show: true,
                   data: p.rows,
-                });
-                break;
-              case "disable":
-                p.setActionModule({
-                  show: true,
-                  data: p.rows,
-                  title: "Disable Hosts",
-                  onSubmit: (data) => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).disable({
-                        reason: data,
-                      });
-                    });
-                  },
-                  children: (
-                    <div>
-                      <label className="label">Reason</label>
-                      <input type="test" className="input input-bordered" />
-                    </div>
-                  ),
-                });
-                break;
-              case "enable":
-                p.setActionModule({
-                  show: true,
-                  data: p.rows,
-                  title: "Enable Hosts",
-                  onSubmit: () => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).enable();
-                    });
-                  },
-                  children: (
-                    <div>
-                      <input className="hidden" />
-                    </div>
-                  ),
                 });
                 break;
               case "delete":
@@ -381,8 +342,6 @@ export const HostTableActions = (p: {
 
 const actions = {
   renew: "Renew",
-  disable: "Disable",
-  enable: "Enable",
   delete: "Delete",
   rename: "Rename",
   export: "Export to CSV",
