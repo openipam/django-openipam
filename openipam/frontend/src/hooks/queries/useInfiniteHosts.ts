@@ -13,28 +13,42 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     ],
     queryFn: async ({ pageParam = 1 }) => {
       let results;
-      if (p.disabled === "N") {
-        results = await api.hosts.disabled({
+      try {
+        if (p.disabled === "N") {
+          results = await api.hosts.disabled({
+            page: pageParam,
+            ...Object.fromEntries(
+              Object.entries(p).filter(
+                ([key, val]) => val && key !== "page_size"
+              )
+            ),
+          });
+        } else {
+          results = await api.hosts.get({
+            page: pageParam,
+            ...Object.fromEntries(
+              Object.entries(p).filter(
+                ([key, val]) => val && key !== "page_size"
+              )
+            ),
+            disabled: !!p.disabled,
+          });
+        }
+        return {
+          results: results.results,
+          count: results.count,
           page: pageParam,
-          ...Object.fromEntries(
-            Object.entries(p).filter(([key, val]) => val && key !== "page_size")
-          ),
-        });
-      } else {
-        results = await api.hosts.get({
+          nextPage: results.next,
+        };
+      } catch (e) {
+        console.error(e);
+        return {
+          results: [],
+          count: 0,
           page: pageParam,
-          ...Object.fromEntries(
-            Object.entries(p).filter(([key, val]) => val && key !== "page_size")
-          ),
-          disabled: !!p.disabled,
-        });
+          nextPage: false,
+        };
       }
-      return {
-        results: results.results,
-        count: results.count,
-        page: pageParam,
-        nextPage: results.next,
-      };
     },
     getNextPageParam: (lastPage) => {
       return lastPage.nextPage ? lastPage.page + 1 : undefined;

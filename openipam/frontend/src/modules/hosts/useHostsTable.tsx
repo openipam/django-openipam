@@ -39,6 +39,7 @@ export const useHostsTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
+  const [columnSort, setColumnSort] = useState<any[]>([]);
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [pageSize, setPageSize] = useState<number>(10);
@@ -86,6 +87,7 @@ export const useHostsTable = (p: {
     ),
     page_size: pageSize,
     selectAll,
+    ordering: getOrdering(columnSort),
   });
 
   const Hosts = useMemo<Host[]>(() => {
@@ -111,11 +113,13 @@ export const useHostsTable = (p: {
     setColumnFilters,
     setRowSelection,
     setGlobalFilter,
+    setColumnSort,
     state: {
       columnFilters,
       rowSelection,
       globalFilter,
       pageSize,
+      sorting: columnSort,
     },
     meta: {
       total: data.data?.pages?.[0]?.count,
@@ -207,4 +211,16 @@ const getExpiresDateFromFilter = (
     default:
       return {};
   }
+};
+
+const getOrdering = (columnSort: any[]) => {
+  return columnSort
+    .map((sort) => {
+      if (sort.desc) {
+        return `-${sort.id}`;
+      } else {
+        return sort.id;
+      }
+    }, [])
+    .join(",");
 };

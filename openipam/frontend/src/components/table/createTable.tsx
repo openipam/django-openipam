@@ -14,6 +14,7 @@ export const CreateTable = (p: {
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   setRowSelection?: React.Dispatch<React.SetStateAction<{}>>;
   setGlobalFilter?: React.Dispatch<React.SetStateAction<string>>;
+  setColumnSort?: React.Dispatch<React.SetStateAction<any[]>>;
   data: any;
   state: any;
   meta?: any;
@@ -26,6 +27,7 @@ export const CreateTable = (p: {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     // Sorting
     getSortedRowModel: getSortedRowModel(),
+    onSortingChange: p.setColumnSort,
     // Filters
     onColumnFiltersChange: p.setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
