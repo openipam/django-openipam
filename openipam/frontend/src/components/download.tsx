@@ -1,5 +1,6 @@
 import { Download } from "@mui/icons-material";
 import React, { useEffect, useMemo, useState } from "react";
+import { IdToName } from "./idToName";
 
 export const ExportToCsv = (p: {
   columns: any[];
@@ -12,7 +13,7 @@ export const ExportToCsv = (p: {
   const columns = p.columns;
   const tsv = useMemo(() => {
     return [
-      columns.map((c) => c.header).join(p.separator ?? ", "),
+      columns.map((c) => IdToName(c.id)).join(p.separator ?? ", "),
       ...rows.map((r, i) =>
         columns.map((c) => c.accessorFn?.(r, i) || "").join(p.separator ?? ", ")
       ),

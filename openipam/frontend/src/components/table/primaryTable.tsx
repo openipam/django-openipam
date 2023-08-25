@@ -5,10 +5,7 @@ import { TableBody } from "./tableBody";
 import { TableHead, TableHeaderCell } from "./tableHead";
 import React from "react";
 import { useAuth } from "../../hooks/useAuth";
-
-const capitalizeWord = (word: string) => {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-};
+import { IdToName } from "../idToName";
 
 export const PrimaryTable = (p: {
   estimateColumnSize?: number;
@@ -71,11 +68,7 @@ export const PrimaryTable = (p: {
                 activeFilters.map((filter) => (
                   <div className="flex flex-row gap-2 flex-wrap">
                     <p className="text-primary-content">
-                      {filter.id
-                        .split("_")
-                        .map((word) => capitalizeWord(word))
-                        .join(" ")}
-                      :
+                      {IdToName(filter.id)}:
                     </p>
                     <p className="text-primary-content">
                       {JSON.stringify(filter.value)}

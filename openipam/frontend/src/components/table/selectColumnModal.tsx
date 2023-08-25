@@ -2,6 +2,7 @@ import React from "react";
 import { useId } from "react";
 
 import { Column, Table as ReactTable, flexRender } from "@tanstack/react-table";
+import { IdToName } from "../idToName";
 
 export const SelectColumnModal = (p: {
   table: ReactTable<any>;
@@ -51,12 +52,7 @@ export const SelectColumnModal = (p: {
                           checked={column.getIsVisible()}
                           onChange={column.getToggleVisibilityHandler()}
                         />
-                        <span>
-                          {flexRender(column.columnDef.header, {
-                            table: p.table,
-                            column,
-                          } as any)}
-                        </span>
+                        <span>{IdToName(column.columnDef.id ?? "")}</span>
                       </label>
                     ))}
                   </div>
