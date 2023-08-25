@@ -8,6 +8,7 @@ import { HostTableColumns } from "./hostTableColumns";
 import { CreateTable } from "../../components/table/createTable";
 import { useAuth } from "../../hooks/useAuth";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
+import { HostGlobalAutocomplete } from "./hostGlobalAutocomplete";
 
 //TODO disabled columns only shows for admins.
 
@@ -42,7 +43,9 @@ export const useHostsTable = (p: {
   const [rowSelection, setRowSelection] = useState({});
   const [columnSort, setColumnSort] = useState<any[]>([]);
   const [prevData, setPrevData] = useState<Host[]>([]);
-  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [globalFilter, setGlobalFilter] = useState<
+    { id: string; text: string }[]
+  >([]);
   const [pageSize, setPageSize] = useState<number>(10);
   const [columnVisibility, setColumnVisibility] = useState<any>({});
   const auth = useAuth();
@@ -90,6 +93,7 @@ export const useHostsTable = (p: {
     page_size: pageSize,
     selectAll,
     ordering: getOrdering(columnSort),
+    advanced_search: globalFilter.map((filter) => filter.id).join(","),
   });
 
   const Hosts = useMemo<Host[]>(() => {
@@ -114,9 +118,9 @@ export const useHostsTable = (p: {
     data: Hosts,
     setColumnFilters,
     setRowSelection,
-    setGlobalFilter,
     setColumnSort,
     setColumnVisibility,
+    setGlobalFilter,
     state: {
       columnFilters,
       rowSelection,
@@ -127,6 +131,13 @@ export const useHostsTable = (p: {
     },
     meta: {
       total: data.data?.pages?.[0]?.count,
+      globalFilter: (
+        <HostGlobalAutocomplete
+          onAddFilter={(v) => {
+            setGlobalFilter((prev) => [...prev, v]);
+          }}
+        />
+      ),
       trProps: (row: any) => {
         return {
           className:

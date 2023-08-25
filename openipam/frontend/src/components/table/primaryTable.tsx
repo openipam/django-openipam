@@ -6,6 +6,7 @@ import { TableHead, TableHeaderCell } from "./tableHead";
 import React from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { IdToName } from "../idToName";
+import { Delete } from "@mui/icons-material";
 
 export const PrimaryTable = (p: {
   estimateColumnSize?: number;
@@ -53,7 +54,9 @@ export const PrimaryTable = (p: {
               </p>
             </div>
             <div className="flex flex-row gap-4 text-primary-content">
-              <p className="text-primary-content mt-1">Active Filters:</p>
+              <p className="text-primary-content mt-1">
+                Active Column Filters:
+              </p>
               {activeFilters.length > 0 && (
                 <button
                   className="btn btn-sm btn-outline btn-ghost"
@@ -66,7 +69,10 @@ export const PrimaryTable = (p: {
             <div className="flex gap-2 text-primary-content">
               {activeFilters.length ? (
                 activeFilters.map((filter) => (
-                  <div className="flex flex-row gap-2 flex-wrap">
+                  <div
+                    className="flex flex-row gap-2 flex-wrap"
+                    key={Math.random()}
+                  >
                     <p className="text-primary-content">
                       {IdToName(filter.id)}:
                     </p>
@@ -83,13 +89,28 @@ export const PrimaryTable = (p: {
         </div>
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col gap-2 w-full justify-between">
-            <label className="text-primary-content m-1">Global Search:</label>
-            <DebouncedInput
-              value={globalFilter ?? ""}
-              onChange={(value) => setGlobalFilter(String(value))}
-              className="mb-2 input input-bordered w-full"
-              placeholder="Search any column..."
-            />
+            <label className="text-primary-content m-1">
+              Advanced Filters:
+            </label>
+            {globalFilter.map((filter: { id: string; text: string }) => (
+              <div
+                className="flex flex-row gap-2 flex-wrap"
+                key={Math.random()}
+              >
+                <p className="text-primary-content">{filter.text}</p>
+                <button
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => {
+                    setGlobalFilter((prev: any[]) =>
+                      prev.filter((f) => f.id !== filter.id)
+                    );
+                  }}
+                >
+                  <Delete />
+                </button>
+              </div>
+            ))}
+            {p.table.options.meta?.globalFilter ?? <></>}
           </div>
         </div>
       </div>

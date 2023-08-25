@@ -15,14 +15,17 @@ export const AutocompleteSelect = (props: {
   loading?: boolean;
   inputProps?: InputHTMLAttributes<HTMLInputElement> | undefined;
   icon?: ReactNode;
+  disableFilter?: boolean;
 }) => {
   const [show, setShow] = useState(false);
   const [hovering, setHovering] = useState(0);
 
   const filteredOptions = () =>
-    props.options?.filter?.((option) =>
-      props.getValueFromOption(option).includes(props.textFilter)
-    ) ?? [];
+    props.disableFilter
+      ? props.options
+      : props.options?.filter?.((option) =>
+          props.getValueFromOption(option).includes(props.textFilter)
+        ) ?? [];
 
   useEffect(() => {
     setHovering(0);

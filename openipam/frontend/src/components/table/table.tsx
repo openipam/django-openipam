@@ -1,6 +1,6 @@
 import "@tanstack/react-table";
 import type { Table as ReactTable, RowData } from "@tanstack/react-table";
-import type { Component } from "react";
+import type { Component, ReactNode } from "react";
 import { PrimaryTable } from "./primaryTable";
 import React from "react";
 import { SelectColumnModal } from "./selectColumnModal";
@@ -25,6 +25,7 @@ declare module "@tanstack/table-core" {
     rowActions?: (p: TData) => React.ReactNode;
     total?: number;
     pageSize?: number;
+    globalFilter?: ReactNode;
   }
 }
 

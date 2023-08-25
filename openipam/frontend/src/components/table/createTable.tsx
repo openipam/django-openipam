@@ -13,7 +13,7 @@ import React from "react";
 export const CreateTable = (p: {
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   setRowSelection?: React.Dispatch<React.SetStateAction<{}>>;
-  setGlobalFilter?: React.Dispatch<React.SetStateAction<string>>;
+  setGlobalFilter?: React.Dispatch<React.SetStateAction<any[]>>;
   setColumnSort?: React.Dispatch<React.SetStateAction<any[]>>;
   setColumnVisibility?: React.Dispatch<React.SetStateAction<any>>;
   data: any;

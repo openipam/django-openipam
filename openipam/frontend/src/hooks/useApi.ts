@@ -179,6 +179,11 @@ export const useApi = () => {
         };
       },
     },
+    autocomplete: requestGenerator(
+      HttpMethod.GET,
+      "autocomplete/ipam-autocomplete/",
+      ""
+    ),
   };
 };
 
@@ -192,8 +197,8 @@ enum HttpMethod {
   PATCH = "PATCH",
 }
 
-function requestGenerator(method: string, url: string) {
-  url = `${BASE_URL}/${url}`;
+function requestGenerator(method: string, url: string, base?: string) {
+  url = `${base ?? BASE_URL}/${url}`;
   switch (method) {
     case "GET":
       return async (params?: { [key: string]: any }) => {

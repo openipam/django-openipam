@@ -10,7 +10,7 @@ import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 export const useUsersTable = (p: {}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<User[]>([]);
-  const data = useInfiniteUsers();
+  const data = useInfiniteUsers({});
   const dns = useMemo<User[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];

@@ -10,7 +10,7 @@ export const Attributes = (p: {
   owner: boolean;
 }) => {
   const api = useApi();
-  const attributes = useAttributes();
+  const attributes = useAttributes({});
   const [edit, setEdit] = useState<boolean>(false);
   const [newAttributes, setNewAttributes] = useState<any>();
   useEffect(() => {

@@ -8,7 +8,7 @@ export const AttributeModule = (p: {
   setShowModule: (show: any) => void;
   delete?: boolean;
 }) => {
-  const attributes = useAttributes();
+  const attributes = useAttributes({});
   const api = useApi();
   const [attribute, setAttribute] = useState<any[]>([
     {

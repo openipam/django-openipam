@@ -2,13 +2,14 @@ import React, { useEffect } from "react";
 import { useApi } from "../useApi";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-export const useInfiniteUsers = () => {
+export const useInfiniteUsers = (p: { [key: string]: any }) => {
   const api = useApi();
   const query = useInfiniteQuery({
     queryKey: ["users, all"],
     queryFn: async ({ pageParam = 1 }) => {
       const results = await api.user.get({
         page: pageParam,
+        ...p,
       });
       return {
         users: results.results,
