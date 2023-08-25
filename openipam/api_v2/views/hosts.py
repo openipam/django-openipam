@@ -117,23 +117,10 @@ class HostViewSet(APIModelViewSet):
         )
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post", "delete"])
-    def dhcp(self, request, *args, mac, **kwargs):
-        host = get_object_or_404(Host, mac=mac)
-        if request.method == "DELETE":
-            host.dhcp_group = None
-            host.save(user=request.user)
-            LogEntry.objects.log_action(
-                user_id=request.user.pk,
-                content_type_id=ContentType.objects.get_for_model(host).pk,
-                object_id=host.pk,
-                object_repr=force_text(host),
-                action_flag=CHANGE,
-                change_message="DHCP Group unset.",
-            )
-            return Response(status=status.HTTP_200_OK)
-
+    @action(detail=True, methods=["post"])
+    def dhcp(self, request, *args, **kwargs):
         """Post dhcp."""
+        host = self.get_object()
         dhcp_group = request.data.get("dhcp_group")
         # check if dhcp group is valid
         valid = DhcpGroup.objects.filter(name=dhcp_group).exists()
@@ -152,6 +139,21 @@ class HostViewSet(APIModelViewSet):
             change_message="DHCP Group set.",
         )
         return Response(status=status.HTTP_200_OK)
+
+    @dhcp.mapping.delete
+    def dhcp_delete(self, request, *args, mac, **kwargs):
+        host = self.get_object()
+        host.dhcp_group = None
+        host.save(user=request.user)
+        LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(host).pk,
+            object_id=host.pk,
+            object_repr=force_text(host),
+            action_flag=CHANGE,
+            change_message="DHCP Group unset.",
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get"])
     def leases(self, request, *args, mac, **kwargs):
