@@ -41,9 +41,11 @@ from openipam.network.models import DhcpGroup
 class HostViewSet(APIModelViewSet):
     """API endpoint that allows hosts to be viewed or edited."""
 
-    queryset = Host.objects.prefetch_related(
-        "addresses", "leases", "pools"
-    ).select_related("dhcp_group", "changed_by")
+    queryset = (
+        Host.objects.prefetch_related("addresses", "leases", "pools")
+        .select_related("dhcp_group", "changed_by")
+        .order_by("hostname")
+    )
 
     lookup_field = "mac"
 
@@ -58,6 +60,8 @@ class HostViewSet(APIModelViewSet):
         "hostname",
         "dhcp_group__name",
         "expires",
+        "address_type__name",
+        "changed",
     ]
 
     def get_serializer_class(self):

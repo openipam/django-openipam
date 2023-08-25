@@ -15,9 +15,7 @@ from rest_framework.serializers import (
     ModelSerializer,
     Field,
     SerializerMethodField,
-    HyperlinkedModelSerializer,
 )
-from .users import UserNestedSerializer
 from django.shortcuts import get_object_or_404
 import ipaddress
 
@@ -38,7 +36,7 @@ class NetworkSerializer(ModelSerializer):
     vlans = VlanSerializer(many=True)
     buildings = SerializerMethodField()
     shared_network = SerializerMethodField()
-    gateway = SerializerMethodField()
+    gateway = base_serializers.CharField(source="gateway.ip", read_only=True)
     addresses = SerializerMethodField()
     changed_by = ChangedBySerializer()
     dhcp_group = base_serializers.CharField(source="dhcp_group.name", read_only=True)
@@ -48,12 +46,6 @@ class NetworkSerializer(ModelSerializer):
         return self.context["request"].build_absolute_uri(
             f"/api/v2/networks/{obj.pk}/addresses/"
         )
-
-    def get_gateway(self, obj):
-        if obj.gateway:
-            return str(obj.gateway.ip)
-        else:
-            return None
 
     def get_shared_network(self, obj):
         if obj.shared_network:
@@ -149,42 +141,11 @@ class AddressSerializer(ModelSerializer):
     """Serializer for address objects."""
 
     network = SimpleNetworkSerializer()
-    gateway = SerializerMethodField()
+    gateway = base_serializers.CharField(source="network.gateway.ip", read_only=True)
     pool = PoolSerializer()
     address = SimpleAddressSerializer()
-    hostname = SerializerMethodField()
-    host = SerializerMethodField()
-    last_seen = SerializerMethodField()
-    last_mac_seen = SerializerMethodField()
-
-    def get_last_seen(self, obj):
-        """Return last seen date for address."""
-        return obj.last_seen
-
-    def get_last_mac_seen(self, obj):
-        """Return last seen mac for address."""
-        return obj.last_mac_seen
-
-    def get_hostname(self, obj):
-        """Return host name for address."""
-        if obj.host:
-            return obj.host.hostname
-        else:
-            return None
-
-    def get_host(self, obj):
-        """Return host name for address."""
-        if obj.host:
-            return str(obj.host_id)
-        else:
-            return None
-
-    def get_gateway(self, obj):
-        """Return gateway address for network."""
-        if obj.network.gateway:
-            return str(obj.network.gateway.ip)
-        else:
-            return None
+    hostname = base_serializers.CharField(source="host.hostname", read_only=True)
+    host = base_serializers.CharField(source="host_id", read_only=True)
 
     def validate_network(self, value):
         """Validate that the network contains the address."""

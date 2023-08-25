@@ -98,7 +98,16 @@ class NetworkFilter(df.FilterSet):
 
     class Meta:
         model = Network
-        fields = ["network", "vlan_id", "vlan_name", "gateway", "changed_by", "name"]
+        fields = [
+            "network",
+            "vlan_id",
+            "vlan_name",
+            "gateway",
+            "changed_by",
+            "name",
+            "address_type",
+            "shared_network",
+        ]
 
 
 class AddressFilterSet(df.FilterSet):
