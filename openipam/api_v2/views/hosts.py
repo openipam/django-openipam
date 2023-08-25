@@ -95,17 +95,16 @@ class HostViewSet(APIModelViewSet):
 
     @action(detail=True, methods=["post"])
     def network(self, request, *args, mac, **kwargs):
-        host = get_object_or_404(Host, mac=mac)
+        host = self.get_object()
         network = request.data.get("network")
 
-        valid = network_models.Network.objects.filter(network=network).exists()
-
-        if not valid:
+        try:
+            host.network = network_models.Network.objects.get(network=network)
+        except network_models.Network.DoesNotExist:
             return Response(
-                {"detail": "Invalid Network"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "The requested network does not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-        host.network = network_models.Network.objects.get(network=network)
         host.save(user=request.user)
         LogEntry.objects.log_action(
             user_id=request.user.pk,
@@ -117,23 +116,15 @@ class HostViewSet(APIModelViewSet):
         )
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post", "delete"])
-    def dhcp(self, request, *args, mac, **kwargs):
-        host = get_object_or_404(Host, mac=mac)
-        if request.method == "DELETE":
-            host.dhcp_group = None
-            host.save(user=request.user)
-            LogEntry.objects.log_action(
-                user_id=request.user.pk,
-                content_type_id=ContentType.objects.get_for_model(host).pk,
-                object_id=host.pk,
-                object_repr=force_text(host),
-                action_flag=CHANGE,
-                change_message="DHCP Group unset.",
-            )
-            return Response(status=status.HTTP_200_OK)
-
+    @action(detail=True, methods=["post"])
+    def dhcp(self, request, *args, **kwargs):
         """Post dhcp."""
+        # TODO: determine if this needs to be its own endpoint. It seems like it might make more
+        # sense to manage this via a PATCH to the host object, which is already possible.
+        # Generally, if it's something that is usually changed as part of a larger operation, it
+        # should be a PATCH or PUT to the host object. If it's something that is frequently changed
+        # on its own, it should be its own endpoint.
+        host = self.get_object()
         dhcp_group = request.data.get("dhcp_group")
         # check if dhcp group is valid
         valid = DhcpGroup.objects.filter(name=dhcp_group).exists()
@@ -152,6 +143,21 @@ class HostViewSet(APIModelViewSet):
             change_message="DHCP Group set.",
         )
         return Response(status=status.HTTP_200_OK)
+
+    @dhcp.mapping.delete
+    def dhcp_delete(self, request, *args, mac, **kwargs):
+        host = self.get_object()
+        host.dhcp_group = None
+        host.save(user=request.user)
+        LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(host).pk,
+            object_id=host.pk,
+            object_repr=force_text(host),
+            action_flag=CHANGE,
+            change_message="DHCP Group unset.",
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get"])
     def leases(self, request, *args, mac, **kwargs):
