@@ -15,6 +15,7 @@ export const CreateTable = (p: {
   setRowSelection?: React.Dispatch<React.SetStateAction<{}>>;
   setGlobalFilter?: React.Dispatch<React.SetStateAction<string>>;
   setColumnSort?: React.Dispatch<React.SetStateAction<any[]>>;
+  setColumnVisibility?: React.Dispatch<React.SetStateAction<any>>;
   data: any;
   state: any;
   meta?: any;
@@ -25,6 +26,7 @@ export const CreateTable = (p: {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    onColumnVisibilityChange: p.setColumnVisibility,
     // Sorting
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: p.setColumnSort,

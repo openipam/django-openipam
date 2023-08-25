@@ -36,6 +36,7 @@ export const useHostsTable = (p: {
       delete?: boolean;
     }>
   >;
+  onSelectColumns: () => void;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -43,6 +44,7 @@ export const useHostsTable = (p: {
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [pageSize, setPageSize] = useState<number>(10);
+  const [columnVisibility, setColumnVisibility] = useState<any>({});
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -114,12 +116,14 @@ export const useHostsTable = (p: {
     setRowSelection,
     setGlobalFilter,
     setColumnSort,
+    setColumnVisibility,
     state: {
       columnFilters,
       rowSelection,
       globalFilter,
       pageSize,
       sorting: columnSort,
+      columnVisibility,
     },
     meta: {
       total: data.data?.pages?.[0]?.count,
@@ -150,6 +154,7 @@ export const useHostsTable = (p: {
       setEditHost: p.setEditHost,
       setRenewModule: p.setRenewModule,
       setActionModule: p.setActionModule,
+      onSelectColumns: p.onSelectColumns,
       pageSize,
       setPageSize,
       setSelectAll,

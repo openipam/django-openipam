@@ -35,6 +35,7 @@ export const HostTableColumns = (p: {
       multiple?: boolean;
     }>
   >;
+  onSelectColumns: () => void;
   pageSize: number;
   setPageSize: React.Dispatch<React.SetStateAction<number>>;
   setSelectAll: React.Dispatch<React.SetStateAction<boolean>>;
@@ -77,8 +78,11 @@ export const HostTableColumns = (p: {
                 </label>
                 <ul
                   tabIndex={0}
-                  className="dropdown-content menu p-2 shadow bg-gray-700 rounded-box w-40 mt-2"
+                  className="dropdown-content menu p-2 shadow bg-gray-700 rounded-box w-48 mt-2"
                 >
+                  <li onClick={p.onSelectColumns}>
+                    <a>Show/Hide Columns</a>
+                  </li>
                   <li
                     onClick={() => {
                       p.setSelectAll(true);

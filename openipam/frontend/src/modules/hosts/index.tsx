@@ -10,6 +10,7 @@ import { AttributeModule } from "./attributeModule";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
+  const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [editHost, setEditHost] = useState<{
     show: boolean;
     HostData: any;
@@ -53,12 +54,20 @@ export const Hosts = () => {
     setRenewModule,
     setActionModule,
     setAttributeModule,
+    onSelectColumns: () => {
+      setSelectingColumns(true);
+    },
   });
 
   return (
     <div className="mt-8 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Hosts</h1>
-      <Table table={table.table} loading={table.loading} />
+      <Table
+        table={table.table}
+        loading={table.loading}
+        showSelectColumns={selectingColumns}
+        hideShowSelectColumns={() => setSelectingColumns(false)}
+      />
       <AddHostModule showModule={showAddHost} setShowModule={setShowAddHost} />
       <EditHostModule
         showModule={editHost.show}

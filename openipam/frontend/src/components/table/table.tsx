@@ -3,6 +3,7 @@ import type { Table as ReactTable, RowData } from "@tanstack/react-table";
 import type { Component } from "react";
 import { PrimaryTable } from "./primaryTable";
 import React from "react";
+import { SelectColumnModal } from "./selectColumnModal";
 
 declare module "@tanstack/table-core" {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -27,14 +28,26 @@ declare module "@tanstack/table-core" {
   }
 }
 
-export const Table = (p: {
-  estimateColumnSize?: number;
-  table: ReactTable<any>;
-  loading: boolean;
-  className?: string;
-}) => {
+export const Table = (
+  p: {
+    estimateColumnSize?: number;
+    table: ReactTable<any>;
+    loading: boolean;
+    className?: string;
+  } & (
+    | {
+        showSelectColumns: boolean;
+        hideShowSelectColumns: VoidFunction;
+      }
+    | {
+        showSelectColumns?: never;
+        hideShowSelectColumns?: never;
+      }
+  )
+) => {
   return (
     <div className="flex flex-col overflow-scroll gap-4 m-8 w-[90%]">
+      {p.hideShowSelectColumns ? <SelectColumnModal {...p} /> : null}
       <div className="flex relative mb-2 p-2">
         {p.loading ? (
           <div className="text-secondary-content absolute">
