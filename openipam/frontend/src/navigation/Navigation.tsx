@@ -3,6 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme, useThemes } from "../hooks/useTheme";
 import { Palette } from "@mui/icons-material";
+import { IdToName } from "../components/idToName";
 
 export const Navigation = () => {
   const auth = useAuth();
@@ -67,7 +68,7 @@ export const Navigation = () => {
           >
             {themes.map((theme) => (
               <option key={theme} value={theme}>
-                {theme}
+                {IdToName(theme)}
               </option>
             ))}
           </select>

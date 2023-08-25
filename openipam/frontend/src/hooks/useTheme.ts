@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 let initialTheme = "light";
 const lightThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -12,7 +12,14 @@ if (htmlTage.length > 0) {
 }
 
 export const useTheme = () => {
-  const [theme, setTheme] = React.useState<string>(initialTheme);
+  const [theme, setTheme] = React.useState<string>(
+    localStorage.getItem("theme") ?? initialTheme
+  );
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   return { theme, setTheme };
 };
 
