@@ -20,7 +20,14 @@ from django.utils import timezone
 
 
 class DisabledHostListSerializer(serializers.ModelSerializer):
-    """Disabled Host serializer for list view."""
+    """
+    Disabled Host serializer for list view.
+
+    This is used for the disabled host list instead of the below
+    DisabledHostSerializer because the DisabledHostSerializer
+    doesn't contain any information about the host itself, only the
+    disabled host details.
+    """
 
     changed_by = serializer_base.ChangedBySerializer()
     mac = serializers.CharField()
@@ -31,7 +38,15 @@ class DisabledHostListSerializer(serializers.ModelSerializer):
         return True
 
     def get_hostname(self, obj):
-        """Get hostname for host."""
+        """
+        Get hostname for host.
+
+        Must be done this way because there isn't a foreign key constraint
+        between DisabledHostDetails and Host. There is a reason for this: we
+        want to be able to disable a host that doesn't exist in the database,
+        or has been deleted. But it does make Django's ORM a little annoying
+        to work with here.
+        """
         try:
             host = Host.objects.get(mac=obj.mac)
             return host.hostname
@@ -51,7 +66,11 @@ class DisabledHostListSerializer(serializers.ModelSerializer):
 
 
 class DisabledHostSerializer(serializers.ModelSerializer):
-    """Disabled Host serializer."""
+    """
+    Disabled Host serializer.
+
+    Used for the disabled host details that are included in the HostSerializer.
+    """
 
     changed_by = serializer_base.ChangedBySerializer()
 
@@ -83,8 +102,13 @@ class HostSerializer(serializers.ModelSerializer):
     changed_by = serializer_base.ChangedBySerializer()
     dhcp_group = serializers.SerializerMethodField()
     details = serializers.SerializerMethodField()
-    last_seen = serializers.SerializerMethodField()
-    address_type = serializers.SerializerMethodField()
+    last_seen = serializers.DateTimeField(
+        source="mac_history.stopstamp", read_only=True
+    )
+    last_seen_ip = serializers.CharField(
+        source="mac_history.address_id.ip", read_only=True
+    )
+    address_type = serializers.CharField(source="address_type.name", read_only=True)
 
     def get_details(self, obj):
         """Get a link to the host details page."""
@@ -116,15 +140,17 @@ class HostSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         """Get attributes for host."""
 
+        # Get structured attributes
         structured_attrs = StructuredAttributeToHost.objects.filter(
             host=obj
         ).select_related(
             "structured_attribute_value__attribute",
-            "structured_attribute_value",
         )
+        # Get freeform attributes
         freeform_attrs = FreeformAttributeToHost.objects.filter(
             host=obj
         ).select_related("attribute")
+        # Assemble a dictionary of all attributes
         attributes = {}
         for attr in structured_attrs:
             attributes[
@@ -133,21 +159,6 @@ class HostSerializer(serializers.ModelSerializer):
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return attributes
-
-    def get_last_seen(self, obj):
-        """Get last seen for host."""
-        gul_mac = GulRecentArpBymac.objects.filter(pk=obj.mac).order_by("-stopstamp")
-        if gul_mac:
-            return gul_mac[0].stopstamp
-        else:
-            return None
-
-    def get_address_type(self, obj):
-        """Get address type for host."""
-        if obj.address_type:
-            return obj.address_type.name
-        else:
-            return None
 
     class Meta:
         """Meta class."""
@@ -170,6 +181,7 @@ class HostSerializer(serializers.ModelSerializer):
             "changed",
             "changed_by",
             "last_seen",
+            "last_seen_ip",
             "address_type",
         )
 

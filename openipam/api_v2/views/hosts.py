@@ -32,7 +32,7 @@ from django.db.models import Q
 from guardian.shortcuts import get_objects_for_user
 from netfields import NetManager  # noqa: F401 needed for net_contains
 from django_filters.rest_framework import DjangoFilterBackend
-from ..filters.hosts import HostFilter
+from ..filters.hosts import AdvancedSearchFilter, HostFilter
 from rest_framework import filters as rest_filters
 from django.utils.encoding import force_text
 from openipam.network.models import DhcpGroup
@@ -52,7 +52,11 @@ class HostViewSet(APIModelViewSet):
     permission_classes = [
         api_permissions.HostPermission,
     ]
-    filter_backends = [DjangoFilterBackend, rest_filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        rest_filters.OrderingFilter,
+        AdvancedSearchFilter,
+    ]
     filterset_class = HostFilter
 
     ordering_fields = [
