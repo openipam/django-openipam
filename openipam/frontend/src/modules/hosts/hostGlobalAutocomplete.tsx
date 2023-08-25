@@ -18,8 +18,6 @@ export const HostGlobalAutocomplete = (p: {
   const [value, setValue] = useState<any>();
   const options = useOptions({ q: filter });
 
-  console.log(options);
-
   useEffect(() => {
     if (value) {
       p.onAddFilter(value);
