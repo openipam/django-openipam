@@ -45,7 +45,7 @@ const TableHeaderLabel = (p: {
   const header = p.header;
   return (
     <div
-      className={`whitespace-nowrap text-secondary-content ${
+      className={`whitespace-nowrap text-neutral ${
         header.column.getCanSort() && !p.hideSorting
           ? "cursor-pointer select-none"
           : ""
@@ -92,7 +92,7 @@ function Filter({
             value={(columnFilterValue ?? "") as string}
             onChange={(value) => column.setFilterValue(value)}
             placeholder={`Search`}
-            className="w-full text-primary-content border  shadow rounded input input-xs input-bordered"
+            className="w-full border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
           />
           <div className="h-1" />
@@ -112,7 +112,7 @@ function Filter({
             value={(columnFilterValue ?? "") as string}
             onChange={(value) => column.setFilterValue(value)}
             placeholder={`Search (${uniqueValues.length})`}
-            className="w-full text-primary-content border  shadow rounded input input-xs input-bordered"
+            className="w-full border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
           />
           <div className="h-1" />
@@ -198,7 +198,7 @@ export const TableHeaderCell = (p: {
   return (
     <th
       {...thProps}
-      className={`sticky top-0 text-center bg-gray-500 text-secondary-content ${headerBorderClasses} ${
+      className={`sticky top-0 text-center bg-neutral-content ${headerBorderClasses} ${
         thProps.className ?? ""
       }`}
       colSpan={header.colSpan}

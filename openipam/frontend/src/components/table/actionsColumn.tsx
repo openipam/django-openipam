@@ -40,7 +40,7 @@ export const ActionsColumn = (p: {
       header: ({ table }: { table: Table<any> }) => (
         // force overflow to be visible so that the tooltip can be seen
         <div className="flex flex-col gap-1">
-          <div className="flex gap-1 relative text-secondary-content">
+          <div className="flex gap-1 relative">
             {p.pageSize && p.setPageSize && (
               <>
                 <ToolTip
@@ -48,7 +48,7 @@ export const ActionsColumn = (p: {
                   props="bottom-8 right-1 rounded-br-none"
                 >
                   <select
-                    className="select select-ghost select-sm text-secondary-content"
+                    className="select select-ghost select-sm text-neutral"
                     value={p.pageSize}
                     onChange={(e) => {
                       p.setPageSize!(Number(e.target.value));
@@ -64,7 +64,8 @@ export const ActionsColumn = (p: {
               </>
             )}
           </div>
-          <div className="flex gap-1 items-center relative text-secondary-content">
+
+          <div className="flex gap-1 items-center relative text-neutral">
             {p.enableSelection && (
               <PlainIndeterminateCheckbox
                 checked={
@@ -74,8 +75,8 @@ export const ActionsColumn = (p: {
                     .length === p.pageSize
                 }
                 indeterminate={table.getIsSomeRowsSelected()}
+                header
                 onChange={(e) => {
-                  console.log("toggle all rows", e);
                   p.setSelectAll?.(false);
                   if (!e.target.checked) {
                     table.resetRowSelection(true);
@@ -94,19 +95,19 @@ export const ActionsColumn = (p: {
             )}
             <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
               <button
-                className="btn btn-circle btn-ghost btn-xs mt-1 text-secondary-content"
+                className="btn btn-circle btn-ghost btn-xs mt-1 text-neutral"
                 onClick={() => p.data.fetchNextPage?.()}
                 disabled={!p.data.hasNextPage || p.data.isFetchingNextPage}
               >
-                <ExpandMore />
+                <ExpandMore style={{ fill: "inherit" }} />
               </button>
             </ToolTip>
             {p.onAdd && (
               <button
-                className="btn btn-circle btn-ghost btn-xs text-secondary-content"
+                className="btn btn-circle btn-ghost btn-xs text-neutral"
                 onClick={p.onAdd}
               >
-                <Add />
+                <Add style={{ fill: "inherit" }} />
               </button>
             )}
 

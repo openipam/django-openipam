@@ -73,15 +73,18 @@ export const HostTableColumns = (p: {
           customHead: (
             <>
               <div className="dropdown mt-1">
-                <label tabIndex={0} className="btn btn-circle btn-ghost btn-xs">
-                  <MoreVert />
+                <label
+                  tabIndex={0}
+                  className="btn btn-circle btn-ghost btn-xs text-neutral"
+                >
+                  <MoreVert style={{ fill: "inherit" }} />
                 </label>
                 <ul
                   tabIndex={0}
-                  className="dropdown-content menu p-2 shadow bg-gray-700 rounded-box w-48 mt-2"
+                  className="dropdown-content menu p-2 shadow bg-neutral-focus rounded-box w-48 mt-2"
                 >
                   <li onClick={p.onSelectColumns}>
-                    <a>Show/Hide Columns</a>
+                    <a className="text-neutral-content">Show/Hide Columns</a>
                   </li>
                   <li
                     onClick={() => {
@@ -92,7 +95,7 @@ export const HostTableColumns = (p: {
                       text="Caution! Includes Unseen Rows!"
                       props="rounded-tr-none top-10 right-2"
                     >
-                      <a>Select ALL rows</a>
+                      <a className="text-neutral-content">Select ALL rows</a>
                     </ToolTip>
                   </li>
                 </ul>
@@ -117,7 +120,7 @@ export const HostTableColumns = (p: {
           id: "mac",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center text-secondary-content">Mac</p>
+              <p className="flex text-center text-neutral">Mac</p>
               <ToolTip
                 text="Use XX:XX:XX:XX:XX:XX Format"
                 props="rounded-br-none right-4 bottom-4"
@@ -177,9 +180,7 @@ export const HostTableColumns = (p: {
           id: "ip_addresses",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center text-secondary-content">
-                IP Addresses
-              </p>
+              <p className="flex text-center text-neutral">IP Addresses</p>
               <ToolTip
                 text="XX.XX.XX.XX"
                 props="rounded-br-none right-4 bottom-4"
@@ -219,6 +220,21 @@ export const HostTableColumns = (p: {
       header: "Secondary Details",
       columns: [
         {
+          id: "last_seen",
+          header: "Last Seen",
+          enableSorting: false,
+          accessorFn: (row) =>
+            row.last_seen
+              ? `${Math.ceil(
+                  (new Date(row.last_seen).getTime() - new Date().getTime()) /
+                    (1000 * 3600 * 24)
+                )} Days Ago`
+              : "No Data",
+          meta: {
+            hideFilter: true,
+          },
+        },
+        {
           id: "address_type",
           header: "Address Type",
           accessorFn: (row) => row.address_type,
@@ -243,9 +259,7 @@ export const HostTableColumns = (p: {
           // header: "User Owners",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center text-secondary-content">
-                User Owners
-              </p>
+              <p className="flex text-center text-neutral">User Owners</p>
               <ToolTip
                 text="By Username"
                 props="rounded-br-none right-4 bottom-4"
@@ -259,9 +273,7 @@ export const HostTableColumns = (p: {
           id: "group_owners",
           header: ({ table }: any) => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
-              <p className="flex text-center text-secondary-content">
-                Group Owners
-              </p>
+              <p className="flex text-center text-neutral">Group Owners</p>
               <ToolTip
                 text="Use Full Name"
                 props="rounded-br-none right-4 bottom-4"

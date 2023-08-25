@@ -34,10 +34,8 @@ export const PrimaryTable = (p: {
       <div className="w-full grid grid-cols-3 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
-            <div className="flex flex-row gap-4 text-primary-content">
-              <p className="text-primary-content">
-                {selectedRows.rows.length} Rows Selected
-              </p>
+            <div className="flex flex-row gap-4 ">
+              <p className="">{selectedRows.rows.length} Rows Selected</p>
             </div>
             {p.table.options.meta?.rowActions?.(
               selectedRows.rows.map((r) => r.original)
@@ -49,14 +47,12 @@ export const PrimaryTable = (p: {
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col justify-between">
             <div className="flex flex-row gap-4">
-              <p className="text-primary-content">
+              <p className="">
                 Loaded {rows.length} of {total} rows
               </p>
             </div>
-            <div className="flex flex-row gap-4 text-primary-content">
-              <p className="text-primary-content mt-1">
-                Active Column Filters:
-              </p>
+            <div className="flex flex-row gap-4 ">
+              <p className=" mt-1">Active Column Filters:</p>
               {activeFilters.length > 0 && (
                 <button
                   className="btn btn-sm btn-outline btn-ghost"
@@ -66,42 +62,36 @@ export const PrimaryTable = (p: {
                 </button>
               )}
             </div>
-            <div className="flex gap-2 text-primary-content">
+            <div className="flex gap-2 ">
               {activeFilters.length ? (
                 activeFilters.map((filter) => (
                   <div
                     className="flex flex-row gap-2 flex-wrap"
                     key={Math.random()}
                   >
-                    <p className="text-primary-content">
-                      {IdToName(filter.id)}:
-                    </p>
-                    <p className="text-primary-content">
-                      {JSON.stringify(filter.value)}
-                    </p>
+                    <p className="">{IdToName(filter.id)}:</p>
+                    <p className="">{JSON.stringify(filter.value)}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-primary-content">No Active Filters</p>
+                <p className="">No Active Filters</p>
               )}
             </div>
           </div>
         </div>
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col gap-2 w-full justify-between">
-            <label className="text-primary-content m-1">
-              Advanced Filters:
-            </label>
-            {globalFilter.map((filter: { id: string; text: string }) => (
+            <label className=" m-1">Advanced Filters:</label>
+            {globalFilter?.map((filter: { id: string; text: string }) => (
               <div
                 className="flex flex-row gap-2 flex-wrap"
                 key={Math.random()}
               >
-                <p className="text-primary-content">{filter.text}</p>
+                <p className="">{filter.text}</p>
                 <button
                   className="btn btn-sm btn-ghost"
                   onClick={() => {
-                    setGlobalFilter((prev: any[]) =>
+                    setGlobalFilter?.((prev: any[]) =>
                       prev.filter((f) => f.id !== filter.id)
                     );
                   }}

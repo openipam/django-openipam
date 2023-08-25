@@ -1,11 +1,9 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./navigation/BrowserRouter";
 
-let theme = "dark";
-const lightThemeMq = window.matchMedia("(prefers-color-scheme: light)");
+let theme = "light";
+const lightThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
 if (lightThemeMq.matches) {
-  theme = "light";
-} else {
   theme = "dark";
 }
 

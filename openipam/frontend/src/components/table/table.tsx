@@ -51,8 +51,8 @@ export const Table = (
       {p.hideShowSelectColumns ? <SelectColumnModal {...p} /> : null}
       <div className="flex relative mb-2 p-2">
         {p.loading ? (
-          <div className="text-secondary-content absolute">
-            <p className="text-secondary-content">Syncing...</p>
+          <div className=" absolute">
+            <p className="">Syncing...</p>
           </div>
         ) : (
           <div></div>

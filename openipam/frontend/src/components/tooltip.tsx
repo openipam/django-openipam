@@ -21,7 +21,7 @@ export const ToolTip = (p: {
       <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
         {p.children ?? (
           <>
-            <div className="pl-0.5 pb-0.5 text-secondary-content">
+            <div className="pl-0.5 pb-0.5 text-white">
               <InfoOutlined fontSize="inherit" color="inherit" />
             </div>
           </>

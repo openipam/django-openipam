@@ -13,6 +13,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotFoundPage } from "../components/NotFoundPage";
 import { Networks } from "../modules/networks";
 import { Profile } from "../modules/profile";
+import { useTheme } from "../hooks/useTheme";
 
 const routes: RouteObject[] = [
   {

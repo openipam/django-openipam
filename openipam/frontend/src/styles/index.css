@@ -4,6 +4,6 @@
 
 @layer components {
   * {
-    @apply text-primary-content;
+    @apply text-base-content;
   }
 }

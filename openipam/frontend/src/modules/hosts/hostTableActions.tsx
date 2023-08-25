@@ -51,7 +51,7 @@ export const HostTableActions = (p: {
           ))}
         </select>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary text-secondary-content"
           onClick={() => {
             switch (action) {
               case "renew":

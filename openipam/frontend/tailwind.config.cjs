@@ -7,20 +7,8 @@ module.exports = {
   plugins: [require("daisyui")],
   daisyui: {
     themes: [
-      {
-        dark: {
-          ...require("daisyui/src/theming/themes")["[data-theme=dark]"],
-          "primary-content": "#f5f5f5",
-          "secondary-content": "#f5f5f5",
-        },
-      },
-      {
-        light: {
-          ...require("daisyui/src/theming/themes")["[data-theme=light]"],
-          "primary-content": "#2b2b2b",
-          "secondary-content": "#f5f5f5",
-        },
-      },
+      "light",
+      "dark",
       "cupcake",
       "bumblebee",
       "emerald",

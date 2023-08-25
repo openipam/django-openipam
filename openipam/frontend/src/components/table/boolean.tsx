@@ -20,6 +20,7 @@ export function booleanAccessor<T extends object>(field: keyof T) {
 export const PlainIndeterminateCheckbox = (
   p: {
     indeterminate?: boolean;
+    header?: boolean;
   } & InputHTMLAttributes<HTMLInputElement>
 ) => {
   const ref = useRef<HTMLInputElement>(null!);
@@ -28,11 +29,13 @@ export const PlainIndeterminateCheckbox = (
       ref.current.indeterminate = !p.checked && p.indeterminate;
     }
   }, [ref, p.indeterminate]);
-  const { indeterminate, ...rest } = p;
+  const { indeterminate, header, ...rest } = p;
   return (
     <input
       type="checkbox"
-      className="checkbox checkbox-sm border-primary-content border-opacity-50"
+      className={`checkbox checkbox-sm ${
+        p.header ? "border-neutral" : "border-primary-content"
+      } border-opacity-50`}
       ref={ref}
       {...rest}
     />
