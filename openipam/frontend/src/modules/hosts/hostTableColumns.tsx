@@ -7,6 +7,7 @@ import { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { ToolTip } from "../../components/tooltip";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 import { MoreVert } from "@mui/icons-material";
+import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 
 export const HostTableColumns = (p: {
   data: UseInfiniteQueryResult<
@@ -213,6 +214,14 @@ export const HostTableColumns = (p: {
             row.master_ip_address ?? row.addresses?.leased?.[0],
           filterFn: undefined,
         },
+        {
+          id: "vendor",
+          header: "Vendor",
+          accessorFn: (row) => row.vendor,
+          meta: {
+            hideFilter: true,
+          },
+        },
       ],
     }),
     columnHelper.group({
@@ -221,7 +230,22 @@ export const HostTableColumns = (p: {
       columns: [
         {
           id: "last_seen",
-          header: "Last Seen",
+          header: "Mac Last Seen",
+          enableSorting: false,
+          accessorFn: (row) =>
+            row.last_seen
+              ? `${Math.ceil(
+                  (new Date(row.last_seen).getTime() - new Date().getTime()) /
+                    (1000 * 3600 * 24)
+                )} Days Ago`
+              : "No Data",
+          meta: {
+            hideFilter: true,
+          },
+        },
+        {
+          id: "last_seen_ip",
+          header: "IP Last Seen",
           enableSorting: false,
           accessorFn: (row) =>
             row.last_seen
@@ -247,6 +271,15 @@ export const HostTableColumns = (p: {
           id: "dhcp_group",
           header: "DHCP Group",
           accessorFn: (row) => row.dhcp_group?.name,
+        },
+        {
+          id: "disabled_host",
+          header: "Disabled",
+          accessorFn: booleanAccessor("disabled_host"),
+          cell: BooleanRender,
+          meta: {
+            filterType: "boolean",
+          },
         },
       ],
     }),

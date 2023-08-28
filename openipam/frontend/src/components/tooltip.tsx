@@ -1,4 +1,4 @@
-import { InfoOutlined } from "@mui/icons-material";
+import { HelpOutline } from "@mui/icons-material";
 import React, { useState } from "react";
 
 export const ToolTip = (p: {
@@ -21,8 +21,13 @@ export const ToolTip = (p: {
       <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
         {p.children ?? (
           <>
-            <div className="pl-0.5 pb-0.5 text-white">
-              <InfoOutlined fontSize="inherit" color="inherit" />
+            <div className="pl-0.5 pb-0.5">
+              <HelpOutline
+                fontSize="inherit"
+                color="inherit"
+                style={{ fill: "inherit" }}
+                className="bg-secondary-neutral"
+              />
             </div>
           </>
         )}

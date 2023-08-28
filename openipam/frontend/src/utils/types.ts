@@ -45,6 +45,7 @@ export type Host = {
   mac: string;
   hostname: string;
   expires: string;
+  vendor: string;
   description: string;
   changed_by: {
     first_name: string;

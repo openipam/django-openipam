@@ -47,10 +47,24 @@ export const useHostsTable = (p: {
     { id: string; text: string }[]
   >([]);
   const [pageSize, setPageSize] = useState<number>(10);
-  const [columnVisibility, setColumnVisibility] = useState<any>({});
+  const [columnVisibility, setColumnVisibility] = useState<any>(
+    localStorage.getItem("hostsTableColumns")
+      ? JSON.parse(localStorage.getItem("hostsTableColumns")!)
+      : {
+          dhcp_group: false,
+          address_type: false,
+          group_owners: false,
+          user_owners: false,
+          disabled_host: false,
+        }
+  );
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const [selectAll, setSelectAll] = useState<boolean>(false);
+
+  useEffect(() => {
+    localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
+  }, [columnVisibility]);
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(

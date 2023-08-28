@@ -5,7 +5,7 @@ export const BooleanRender = (p: { getValue: () => any }) => {
     <div className="text-center">
       <input
         type="checkbox"
-        className="checkbox checkbox-sm cursor-not-allowed border-primary-content"
+        className="checkbox checkbox-sm cursor-not-allowed border-neutral-content"
         checked={p.getValue() === "Y"}
         readOnly
       />
@@ -34,8 +34,8 @@ export const PlainIndeterminateCheckbox = (
     <input
       type="checkbox"
       className={`checkbox checkbox-sm ${
-        p.header ? "border-neutral" : "border-primary-content"
-      } border-opacity-50`}
+        p.header ? "border-neutral" : "border-neutral-content"
+      }`}
       ref={ref}
       {...rest}
     />
