@@ -4,6 +4,7 @@ import { Host } from "../../utils/types";
 import { ExportToCsv } from "../../components/download";
 import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
 import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
+import { Table } from "@tanstack/table-core";
 
 export const HostTableActions = (p: {
   setRenewModule: React.Dispatch<
@@ -27,7 +28,7 @@ export const HostTableActions = (p: {
     }>
   >;
   rows: Host[];
-  table: any;
+  table: Table<any>;
 }) => {
   const [action, setAction] = useState<string>("renew");
   const api = useApi();
@@ -111,11 +112,9 @@ export const HostTableActions = (p: {
                     <div className="m-auto mt-10">
                       <ExportToCsv
                         rows={p.rows}
-                        columns={p.table
-                          .getAllLeafColumns()
-                          .slice(1)
-                          .map((col: any) => col.columnDef)}
+                        columns={p.table.getAllLeafColumns().slice(1)}
                         fileName="Hosts"
+                        askVisible={true}
                       />
                     </div>
                   ),
