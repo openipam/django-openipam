@@ -61,6 +61,9 @@ export const useHostsTable = (p: {
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const [selectAll, setSelectAll] = useState<boolean>(false);
+  useEffect(() => {
+    setSelectAll(false);
+  }, [columnFilters, columnSort, globalFilter]);
 
   useEffect(() => {
     localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
@@ -196,8 +199,6 @@ export const useHostsTable = (p: {
   return useMemo(() => ({ table, loading: data.isFetching }), [
     table,
     data.isFetching,
-    Hosts,
-    data.data,
   ]);
 };
 

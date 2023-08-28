@@ -34,7 +34,7 @@ export const PrimaryTable = (p: {
       <div className="w-full grid grid-cols-3 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
-            <div className="flex flex-row gap-4 ">
+            <div className="flex flex-row gap-4 ml-2">
               <p className="">{selectedRows.rows.length} Rows Selected</p>
             </div>
             {p.table.options.meta?.rowActions?.(
@@ -84,10 +84,10 @@ export const PrimaryTable = (p: {
             <label className=" m-1">Advanced Filters:</label>
             {globalFilter?.map((filter: { id: string; text: string }) => (
               <div
-                className="flex flex-row gap-2 flex-wrap"
+                className="flex flex-row justify-between gap-2 flex-wrap card card-bordered p-1 border-neutral-content shadow-neutral"
                 key={Math.random()}
               >
-                <p className="">{filter.text}</p>
+                <p className="ml-2 mt-0.5">{filter.text}</p>
                 <button
                   className="btn btn-sm btn-ghost"
                   onClick={() => {
