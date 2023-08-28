@@ -1,7 +1,6 @@
 """Miscellaneous views that don't really fit anywhere else."""
 
 from rest_framework import viewsets as lib_viewsets
-from .base import APIPagination
 from ..serializers.misc import AttributeSerializer
 from openipam.hosts.models import Attribute, StructuredAttributeValue
 from django.db.models import Prefetch

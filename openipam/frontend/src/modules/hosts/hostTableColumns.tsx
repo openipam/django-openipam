@@ -216,11 +216,16 @@ export const HostTableColumns = (p: {
         },
         {
           id: "vendor",
-          header: "Vendor",
+          header: () => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center text-neutral">Vendor</p>
+              <ToolTip
+                text="This is SLOW"
+                props="rounded-br-none right-4 bottom-4"
+              />
+            </div>
+          ),
           accessorFn: (row) => row.vendor,
-          meta: {
-            hideFilter: true,
-          },
         },
       ],
     }),

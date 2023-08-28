@@ -15,28 +15,15 @@ from rest_framework import filters as rest_filters
 class HostFilter(filters.FilterSet):
     """Filter for hosts."""
 
-    ip_address = filters.CharFilter(
-        method="filter_ip_address", lookup_expr="icontains", label="IP Address"
-    )
-    dhcp_group = filters.CharFilter(
-        method="filter_dhcp_group", lookup_expr="icontains", label="DHCP Group"
-    )
-    user = filters.CharFilter(
-        method="filter_user", lookup_expr="icontains", label="User"
-    )
-    group = filters.CharFilter(
-        method="filter_group", lookup_expr="icontains", label="Group"
-    )
-    mac = filters.CharFilter(
-        method="filter_mac", lookup_expr="icontains", label="MAC Address"
-    )
-    hostname = filters.CharFilter(
-        method="filter_hostname", lookup_expr="icontains", label="Hostname"
-    )
+    ip_address = filters.CharFilter(method="filter_ip_address", lookup_expr="icontains", label="IP Address")
+    dhcp_group = filters.CharFilter(method="filter_dhcp_group", lookup_expr="icontains", label="DHCP Group")
+    user = filters.CharFilter(method="filter_user", lookup_expr="icontains", label="User")
+    group = filters.CharFilter(method="filter_group", lookup_expr="icontains", label="Group")
+    mac = filters.CharFilter(method="filter_mac", lookup_expr="icontains", label="MAC Address")
+    hostname = filters.CharFilter(method="filter_hostname", lookup_expr="icontains", label="Hostname")
     disabled = filters.BooleanFilter(method="filter_disabled", label="Disabled")
-    address_type = filters.CharFilter(
-        method="filter_address_type", label="Address Type"
-    )
+    address_type = filters.CharFilter(method="filter_address_type", label="Address Type")
+    vendor = filters.CharFilter(method="filter_vendor", lookup_expr="icontains", label="Vendor")
     # Expiration date filters
     expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
     expires__lt = filters.DateTimeFilter(method="filter_expires__lt", lookup_expr="lt")
@@ -61,6 +48,7 @@ class HostFilter(filters.FilterSet):
             "group",
             "expires__gt",
             "expires__lt",
+            "vendor",
         ]
 
     def filter_address_type(self, queryset, name, value):
@@ -72,13 +60,17 @@ class HostFilter(filters.FilterSet):
         # No foreign-key relationship to the disabled field (since unregistered MACs can be
         # disabled), so we have to do a subquery.
         if value:
-            return queryset.filter(
-                mac__in=Disabled.objects.values_list("mac", flat=True)
-            )
+            return queryset.filter(mac__in=Disabled.objects.values_list("mac", flat=True))
         else:
-            return queryset.exclude(
-                mac__in=Disabled.objects.values_list("mac", flat=True)
-            )
+            return queryset.exclude(mac__in=Disabled.objects.values_list("mac", flat=True))
+
+    def filter_vendor(self, queryset, name, value):
+        """Filter based on vendor."""
+        return queryset.extra(
+            where=["hosts.mac >= ouis.start AND hosts.mac <= ouis.stop AND ouis.shortname ILIKE %s"],
+            params=["%%%s%%" % value],
+            tables=["ouis"],
+        )
 
     def filter_expires__gt(self, queryset, name, value):
         return queryset.filter(expires__gte=value)
@@ -220,9 +212,7 @@ class AdvancedSearchFilter(rest_filters.BaseFilterBackend):
         return queryset.filter(addresses__address__net_contains_or_equals=value)
 
     def _filter_sattr(self, queryset, value):
-        return queryset.filter(
-            structured_attributes__structured_attribute_value__value=value
-        )
+        return queryset.filter(structured_attributes__structured_attribute_value__value=value)
 
     def _filter_atype(self, queryset, value):
         return queryset.filter(address_type_id=value)
