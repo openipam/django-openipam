@@ -18,9 +18,8 @@ router.register(r"users", views.users.UserViewSet)
 router.register(r"addresses", views.network.AddressViewSet)
 router.register(r"address-types", views.network.AddressTypeViewSet)
 
-# TODO: figure out how to get CSRF protection working with the new API
 urlpatterns = [
     path("", include(router.urls)),
-    path("admin/logs/", csrf_exempt(views.admin.LogEntryList.as_view())),
-    path("admin/email-logs/", csrf_exempt(views.admin.EmailLogsList.as_view())),
+    path("admin/logs/", views.admin.LogEntryList.as_view()),
+    path("admin/email-logs/", views.admin.EmailLogsList.as_view()),
 ]
