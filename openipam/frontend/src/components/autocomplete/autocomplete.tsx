@@ -72,7 +72,7 @@ export const AutocompleteSelect = (props: {
     <>
       <div className={`dropdown dropdown-end ${show ? "dropdown-open" : ""}`}>
         <label
-          className="input input-bordered flex gap-2 items-center w-full"
+          className="input input-bordered input-primary flex gap-2 items-center w-full"
           htmlFor={inputId}
         >
           {props.icon}

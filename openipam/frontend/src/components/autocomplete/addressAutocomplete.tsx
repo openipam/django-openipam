@@ -8,11 +8,13 @@ export const AddressAutocomplete = (p: {
   onAddressChange: (Address: any) => void;
   addressId?: any;
   type?: number;
+  available?: boolean;
 }) => {
   const [filter, setFilter] = useState("");
   const AddressList = useInfiniteAddresses({
     address: filter,
     ...(p.type ? { type: p.type } : {}),
+    ...(p.available ? { available: p.available } : {}),
   });
 
   const Addresss = useMemo<any[]>(() => {

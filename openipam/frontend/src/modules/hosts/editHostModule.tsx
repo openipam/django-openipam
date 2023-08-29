@@ -164,6 +164,7 @@ export const EditHostModule = (p: {
                   type={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
+                  available
                 />
               </div>
             )}

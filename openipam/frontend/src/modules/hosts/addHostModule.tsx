@@ -1,16 +1,18 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateHost } from "../../utils/types";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
 import { AddressAutocomplete } from "../../components/autocomplete/addressAutocomplete";
 import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
+import { useAuth } from "../../hooks/useAuth";
 
 export const AddHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
+  const auth = useAuth();
   const [host, dispatch] = useReducer(hostReducer, {
     mac: "",
     hostname: "",
@@ -19,8 +21,10 @@ export const AddHostModule = (p: {
     ip_address: { id: 0, address: "" },
     description: "",
     expire_days: 365,
+    error: {},
   });
   const [networkToggle, setNetworkToggle] = useState(true);
+  const [error, setError] = useState<{[key: string]: string}>({});
   const addressTypes = useAddressTypes().data?.addressTypes;
   const addHost = async () => {
     const results = await api.hosts.create({ 
@@ -46,14 +50,14 @@ export const AddHostModule = (p: {
         className="modal-toggle"
       />
       <dialog id="add-host-module" className="modal">
-        <div className="modal-box border border-white">
+        <div className="modal-box bg-base-100 border border-neutral-content">
           <label
             htmlFor="add-host-module"
             onClick={() => p.setShowModule(false)}
             className="absolute top-0 right-0 p-4 cursor-pointer"
           >
             <svg
-              className="w-6 h-6 text-gray-500 hover:text-gray-300"
+              className="w-6 h-6"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -77,18 +81,19 @@ export const AddHostModule = (p: {
               <input
                 type="text"
                 id="host-mac"
-                className="border border-gray-300 rounded-md p-2"
+                className={`input input-primary input-bordered ${host.error?.mac ? 'input-error': ''}`}
                 onChange={(e) =>
                   dispatch({ type: "mac", payload: e.target.value })
                 }
               />
+              {host.error?.mac && <p className="text-error">{host.error?.mac}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="host-name">Host Name</label>
               <input
                 type="text"
                 id="host-name"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
                 onChange={(e) =>
                   dispatch({ type: "hostname", payload: e.target.value })
                 }
@@ -102,7 +107,7 @@ export const AddHostModule = (p: {
                 onChange={(v) => {
                   dispatch({ type: "address_type", payload: v.target.value });
                 }}
-                className="rounded-md p-2 select select-bordered"
+                className="select select-bordered select-primary"
               >
                 {addressTypes?.map(({ name, description, id }) => (
                   <option value={name} key={id}>
@@ -150,6 +155,7 @@ export const AddHostModule = (p: {
                   type={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
+                  available
                 />
               </div>
             )}
@@ -161,9 +167,9 @@ export const AddHostModule = (p: {
                 onChange={(v) => {
                   dispatch({ type: "expire_days", payload: v.target.value });
                 }}
-                className="rounded-md p-2 select select-bordered"
+                className="select select-bordered select-primary"
               >
-                {Object.entries(choices).map(([key, value]) => (
+                {Object.entries(auth?.is_ipamadmin ? adminChoices : choices).map(([key, value]) => (
                   <option value={key} key={key}>
                     {value}
                   </option>
@@ -184,7 +190,7 @@ export const AddHostModule = (p: {
               <label htmlFor="host-description">Description</label>
               <textarea
                 id="host-description"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
                 onChange={(e) =>
                   dispatch({ type: "description", payload: e.target.value })
                 }
@@ -192,7 +198,7 @@ export const AddHostModule = (p: {
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
-                className="bg-gray-500 hover:cursor-pointer hover:bg-gray-400 rounded-md px-4 py-2"
+                className="btn btn-neutral text-neutral-content"
                 onClick={() => p.setShowModule(false)}
                 type="reset"
               >
@@ -200,7 +206,7 @@ export const AddHostModule = (p: {
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 hover:cursor-pointer hover:bg-blue-600 rounded-md px-4 py-2 text-white"
+                className="btn btn-primary text-primary-content"
                 onClick={() => p.setShowModule(false)}
               >
                 Add Host
@@ -219,13 +225,27 @@ const choices = {
   14: "2 Weeks",
   180: "6 Months",
   365: "1 Year",
+};
+const adminChoices = {
+  1: "1 Day",
+  7: "1 Week",
+  14: "2 Weeks",
+  180: "6 Months",
+  365: "1 Year",
   10950: "30 Years",
 };
 
 const hostReducer = (state: any, action: any) => {
+  let error = {}
   switch (action.type) {
     case "mac":
-      return { ...state, mac: action.payload };
+      const regex = `^([0-9a-fA-F]{2}[:.-]?){5}[0-9a-fA-F]{2}`;
+      if (!action.payload.toLowerCase().match(regex)) {
+        error = { ...error, mac: "Invalid MAC Address" };
+      } else {
+        error = { ...error, mac: null };
+      }
+      return { ...state, mac: action.payload, error };
     case "hostname":
       return { ...state, hostname: action.payload };
     case "address_type":
