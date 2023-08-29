@@ -16,10 +16,10 @@ export const Tabs = (p: {
         {p.tabs.map((t) => (
           <button
             key={t}
-            className={`tab btn btn-ghost btn-outline ${
+            className={`tab btn btn-ghost btn-outline bg-base-300 ${
               p.tab === t
-                ? "btn-primary btn-disabled disabled:text-gray-500"
-                : "btn-ghost-secondary text-gray-300"
+                ? "btn-primary btn-disabled text-base-content"
+                : "btn-ghost-secondary text-base-content"
             }`}
             disabled={p.tab === t}
             onClick={() => p.setTab(t)}
@@ -53,7 +53,7 @@ export const Tab = (p: {
     <>
       {p.tab === p.name && p.labels && (
         <div
-          className={`card w-[80%] relative md:w-[40rem] bg-gray-600 shadow-xl ${p.props}`}
+          className={`card w-[80%] relative md:w-[40rem] bg-base-300 shadow-xl ${p.props}`}
         >
           {p.edit && (
             <div className="absolute ml-4">
