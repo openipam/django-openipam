@@ -36,7 +36,7 @@ export const TableBody = (p: {
 
               .map((cell, i) => (
                 <td
-                  className="overflow-hidden text-text border border-opacity-25 border-gray-400"
+                  className="overflow-hidden border border-opacity-25 border-gray-400 p-1"
                   key={cell.id}
                   {...(cell.column.columnDef.meta?.tdProps?.(row.original) ??
                     {})}

@@ -216,7 +216,7 @@ export const HostTableColumns = (p: {
         },
         {
           id: "vendor",
-          size: 175,
+          size: 150,
           header: () => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center text-neutral">Vendor</p>
@@ -226,7 +226,7 @@ export const HostTableColumns = (p: {
               />
             </div>
           ),
-          accessorFn: (row) => row.vendor?.split(",")[0],
+          accessorFn: (row) => row.vendor?.split("\t")[0],
         },
       ],
     }),
