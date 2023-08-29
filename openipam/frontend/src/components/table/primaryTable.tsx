@@ -27,7 +27,7 @@ export const PrimaryTable = (p: {
   return (
     <div
       ref={tableContainerRef}
-      className={`overflow-scroll max-h-[calc(100vh-192px)] ${
+      className={`overflow-scroll max-h-[calc(100vh-102px)] ${
         p.className || ""
       }`}
     >
@@ -122,6 +122,7 @@ export const PrimaryTable = (p: {
                   hideSorting
                   hideFilter
                   table={p.table}
+                  footer
                 />
               ))}
             </tr>

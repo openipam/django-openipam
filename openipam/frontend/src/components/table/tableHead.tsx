@@ -183,6 +183,7 @@ export const TableHeaderCell = (p: {
   hideSorting?: boolean;
   hideFilter?: boolean;
   table: Table<any>;
+  footer?: boolean;
 }) => {
   const { header, headerGroup } = p;
   const visibleCols = useMemo(() => {
@@ -210,6 +211,7 @@ export const TableHeaderCell = (p: {
             hideSorting={Boolean(p.hideSorting)}
           />
           {!header.column.columnDef.meta?.hideFilter &&
+            !p.hideFilter &&
             leafColumns.includes(header.column.id) && (
               <Filter column={header.column} table={p.table} header={header} />
             )}

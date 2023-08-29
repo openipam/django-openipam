@@ -10,7 +10,10 @@ export const Navigation = () => {
   const { theme, setTheme } = useTheme();
   const themes = useThemes();
   return (
-    <div className="bg-base-100 h-screen wscreen" data-theme={theme}>
+    <div
+      className="bg-base-100 min-h-screen min-w-screen w-full h-full"
+      data-theme={theme}
+    >
       <div className="w-full navbar menu menu-horizontal items-center flex flex-row justify-between bg-base-300">
         <div className="flex-flex-row justify-start">
           <button className="btn btn-ghost btn-primary">
