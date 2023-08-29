@@ -72,6 +72,7 @@ export type Host = {
     description: string;
   };
   last_seen: string;
+  last_seen_ip: string;
   address_type: string;
 };
 

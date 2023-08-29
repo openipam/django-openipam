@@ -25,7 +25,7 @@ export const Attributes = (p: {
   };
 
   return (
-    <div className={`card w-[80%] relative md:w-[40rem] bg-gray-600 shadow-xl`}>
+    <div className={`card w-[80%] relative md:w-[40rem] bg-base-300 shadow-xl`}>
       <div className="card-body">
         <h2 className="card-title">Attributes</h2>
         {p.attributes && !edit && (
@@ -44,7 +44,7 @@ export const Attributes = (p: {
                   value={value}
                   disabled
                   onChange={() => {}}
-                  className="border border-gray-300 rounded-md p-2"
+                  className="border border-primary-content rounded-md p-2"
                 />
               </div>
             ))}

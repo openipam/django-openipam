@@ -95,9 +95,17 @@ export const useUserHostsTable = (p: {
             }}
           >
             {showGroups ? (
-              <People fontSize="small" />
+              <People
+                fontSize="small"
+                color="inherit"
+                style={{ fill: "inherit" }}
+              />
             ) : (
-              <PeopleOutline fontSize="small" />
+              <PeopleOutline
+                fontSize="small"
+                color="inherit"
+                style={{ fill: "inherit" }}
+              />
             )}
           </button>
         </div>

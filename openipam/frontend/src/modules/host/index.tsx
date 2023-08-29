@@ -126,6 +126,8 @@ export const HostPage = () => {
             hostname: "Host Name:",
             mac: "Ethernet Address",
             last_seen: "Last Seen:",
+            last_seen_ip: "Last Seen IP:",
+            vendor: "Vendor:",
             changed: "Last Changed:",
             changed_by: "Changed By:",
             address_type: "Type:",
@@ -138,6 +140,9 @@ export const HostPage = () => {
               : "",
             last_seen: HostInfo?.last_seen
               ? new Date(HostInfo.last_seen).toISOString().split("T")[0]
+              : "> 3 months, if ever",
+            last_seen_ip: HostInfo?.last_seen_ip
+              ? new Date(HostInfo.last_seen_ip).toISOString().split("T")[0]
               : "> 3 months, if ever",
             changed_by: HostInfo?.changed_by.username,
             disabled_host: HostInfo?.disabled_host ? "True" : "False",
