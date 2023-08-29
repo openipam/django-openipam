@@ -131,7 +131,7 @@ export const HostTableColumns = (p: {
           accessorFn: (row) => row.mac,
         },
         {
-          size: 150,
+          size: 175,
           id: "hostname",
           header: "Hostname",
           accessorFn: (row) => row.hostname,
@@ -216,6 +216,7 @@ export const HostTableColumns = (p: {
         },
         {
           id: "vendor",
+          size: 175,
           header: () => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center text-neutral">Vendor</p>
@@ -225,7 +226,7 @@ export const HostTableColumns = (p: {
               />
             </div>
           ),
-          accessorFn: (row) => row.vendor,
+          accessorFn: (row) => row.vendor?.split(",")[0],
         },
       ],
     }),

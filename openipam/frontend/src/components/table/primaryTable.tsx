@@ -34,9 +34,13 @@ export const PrimaryTable = (p: {
       <div className="w-full grid grid-cols-3 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
-            <div className="flex flex-row gap-4 ml-2">
-              <p className="">{selectedRows.rows.length} Rows Selected</p>
-            </div>
+            {selectedRows.rows.length > 0 ? (
+              <div className="flex flex-row gap-4 ml-2">
+                <p className="">{selectedRows.rows.length} Rows Selected</p>
+              </div>
+            ) : (
+              <div className="invisible">No Rows Selected</div>
+            )}
             {p.table.options.meta?.rowActions?.(
               selectedRows.rows.map((r) => r.original)
             )}
@@ -52,13 +56,12 @@ export const PrimaryTable = (p: {
               </p>
             </div>
             <div className="flex flex-row gap-4 ">
-              <p className=" mt-1">Active Column Filters:</p>
               {activeFilters.length > 0 && (
                 <button
                   className="btn btn-sm btn-outline btn-ghost"
                   onClick={() => p.table.resetColumnFilters()}
                 >
-                  Clear All
+                  Clear Filters
                 </button>
               )}
             </div>
@@ -81,24 +84,26 @@ export const PrimaryTable = (p: {
         </div>
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col gap-2 w-full justify-between">
-            <label className=" m-1">Advanced Filters:</label>
+            {globalFilter && <label className=" m-1">Advanced Filters:</label>}
             {globalFilter?.map((filter: { id: string; text: string }) => (
-              <div
-                className="flex flex-row justify-between gap-2 flex-wrap card card-bordered p-1 border-neutral-content shadow-neutral"
-                key={Math.random()}
-              >
-                <p className="ml-2 mt-0.5">{filter.text}</p>
-                <button
-                  className="btn btn-sm btn-ghost"
-                  onClick={() => {
-                    setGlobalFilter?.((prev: any[]) =>
-                      prev.filter((f) => f.id !== filter.id)
-                    );
-                  }}
+              <>
+                <div
+                  className="flex flex-row justify-between gap-2 flex-wrap card card-bordered p-1 border-neutral-content shadow-neutral"
+                  key={Math.random()}
                 >
-                  <Delete />
-                </button>
-              </div>
+                  <p className="ml-2 mt-0.5">{filter.text}</p>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => {
+                      setGlobalFilter?.((prev: any[]) =>
+                        prev.filter((f) => f.id !== filter.id)
+                      );
+                    }}
+                  >
+                    <Delete />
+                  </button>
+                </div>
+              </>
             ))}
             {p.table.options.meta?.globalFilter ?? <></>}
           </div>

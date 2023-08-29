@@ -47,7 +47,7 @@ export const Table = (
   )
 ) => {
   return (
-    <div className="flex flex-col gap-4 m-8 w-[90%]">
+    <div className="flex flex-col gap-4 mx-8 w-[90%]">
       {p.hideShowSelectColumns ? <SelectColumnModal {...p} /> : null}
       <div className="flex relative mb-2 p-2">
         {p.loading ? (
