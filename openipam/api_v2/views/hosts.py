@@ -1,5 +1,6 @@
 """Host API Views."""
 
+from django.db.utils import IntegrityError
 from openipam.hosts.models import (
     Host,
     Disabled as DisabledHost,
@@ -78,7 +79,7 @@ class HostViewSet(APIModelViewSet):
         """Perform destroy."""
         instance.delete(user=self.request.user)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], queryset=network_models.Address.objects.all())
     def addresses(self, request, *args, mac, **kwargs):
         """Get addresses."""
         return AddressView().get(request, *args, mac=mac, **kwargs)
@@ -95,6 +96,8 @@ class HostViewSet(APIModelViewSet):
 
     @action(detail=True, methods=["post"])
     def network(self, request, *args, mac, **kwargs):
+        # TODO: determine if this needs to be its own endpoint. Also, if it does, implement
+        # other HTTP methods.
         host = self.get_object()
         network = request.data.get("network")
 
@@ -129,7 +132,9 @@ class HostViewSet(APIModelViewSet):
         # check if dhcp group is valid
         valid = DhcpGroup.objects.filter(name=dhcp_group).exists()
         if not valid:
-            return Response({"detail": "Invalid DHCP Group"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid DHCP Group"}, status=status.HTTP_400_BAD_REQUEST
+            )
         host.dhcp_group = DhcpGroup.objects.get(name=dhcp_group)
         host.save(user=request.user)
         LogEntry.objects.log_action(
@@ -157,12 +162,12 @@ class HostViewSet(APIModelViewSet):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], queryset=network_models.Lease.objects.all())
     def leases(self, request, *args, mac, **kwargs):
         """Get leases."""
         return LeasesView().get(request, *args, mac=mac, **kwargs)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], queryset=None)
     def attributes(self, request, *args, mac, **kwargs):
         """Get attributes."""
         return HostAttributesView().get(request, *args, mac=mac, **kwargs)
@@ -214,7 +219,7 @@ class HostViewSet(APIModelViewSet):
     @action(detail=True, methods=["get"])
     def groups(self, request, *args, mac, **kwargs):
         """Get groups."""
-        return GroupOwnerView().get(request, *args, mac=mac**kwargs)
+        return GroupOwnerView().get(request, *args, mac=mac, **kwargs)
 
     @groups.mapping.post
     def groups_post(self, request, *args, mac, **kwargs):
@@ -231,7 +236,12 @@ class HostViewSet(APIModelViewSet):
         """Put groups."""
         return GroupOwnerView().put(request, *args, mac=mac, **kwargs)
 
-    @action(detail=True, methods=["get"])
+    @action(
+        detail=True,
+        methods=["get"],
+        queryset=DisabledHost.objects.all(),
+        serializer_class=DisabledHostSerializer,
+    )
     def disabled(self, request, *args, mac, **kwargs):
         """Get disabled."""
         return DisableView().get(request, *args, mac=mac, **kwargs)
@@ -304,7 +314,17 @@ class DisableView(views.APIView):
         """Post."""
         mac = kwargs["mac"]
         reason = request.data.get("reason", "No reason given")
-        disabled = DisabledHost.objects.create(mac=mac, reason=reason, changed_by=request.user)
+        try:
+            # This will raise an integrity error if the host is already disabled
+            disabled = DisabledHost.objects.create(
+                mac=mac, reason=reason, changed_by=request.user
+            )
+        except IntegrityError:
+            return Response(
+                {"detail": "Host is already disabled"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
         serializer = DisabledHostSerializer(disabled)
         data = serializer.data.copy()
         data["disabled"] = True
@@ -359,7 +379,7 @@ class DisableView(views.APIView):
         disabled = DisabledHost.objects.filter(mac=mac)
         if not disabled.exists():
             return Response({"disabled": False})
-        serializer = DisabledHostSerializer(disabled)
+        serializer = DisabledHostSerializer(disabled.first())
         data = serializer.data.copy()
         data["disabled"] = True
         return Response(data)
@@ -565,10 +585,14 @@ class HostAttributesView(views.APIView):
         structured_attrs = StructuredAttributeToHost.objects.select_related(
             "structured_attribute_value", "structured_attribute_value__attribute"
         ).filter(host=host)
-        freeform_attrs = FreeformAttributeToHost.objects.select_related("attribute").filter(host=host)
+        freeform_attrs = FreeformAttributeToHost.objects.select_related(
+            "attribute"
+        ).filter(host=host)
         attributes = {}
         for attr in structured_attrs:
-            attributes[attr.structured_attribute_value.attribute.name] = attr.structured_attribute_value.value
+            attributes[
+                attr.structured_attribute_value.attribute.name
+            ] = attr.structured_attribute_value.value
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
         return Response(attributes, status=status.HTTP_200_OK)
@@ -667,7 +691,9 @@ class AddressView(views.APIView):
             )
 
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(request, self, host):
+        if not api_permissions.HostPermission().has_object_permission(
+            request, self, host
+        ):
             return Response(
                 {"detail": "You do not have permission to add addresses to this host."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -723,9 +749,13 @@ class AddressView(views.APIView):
         address = request.data.get("address")
         host = get_object_or_404(Host, mac=mac)
         # Check permissions
-        if not api_permissions.HostPermission().has_object_permission(request, self, host):
+        if not api_permissions.HostPermission().has_object_permission(
+            request, self, host
+        ):
             return Response(
-                {"detail": "You do not have permission to remove addresses from this host."},
+                {
+                    "detail": "You do not have permission to remove addresses from this host."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -765,7 +795,9 @@ class LeasesView(views.APIView):
         # If the user asks for expired leases, return them all
         if request.query_params.get("show_expired") is None:
             leases = leases.filter(ends__gt=timezone.now())
-        elif not api_permissions.HostPermission().has_object_permission(request, self, host, check_for_read=True):
+        elif not api_permissions.HostPermission().has_object_permission(
+            request, self, host, check_for_read=True
+        ):
             # If the user asks for expired leases and does not have
             # permission to view historical data, restrict them to
             # active ones anyways.
