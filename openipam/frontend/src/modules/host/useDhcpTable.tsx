@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
-import { useTheme } from "../../hooks/useTheme";
+import { ThemeContext } from "../../hooks/useTheme";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
@@ -39,7 +39,7 @@ export const useDhcpTable = (p: {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.dhcp)]);
     }
   }, [data.data]);
-  const { theme } = useTheme();
+  const { theme } = useContext(ThemeContext);
   const columnHelper = createColumnHelper<DhcpRecord>();
   const columns = [
     ...ActionsColumn({

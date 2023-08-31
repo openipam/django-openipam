@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme, useThemes } from "../hooks/useTheme";
+import { ThemeContext, useThemes } from "../hooks/useTheme";
 import { Palette } from "@mui/icons-material";
 import { IdToName } from "../components/idToName";
 
 export const Navigation = () => {
   const auth = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useContext(ThemeContext);
   const themes = useThemes();
   return (
     <div

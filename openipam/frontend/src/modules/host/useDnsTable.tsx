@@ -6,7 +6,7 @@ import { useInfiniteHostDnsRecords } from "../../hooks/queries/useInfiniteHostDn
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
 import { useApi } from "../../hooks/useApi";
-import { useTheme } from "../../hooks/useTheme";
+import { ThemeContext } from "../../hooks/useTheme";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
 
@@ -53,7 +53,7 @@ export const useDnsTable = (p: {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.dns)]);
     }
   }, [data.data]);
-  const { theme } = useTheme();
+  const { theme } = useContext(ThemeContext);
   const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
     ...ActionsColumn({
