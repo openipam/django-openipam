@@ -1,3 +1,4 @@
+import { useToken } from "./useToken";
 export const useApi = () => {
   return {
     user: {
@@ -199,6 +200,7 @@ enum HttpMethod {
 
 function requestGenerator(method: string, url: string, base?: string) {
   url = `${base ?? BASE_URL}/${url}`;
+  const token = useToken();
   switch (method) {
     case "GET":
       return async (params?: { [key: string]: any }) => {
@@ -212,6 +214,7 @@ function requestGenerator(method: string, url: string, base?: string) {
           method,
           headers: {
             "Content-Type": "application/json",
+            "X-CSRFToken": token ?? "",
           },
           body: JSON.stringify(data ?? {}),
         });

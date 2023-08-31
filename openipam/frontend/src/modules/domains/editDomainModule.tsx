@@ -78,7 +78,7 @@ export const EditDomainModule = (p: {
                 onChange={() => {}}
                 value={p.domainData?.name ?? ""}
                 disabled
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -87,7 +87,7 @@ export const EditDomainModule = (p: {
                 id="domain-description"
                 onChange={() => {}}
                 value={p.domainData?.description ?? "" ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -97,7 +97,7 @@ export const EditDomainModule = (p: {
                 id="domain-master"
                 onChange={() => {}}
                 value={p.domainData?.master ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -107,7 +107,7 @@ export const EditDomainModule = (p: {
                 id="domain-type"
                 onChange={() => {}}
                 value={p.domainData?.type ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -117,7 +117,7 @@ export const EditDomainModule = (p: {
                 id="domain-serial"
                 onChange={() => {}}
                 value={p.domainData?.notified_serial ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -127,7 +127,7 @@ export const EditDomainModule = (p: {
                 id="domain-account"
                 onChange={() => {}}
                 value={p.domainData?.account ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -139,7 +139,7 @@ export const EditDomainModule = (p: {
                 id="domain-check"
                 onChange={() => {}}
                 value={p.domainData?.last_check ?? ""}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex justify-end gap-4 mt-4">

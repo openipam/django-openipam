@@ -73,7 +73,7 @@ export const EditGroupOwnerModule = (p: {
                       newOwners[i] = v.target.value;
                       setOwners(newOwners);
                     }}
-                    className="border border-gray-300 rounded-md p-2"
+                    className="input input-primary input-bordered"
                   />
                   <button
                     className="btn btn-error btn-sm btn-circle btn-ghost"

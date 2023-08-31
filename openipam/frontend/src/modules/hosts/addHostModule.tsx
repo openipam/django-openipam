@@ -32,9 +32,16 @@ export const AddHostModule = (p: {
        network: host.network?.network,
         ip_address: host.ip_address?.address,
       dhcp_group: host.dhcp_group?.name,
+      ...(addressTypes?.find((t) => t.name === host.address_type)?.pool ?
+       {pool: addressTypes?.find((t) => t.name === host.address_type)?.pool} :
+        {}),
       } satisfies CreateHost);
     p.setShowModule(false);
-    window.location.href = "/ui/#/hosts/" + host.mac;
+    if(results.mac === host.mac) {
+      window.location.href = "/ui/#/hosts/" + host.mac;
+    } else {
+      alert(`${JSON.stringify(results)}`);
+    }
   };
   const isDynamic = (addressType: string) => {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);

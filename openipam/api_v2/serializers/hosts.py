@@ -357,13 +357,16 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_pool(self, value):
         pool = value
-
+        print()
+        print()
+        print("pool", pool)
         if pool:
             user_pools = get_objects_for_user(
                 self.context["request"].user,
                 ["network.add_records_to_pool", "network.change_pool"],
                 any_perm=True,
             )
+            print("user_pools", user_pools)
 
             if pool not in [p.name for p in user_pools]:
                 raise serializers.ValidationError("Pool is invalid.")

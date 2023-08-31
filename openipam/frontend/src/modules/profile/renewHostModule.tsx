@@ -78,7 +78,7 @@ export const RenewHostModule = (p: {
                 id={`expires`}
                 value={365}
                 onChange={(v) => {}}
-                className="rounded-md p-2 select select-bordered"
+                className="rounded-md p-2 select select-primary select-bordered"
               >
                 {Object.entries(choices).map(([key, value]) => (
                   <option value={key} key={key}>

@@ -64,14 +64,14 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-name"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="domain-description">Description</label>
               <textarea
                 id="domain-description"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -79,7 +79,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-master"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -87,7 +87,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-type"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -95,7 +95,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-serial"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -103,7 +103,7 @@ export const AddDomainModule = (p: {
               <input
                 type="text"
                 id="domain-type"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -113,7 +113,7 @@ export const AddDomainModule = (p: {
                 min={new Date(0).getTime()}
                 max={new Date().getTime()}
                 id="domain-type"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex justify-end gap-4 mt-4">

@@ -86,7 +86,7 @@ export const AttributeModule = (p: {
                 </label>
                 <select
                   id={`attribute`}
-                  className="rounded-md p-2 select select-bordered max-w-md"
+                  className="rounded-md p-2 select select-primary select-bordered max-w-md"
                   value={a.name}
                   onChange={(v) => {
                     setAttribute([
@@ -118,7 +118,7 @@ export const AttributeModule = (p: {
                   <>
                     <select
                       id={`attribute-choices`}
-                      className="rounded-md p-2 select select-bordered max-w-md"
+                      className="rounded-md p-2 select select-primary select-bordered max-w-md"
                       value={a.value}
                       key={Math.random()}
                       onChange={(v) => {
@@ -145,7 +145,7 @@ export const AttributeModule = (p: {
                 ) : (
                   <>
                     <input
-                      className="input input-bordered"
+                      className="input input-bordered imput-primary"
                       value={a.value}
                       key={Math.random()}
                       onChange={(e) => {
@@ -167,7 +167,7 @@ export const AttributeModule = (p: {
               </div>
             ))}
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary text-secondary-content"
               onClick={() => {
                 setAttribute([
                   ...attribute,
@@ -184,7 +184,7 @@ export const AttributeModule = (p: {
             </button>
             <div className="flex justify-end gap-4 mt-4">
               <button
-                className="btn btn-outline btn-ghost"
+                className="btn btn-neutral text-neutral-content"
                 onClick={() =>
                   p.setShowModule({
                     show: false,
@@ -195,7 +195,10 @@ export const AttributeModule = (p: {
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button
+                type="submit"
+                className="btn btn-primary text-primary-content"
+              >
                 Submit
               </button>
             </div>

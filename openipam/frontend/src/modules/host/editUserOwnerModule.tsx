@@ -61,7 +61,7 @@ export const EditUserOwnerModule = (p: {
           <h1 className="text-2xl font-bold mb-4">Edit User Owners</h1>
           <div className="flex flex-col gap-4">
             {owners.map((user, i) => (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2" key={i}>
                 <label htmlFor="host-user-owner">User Owner</label>
                 <div className="flex flex-row gap-2">
                   <input
@@ -73,7 +73,7 @@ export const EditUserOwnerModule = (p: {
                       newOwners[i] = v.target.value;
                       setOwners(newOwners);
                     }}
-                    className="border border-gray-300 rounded-md p-2"
+                    className="input input-primary input-bordered"
                   />
                   <button
                     className="btn btn-error btn-sm btn-circle btn-ghost"
@@ -83,7 +83,11 @@ export const EditUserOwnerModule = (p: {
                       setOwners(newOwners);
                     }}
                   >
-                    <Delete fontSize="small" color="error" />
+                    <Delete
+                      fontSize="small"
+                      color="error"
+                      style={{ fill: "error", color: "error", stroke: "error" }}
+                    />
                   </button>
                 </div>
               </div>

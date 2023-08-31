@@ -100,7 +100,7 @@ export const AddDnsModule = (p: {
                 <input
                   type="text"
                   id="Dns-name"
-                  className="border border-gray-300 rounded-md p-2 w-[1/2]"
+                  className="input input-primary input-bordered w-[1/2]"
                 />
                 {p.domain && <p className="p-2">.{p.domain}</p>}
                 {p.host && <p className="p-2">Host is {p.host}</p>}
@@ -114,7 +114,7 @@ export const AddDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-ip"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ export const AddDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-text"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -130,7 +130,7 @@ export const AddDnsModule = (p: {
               <input
                 type="text"
                 id="Dns-type"
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -140,7 +140,7 @@ export const AddDnsModule = (p: {
                 id="Dns-ttl"
                 value={14400}
                 onChange={() => {}}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex justify-end gap-4 mt-4">

@@ -92,7 +92,7 @@ export const EditHostModule = (p: {
                 value={p.HostData?.mac ?? ""}
                 disabled
                 onChange={() => {}}
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -104,7 +104,7 @@ export const EditHostModule = (p: {
                 onChange={(e) =>
                   dispatch({ type: "hostname", payload: e.target.value })
                 }
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -115,7 +115,7 @@ export const EditHostModule = (p: {
                 onChange={(v) => {
                   dispatch({ type: "address_type", payload: v.target.value });
                 }}
-                className="rounded-md p-2 select select-bordered"
+                className="rounded-md p-2 select select-primary select-bordered"
               >
                 {addressTypes?.map(({ name, description, id }) => (
                   <option value={name} key={id}>
@@ -176,7 +176,7 @@ export const EditHostModule = (p: {
                 onChange={(v) => {
                   dispatch({ type: "expire_days", payload: v.target.value });
                 }}
-                className="rounded-md p-2 select select-bordered"
+                className="rounded-md p-2 select select-bordered select-primary"
               >
                 {Object.entries(choices).map(([key, value]) => (
                   <option value={key} key={key}>
@@ -204,7 +204,7 @@ export const EditHostModule = (p: {
                 onChange={(e) =>
                   dispatch({ type: "description", payload: e.target.value })
                 }
-                className="border border-gray-300 rounded-md p-2"
+                className="input input-primary input-bordered"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -219,7 +219,7 @@ export const EditHostModule = (p: {
                   });
                 }}
                 id="host-disabled"
-                className="border border-gray-300 rounded-md p-2 checkbox checkbox-error checkbox-sm"
+                className="toggle toggle-primary toggle-sm"
               />
             </div>
             {/* If disabled is checked, add reason */}
@@ -232,7 +232,7 @@ export const EditHostModule = (p: {
                   onChange={(e) => {
                     dispatch({ type: "reason", payload: e.target.value });
                   }}
-                  className="border border-gray-300 rounded-md p-2"
+                  className="input input-primary input-bordered"
                 />
               </div>
             )}

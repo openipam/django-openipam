@@ -96,9 +96,9 @@ export const HostTableActions = (p: {
                   children: (
                     <div>
                       <label className="label">Regex</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                       <label className="label">Replacement</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                     </div>
                   ),
                 });
@@ -186,9 +186,9 @@ export const HostTableActions = (p: {
                     <div>
                       <p>Tip: add multiple owners by separating with a comma</p>
                       <label className="label">Group Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                       <label className="label">User Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                     </div>
                   ),
                 });
@@ -226,9 +226,9 @@ export const HostTableActions = (p: {
                         be removed.
                       </p>
                       <label className="label">Group Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                       <label className="label">User Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                     </div>
                   ),
                 });
@@ -269,9 +269,9 @@ export const HostTableActions = (p: {
                         Tip: remove multiple owners by separating with a comma
                       </p>
                       <label className="label">Group Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                       <label className="label">User Owners</label>
-                      <input className="input input-bordered" />
+                      <input className="input input-bordered input-primary" />
                     </div>
                   ),
                 });
