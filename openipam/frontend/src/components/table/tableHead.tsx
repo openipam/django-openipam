@@ -57,13 +57,13 @@ const TableHeaderLabel = (p: {
         asc: (
           <>
             &nbsp;
-            <ArrowUpward />
+            <ArrowUpward style={{ fill: "inherit" }} />
           </>
         ),
         desc: (
           <>
             &nbsp;
-            <ArrowDownward />
+            <ArrowDownward style={{ fill: "inherit" }} />
           </>
         ),
       }[p.hideSorting ? "" : (header.column.getIsSorted() as string)] ?? null}

@@ -1,11 +1,12 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { DNS_TYPES, DnsRecord } from "../../utils/types";
 import { useInfiniteHostDnsRecords } from "../../hooks/queries/useInfiniteHostDnsRecords";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
 import { useApi } from "../../hooks/useApi";
+import { useTheme } from "../../hooks/useTheme";
 
 const DNSLookupKeys = ["name", "content", "dns_type"];
 
@@ -52,7 +53,7 @@ export const useDnsTable = (p: {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.dns)]);
     }
   }, [data.data]);
-
+  const { theme } = useTheme();
   const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
     ...ActionsColumn({
@@ -92,7 +93,9 @@ export const useDnsTable = (p: {
           cell: ({ row }: { row: { original: DnsRecord } }) => {
             return row.original.dns_type === "A" ? (
               <a
-                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                className={`${
+                  theme === "dark" ? "text-secondary" : "text-primary"
+                } hover:underline btn btn-sm btn-ghost`}
                 href={`#/addresses/${row.original.content}`}
               >
                 {row.original.content}

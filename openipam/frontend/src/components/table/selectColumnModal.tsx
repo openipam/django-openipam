@@ -61,7 +61,10 @@ export const SelectColumnModal = (p: {
             })}
           </div>
           <div className="modal-action">
-            <button onClick={p.hideShowSelectColumns} className="btn">
+            <button
+              onClick={p.hideShowSelectColumns}
+              className="btn btn-primary text-primary-content"
+            >
               Done
             </button>
           </div>

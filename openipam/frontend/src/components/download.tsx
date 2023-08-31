@@ -59,8 +59,8 @@ export const ExportToCsv = (p: {
           />
         </>
       )}
-      <a href={url} download={`${p.fileName}.csv`}>
-        <Download fontSize="large" />
+      <a href={url} download={`${p.fileName}.csv`} className="text-neutral">
+        <Download fontSize="large" style={{ fill: "inherit" }} />
       </a>
     </div>
   );
