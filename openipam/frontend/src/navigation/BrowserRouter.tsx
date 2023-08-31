@@ -4,7 +4,6 @@ import {
   RouterProvider,
   createHashRouter,
 } from "react-router-dom";
-import { Main } from "../Main";
 import { Navigation } from "./Navigation";
 import "../styles/index.css";
 import { Domains } from "../modules/domains";
@@ -13,7 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotFoundPage } from "../components/NotFoundPage";
 import { Networks } from "../modules/networks";
 import { Profile } from "../modules/profile";
-import { useTheme } from "../hooks/useTheme";
+import { ThemeProvider } from "../hooks/useTheme";
 
 const routes: RouteObject[] = [
   {
@@ -150,7 +149,9 @@ export const App = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
       </QueryClientProvider>
     </React.StrictMode>
   );

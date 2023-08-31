@@ -53,7 +53,7 @@ export const Tab = (p: {
     <>
       {p.tab === p.name && p.labels && (
         <div
-          className={`card w-[80%] relative md:w-[40rem] bg-base-300 shadow-xl ${p.props}`}
+          className={`card w-[80%] relative md:w-[50rem] bg-base-300 shadow-xl ${p.props}`}
         >
           {p.edit && (
             <div className="absolute ml-4">

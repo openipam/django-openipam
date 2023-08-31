@@ -1,17 +1,19 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme, useThemes } from "../hooks/useTheme";
+import { ThemeContext, useThemes } from "../hooks/useTheme";
 import { Palette } from "@mui/icons-material";
 import { IdToName } from "../components/idToName";
 
 export const Navigation = () => {
   const auth = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useContext(ThemeContext);
   const themes = useThemes();
   return (
     <div
-      className="bg-base-100 min-h-screen min-w-screen w-full h-full"
+      className={`${
+        theme === "dark" ? "bg-gray-800" : "bg-base-100"
+      } min-h-screen min-w-screen w-full h-full`}
       data-theme={theme}
     >
       <div className="w-full navbar menu menu-horizontal items-center flex flex-row justify-between bg-base-300">

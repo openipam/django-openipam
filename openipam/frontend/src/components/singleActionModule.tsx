@@ -59,7 +59,7 @@ export const SingleActionModule = (p: {
             {p.children}
             <div className="flex justify-end gap-4 mt-4">
               <button
-                className="btn btn-outline btn-ghost"
+                className="btn btn-neutral text-neutral-content"
                 onClick={() =>
                   p.setShowModule({
                     show: false,
@@ -71,7 +71,10 @@ export const SingleActionModule = (p: {
                 Cancel
               </button>
               {p.onSubmit && (
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="submit"
+                  className="btn btn-primary text-primary-content"
+                >
                   Submit
                 </button>
               )}

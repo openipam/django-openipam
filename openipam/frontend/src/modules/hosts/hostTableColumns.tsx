@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useContext } from "react";
 import { Host, User } from "../../utils/types";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { ToolTip } from "../../components/tooltip";
 import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 import { MoreVert } from "@mui/icons-material";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
+import { ThemeContext } from "../../hooks/useTheme";
 
 export const HostTableColumns = (p: {
   data: UseInfiniteQueryResult<
@@ -45,6 +46,7 @@ export const HostTableColumns = (p: {
   const columnHelper = createColumnHelper<Host>();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const navigate = useNavigate();
+  const { theme } = useContext(ThemeContext);
   return [
     ...(p.auth?.is_ipamadmin
       ? ActionsColumn({
@@ -193,7 +195,11 @@ export const HostTableColumns = (p: {
               row.addresses?.leased?.[0] ? (
               <div className="flex flex-row">
                 <a
-                  className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                  className={`${
+                    theme === "dark" || theme === "black"
+                      ? "text-secondary"
+                      : "text-primary"
+                  } hover:underline btn btn-sm btn-ghost`}
                   href={`#/addresses/${
                     row.original.master_ip_address ?? row.addresses?.leased?.[0]
                   }`}

@@ -25,7 +25,7 @@ export const Attributes = (p: {
   };
 
   return (
-    <div className={`card w-[80%] relative md:w-[40rem] bg-base-300 shadow-xl`}>
+    <div className={`card w-[80%] relative md:w-[50rem] bg-base-300 shadow-xl`}>
       <div className="card-body">
         <h2 className="card-title">Attributes</h2>
         {p.attributes && !edit && (
@@ -115,7 +115,7 @@ export const Attributes = (p: {
         {p.owner && (
           <div className="flex flex-row gap-2">
             <button
-              className="btn btn-primary btn-md"
+              className="btn btn-primary btn-md text-primary-content"
               onClick={() => {
                 if (edit) {
                   onSubmit();
@@ -127,7 +127,7 @@ export const Attributes = (p: {
             </button>
             {edit && (
               <button
-                className="btn btn-outline btn-ghost btn-md font-black"
+                className="btn btn-neutral text-neutral-content btn-md"
                 onClick={() => setEdit(!edit)}
               >
                 Cancel

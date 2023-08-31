@@ -101,7 +101,7 @@ export const EditGroupOwnerModule = (p: {
 
             <div className="flex justify-end gap-4 mt-4">
               <button
-                className="btn btn-outline btn-ghost"
+                className="btn btn-neutral text-neutral-content"
                 onClick={() =>
                   p.setShowModule({
                     show: false,
@@ -114,7 +114,7 @@ export const EditGroupOwnerModule = (p: {
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary text-primary-content"
                 onClick={() => updateHost(owners)}
               >
                 Update Host

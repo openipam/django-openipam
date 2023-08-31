@@ -1,11 +1,12 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { DhcpRecord } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteHostDhcpRecords } from "../../hooks/queries/useInfiniteHostDhcpRecords";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
+import { ThemeContext } from "../../hooks/useTheme";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
@@ -38,7 +39,7 @@ export const useDhcpTable = (p: {
       setPrevData(() => [...data.data.pages.flatMap((page) => page.dhcp)]);
     }
   }, [data.data]);
-
+  const { theme } = useContext(ThemeContext);
   const columnHelper = createColumnHelper<DhcpRecord>();
   const columns = [
     ...ActionsColumn({
@@ -63,7 +64,9 @@ export const useDhcpTable = (p: {
           cell: ({ row }: { row: { original: DhcpRecord } }) => {
             return (
               <a
-                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                className={`${
+                  theme === "dark" ? "text-secondary" : "text-primary"
+                } hover:underline btn btn-sm btn-ghost`}
                 href={`#/addresses/${row.original.ip_content}`}
               >
                 {row.original.ip_content}
