@@ -43,7 +43,9 @@ class NetworkSerializer(ModelSerializer):
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
-        return self.context["request"].build_absolute_uri(f"/api/v2/networks/{obj.pk}/addresses/")
+        return self.context["request"].build_absolute_uri(
+            f"/api/v2/networks/{obj.pk}/addresses/"
+        )
 
     def get_shared_network(self, obj):
         if obj.shared_network:
@@ -61,7 +63,9 @@ class NetworkSerializer(ModelSerializer):
         buildings = Building.objects.none()
         for vlan in obj.vlans.all():
             buildings |= vlan.buildings.all()
-        return buildings.distinct().values("id", "name", "abbreviation", "number", "city")
+        return buildings.distinct().values(
+            "id", "name", "abbreviation", "number", "city"
+        )
 
     class Meta:
         """Meta class for network serializer."""
@@ -186,18 +190,8 @@ class AddressCidrField(Field):
 
 
 class AddressTypeSerializer(ModelSerializer):
-    ranges = SerializerMethodField()
-    pool = SerializerMethodField()
-
-    def get_ranges(self, obj):
-        """Return a list of ranges for the address type."""
-        return [str(range) for range in obj.ranges.values_list("range", flat=True)]
-
-    def get_pool(self, obj):
-        """Return the name of the pool for the address type."""
-        if obj.pool is None:
-            return None
-        return obj.pool.name
+    ranges = base_serializers.StringRelatedField(read_only=True, many=True)
+    pool = base_serializers.SlugRelatedField(slug_field="name", read_only=True)
 
     class Meta:
         model = AddressType

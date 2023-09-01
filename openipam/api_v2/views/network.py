@@ -47,7 +47,11 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     # TODO: figure out how to support editing networks. This is a read-only viewset
     # for now.
 
-    queryset = Network.objects.all().prefetch_related("vlans__buildings").select_related("changed_by", "shared_network")
+    queryset = (
+        Network.objects.all()
+        .prefetch_related("vlans__buildings")
+        .select_related("changed_by", "shared_network")
+    )
     serializer_class = NetworkSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.DjangoObjectPermissions]
@@ -79,7 +83,9 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["get"],
-        queryset=Address.objects.all().select_related("host", "pool").order_by("address"),
+        queryset=Address.objects.all()
+        .select_related("host", "pool")
+        .order_by("address"),
         serializer_class=AddressSerializer,
         filterset_class=AddressFilterSet,
         pagination_class=AddressPagination,
@@ -133,9 +139,7 @@ class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = AddressPagination
     filterset_class = AddressFilterSet
     ordering_fields = ["address", "changed"]
-    lookup_value_regex = (
-        r"(?:(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))|(?:[0-9a-fA-F:]+)"
-    )
+    lookup_value_regex = r"(?:(?:(?:25[0-5]|2[0-4]\d|[01]?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d{1,2}))|(?:[0-9a-fA-F:]+)"
 
     def get_queryset(self):
         """Restrict to only addresses that are a part of networks we are allowed to add records to."""
@@ -179,7 +183,11 @@ class DhcpGroupViewSet(viewsets.ReadOnlyModelViewSet):
 class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint that allows AddressTypes to be viewed."""
 
-    queryset = AddressType.objects.prefetch_related("ranges", "pool").all()
+    # Use prefetch_related for ranges, since it's a many-to-many relationship
+    # Use select_related for pool, since it's a foreign key
+    queryset = (
+        AddressType.objects.prefetch_related("ranges").select_related("pool").all()
+    )
     serializer_class = AddressTypeSerializer
     permission_classes = [base_permissions.IsAuthenticated]
 
