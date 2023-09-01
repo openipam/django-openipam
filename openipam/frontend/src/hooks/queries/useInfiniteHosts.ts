@@ -62,7 +62,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
       (p.selectAll ||
         (query.data?.pages?.length ?? 0) <
           ((p.page_size ?? 10) as number) / 10 ||
-        currentPage < 4)
+        currentPage < 2)
     ) {
       query.fetchNextPage();
     }

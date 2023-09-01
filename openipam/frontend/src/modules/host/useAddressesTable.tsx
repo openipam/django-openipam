@@ -56,7 +56,6 @@ export const useAddressesTable = (p: {
       onView: (row) => {
         navigate(`/addresses/${row.name}`);
       },
-      disableLoading: true,
     }),
     {
       id: "name",

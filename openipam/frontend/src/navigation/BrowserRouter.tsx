@@ -6,12 +6,8 @@ import {
 } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import "../styles/index.css";
-import { Domains } from "../modules/domains";
-import { Hosts } from "../modules/hosts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotFoundPage } from "../components/NotFoundPage";
-import { Networks } from "../modules/networks";
-import { Profile } from "../modules/profile";
 import { ThemeProvider } from "../hooks/useTheme";
 
 const routes: RouteObject[] = [
@@ -22,7 +18,12 @@ const routes: RouteObject[] = [
     children: [
       {
         path: "",
-        element: <Profile />,
+        lazy: async () => {
+          const { Profile } = await import("../modules/profile");
+          return {
+            element: <Profile />,
+          };
+        },
       },
       {
         path: "networks",
@@ -30,7 +31,12 @@ const routes: RouteObject[] = [
         children: [
           {
             path: "",
-            element: <Networks />,
+            lazy: async () => {
+              const { Networks } = await import("../modules/networks");
+              return {
+                element: <Networks />,
+              };
+            },
           },
           {
             path: ":network/:range",
@@ -68,7 +74,12 @@ const routes: RouteObject[] = [
         children: [
           {
             path: "",
-            element: <Hosts />,
+            lazy: async () => {
+              const { Hosts } = await import("../modules/hosts");
+              return {
+                element: <Hosts />,
+              };
+            },
           },
           {
             path: ":mac",
@@ -87,7 +98,12 @@ const routes: RouteObject[] = [
         children: [
           {
             path: "",
-            element: <Domains />,
+            lazy: async () => {
+              const { Domains } = await import("../modules/domains");
+              return {
+                element: <Domains />,
+              };
+            },
           },
           {
             path: ":domain",

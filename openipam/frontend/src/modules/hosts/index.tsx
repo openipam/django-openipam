@@ -1,12 +1,12 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, Suspense, lazy, useState } from "react";
 import { useHostsTable } from "./useHostsTable";
 import { Table } from "../../components/table/table";
 import { AddHostModule } from "./addHostModule";
 import { EditHostModule } from "./editHostModule";
 import { RenewHostModule } from "../profile/renewHostModule";
 import { Host } from "../../utils/types";
-import { SingleActionModule } from "../../components/singleActionModule";
 import { AttributeModule } from "./attributeModule";
+import { SingleActionModule } from "../../components/singleActionModule";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);

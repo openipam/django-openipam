@@ -24,7 +24,6 @@ export const ActionsColumn = (p: {
   pageSize?: number;
   setPageSize?: React.Dispatch<React.SetStateAction<number>>;
   setSelectAll?: React.Dispatch<React.SetStateAction<boolean>>;
-  disableLoading?: boolean;
 }) => {
   return [
     {
@@ -93,17 +92,6 @@ export const ActionsColumn = (p: {
                   }
                 }}
               />
-            )}
-            {!p.disableLoading && (
-              <ToolTip text="Load More" props="bottom-8 left-0 rounded-bl-none">
-                <button
-                  className="btn btn-circle btn-ghost btn-xs mt-1 text-neutral"
-                  onClick={() => p.data.fetchNextPage?.()}
-                  disabled={!p.data.hasNextPage || p.data.isFetchingNextPage}
-                >
-                  <ExpandMore style={{ fill: "inherit" }} />
-                </button>
-              </ToolTip>
             )}
             {p.onAdd && (
               <button

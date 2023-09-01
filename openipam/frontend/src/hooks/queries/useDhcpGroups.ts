@@ -9,7 +9,11 @@ export const useDhcpGroups = (p: {
   const query = useInfiniteQuery({
     queryKey: ["dhcpGroups"],
     queryFn: async ({ pageParam = 0 }) => {
-      const results = await api.dhcpGroups.get({ page: pageParam + 1, ...p });
+      const results = await api.dhcpGroups.get({
+        page: pageParam + 1,
+        page_size: 100,
+        ...p,
+      });
       return {
         dhcpGroups: results.results,
         page: pageParam,
@@ -22,7 +26,7 @@ export const useDhcpGroups = (p: {
   });
   useEffect(() => {
     const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 15) {
+    if (query.hasNextPage && !query.isFetchingNextPage && currentPage < 1) {
       query.fetchNextPage();
     }
   }, [
