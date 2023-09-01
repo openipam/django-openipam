@@ -26,6 +26,8 @@ declare module "@tanstack/table-core" {
     total?: number;
     pageSize?: number;
     globalFilter?: ReactNode;
+    page?: number;
+    setPage?: React.Dispatch<React.SetStateAction<number>>;
   }
 }
 

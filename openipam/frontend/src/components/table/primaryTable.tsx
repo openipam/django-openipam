@@ -6,7 +6,9 @@ import { TableHead, TableHeaderCell } from "./tableHead";
 import React from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { IdToName } from "../idToName";
-import { Delete } from "@mui/icons-material";
+import { Delete, ExpandMore } from "@mui/icons-material";
+import { ToolTip } from "../tooltip";
+import { parse } from "path";
 
 export const PrimaryTable = (p: {
   estimateColumnSize?: number;
@@ -23,6 +25,7 @@ export const PrimaryTable = (p: {
     p.table.getState().globalFilter,
     p.table.setGlobalFilter,
   ];
+  const { page, setPage, pageSize } = p.table.options.meta!;
 
   return (
     <div
@@ -31,7 +34,7 @@ export const PrimaryTable = (p: {
         p.className || ""
       }`}
     >
-      <div className="w-full grid grid-cols-3 gap-10">
+      <div className="w-full grid grid-cols-4 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
             {selectedRows.rows.length > 0 ? (
@@ -48,13 +51,9 @@ export const PrimaryTable = (p: {
         ) : (
           <div></div>
         )}
+
         <div className="flex flex-row gap-4 m-1">
           <div className="flex flex-col justify-between">
-            <div className="flex flex-row gap-4">
-              <p className="">
-                Loaded {rows.length} of {total} rows
-              </p>
-            </div>
             <div className="flex flex-row gap-4 ">
               {activeFilters.length > 0 && (
                 <button
@@ -77,7 +76,7 @@ export const PrimaryTable = (p: {
                   </div>
                 ))
               ) : (
-                <p className="">No Active Filters</p>
+                <p className="">No Active Column Filters</p>
               )}
             </div>
           </div>
@@ -106,6 +105,59 @@ export const PrimaryTable = (p: {
               </>
             ))}
             {p.table.options.meta?.globalFilter ?? <></>}
+          </div>
+        </div>
+        <div className="flex flex-row gap-4 m-1 justify-self-end mr-4">
+          <div className="flex flex-col justify-between">
+            <div className="flex flex-row gap-4">
+              <p className="">
+                Loaded {rows.length} of {total} rows
+              </p>
+            </div>
+            <div className="flex flex-row gap-4">
+              <p className="">
+                Page {page} of {Math.ceil(total / (pageSize ?? 10))}
+              </p>
+            </div>
+            {page && setPage && (
+              <div className="my-1 flex flex-row gap-1">
+                <button
+                  className="btn btn-ghost btn-outline btn-sm"
+                  onClick={() => {
+                    setPage!(page! - 1);
+                  }}
+                  disabled={page === 1}
+                >
+                  <ExpandMore style={{ transform: "rotate(90deg)" }} />
+                </button>
+                <DebouncedInput
+                  className="input input-primary input-bordered input-sm w-14"
+                  min={1}
+                  max={Math.ceil(total / (pageSize ?? 10))}
+                  value={page}
+                  onChange={(e) => {}}
+                  onBlur={(e) => {
+                    try {
+                      const int = parseInt(e.target.value);
+                      if (int > Math.ceil(total / (pageSize ?? 10))) {
+                        setPage!(Math.ceil(total / (pageSize ?? 10)));
+                      } else if (int < 1) {
+                        setPage!(1);
+                      } else setPage!(Number(int));
+                    } catch {}
+                  }}
+                />
+                <button
+                  className="btn btn-ghost btn-outline btn-sm"
+                  onClick={() => {
+                    setPage(page! + 1);
+                  }}
+                  disabled={page === Math.ceil(total / (pageSize ?? 10))}
+                >
+                  <ExpandMore style={{ transform: "rotate(-90deg)" }} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

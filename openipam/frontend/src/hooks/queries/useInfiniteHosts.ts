@@ -2,8 +2,24 @@ import React, { useEffect } from "react";
 import { useApi } from "../useApi";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
+export const usePrefetchedInfiniteHosts = (p: {
+  page: number;
+  [key: string]: string | number;
+}) => {
+  const data = useInfiniteHosts(p);
+  useInfiniteHosts({
+    ...p,
+    page: p.page + 1,
+  });
+  return data;
+};
+
+export const useInfiniteHosts = (p: {
+  page: number;
+  [key: string]: string | number;
+}) => {
   const api = useApi();
+
   const query = useInfiniteQuery({
     queryKey: [
       "Hosts, all",
@@ -11,12 +27,12 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
         .filter(([key, _]) => key !== "selectAll" && key !== "page_size")
         .flat(),
     ],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async () => {
       let results;
       try {
         if (p.disabled === "N") {
           results = await api.hosts.disabled({
-            page: pageParam,
+            page: p.page,
             ...Object.fromEntries(
               Object.entries(p).filter(
                 ([key, val]) => val && key !== "page_size"
@@ -25,7 +41,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
           });
         } else {
           results = await api.hosts.get({
-            page: pageParam,
+            page: p.page,
             ...Object.fromEntries(
               Object.entries(p).filter(
                 ([key, val]) => val && key !== "page_size"
@@ -37,7 +53,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
         return {
           results: results.results,
           count: results.count,
-          page: pageParam,
+          page: p.page,
           nextPage: results.next,
         };
       } catch (e) {
@@ -45,7 +61,7 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
         return {
           results: [],
           count: 0,
-          page: pageParam,
+          page: p.page,
           nextPage: false,
         };
       }
@@ -55,14 +71,14 @@ export const useInfiniteHosts = (p: { [key: string]: string | number }) => {
     },
   });
   useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
+    const currentPage = query.data?.pages.at(-1)?.page ?? 1;
     if (
       query.hasNextPage &&
       !query.isFetchingNextPage &&
       (p.selectAll ||
         (query.data?.pages?.length ?? 0) <
           ((p.page_size ?? 10) as number) / 10 ||
-        currentPage < 2)
+        currentPage < 1)
     ) {
       query.fetchNextPage();
     }

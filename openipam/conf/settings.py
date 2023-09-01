@@ -279,7 +279,7 @@ REST_FRAMEWORK = {
     ],
     # These are per-user throttles. No legitimate user should ever hit these limits.
     "DEFAULT_THROTTLE_RATES": {
-        "burst": "10/second",
+        "burst": "100/second",
         "sustained": "1000/day",
     },
 }

@@ -2,7 +2,10 @@ import { ColumnFiltersState } from "@tanstack/react-table";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { Host } from "../../utils/types";
-import { useInfiniteHosts } from "../../hooks/queries/useInfiniteHosts";
+import {
+  useInfiniteHosts,
+  usePrefetchedInfiniteHosts,
+} from "../../hooks/queries/useInfiniteHosts";
 import { HostTableActions } from "./hostTableActions";
 import { HostTableColumns } from "./hostTableColumns";
 import { CreateTable } from "../../components/table/createTable";
@@ -47,6 +50,7 @@ export const useHostsTable = (p: {
     { id: string; text: string }[]
   >([]);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
   const [columnVisibility, setColumnVisibility] = useState<any>(
     localStorage.getItem("hostsTableColumns")
       ? JSON.parse(localStorage.getItem("hostsTableColumns")!)
@@ -69,7 +73,7 @@ export const useHostsTable = (p: {
     localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
   }, [columnVisibility]);
 
-  const data = useInfiniteHosts({
+  const data = usePrefetchedInfiniteHosts({
     ...Object.fromEntries(
       columnFilters
         .map((filter) => [
@@ -108,6 +112,7 @@ export const useHostsTable = (p: {
         | undefined
     ),
     page_size: pageSize,
+    page,
     selectAll,
     ordering: getOrdering(columnSort),
     advanced_search: globalFilter.map((filter) => filter.id).join(","),
@@ -148,6 +153,8 @@ export const useHostsTable = (p: {
     },
     meta: {
       total: data.data?.pages?.[0]?.count,
+      page: page,
+      setPage: setPage,
       globalFilter: (
         <HostGlobalAutocomplete
           onAddFilter={(v) => {
