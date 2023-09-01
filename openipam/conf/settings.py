@@ -275,6 +275,15 @@ REST_FRAMEWORK = {
         "openipam.api.permissions.IPAMAPIPermission",
     ),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    "DEFAULT_THROTTLE_CLASSES": [
+        "openipam.api_v2.throttling.BurstRateThrottle",
+        "openipam.api_v2.throttling.SustainedRateThrottle",
+    ],
+    # These are per-user throttles. No legitimate user should ever hit these limits.
+    "DEFAULT_THROTTLE_RATES": {
+        "burst": "10/second",
+        "sustained": "1000/day",
+    },
 }
 
 JWT_AUTH = {"JWT_LEEWAY": 60, "JWT_EXPIRATION_DELTA": datetime.timedelta(hours=4)}

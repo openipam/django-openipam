@@ -39,7 +39,7 @@ class NetworkSerializer(ModelSerializer):
     gateway = base_serializers.CharField(source="gateway.ip", read_only=True)
     addresses = SerializerMethodField()
     changed_by = ChangedBySerializer()
-    dhcp_group = base_serializers.CharField(source="dhcp_group.name", read_only=True)
+    dhcp_group = base_serializers.SlugRelatedField(slug_field="name", read_only=True)
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
