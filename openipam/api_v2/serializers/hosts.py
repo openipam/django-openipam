@@ -115,7 +115,7 @@ class HostSerializer(serializers.ModelSerializer):
     def get_vendor(self, obj):
         oui = OUI.objects.filter(start__lt=obj.mac).filter(stop__gt=obj.mac)
         if oui.exists():
-            return oui.first().shortname
+            return oui.first().shortname.split("\t")[-1]
         else:
             return None
 

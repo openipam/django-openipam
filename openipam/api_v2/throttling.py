@@ -5,6 +5,10 @@ class BurstRateThrottle(UserRateThrottle):
     scope = "burst"
 
 
+class MinuteRateThrottle(UserRateThrottle):
+    scope = "minute"
+
+
 class SustainedRateThrottle(UserRateThrottle):
     scope = "sustained"
 
