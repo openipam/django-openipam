@@ -1,5 +1,5 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { People, PeopleOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -7,21 +7,53 @@ import { Host } from "../../utils/types";
 import { useInfiniteMyHosts } from "../../hooks/queries/useInfiniteMyHosts";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
-
-//TODO disabled columns only shows for admins.
-// add quick renew button
-// show groups toggle
+import { getExpiresDateFromFilter } from "../hosts/expiresDateFilter";
+import { getOrdering } from "../../components/table/getOrdering";
+import { HostTableActions } from "../hosts/hostTableActions";
 
 export const useUserHostsTable = (p: {
   //   setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
   //   setEditHost: React.Dispatch<
   //     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   //   >;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      title: string;
+      onSubmit?: (data: Host[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
+  setAttributeModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      delete?: boolean;
+    }>
+  >;
+  onSelectColumns: () => void;
   setRenewModule: React.Dispatch<
     React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
+  const [columnVisibility, setColumnVisibility] = useState<any>(
+    localStorage.getItem("myHostsTableColumns")
+      ? JSON.parse(localStorage.getItem("myHostsTableColumns")!)
+      : {}
+  );
+  useEffect(() => {
+    localStorage.setItem(
+      "myHostsTableColumns",
+      JSON.stringify(columnVisibility)
+    );
+  }, [columnVisibility]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnSort, setColumnSort] = useState<any[]>([]);
   const [prevData, setPrevData] = useState<Host[]>([]);
   const [showGroups, setShowGroups] = useState(false);
   const navigate = useNavigate();
@@ -35,10 +67,14 @@ export const useUserHostsTable = (p: {
         ])
         .map(([key, val]) => {
           switch (key) {
+            case "expires":
+              return [];
             case "mac":
               return [`mac`, val ?? ""];
             case "hostname":
               return [`hostname`, val ?? ""];
+            case "ip_addresses":
+              return [`ip_address`, val ?? ""];
             case "group_owners":
               return [`group`, val ?? ""];
             default:
@@ -46,14 +82,14 @@ export const useUserHostsTable = (p: {
           }
         })
     ),
-    expires__gt: columnFilters.find((filter) => filter.id === "expires")
-      ?.value as string[][0],
-    expires__lt: columnFilters.find((filter) => filter.id === "expires")
-      ?.value as string[][1],
-    changed_gt: columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[][1],
-    changed__lt: columnFilters.find((filter) => filter.id === "changed")
-      ?.value as string[][1],
+    ...getExpiresDateFromFilter(
+      columnFilters.find((filter) => filter.id === "expires")?.value as
+        | string
+        | undefined
+    ),
+    page_size: pageSize,
+    page,
+    ordering: getOrdering(columnSort),
     show_groups: showGroups,
   });
   const Hosts = useMemo<Host[]>(() => {
@@ -74,6 +110,10 @@ export const useUserHostsTable = (p: {
     ...ActionsColumn({
       data,
       size: 100,
+      pageSize,
+      setPageSize,
+      enableSelection: true,
+      onSelectColumns: p.onSelectColumns,
       onView: (row) => {
         navigate(`/Hosts/${row.mac}`);
       },
@@ -200,12 +240,23 @@ export const useUserHostsTable = (p: {
   ];
 
   const table = CreateTable({
-    setColumnFilters: setColumnFilters,
     data: Hosts,
+    setColumnFilters,
+    setRowSelection,
+    setColumnSort,
+    setColumnVisibility,
     state: {
       columnFilters,
+      rowSelection,
+      pageSize,
+      sorting: columnSort,
+      columnVisibility,
     },
     meta: {
+      total: data.data?.pages?.[0]?.count,
+      pageSize,
+      page,
+      setPage,
       trProps: (row: any) => {
         return {
           className:
@@ -213,6 +264,17 @@ export const useUserHostsTable = (p: {
               ? "bg-red-500 bg-opacity-70"
               : "",
         };
+      },
+      rowActions: (rows: Host[]) => {
+        return (
+          <HostTableActions
+            rows={rows}
+            table={table}
+            setActionModule={p.setActionModule}
+            setRenewModule={p.setRenewModule}
+            setAttributeModule={p.setAttributeModule}
+          />
+        );
       },
     },
     columns,

@@ -140,6 +140,7 @@ export const useDnsTable = (p: {
     },
     columns,
     meta: {
+      total: data.data?.pages?.[0]?.count,
       rowActions: (rows: DnsRecord[]) => {
         return (
           <div className="flex flex-col gap-2 m-2">

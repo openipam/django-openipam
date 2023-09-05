@@ -20,6 +20,7 @@ export const DomainPage = () => {
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
   const [tab, setTab] = useState<typeof tabs[number]>("DNS");
+  const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [showModule, setShowModule] = useState<boolean>(false);
   const [actionModule, setActionModule] = useState<{
     show: boolean;
@@ -55,6 +56,9 @@ export const DomainPage = () => {
     setShowModule,
     setEditModule,
     setActionModule,
+    onSelectColumns: () => {
+      setSelectingColumns(true);
+    },
   });
   const api = useApi();
   const getDomainInfo = async (domain: string) => {
@@ -149,7 +153,12 @@ export const DomainPage = () => {
       </div>
       <Tabs tabs={tabs} tab={tab} setTab={setTab}>
         <Tab tab={tab} name={"DNS"} props={"m-2"} data={data}>
-          <Table table={data.table} loading={data.loading} />
+          <Table
+            table={data.table}
+            loading={data.loading}
+            showSelectColumns={selectingColumns}
+            hideShowSelectColumns={() => setSelectingColumns(false)}
+          />
         </Tab>
         <Tab tab={tab} name={"DHCP"} props={"m-2"} data={dhcp}>
           <Table table={dhcp.table} loading={dhcp.loading} />

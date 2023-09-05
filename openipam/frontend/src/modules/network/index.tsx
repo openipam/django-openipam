@@ -1,19 +1,40 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAddressesTable } from "./useAddressesTable";
 import { Table } from "../../components/table/table";
 import { useAuth } from "../../hooks/useAuth";
+import { SingleActionModule } from "../../components/singleActionModule";
+import { Address } from "../../utils/types";
 
 export const Network = () => {
   const auth = useAuth();
   const { network, range } = useParams();
   const [showModule, setShowModule] = useState(false);
+  const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [editModule, setEditModule] = useState(false);
+  const [actionModule, setActionModule] = useState<{
+    show: boolean;
+    data: Address[] | undefined;
+    title: string;
+    onSubmit?: (data: Address[]) => void;
+    children: ReactNode;
+    multiple?: boolean;
+  }>({
+    show: false,
+    data: undefined,
+    title: "",
+    onSubmit: () => {},
+    children: <></>,
+  });
   const data = useAddressesTable({
     network: network ?? "",
     range: range ?? "",
     setShowModule,
     setEditModule,
+    onSelectColumns: () => {
+      setSelectingColumns(true);
+    },
+    setActionModule,
   });
   if (!auth?.is_ipamadmin) {
     return (
@@ -27,11 +48,21 @@ export const Network = () => {
       <h1 className="text-4xl">
         {network}/{range}
       </h1>
-      <p>
-        Provide filtering and searching capabilities based on status (used,
-        available, reserved), network, or domain.
-      </p>
-      <Table table={data.table} loading={data.loading} />
+      <Table
+        table={data.table}
+        loading={data.loading}
+        showSelectColumns={selectingColumns}
+        hideShowSelectColumns={() => setSelectingColumns(false)}
+      />
+      <SingleActionModule
+        showModule={actionModule.show}
+        setShowModule={setActionModule}
+        data={actionModule.data ?? []}
+        title={actionModule.title}
+        onSubmit={actionModule.onSubmit}
+        children={actionModule.children}
+        multiple={actionModule.multiple ?? false}
+      />
     </div>
   );
 };

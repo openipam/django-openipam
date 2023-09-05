@@ -7,6 +7,7 @@ import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
 import { useApi } from "../../hooks/useApi";
 import { ThemeContext } from "../../hooks/useTheme";
+import { getOrdering } from "../../components/table/getOrdering";
 
 //TODO search permissions
 
@@ -26,10 +27,25 @@ export const useDomainTable = (p: {
       multiple?: boolean;
     }>
   >;
+  onSelectColumns: () => void;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
   const [rowSelection, setRowSelection] = useState({});
+  const [columnSort, setColumnSort] = useState<any[]>([]);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
+  const [columnVisibility, setColumnVisibility] = useState<any>(
+    localStorage.getItem("domainTableColumns")
+      ? JSON.parse(localStorage.getItem("domainTableColumns")!)
+      : {}
+  );
+  useEffect(() => {
+    localStorage.setItem(
+      "domainDNSTableColumns",
+      JSON.stringify(columnVisibility)
+    );
+  }, [columnVisibility]);
   const [action, setAction] = useState<string>("delete");
   const api = useApi();
   const data = useInfiniteDnsRecords({
@@ -39,6 +55,9 @@ export const useDomainTable = (p: {
         .filter((f) => DNSLookupKeys.includes(f.id))
         .map((filter) => [filter.id, filter.value as string])
     ),
+    ordering: getOrdering(columnSort),
+    page,
+    page_size: pageSize,
   });
   const dns = useMemo<DnsRecord[]>(() => {
     if (!data.data) {
@@ -68,6 +87,7 @@ export const useDomainTable = (p: {
           DnsData: row,
         });
       },
+      onSelectColumns: p.onSelectColumns,
     }),
     columnHelper.group({
       id: "Identification",
@@ -145,13 +165,22 @@ export const useDomainTable = (p: {
   const table = CreateTable({
     setColumnFilters,
     setRowSelection,
+    setColumnSort,
+    setColumnVisibility,
     data: dns,
     state: {
       columnFilters,
       rowSelection,
+      pageSize,
+      sorting: columnSort,
+      columnVisibility,
     },
     columns,
     meta: {
+      total: data.data?.pages?.[0]?.count,
+      page,
+      pageSize,
+      setPage,
       rowActions: (rows: DnsRecord[]) => {
         return (
           <div className="flex flex-col gap-2 m-2">

@@ -1,16 +1,42 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { User } from "../../utils/types";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
 import { useInfiniteUsers } from "../../hooks/queries/useInfiniteUsers";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
+import { getOrdering } from "../../components/table/getOrdering";
+import { UserTableActions } from "./userTableActions";
 
-export const useUsersTable = (p: {}) => {
+export const useUsersTable = (p: {
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: User[] | undefined;
+      title: string;
+      onSubmit?: (data: User[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<User[]>([]);
-  const data = useInfiniteUsers({});
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnSort, setColumnSort] = useState<any[]>([]);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [page, setPage] = useState<number>(1);
+  const data = useInfiniteUsers({
+    ...Object.fromEntries(
+      columnFilters
+        .filter((f) => f.value)
+        .map((filter) => [filter.id, filter.value as string])
+    ),
+    ordering: getOrdering(columnSort),
+    page,
+    page_size: pageSize,
+  });
   const dns = useMemo<User[]>(() => {
     if (!data.data) {
       return prevData.length ? prevData : [];
@@ -29,6 +55,9 @@ export const useUsersTable = (p: {}) => {
     ...ActionsColumn({
       size: 100,
       data,
+      pageSize,
+      setPageSize,
+      enableSelection: true,
     }),
     columnHelper.group({
       id: "Identification",
@@ -120,12 +149,32 @@ export const useUsersTable = (p: {}) => {
   ];
 
   const table = CreateTable({
-    setColumnFilters: setColumnFilters,
+    setColumnFilters,
+    setRowSelection,
+    setColumnSort,
     data: dns,
     state: {
       columnFilters,
+      rowSelection,
+      pageSize,
+      sorting: columnSort,
     },
     columns,
+    meta: {
+      total: data.data?.pages?.[0]?.count,
+      page,
+      pageSize,
+      setPage,
+      rowActions: (rows: User[]) => {
+        return (
+          <UserTableActions
+            rows={rows}
+            table={table}
+            setActionModule={p.setActionModule}
+          />
+        );
+      },
+    },
   });
 
   return useMemo(

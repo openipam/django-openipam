@@ -5,8 +5,7 @@ import { Log, LogActions, LogTypes } from "../../utils/types";
 import { useInfiniteLogs } from "../../hooks/queries/useInfiniteLogs";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
-
-//TODO search permissions
+import { getOrdering } from "../../components/table/getOrdering";
 
 const logSearchFields = ["user", "action_flag"];
 
@@ -14,7 +13,9 @@ export const useLogsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<Log[]>([]);
   const [emailView, setEmailView] = useState<boolean>(false);
-
+  const [columnSort, setColumnSort] = useState<any[]>([]);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [page, setPage] = useState<number>(1);
   useEffect(() => {
     setEmailView(
       !!columnFilters.filter((f) => f.id === "type" && f.value === "email")
@@ -33,6 +34,9 @@ export const useLogsTable = () => {
         )
         .map((filter) => [filter.id, filter.value as string])
     ),
+    page_size: pageSize,
+    page,
+    ordering: getOrdering(columnSort),
   });
   const logs = useMemo<Log[]>(() => {
     if (data.isFetching) {
@@ -55,6 +59,8 @@ export const useLogsTable = () => {
     ...ActionsColumn({
       data,
       size: 50,
+      pageSize,
+      setPageSize,
     }),
     columnHelper.group({
       id: "Identification",
@@ -141,10 +147,19 @@ export const useLogsTable = () => {
   ];
 
   const table = CreateTable({
-    setColumnFilters: setColumnFilters,
+    setColumnFilters,
+    setColumnSort,
     data: logs,
     state: {
       columnFilters,
+      sorting: columnSort,
+      pageSize,
+    },
+    meta: {
+      total: data.data?.pages?.[0]?.count,
+      pageSize,
+      page,
+      setPage,
     },
     columns,
   });

@@ -25,7 +25,7 @@ export const PrimaryTable = (p: {
     p.table.getState().globalFilter,
     p.table.setGlobalFilter,
   ];
-  const { page, setPage, pageSize } = p.table.options.meta!;
+  const { page, setPage, pageSize } = p.table.options.meta ?? {};
 
   return (
     <div
@@ -114,11 +114,13 @@ export const PrimaryTable = (p: {
                 Loaded {rows.length} of {total} rows
               </p>
             </div>
-            <div className="flex flex-row gap-4">
-              <p className="">
-                Page {page} of {Math.ceil(total / (pageSize ?? 10))}
-              </p>
-            </div>
+            {page && setPage && (
+              <div className="flex flex-row gap-4">
+                <p className="">
+                  Page {page} of {Math.ceil(total / (pageSize ?? 10))}
+                </p>
+              </div>
+            )}
             {page && setPage && (
               <div className="my-1 flex flex-row gap-1">
                 <button
@@ -143,8 +145,12 @@ export const PrimaryTable = (p: {
                         setPage!(Math.ceil(total / (pageSize ?? 10)));
                       } else if (int < 1) {
                         setPage!(1);
+                      } else if (isNaN(int)) {
+                        setPage!(1);
                       } else setPage!(Number(int));
-                    } catch {}
+                    } catch {
+                      setPage!(1);
+                    }
                   }}
                 />
                 <button

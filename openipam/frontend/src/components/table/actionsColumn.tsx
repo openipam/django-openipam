@@ -5,6 +5,7 @@ import {
   Autorenew,
   Edit,
   ExpandMore,
+  MoreVert,
   Visibility,
 } from "@mui/icons-material";
 import { ToolTip } from "../tooltip";
@@ -24,6 +25,7 @@ export const ActionsColumn = (p: {
   pageSize?: number;
   setPageSize?: React.Dispatch<React.SetStateAction<number>>;
   setSelectAll?: React.Dispatch<React.SetStateAction<boolean>>;
+  onSelectColumns?: () => void;
 }) => {
   return [
     {
@@ -100,6 +102,24 @@ export const ActionsColumn = (p: {
               >
                 <Add style={{ fill: "inherit" }} />
               </button>
+            )}
+            {p.onSelectColumns && (
+              <div className="dropdown mt-1">
+                <label
+                  tabIndex={0}
+                  className="btn btn-circle btn-ghost btn-xs text-neutral"
+                >
+                  <MoreVert style={{ fill: "inherit" }} />
+                </label>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-neutral-focus rounded-box w-48 mt-2"
+                >
+                  <li onClick={p.onSelectColumns}>
+                    <a className="text-neutral-content">Show/Hide Columns</a>
+                  </li>
+                </ul>
+              </div>
             )}
 
             {p.customHead}

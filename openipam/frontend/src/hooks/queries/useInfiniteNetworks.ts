@@ -1,39 +1,26 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useApi } from "../useApi";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { usePrefetchedQuery } from "./usePrefetchedQuery";
 
 export const useInfiniteNetworks = (p: {
   [key: string]: string | boolean | number | undefined;
 }) => {
   const api = useApi();
-  const query = useInfiniteQuery({
-    queryKey: ["networks", ...Object.entries(p).flat()],
-    queryFn: async ({ pageParam = 1 }) => {
-      const results = await api.networks.get({ page: pageParam, ...p });
+  const query = usePrefetchedQuery({
+    queryKey: ["networks", ...Object.entries(p).map(([k, v]) => `${k}=${v}`)],
+    queryFn: async (page) => {
+      const results = await api.networks.get({
+        ...Object.fromEntries(Object.entries(p).filter(([key, val]) => val)),
+        page,
+      });
       return {
         networks: results.results,
-        page: pageParam,
+        page,
         nextPage: results.next,
+        count: results.count,
       };
     },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextPage ? lastPage.page + 1 : undefined;
-    },
+    ...p,
   });
-  useEffect(() => {
-    const currentPage = query.data?.pages.at(-1)?.page ?? 0;
-    if (
-      query.hasNextPage &&
-      !query.isFetchingNextPage &&
-      (p.getAll || currentPage < 1)
-    ) {
-      query.fetchNextPage();
-    }
-  }, [
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    query.fetchNextPage,
-    query.data,
-  ]);
   return query;
 };

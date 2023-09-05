@@ -108,6 +108,9 @@ export const useDhcpTable = (p: {
       columnFilters,
     },
     columns,
+    meta: {
+      total: data.data?.pages?.[0]?.count,
+    },
   });
 
   return useMemo(

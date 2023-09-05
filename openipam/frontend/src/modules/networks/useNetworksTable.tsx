@@ -1,28 +1,57 @@
 import { ColumnFiltersState, createColumnHelper } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { Network } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteNetworks } from "../../hooks/queries/useInfiniteNetworks";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
+import { getOrdering } from "../../components/table/getOrdering";
+import { NetworksTableActions } from "./networksTableActions";
 
 const NetworkLookupKeys = ["network", "name", "gateway", "description"];
 
 export const useNetworksTable = (p: {
   setShowModule: any;
   setEditModule: any;
+  onSelectColumns: () => void;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Network[] | undefined;
+      title: string;
+      onSubmit?: (data: Network[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<Network[]>([]);
-
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnSort, setColumnSort] = useState<any[]>([]);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
+  const [columnVisibility, setColumnVisibility] = useState<any>(
+    localStorage.getItem("networksTableColumns")
+      ? JSON.parse(localStorage.getItem("networksTableColumns")!)
+      : {}
+  );
+  useEffect(() => {
+    localStorage.setItem(
+      "networksTableColumns",
+      JSON.stringify(columnVisibility)
+    );
+  }, [columnVisibility]);
   const data = useInfiniteNetworks({
-    ...Object.fromEntries(Object.entries(p).filter(([_, v]) => v)),
     ...Object.fromEntries(
       columnFilters
         .filter((f) => NetworkLookupKeys.includes(f.id) && f.value)
         .map((filter) => [filter.id, filter.value as string])
     ),
+    page,
+    page_size: pageSize,
+    ordering: getOrdering(columnSort),
   });
   const dns = useMemo<Network[]>(() => {
     if (!data.data) {
@@ -42,6 +71,8 @@ export const useNetworksTable = (p: {
     ...ActionsColumn({
       data,
       size: 80,
+      pageSize,
+      setPageSize,
       onAdd: () => {
         p.setShowModule(true);
       },
@@ -54,6 +85,8 @@ export const useNetworksTable = (p: {
           Network: row.network,
         });
       },
+      onSelectColumns: p.onSelectColumns,
+      enableSelection: true,
     }),
     columnHelper.group({
       id: "Identification",
@@ -105,12 +138,34 @@ export const useNetworksTable = (p: {
   ];
 
   const table = CreateTable({
-    setColumnFilters: setColumnFilters,
+    setColumnFilters,
+    setRowSelection,
+    setColumnSort,
+    setColumnVisibility,
     data: dns,
     state: {
       columnFilters,
+      rowSelection,
+      pageSize,
+      sorting: columnSort,
+      columnVisibility,
     },
     columns,
+    meta: {
+      total: data.data?.pages?.[0]?.count,
+      pageSize,
+      page,
+      setPage,
+      rowActions: (rows: Network[]) => {
+        return (
+          <NetworksTableActions
+            rows={rows}
+            table={table}
+            setActionModule={p.setActionModule}
+          />
+        );
+      },
+    },
   });
 
   return useMemo(

@@ -12,6 +12,8 @@ const DhcpLookupKeys = ["host", "ip_content"];
 export const useDhcpTable = (p: { domain: string }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
   const navigate = useNavigate();
   const data = useInfiniteDhcpRecords({
     ...p,
@@ -20,6 +22,8 @@ export const useDhcpTable = (p: { domain: string }) => {
         .filter((f) => DhcpLookupKeys.includes(f.id))
         .map((filter) => [filter.id, filter.value as string])
     ),
+    page,
+    page_size: pageSize,
   });
   const dhcp = useMemo<DhcpRecord[]>(() => {
     if (!data.data) {
@@ -38,6 +42,8 @@ export const useDhcpTable = (p: { domain: string }) => {
   const columns = [
     ...ActionsColumn({
       size: 100,
+      pageSize,
+      setPageSize,
       onView: (row) => {
         navigate(`/hosts/${row.host}`);
       },
@@ -96,8 +102,16 @@ export const useDhcpTable = (p: { domain: string }) => {
   const table = CreateTable({
     setColumnFilters: setColumnFilters,
     data: dhcp,
+    meta: {
+      total: data.data?.pages?.[0]?.count,
+      page,
+      pageSize,
+      setPage,
+      setPageSize,
+    },
     state: {
       columnFilters,
+      pageSize,
     },
     columns,
   });
