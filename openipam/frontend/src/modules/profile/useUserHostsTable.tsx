@@ -173,20 +173,16 @@ export const useUserHostsTable = (p: {
       columns: [
         {
           id: "expires",
+          size: 120,
           header: "Expires",
           accessorFn: (row) =>
             row.expires
               ? new Date(row.expires).toISOString().split("T")[0]
               : null,
           cell: ({ row }: { row: any }) => {
-            return row.original.expires ? (
-              <div className="flex flex-row justify-between mx-2">
-                <p className="flex align-middle">{`${
-                  row.original.expires
-                    ? new Date(row.original.expires).toISOString().split("T")[0]
-                    : ""
-                }`}</p>
-                <p className="flex align-middle">{`(${
+            return row?.original.expires ? (
+              <div className="flex flex-row flex-wrap justify-around">
+                <p className="flex flex-row justify-center">{`${
                   new Date(row.original.expires) < new Date()
                     ? "Expired"
                     : `${Math.ceil(
@@ -194,14 +190,15 @@ export const useUserHostsTable = (p: {
                           new Date().getTime()) /
                           (1000 * 3600 * 24)
                       )} Days Left`
-                })`}</p>
+                }`}</p>
               </div>
             ) : (
               ""
             );
           },
           meta: {
-            filterType: "date",
+            filterType: "exact",
+            filterOptions: expiredFilterOptions.map((t) => t),
           },
         },
         {
@@ -285,3 +282,11 @@ export const useUserHostsTable = (p: {
     data.isFetching,
   ]);
 };
+
+export const expiredFilterOptions = [
+  "Expired",
+  "1 Day Left",
+  "7 Days Left",
+  "30 Days Left",
+  "Unexpired",
+] as const;

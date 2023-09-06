@@ -26,7 +26,6 @@ export const EditHostModule = (p: {
         ip_address: host.ip_address?.address,
       dhcp_group: host.dhcp_group?.name,
       } satisfies CreateHost);
-    alert(`successfully edited ${host.mac}`);
   };
   const isDynamic = (addressType: string) => {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);

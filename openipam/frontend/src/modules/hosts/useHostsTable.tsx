@@ -39,7 +39,8 @@ export const useHostsTable = (p: {
       delete?: boolean;
     }>
   >;
-  onSelectColumns: () => void;
+  onSelectColumns: VoidFunction;
+  onAddByCsv: VoidFunction;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -189,6 +190,7 @@ export const useHostsTable = (p: {
       setRenewModule: p.setRenewModule,
       setActionModule: p.setActionModule,
       onSelectColumns: p.onSelectColumns,
+      onAddByCsv: p.onAddByCsv,
       pageSize,
       setPageSize,
       setSelectAll,

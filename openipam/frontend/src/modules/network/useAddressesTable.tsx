@@ -146,15 +146,6 @@ export const useAddressesTable = (p: {
           header: "Pool",
           accessorFn: (row) => row.pool?.name,
         },
-        {
-          id: "changed",
-          header: "Changed",
-          accessorFn: (row) =>
-            row.changed ? new Date(row.changed).toLocaleString() : "",
-          meta: {
-            filterType: "date",
-          },
-        },
       ],
     }),
   ];

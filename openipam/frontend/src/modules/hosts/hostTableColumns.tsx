@@ -37,7 +37,8 @@ export const HostTableColumns = (p: {
       multiple?: boolean;
     }>
   >;
-  onSelectColumns: () => void;
+  onSelectColumns: VoidFunction;
+  onAddByCsv: VoidFunction;
   pageSize: number;
   setPageSize: React.Dispatch<React.SetStateAction<number>>;
   setSelectAll: React.Dispatch<React.SetStateAction<boolean>>;
@@ -101,6 +102,9 @@ export const HostTableColumns = (p: {
                       <a className="text-neutral-content">Select ALL rows</a>
                     </ToolTip>
                   </li>
+                  <li onClick={p.onAddByCsv}>
+                    <a className="text-neutral-content">Add By CSV</a>
+                  </li>
                 </ul>
               </div>
             </>
@@ -155,11 +159,6 @@ export const HostTableColumns = (p: {
           cell: ({ row }: { row: any }) => {
             return row?.original.expires ? (
               <div className="flex flex-row flex-wrap justify-around">
-                {/* <p className="flex flex-row justify-start">{`${
-                  row.original.expires
-                    ? new Date(row.original.expires).toISOString().split("T")[0]
-                    : ""
-                }`}</p> */}
                 <p className="flex flex-row justify-center">{`${
                   new Date(row.original.expires) < new Date()
                     ? "Expired"
@@ -222,7 +221,7 @@ export const HostTableColumns = (p: {
         },
         {
           id: "vendor",
-          size: 150,
+          size: 200,
           header: () => (
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center text-neutral">Vendor</p>
@@ -232,7 +231,7 @@ export const HostTableColumns = (p: {
               />
             </div>
           ),
-          accessorFn: (row) => row.vendor?.split("\t")[0],
+          accessorFn: (row) => row.vendor?.split(",")[0],
         },
       ],
     }),

@@ -7,6 +7,7 @@ import { RenewHostModule } from "../profile/renewHostModule";
 import { Host } from "../../utils/types";
 import { AttributeModule } from "./attributeModule";
 import { SingleActionModule } from "../../components/singleActionModule";
+import { AddByCSVModule } from "./addByCsv";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
@@ -48,6 +49,7 @@ export const Hosts = () => {
     show: false,
     data: undefined,
   });
+  const [addByCsv, setAddByCsv] = useState(false);
   const table = useHostsTable({
     setShowAddHost,
     setEditHost,
@@ -56,6 +58,9 @@ export const Hosts = () => {
     setAttributeModule,
     onSelectColumns: () => {
       setSelectingColumns(true);
+    },
+    onAddByCsv: () => {
+      setAddByCsv(true);
     },
   });
 
@@ -94,6 +99,7 @@ export const Hosts = () => {
         data={attributeModule.data ?? []}
         delete={attributeModule.delete}
       />
+      <AddByCSVModule showModule={addByCsv} setShowModule={setAddByCsv} />
     </div>
   );
 };

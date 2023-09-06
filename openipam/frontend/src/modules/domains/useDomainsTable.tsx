@@ -59,7 +59,9 @@ export const useDomainsTable = (p: {
   const [columnVisibility, setColumnVisibility] = useState<any>(
     localStorage.getItem("domainTableColumns")
       ? JSON.parse(localStorage.getItem("domainTableColumns")!)
-      : {}
+      : {
+          changed: false,
+        }
   );
   useEffect(() => {
     localStorage.setItem(
