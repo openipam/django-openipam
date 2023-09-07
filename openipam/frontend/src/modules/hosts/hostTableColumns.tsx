@@ -296,6 +296,17 @@ export const HostTableColumns = (p: {
           header: "Description",
           accessorFn: (row) => row.description,
         },
+        {
+          id: "changed",
+          header: "Changed",
+          accessorFn: (row) =>
+            row.changed
+              ? new Date(row.changed).toISOString().split("T")[0]
+              : "",
+          meta: {
+            hideFilter: true,
+          },
+        },
       ],
     }),
     columnHelper.group({

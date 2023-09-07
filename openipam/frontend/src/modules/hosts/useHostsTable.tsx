@@ -61,6 +61,7 @@ export const useHostsTable = (p: {
           user_owners: false,
           disabled_host: false,
           description: false,
+          changed: false,
         }
   );
   const auth = useAuth();
@@ -88,6 +89,7 @@ export const useHostsTable = (p: {
         .map(([key, val]) => {
           switch (key) {
             case "expires":
+            case "changed":
               return [];
             case "mac":
               return [`mac`, val ?? ""];

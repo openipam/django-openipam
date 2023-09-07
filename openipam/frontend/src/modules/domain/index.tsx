@@ -80,7 +80,7 @@ export const DomainPage = () => {
       <h1 className="text-4xl">{domain}</h1>
       {/* card displayig domain information */}
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
-        <div className="card w-[80%] md:w-[50rem] bg-gray-600 shadow-xl">
+        <div className="card w-[80%] md:w-[50rem] bg-base-300 shadow-xl">
           <div className="card-body relative">
             {auth?.is_ipamadmin && (
               <div className="absolute r-2">
