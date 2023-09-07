@@ -66,6 +66,7 @@ export const AddByCSVModule = (p: {
   const [loaded, setLoaded] = useState(false);
   const [data, setData] = useState<any>();
   const addHosts = async () => {
+    //todo: map address type to id, same with ip address and network
     await Promise.all(
       hosts.map((host) =>
         api.hosts.create({ ...host, expire_days: host.expire_days ?? 7 })

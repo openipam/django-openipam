@@ -28,7 +28,6 @@ export const CreateTable = (p: {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     onColumnVisibilityChange: p.setColumnVisibility,
     // Sorting
-    getSortedRowModel: getSortedRowModel(),
     onSortingChange: p.setColumnSort,
     // Filters
     onColumnFiltersChange: p.setColumnFilters,
@@ -49,7 +48,9 @@ export const CreateTable = (p: {
         c.columns?.map((c: any) => ({
           ...c,
           filterFn: undefined,
+          sortingFn: undefined,
         })) ?? [],
     })),
+    sortingFns: undefined,
   });
 };

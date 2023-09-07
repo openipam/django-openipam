@@ -60,6 +60,7 @@ export const useHostsTable = (p: {
           group_owners: false,
           user_owners: false,
           disabled_host: false,
+          description: false,
         }
   );
   const auth = useAuth();
@@ -72,6 +73,10 @@ export const useHostsTable = (p: {
   useEffect(() => {
     localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
   }, [columnVisibility]);
+
+  useEffect(() => {
+    console.log(columnSort);
+  }, [columnSort]);
 
   const data = useInfiniteHosts({
     ...Object.fromEntries(
@@ -114,7 +119,10 @@ export const useHostsTable = (p: {
     page_size: pageSize,
     page,
     selectAll,
-    ordering: getOrdering(columnSort),
+    ordering: getOrdering(
+      columnSort,
+      new Map().set("ip_addresses", "addresses")
+    ),
     advanced_search: globalFilter.map((filter) => filter.id).join(","),
   });
 
@@ -152,6 +160,7 @@ export const useHostsTable = (p: {
       columnVisibility,
     },
     meta: {
+      setSorting: setColumnSort,
       total: data.data?.pages?.[0]?.count,
       pageSize,
       page,

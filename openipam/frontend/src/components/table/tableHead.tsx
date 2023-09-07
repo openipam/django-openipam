@@ -41,16 +41,38 @@ export const useTHBorderClasses = (
 const TableHeaderLabel = (p: {
   header: Header<any, unknown>;
   hideSorting: boolean;
+  table?: Table<any>;
 }) => {
   const header = p.header;
+  const setSorting = p.table?.options.meta?.setSorting;
   return (
     <div
       className={`whitespace-nowrap text-neutral ${
-        header.column.getCanSort() && !p.hideSorting
-          ? "cursor-pointer select-none"
-          : ""
+        !p.hideSorting ? "cursor-pointer select-none" : ""
       }`}
-      onClick={header.column.getToggleSortingHandler() as any}
+      onClick={() => {
+        const sort = header.column.getIsSorted();
+        console.log({ sort }, header.column.getIsSorted());
+        if (sort === "asc")
+          setSorting
+            ? setSorting([
+                {
+                  id: header.column.id,
+                  desc: true,
+                },
+              ])
+            : header.column.toggleSorting(true);
+        else if (!sort)
+          setSorting
+            ? setSorting([
+                {
+                  id: header.column.id,
+                  desc: false,
+                },
+              ])
+            : header.column.toggleSorting(false);
+        else header.column.clearSorting();
+      }}
     >
       {flexRender(header.column.columnDef.header, header.getContext())}
       {{
@@ -209,6 +231,7 @@ export const TableHeaderCell = (p: {
           <TableHeaderLabel
             header={header}
             hideSorting={Boolean(p.hideSorting)}
+            table={p.table}
           />
           {!header.column.columnDef.meta?.hideFilter &&
             !p.hideFilter &&

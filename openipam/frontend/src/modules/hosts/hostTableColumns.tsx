@@ -218,6 +218,7 @@ export const HostTableColumns = (p: {
           accessorFn: (row) =>
             row.master_ip_address ?? row.addresses?.leased?.[0],
           filterFn: undefined,
+          sortingFn: undefined,
         },
         {
           id: "vendor",
@@ -291,6 +292,11 @@ export const HostTableColumns = (p: {
           meta: {
             filterType: "boolean",
           },
+        },
+        {
+          id: "description",
+          header: "Description",
+          accessorFn: (row) => row.description,
         },
       ],
     }),
