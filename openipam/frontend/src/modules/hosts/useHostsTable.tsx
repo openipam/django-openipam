@@ -121,7 +121,11 @@ export const useHostsTable = (p: {
     selectAll,
     ordering: getOrdering(
       columnSort,
-      new Map().set("ip_addresses", "addresses")
+      new Map([
+        ["ip_addresses", "addresses"],
+        // ["dhcp_group", "dhcp_group__name"],
+        // ["address_type", "address_type__id"],
+      ])
     ),
     advanced_search: globalFilter.map((filter) => filter.id).join(","),
   });

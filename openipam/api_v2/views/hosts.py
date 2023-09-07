@@ -63,9 +63,7 @@ class HostViewSet(APIModelViewSet):
     ordering_fields = [
         "mac",
         "hostname",
-        "dhcp_group__name",
         "expires",
-        "address_type__name",
         "addresses",
         "changed",
     ]

@@ -37,6 +37,7 @@ export const ActionsColumn = (p: {
       accessorFn: () => null,
       meta: {
         hideFilter: true,
+        hideSort: true,
       },
       id: "actions",
       header: ({ table }: { table: Table<any> }) => (

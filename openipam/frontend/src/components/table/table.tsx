@@ -18,6 +18,7 @@ declare module "@tanstack/table-core" {
     filterOptions?: string[] | null;
     filterType?: "string" | "date" | "exact" | "boolean" | null;
     hideFilter?: boolean;
+    hideSort?: boolean;
   }
 
   interface TableMeta<TData extends RowData> {

@@ -45,17 +45,19 @@ const TableHeaderLabel = (p: {
 }) => {
   const header = p.header;
   const setSorting = p.table?.options.meta?.setSorting;
+  const show = !p.hideSorting && !header.column.columnDef.meta?.hideSort;
   return (
     <div
       className={`whitespace-nowrap text-neutral ${
-        !p.hideSorting ? "cursor-pointer select-none" : ""
+        show ? "cursor-pointer select-none" : ""
       }`}
       onClick={() => {
+        if (!show) return;
         const sort = header.column.getIsSorted();
-        console.log({ sort }, header.column.getIsSorted());
         if (sort === "asc")
           setSorting
-            ? setSorting([
+            ? setSorting((prev: any[]) => [
+                ...prev.filter((c) => c.id !== header.column.id),
                 {
                   id: header.column.id,
                   desc: true,
@@ -64,14 +66,20 @@ const TableHeaderLabel = (p: {
             : header.column.toggleSorting(true);
         else if (!sort)
           setSorting
-            ? setSorting([
+            ? setSorting((prev: any[]) => [
+                ...prev.filter((c) => c.id !== header.column.id),
                 {
                   id: header.column.id,
                   desc: false,
                 },
               ])
             : header.column.toggleSorting(false);
-        else header.column.clearSorting();
+        else
+          setSorting
+            ? setSorting((prev: any[]) => [
+                ...prev.filter((c) => c.id !== header.column.id),
+              ])
+            : header.column.clearSorting();
       }}
     >
       {flexRender(header.column.columnDef.header, header.getContext())}
@@ -88,7 +96,7 @@ const TableHeaderLabel = (p: {
             <ArrowDownward style={{ fill: "inherit" }} />
           </>
         ),
-      }[p.hideSorting ? "" : (header.column.getIsSorted() as string)] ?? null}
+      }[!show ? "" : (header.column.getIsSorted() as string)] ?? null}
     </div>
   );
 };
