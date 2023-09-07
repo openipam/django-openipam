@@ -151,6 +151,7 @@ export const useNetworksTable = (p: {
       columnVisibility,
     },
     columns,
+    orderingColumns: ["network", "name", "changed"],
     meta: {
       total: data.data?.pages?.[0]?.count,
       pageSize,

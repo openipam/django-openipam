@@ -18,6 +18,7 @@ export const CreateTable = (p: {
   data: any;
   state: any;
   meta?: any;
+  orderingColumns?: string[];
   columns: any;
 }) => {
   return useReactTable({
@@ -48,6 +49,10 @@ export const CreateTable = (p: {
           ...c,
           filterFn: undefined,
           sortingFn: undefined,
+          meta: {
+            ...c.meta,
+            ...(!p.orderingColumns?.includes(c.id) ? { hideSort: true } : {}),
+          },
         })) ?? [],
     })),
     sortingFns: undefined,

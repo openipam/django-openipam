@@ -23,6 +23,7 @@ export const ActionsColumn = (p: {
   customHead?: ReactNode;
   customCell?: ReactNode;
   pageSize?: number;
+  pageSizes?: number[];
   setPageSize?: React.Dispatch<React.SetStateAction<number>>;
   setSelectAll?: React.Dispatch<React.SetStateAction<boolean>>;
   onSelectColumns?: () => void;
@@ -57,7 +58,7 @@ export const ActionsColumn = (p: {
                       p.setPageSize!(Number(e.target.value));
                     }}
                   >
-                    {pageSizes.map((size) => (
+                    {(p.pageSizes ?? pageSizes).map((size) => (
                       <option key={size} value={size}>
                         {size}
                       </option>

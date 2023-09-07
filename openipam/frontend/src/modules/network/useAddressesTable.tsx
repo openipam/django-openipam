@@ -33,7 +33,7 @@ export const useAddressesTable = (p: {
   const [prevData, setPrevData] = useState<Address[]>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnSort, setColumnSort] = useState<any[]>([]);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(16);
   const [page, setPage] = useState<number>(1);
   const [action, setAction] = useState<string>("delete");
   const api = useApi();
@@ -77,6 +77,7 @@ export const useAddressesTable = (p: {
     ...ActionsColumn({
       data,
       size: 80,
+      pageSizes: [16, 32, 64, 128, 256],
       enableSelection: true,
       onAdd: () => {
         p.setShowModule(true);
@@ -164,6 +165,7 @@ export const useAddressesTable = (p: {
       columnVisibility,
     },
     columns,
+    orderingColumns: ["address", "changed"],
     meta: {
       total: data.data?.pages?.[0]?.count,
       pageSize,

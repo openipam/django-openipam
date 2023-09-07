@@ -163,6 +163,7 @@ export const useHostsTable = (p: {
       sorting: columnSort,
       columnVisibility,
     },
+    orderingColumns: ["mac", "hostname", "expires", "ip_addresses", "changed"],
     meta: {
       setSorting: setColumnSort,
       total: data.data?.pages?.[0]?.count,

@@ -231,9 +231,6 @@ export const HostTableColumns = (p: {
             </div>
           ),
           accessorFn: (row) => row.vendor?.split(",")[0],
-          meta: {
-            hideSort: true,
-          },
         },
       ],
     }),
@@ -254,7 +251,6 @@ export const HostTableColumns = (p: {
               : "No Data",
           meta: {
             hideFilter: true,
-            hideSort: true,
           },
         },
         {
@@ -270,7 +266,6 @@ export const HostTableColumns = (p: {
               : "No Data",
           meta: {
             hideFilter: true,
-            hideSort: true,
           },
         },
         {
@@ -279,7 +274,6 @@ export const HostTableColumns = (p: {
           accessorFn: (row) => row.address_type,
           meta: {
             filterType: "exact",
-            hideSort: true,
             filterOptions: addressTypes?.map((t) => t.name) ?? [],
           },
         },
@@ -287,9 +281,6 @@ export const HostTableColumns = (p: {
           id: "dhcp_group",
           header: "DHCP Group",
           accessorFn: (row) => row.dhcp_group?.name,
-          meta: {
-            hideSort: true,
-          },
         },
         {
           id: "disabled_host",
@@ -298,16 +289,12 @@ export const HostTableColumns = (p: {
           cell: BooleanRender,
           meta: {
             filterType: "boolean",
-            hideSort: true,
           },
         },
         {
           id: "description",
           header: "Description",
           accessorFn: (row) => row.description,
-          meta: {
-            hideSort: true,
-          },
         },
       ],
     }),
@@ -329,9 +316,6 @@ export const HostTableColumns = (p: {
           ),
           size: 200,
           accessorFn: (row) => row.user_owners?.join(", "),
-          meta: {
-            hideSort: true,
-          },
         },
         {
           id: "group_owners",
@@ -346,9 +330,6 @@ export const HostTableColumns = (p: {
           ),
           size: 200,
           accessorFn: (row) => row.group_owners?.join(", "),
-          meta: {
-            hideSort: true,
-          },
         },
       ],
     }),
