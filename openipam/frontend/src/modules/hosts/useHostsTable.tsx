@@ -125,7 +125,7 @@ export const useHostsTable = (p: {
       columnSort,
       new Map([
         ["ip_addresses", "addresses"],
-        // ["dhcp_group", "dhcp_group__name"],
+        ["dhcp_group", "dhcp_group__name"],
         // ["address_type", "address_type__id"],
       ])
     ),
@@ -165,7 +165,14 @@ export const useHostsTable = (p: {
       sorting: columnSort,
       columnVisibility,
     },
-    orderingColumns: ["mac", "hostname", "expires", "ip_addresses", "changed"],
+    orderingColumns: [
+      "mac",
+      "hostname",
+      "expires",
+      "dhcp_group",
+      "ip_addresses",
+      "changed",
+    ],
     meta: {
       setSorting: setColumnSort,
       total: data.data?.pages?.[0]?.count,
