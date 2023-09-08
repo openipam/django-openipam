@@ -158,8 +158,8 @@ export const HostTableColumns = (p: {
               : null,
           cell: ({ row }: { row: any }) => {
             return row?.original.expires ? (
-              <div className="flex flex-row flex-wrap justify-around">
-                <p className="flex flex-row justify-center">{`${
+              <div className="flex flex-row flex-wrap">
+                <p>{`${
                   new Date(row.original.expires) < new Date()
                     ? "Expired"
                     : `${Math.ceil(

@@ -53,21 +53,90 @@ export const Profile = () => {
     },
   });
 
+  const [stats, setStats] = useState<any>({});
+
+  useEffect(() => {
+    api.admin.stats().then((res) => {
+      setStats(res);
+    });
+  }, []);
+
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">
         Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
         {auth?.first_name?.slice(1)}
       </h1>
-      <p className="mt-8">Your Hosts:</p>
+      {/* <p className="mt-8">Your Hosts:</p>
       <Table
         table={hosts.table}
         loading={hosts.loading}
         showSelectColumns={selectingColumns}
         hideShowSelectColumns={() => setSelectingColumns(false)}
-      />
-      <h2>For admins</h2>
+      /> */}
+      {/* This should reflect the 'snapshot' in reports */}
       <p>Display total number of IP addresses, Domains, Networks, Hosts</p>
+      <div className="flex w-full flex-row gap-4 flex-wrap justify-center mt-4">
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
+          <div className="card-title text-center">Hosts and Leases</div>
+          <div className="stats">
+            {Object.entries(stats)
+              .splice(0, 2)
+              .map(([key, value]) => (
+                <div className="stat" key={Math.random()}>
+                  <div className="stat-title">{key}</div>
+                  <div className="stat-value">{value as string | number}</div>
+                </div>
+              ))}
+          </div>
+          <div className="stats">
+            {Object.entries(stats)
+              .splice(2, 2)
+              .map(([key, value]) => (
+                <div className="stat" key={Math.random()}>
+                  <div className="stat-title">{key}</div>
+                  <div className="stat-value">{value as string | number}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
+          <div className="card-title text-center">Networks and Records</div>
+          <div className="stats">
+            {Object.entries(stats)
+              .splice(4, 2)
+              .map(([key, value]) => (
+                <div className="stat" key={Math.random()}>
+                  <div className="stat-title">{key}</div>
+                  <div className="stat-value">{value as string | number}</div>
+                </div>
+              ))}
+          </div>
+          <div className="stats">
+            {Object.entries(stats)
+              .splice(6, 3)
+              .map(([key, value]) => (
+                <div className="stat" key={Math.random()}>
+                  <div className="stat-title">{key}</div>
+                  <div className="stat-value">{value as string | number}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
+          <div className="card-title text-center">User</div>
+          <div className="stats">
+            {Object.entries(stats)
+              .splice(9)
+              .map(([key, value]) => (
+                <div className="stat" key={Math.random()}>
+                  <div className="stat-title">{key}</div>
+                  <div className="stat-value">{value as string | number}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
       <p>Quick add toolbar</p>
       <p>Most recent relevant Logs</p>
       <p>Other Stats/Reports</p>

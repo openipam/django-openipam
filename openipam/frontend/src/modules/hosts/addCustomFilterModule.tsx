@@ -34,7 +34,7 @@ export const AddCustomFilterModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Custom Filter</h1>
+          <h1 className="text-2xl font-bold mb-4">Set Custom Filter</h1>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {

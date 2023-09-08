@@ -1,6 +1,5 @@
 from django.urls import include, path
 
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers
 from . import views
 from .views import misc
@@ -22,4 +21,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path("admin/logs/", views.admin.LogEntryList.as_view()),
     path("admin/email-logs/", views.admin.EmailLogsList.as_view()),
+    path("admin/stats/", misc.DashboardAPIView.as_view()),
 ]

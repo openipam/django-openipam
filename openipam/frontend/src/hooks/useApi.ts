@@ -1,6 +1,9 @@
 import { useToken } from "./useToken";
 export const useApi = () => {
   return {
+    admin: {
+      stats: requestGenerator(HttpMethod.GET, "admin/stats/"),
+    },
     user: {
       get: requestGenerator(HttpMethod.GET, "users/"),
       me: requestGenerator(HttpMethod.GET, "users/me/"),

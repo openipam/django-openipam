@@ -95,10 +95,6 @@ export const useHostsTable = (p: {
     localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
   }, [columnVisibility]);
 
-  useEffect(() => {
-    console.log(columnSort);
-  }, [columnSort]);
-
   const data = useInfiniteHosts({
     ...Object.fromEntries(
       columnFilters

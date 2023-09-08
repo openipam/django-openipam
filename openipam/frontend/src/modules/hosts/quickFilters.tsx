@@ -114,7 +114,6 @@ export const QuickFilters = (p: {
         showModule={showModule}
         setShowModule={setShowModule}
         onSubmit={({ name }) => {
-          console.log("got", name);
           localStorage.setItem(
             "customHostQuickFilterButtons",
             JSON.stringify([
