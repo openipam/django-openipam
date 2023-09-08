@@ -42,6 +42,16 @@ export const useHostsTable = (p: {
   onSelectColumns: VoidFunction;
   onAddByCsv: VoidFunction;
   quickFilter?: string[][];
+  setCurrentFilters: (filters: {
+    columnFilters: ColumnFiltersState;
+    columnSort: any[];
+    globalFilter: { id: string; text: string }[];
+  }) => void;
+  customFilters?: {
+    columnFilters: ColumnFiltersState;
+    columnSort: any[];
+    globalFilter: { id: string; text: string }[];
+  };
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -71,7 +81,15 @@ export const useHostsTable = (p: {
   const [selectAll, setSelectAll] = useState<boolean>(false);
   useEffect(() => {
     setSelectAll(false);
+    p.setCurrentFilters({ columnFilters, columnSort, globalFilter });
   }, [columnFilters, columnSort, globalFilter]);
+
+  useEffect(() => {
+    if (!p.customFilters) return;
+    setColumnFilters(p.customFilters.columnFilters ?? []);
+    setColumnSort(p.customFilters.columnSort ?? []);
+    setGlobalFilter(p.customFilters.globalFilter ?? []);
+  }, [p.customFilters]);
 
   useEffect(() => {
     localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));

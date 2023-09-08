@@ -14,6 +14,8 @@ export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [quickFilter, setQuickFilter] = useState<string[][] | undefined>();
+  const [currentFilters, setCurrentFilters] = useState<any>();
+  const [customFilters, setCustomFilters] = useState<any>();
   const [editHost, setEditHost] = useState<{
     show: boolean;
     HostData: any;
@@ -65,6 +67,8 @@ export const Hosts = () => {
       setAddByCsv(true);
     },
     quickFilter,
+    setCurrentFilters,
+    customFilters,
   });
 
   return (
@@ -76,7 +80,11 @@ export const Hosts = () => {
         showSelectColumns={selectingColumns}
         hideShowSelectColumns={() => setSelectingColumns(false)}
       />
-      <QuickFilters setFilter={setQuickFilter} />
+      <QuickFilters
+        setFilter={setQuickFilter}
+        currentFilters={currentFilters}
+        setCustomFilters={setCustomFilters}
+      />
       <AddHostModule showModule={showAddHost} setShowModule={setShowAddHost} />
       <EditHostModule
         showModule={editHost.show}

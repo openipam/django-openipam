@@ -85,7 +85,7 @@ export const PrimaryTable = (p: {
           <div className="flex flex-col gap-2 w-full justify-between">
             {globalFilter && <label className=" m-1">Advanced Filters:</label>}
             {globalFilter?.map((filter: { id: string; text: string }) => (
-              <>
+              <div key={Math.random()}>
                 <div
                   className="flex flex-row justify-between gap-2 flex-wrap card card-bordered p-1 border-neutral-content shadow-neutral"
                   key={Math.random()}
@@ -102,7 +102,7 @@ export const PrimaryTable = (p: {
                     <Delete />
                   </button>
                 </div>
-              </>
+              </div>
             ))}
             {p.table.options.meta?.globalFilter ?? <></>}
           </div>

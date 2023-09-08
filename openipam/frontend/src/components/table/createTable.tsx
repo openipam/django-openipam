@@ -31,7 +31,6 @@ export const CreateTable = (p: {
     onSortingChange: p.setColumnSort,
     // Filters
     onColumnFiltersChange: p.setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     // Global Filter
     onGlobalFilterChange: p.setGlobalFilter,
     // Row Selection
