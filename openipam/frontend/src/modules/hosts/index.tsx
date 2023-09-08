@@ -8,10 +8,12 @@ import { Host } from "../../utils/types";
 import { AttributeModule } from "./attributeModule";
 import { SingleActionModule } from "../../components/singleActionModule";
 import { AddByCSVModule } from "./addByCsv";
+import { QuickFilters } from "./quickFilters";
 
 export const Hosts = () => {
   const [showAddHost, setShowAddHost] = useState<boolean>(false);
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
+  const [quickFilter, setQuickFilter] = useState<string[][] | undefined>();
   const [editHost, setEditHost] = useState<{
     show: boolean;
     HostData: any;
@@ -62,6 +64,7 @@ export const Hosts = () => {
     onAddByCsv: () => {
       setAddByCsv(true);
     },
+    quickFilter,
   });
 
   return (
@@ -73,6 +76,7 @@ export const Hosts = () => {
         showSelectColumns={selectingColumns}
         hideShowSelectColumns={() => setSelectingColumns(false)}
       />
+      <QuickFilters setFilter={setQuickFilter} />
       <AddHostModule showModule={showAddHost} setShowModule={setShowAddHost} />
       <EditHostModule
         showModule={editHost.show}

@@ -235,8 +235,8 @@ export const HostTableColumns = (p: {
       ],
     }),
     columnHelper.group({
-      id: "Secondary Details",
-      header: "Secondary Details",
+      id: "Last Seen",
+      header: "Last Seen",
       columns: [
         {
           id: "last_seen",
@@ -268,6 +268,12 @@ export const HostTableColumns = (p: {
             hideFilter: true,
           },
         },
+      ],
+    }),
+    columnHelper.group({
+      id: "Secondary Details",
+      header: "Secondary Details",
+      columns: [
         {
           id: "address_type",
           header: "Address Type",
@@ -296,6 +302,12 @@ export const HostTableColumns = (p: {
           header: "Description",
           accessorFn: (row) => row.description,
         },
+      ],
+    }),
+    columnHelper.group({
+      id: "Changed",
+      header: "Changed",
+      columns: [
         {
           id: "changed",
           header: "Changed",
@@ -306,6 +318,11 @@ export const HostTableColumns = (p: {
           meta: {
             hideFilter: true,
           },
+        },
+        {
+          id: "changed_by",
+          header: "Changed By",
+          accessorFn: (row) => row.changed_by?.username,
         },
       ],
     }),

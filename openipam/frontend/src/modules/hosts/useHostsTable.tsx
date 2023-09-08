@@ -41,6 +41,7 @@ export const useHostsTable = (p: {
   >;
   onSelectColumns: VoidFunction;
   onAddByCsv: VoidFunction;
+  quickFilter?: string[][];
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -62,6 +63,7 @@ export const useHostsTable = (p: {
           disabled_host: false,
           description: false,
           changed: false,
+          changed_by: false,
         }
   );
   const auth = useAuth();
@@ -130,6 +132,7 @@ export const useHostsTable = (p: {
       ])
     ),
     advanced_search: globalFilter.map((filter) => filter.id).join(","),
+    quickFilter: p.quickFilter,
   });
 
   const Hosts = useMemo<Host[]>(() => {

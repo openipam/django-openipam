@@ -25,6 +25,7 @@ class HostFilter(filters.FilterSet):
     address_type = filters.CharFilter(method="filter_address_type", label="Address Type")
     vendor = filters.CharFilter(method="filter_vendor", lookup_expr="icontains", label="Vendor")
     description = filters.CharFilter(method="filter_description", lookup_expr="icontains", label="Description")
+    changed_by = filters.CharFilter(method="filter_changed_by", lookup_expr="icontains", label="Changed By")
     # Expiration date filters
     expires__gt = filters.DateTimeFilter(method="filter_expires__gt", lookup_expr="gt")
     expires__lt = filters.DateTimeFilter(method="filter_expires__lt", lookup_expr="lt")
@@ -51,6 +52,10 @@ class HostFilter(filters.FilterSet):
             "expires__lt",
             "vendor",
         ]
+
+    def filter_changed_by(self, queryset, name, value):
+        """Filter based on changed by."""
+        return queryset.filter(changed_by__username__icontains=value)
 
     def filter_address_type(self, queryset, name, value):
         """Filter based on address type."""

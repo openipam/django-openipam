@@ -4,8 +4,10 @@ import { usePrefetchedQuery } from "./usePrefetchedQuery";
 
 export const useInfiniteHosts = (p: {
   page: number;
-  [key: string]: string | number;
+  quickFilter: string[][] | undefined;
+  [key: string]: string | number | string[][] | undefined;
 }) => {
+  const quickFilter = Object.fromEntries(p.quickFilter ?? []) ?? {};
   const api = useApi();
   const queryKey = [
     "Hosts, all",
@@ -16,16 +18,36 @@ export const useInfiniteHosts = (p: {
   const queryFn = async (page: string | number) => {
     let results;
     try {
-      if (p.disabled === "N") {
-        results = await api.hosts.disabled({
-          ...Object.fromEntries(Object.entries(p).filter(([key, val]) => val)),
+      if (quickFilter.mine || quickFilter.show_groups) {
+        results = await api.hosts.mine({
+          ...Object.fromEntries(
+            Object.entries(p).filter(
+              ([key, val]) => val && key !== "quickFilter"
+            )
+          ),
           page,
+          ...quickFilter,
+        });
+      } else if (p.disabled === "N") {
+        results = await api.hosts.disabled({
+          ...Object.fromEntries(
+            Object.entries(p).filter(
+              ([key, val]) => val && key !== "quickFilter"
+            )
+          ),
+          page,
+          ...quickFilter,
         });
       } else {
         results = await api.hosts.get({
-          ...Object.fromEntries(Object.entries(p).filter(([key, val]) => val)),
+          ...Object.fromEntries(
+            Object.entries(p).filter(
+              ([key, val]) => val && key !== "quickFilter"
+            )
+          ),
           disabled: !!p.disabled,
           page,
+          ...quickFilter,
         });
       }
       return {
