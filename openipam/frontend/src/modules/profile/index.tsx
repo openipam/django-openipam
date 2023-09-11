@@ -62,7 +62,7 @@ export const Profile = () => {
   }, []);
 
   return (
-    <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
+    <div className="m-4 flex flex-col gap-2 items-center justify-center align content-center">
       <h1 className="text-4xl">
         Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
         {auth?.first_name?.slice(1)}
@@ -75,10 +75,9 @@ export const Profile = () => {
         hideShowSelectColumns={() => setSelectingColumns(false)}
       /> */}
       {/* This should reflect the 'snapshot' in reports */}
-      <p>Display total number of IP addresses, Domains, Networks, Hosts</p>
-      <div className="flex w-full flex-row gap-4 flex-wrap justify-center mt-4">
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
-          <div className="card-title text-center">Hosts and Leases</div>
+      <div className="flex w-full md:max-w-[90%] lg:max-w-[75%] flex-row gap-4 flex-wrap justify-center it content-center mt-4">
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
+          <div className="card-title text-center">Hosts</div>
           <div className="stats">
             {Object.entries(stats)
               .splice(0, 2)
@@ -89,6 +88,9 @@ export const Profile = () => {
                 </div>
               ))}
           </div>
+        </div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
+          <div className="card-title text-center">Leases</div>
           <div className="stats">
             {Object.entries(stats)
               .splice(2, 2)
@@ -100,8 +102,8 @@ export const Profile = () => {
               ))}
           </div>
         </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
-          <div className="card-title text-center">Networks and Records</div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
+          <div className="card-title text-center">Networks</div>
           <div className="stats">
             {Object.entries(stats)
               .splice(4, 2)
@@ -112,6 +114,9 @@ export const Profile = () => {
                 </div>
               ))}
           </div>
+        </div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
+          <div className="card-title text-center">DNS Records</div>
           <div className="stats">
             {Object.entries(stats)
               .splice(6, 3)
@@ -123,8 +128,8 @@ export const Profile = () => {
               ))}
           </div>
         </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center max-w-[80%]">
-          <div className="card-title text-center">User</div>
+        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
+          <div className="card-title text-center">Users</div>
           <div className="stats">
             {Object.entries(stats)
               .splice(9)
