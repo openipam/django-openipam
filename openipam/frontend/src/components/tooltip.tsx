@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 export const ToolTip = (p: {
   children?: React.ReactNode;
-  text: string;
+  text: string | React.ReactNode;
   props?: string;
 }) => {
   const [isHovering, setIsHovering] = useState(false);

@@ -10,6 +10,9 @@ from django.db.models import Q
 from ipaddress import ip_interface
 from openipam.network.models import Lease
 from rest_framework import filters as rest_filters
+import re
+
+from itertools import zip_longest
 
 
 class HostFilter(filters.FilterSet):
@@ -85,10 +88,37 @@ class HostFilter(filters.FilterSet):
         return queryset.filter(expires__lte=value)
 
     def filter_mac(self, queryset, name, value):
-        return queryset.filter(mac__istartswith=value)
+        if value:
+            if value[0] == "~":
+                # regex
+                value = value[1:]
+                qs = queryset.filter(mac__iregex=value)
+                return qs
+            if value[0] == "-":
+                # exclude
+                value = value[1:]
+                qs = queryset.exclude(mac__icontains=value)
+                return qs
+            rgx = re.compile("[:,-. ]")
+            mac_str = rgx.sub("", value)
+            # Split to list to put back togethor with :
+            mac_str = iter(mac_str)
+            mac_str = ":".join(a + b for a, b in zip_longest(mac_str, mac_str, fillvalue=""))
+            qs = queryset.filter(mac__startswith=mac_str.lower())
+        return qs
 
     def filter_hostname(self, queryset, name, value):
         """Filter based on hostname."""
+        if value and value[0] == "~":
+            # regex
+            value = value[1:]
+            qs = queryset.filter(hostname__iregex=value)
+            return qs
+        if value and value[0] == "-":
+            # exclude
+            value = value[1:]
+            qs = queryset.exclude(hostname__icontains=value)
+            return qs
         return queryset.filter(hostname__icontains=value)
 
     def filter_description(self, queryset, name, value):

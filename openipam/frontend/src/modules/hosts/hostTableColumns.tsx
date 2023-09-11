@@ -129,8 +129,25 @@ export const HostTableColumns = (p: {
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center text-neutral">Mac</p>
               <ToolTip
-                text="Use XX:XX:XX:XX:XX:XX Format"
-                props="rounded-br-none right-4 bottom-4"
+                text={
+                  <div className="flex flex-col justify-center gap-1">
+                    <div className="text-sm text-white">
+                      Use . , : - or a space or no separator.
+                    </div>
+                    <div className="text-sm text-white">
+                      Ex: XX.XX-XX,xx:XXXX
+                    </div>
+                    <div className="text-sm text-white">
+                      Start with ~ for regex.
+                    </div>
+                    <div className="text-sm text-white">Ex: ~^24</div>
+                    <div className="text-sm text-white">
+                      Start with - to exclude.
+                    </div>
+                    <div className="text-sm text-white">Ex: -00</div>
+                  </div>
+                }
+                props="-right-28 top-20 p-1"
               />
             </div>
           ),
@@ -139,7 +156,26 @@ export const HostTableColumns = (p: {
         {
           size: 175,
           id: "hostname",
-          header: "Hostname",
+          header: ({ table }: any) => (
+            <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
+              <p className="flex text-center text-neutral">Hostname</p>
+              <ToolTip
+                text={
+                  <div className="flex flex-col justify-center gap-1">
+                    <div className="text-sm text-white">
+                      Start with ~ for regex.
+                    </div>
+                    <div className="text-sm text-white">Ex: ~^A0</div>
+                    <div className="text-sm text-white">
+                      Start with - to exclude.
+                    </div>
+                    <div className="text-sm text-white">Ex: -bluezone</div>
+                  </div>
+                }
+                props="-right-20 top-20 p-1"
+              />
+            </div>
+          ),
           accessorFn: (row) => row.hostname,
         },
       ],
@@ -225,7 +261,7 @@ export const HostTableColumns = (p: {
             <div className="flex w-full gap-1 flex-row items-center justify-center m-auto">
               <p className="flex text-center text-neutral">Vendor</p>
               <ToolTip
-                text="This is SLOW"
+                text="This can be SLOW"
                 props="rounded-br-none right-4 bottom-4"
               />
             </div>

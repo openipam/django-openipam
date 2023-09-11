@@ -62,6 +62,7 @@ export const useHostsTable = (p: {
   >([]);
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
   const [columnVisibility, setColumnVisibility] = useState<any>(
     localStorage.getItem("hostsTableColumns")
       ? JSON.parse(localStorage.getItem("hostsTableColumns")!)
@@ -76,6 +77,37 @@ export const useHostsTable = (p: {
           changed_by: false,
         }
   );
+  useEffect(() => {
+    const filterState = localStorage.getItem("hostsTableFilters");
+    if (filterState) {
+      const {
+        columnFilters,
+        columnSort,
+        globalFilter,
+        page,
+        pageSize,
+      } = JSON.parse(filterState);
+      setColumnFilters(columnFilters);
+      setColumnSort(columnSort);
+      setGlobalFilter(globalFilter);
+      setPage(page);
+      setPageSize(pageSize);
+      setLoading(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (!loading) return;
+    localStorage.setItem(
+      "hostsTableFilters",
+      JSON.stringify({
+        columnFilters,
+        columnSort,
+        globalFilter,
+        page,
+        pageSize,
+      })
+    );
+  }, [columnFilters, columnSort, globalFilter, page, pageSize]);
   const auth = useAuth();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const [selectAll, setSelectAll] = useState<boolean>(false);
