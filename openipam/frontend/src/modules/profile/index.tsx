@@ -7,6 +7,9 @@ import { RenewHostModule } from "./renewHostModule";
 import { useAuth } from "../../hooks/useAuth";
 import { SingleActionModule } from "../../components/singleActionModule";
 import { AttributeModule } from "../hosts/attributeModule";
+import { Stats } from "./stats";
+import { QuickAddToolbar } from "./quickAddToolbar";
+import { RecentLogs } from "./recentLogs";
 
 export const Profile = () => {
   const api = useApi();
@@ -53,14 +56,6 @@ export const Profile = () => {
     },
   });
 
-  const [stats, setStats] = useState<any>({});
-
-  useEffect(() => {
-    api.admin.stats().then((res) => {
-      setStats(res);
-    });
-  }, []);
-
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center align content-center">
       <h1 className="text-4xl">
@@ -74,77 +69,11 @@ export const Profile = () => {
         showSelectColumns={selectingColumns}
         hideShowSelectColumns={() => setSelectingColumns(false)}
       /> */}
-      {/* This should reflect the 'snapshot' in reports */}
-      <div className="flex w-full md:max-w-[90%] lg:max-w-[75%] flex-row gap-4 flex-wrap justify-center it content-center mt-4">
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-          <div className="card-title text-center">Hosts</div>
-          <div className="stats">
-            {Object.entries(stats)
-              .splice(0, 2)
-              .map(([key, value]) => (
-                <div className="stat" key={Math.random()}>
-                  <div className="stat-title">{key}</div>
-                  <div className="stat-value">{value as string | number}</div>
-                </div>
-              ))}
-          </div>
-        </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-          <div className="card-title text-center">Leases</div>
-          <div className="stats">
-            {Object.entries(stats)
-              .splice(2, 2)
-              .map(([key, value]) => (
-                <div className="stat" key={Math.random()}>
-                  <div className="stat-title">{key}</div>
-                  <div className="stat-value">{value as string | number}</div>
-                </div>
-              ))}
-          </div>
-        </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-          <div className="card-title text-center">Networks</div>
-          <div className="stats">
-            {Object.entries(stats)
-              .splice(4, 2)
-              .map(([key, value]) => (
-                <div className="stat" key={Math.random()}>
-                  <div className="stat-title">{key}</div>
-                  <div className="stat-value">{value as string | number}</div>
-                </div>
-              ))}
-          </div>
-        </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-          <div className="card-title text-center">DNS Records</div>
-          <div className="stats">
-            {Object.entries(stats)
-              .splice(6, 3)
-              .map(([key, value]) => (
-                <div className="stat" key={Math.random()}>
-                  <div className="stat-title">{key}</div>
-                  <div className="stat-value">{value as string | number}</div>
-                </div>
-              ))}
-          </div>
-        </div>
-        <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-          <div className="card-title text-center">Users</div>
-          <div className="stats">
-            {Object.entries(stats)
-              .splice(9)
-              .map(([key, value]) => (
-                <div className="stat" key={Math.random()}>
-                  <div className="stat-title">{key}</div>
-                  <div className="stat-value">{value as string | number}</div>
-                </div>
-              ))}
-          </div>
-        </div>
+      <Stats />
+      <div className="flex flex-row gap-2 w-full justify-center mt-2">
+        <QuickAddToolbar />
+        <RecentLogs />
       </div>
-      <p>Quick add toolbar</p>
-      <p>Most recent relevant Logs</p>
-      <p>Other Stats/Reports</p>
       <RenewHostModule
         HostData={renewModule.data}
         showModule={renewModule.show}

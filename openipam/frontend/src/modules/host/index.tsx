@@ -125,6 +125,7 @@ export const HostPage = () => {
           labels={{
             hostname: "Host Name:",
             mac: "Ethernet Address",
+            expires: "Expires:",
             last_seen: "Last Seen:",
             last_seen_ip: "Last Seen IP:",
             vendor: "Vendor:",
@@ -146,6 +147,14 @@ export const HostPage = () => {
               : "> 3 months, if ever",
             changed_by: HostInfo?.changed_by.username,
             disabled_host: HostInfo?.disabled_host ? "True" : "False",
+            expires:
+              new Date(HostInfo?.expires ?? 0) < new Date()
+                ? "Expired"
+                : `${Math.ceil(
+                    (new Date(HostInfo?.expires ?? 0).getTime() -
+                      new Date().getTime()) /
+                      (1000 * 3600 * 24)
+                  )} Days Left`,
           }}
         />
         <Tab tab={tab} name={"DNS"} props={"m-2"} data={HostInfo ?? {}}>
