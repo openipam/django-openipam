@@ -77,8 +77,8 @@ export const QuickFilters = (p: {
               key={b.label}
               onClick={() => {
                 p.setCustomFilters({});
+                active === b.label ? p.setFilter([]) : p.setFilter(b.filter);
                 setActive((prev) => (prev === b.label ? undefined : b.label));
-                p.setFilter(b.filter);
               }}
               className={`btn
             ${active === b.label ? "btn-primary focus" : "btn-outline"}`}
@@ -90,7 +90,14 @@ export const QuickFilters = (p: {
             <button
               key={b.label}
               onClick={() => {
+                console.log({ active, b });
+                const isActive = active === b.label;
                 setActive((prev) => (prev === b.label ? undefined : b.label));
+                if (isActive) {
+                  p.setFilter([]);
+                  p.setCustomFilters({});
+                  return;
+                }
                 p.setFilter([]);
                 p.setCustomFilters(b.filter);
               }}
