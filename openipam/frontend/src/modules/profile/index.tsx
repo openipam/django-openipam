@@ -57,22 +57,30 @@ export const Profile = () => {
   });
 
   return (
-    <div className="m-4 flex flex-col gap-2 items-center justify-center align content-center">
-      <h1 className="text-4xl">
+    <div className="m-4 flex flex-col gap-2 content-center items-center justify-center align-middle text-center">
+      <h1 className="text-4xl text-center">
         Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
         {auth?.first_name?.slice(1)}
       </h1>
-      {/* <p className="mt-8">Your Hosts:</p>
-      <Table
-        table={hosts.table}
-        loading={hosts.loading}
-        showSelectColumns={selectingColumns}
-        hideShowSelectColumns={() => setSelectingColumns(false)}
-      /> */}
       <Stats />
-      <div className="flex flex-row gap-2 w-full justify-center mt-2">
-        <QuickAddToolbar />
-        <RecentLogs />
+      <div className="grid grid-cols-5 gap-2 mb-20">
+        <div className="grid col-span-3">
+          <div className="text-center">
+            <p className="mt-4">Your Hosts:</p>
+            <Table
+              table={hosts.table}
+              loading={hosts.loading}
+              showSelectColumns={selectingColumns}
+              hideShowSelectColumns={() => setSelectingColumns(false)}
+            />
+          </div>
+        </div>
+        <div className="grid col-span-2">
+          <div className="w-full flex flex-col gap-16 justify-center mt-2">
+            <QuickAddToolbar />
+            <RecentLogs />
+          </div>
+        </div>
       </div>
       <RenewHostModule
         HostData={renewModule.data}

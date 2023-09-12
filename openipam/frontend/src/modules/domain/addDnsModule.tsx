@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { CreateDnsRecord } from "../../utils/types";
+import { CreateDnsRecord, DNS_TYPES } from "../../utils/types";
 
 // ip for type A, ipv6
 //ip needs to be an existing address
+
+const txtTypes = ["TXT", "SPF", "DKIM", "DMARC"];
+const ipTypes = ["A", "A6", "AAAA"];
+const fqdnTypes = ["CNAME", "NS", "PTR", "MX"];
+const otherTypes = ["SRV", "SOA", "SSHFP"];
+const allTypes = txtTypes.concat(ipTypes, fqdnTypes, otherTypes);
 
 export const AddDnsModule = (p: {
   domain?: string;
@@ -11,6 +17,7 @@ export const AddDnsModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
+  const [dnsType, setDnsType] = useState<string>("A");
   const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
     if (p.domain) {
@@ -107,33 +114,6 @@ export const AddDnsModule = (p: {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <label>Note: only fill out IP Content OR Text Content</label>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-master">IP Content</label>
-              <input
-                type="text"
-                id="Dns-ip"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-master">Text Content</label>
-              <input
-                type="text"
-                id="Dns-text"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-type">Type</label>
-              <input
-                type="text"
-                id="Dns-type"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
               <label htmlFor="Dns-type">TTL</label>
               <input
                 type="number"
@@ -143,6 +123,73 @@ export const AddDnsModule = (p: {
                 className="input input-primary input-bordered"
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="Dns-type">Type</label>
+              <select
+                id="Dns-type"
+                className="select select-bordered select-primary"
+                value={dnsType}
+                onChange={(e) => setDnsType(e.target.value)}
+              >
+                {DNS_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {ipTypes.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">IP Content</label>
+                <input
+                  type="text"
+                  id="Dns-ip"
+                  className="input input-primary input-bordered"
+                />
+              </div>
+            )}
+            {txtTypes.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">Text Content</label>
+                <input
+                  type="text"
+                  id="Dns-text"
+                  className="input input-primary input-bordered"
+                />
+              </div>
+            )}
+            {fqdnTypes.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">FQDN Content</label>
+                <input
+                  type="text"
+                  id="Dns-fqdn"
+                  value={p.host ?? ""}
+                  onChange={() => {}}
+                  className="input input-primary input-bordered"
+                />
+              </div>
+            )}
+            {otherTypes.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">Content</label>
+                <input
+                  type="text"
+                  id="Dns-other"
+                  className="input input-primary input-bordered"
+                />
+              </div>
+            )}
+            {!allTypes.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">Content</label>
+                <input
+                  type="text"
+                  id="Dns-other"
+                  className="input input-primary input-bordered"
+                />
+              </div>
+            )}
             <div className="flex justify-end gap-4 mt-4">
               <button
                 className="btn btn-neutral text-neutral-content"
