@@ -62,10 +62,12 @@ export const Profile = () => {
         Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
         {auth?.first_name?.slice(1)}
       </h1>
-      <Stats />
-      <div className="grid grid-cols-5 gap-2 mb-20">
-        <div className="grid col-span-3">
-          <div className="text-center">
+      {auth?.is_ipamadmin && <Stats />}
+      <div className="grid grid-cols-4 gap-2 mb-20">
+        <div
+          className={`grid ${auth?.is_ipamadmin ? "col-span-3" : "col-span-4"}`}
+        >
+          <div className="flex flex-col text-center justify-center items-center content-center">
             <p className="mt-4">Your Hosts:</p>
             <Table
               table={hosts.table}
@@ -75,12 +77,14 @@ export const Profile = () => {
             />
           </div>
         </div>
-        <div className="grid col-span-2">
-          <div className="w-full flex flex-col gap-16 justify-center mt-2">
-            <QuickAddToolbar />
-            <RecentLogs />
+        {auth?.is_ipamadmin && (
+          <div className="grid col-span-1">
+            <div className="w-full flex flex-col gap-16 justify-center mt-2 pr-4">
+              <QuickAddToolbar />
+              <RecentLogs />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <RenewHostModule
         HostData={renewModule.data}

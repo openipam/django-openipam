@@ -118,6 +118,26 @@ export const HostTableColumns = (p: {
           onView: (data) => {
             navigate(`/Hosts/${data.mac}`);
           },
+          customHead: (
+            <>
+              <div className="dropdown mt-1">
+                <label
+                  tabIndex={0}
+                  className="btn btn-circle btn-ghost btn-xs text-neutral"
+                >
+                  <MoreVert style={{ fill: "inherit" }} />
+                </label>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-neutral-focus rounded-box w-48 mt-2"
+                >
+                  <li onClick={p.onSelectColumns}>
+                    <a className="text-neutral-content">Show/Hide Columns</a>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ),
         })),
     columnHelper.group({
       id: "Identification",

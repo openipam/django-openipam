@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
+import { useAuth } from "../../hooks/useAuth";
 
 export const Stats = () => {
   const api = useApi();
+  const auth = useAuth();
   const [stats, setStats] = useState<any>({});
 
   useEffect(() => {
-    api.admin.stats().then((res) => {
-      setStats(res);
-    });
-  }, []);
+    if (auth?.is_ipamadmin) {
+      api.admin.stats().then((res) => {
+        setStats(res);
+      });
+    }
+  }, [auth]);
 
   {
     /* This should reflect the 'snapshot' in reports */

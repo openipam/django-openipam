@@ -11,6 +11,10 @@ const fqdnTypes = ["CNAME", "NS", "PTR", "MX"];
 const otherTypes = ["SRV", "SOA", "SSHFP"];
 const allTypes = txtTypes.concat(ipTypes, fqdnTypes, otherTypes);
 
+const fqdnRegex = new RegExp(
+  "^(([a-z0-9-_]+.)?[a-z0-9][a-z0-9-]*.)+[a-z]{2,6}"
+);
+
 export const AddDnsModule = (p: {
   domain?: string;
   host?: string;
@@ -18,6 +22,10 @@ export const AddDnsModule = (p: {
   setShowModule: (show: boolean) => void;
 }) => {
   const [dnsType, setDnsType] = useState<string>("A");
+  const [fqdn, setFqdn] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [fqdnError, setFqdnError] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
   const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
     if (p.domain) {
@@ -107,11 +115,25 @@ export const AddDnsModule = (p: {
                 <input
                   type="text"
                   id="Dns-name"
-                  className="input input-primary input-bordered w-[1/2]"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    //test if fqdn is valid
+                    if (fqdnRegex.test(e.target.value)) {
+                      console.log("valid");
+                      setNameError("");
+                    } else {
+                      console.log("invalid");
+                      setNameError("Invalid Name");
+                    }
+                  }}
+                  className={`input input-primary input-bordered w-[1/2]
+                   ${nameError && "input-error"}`}
                 />
                 {p.domain && <p className="p-2">.{p.domain}</p>}
                 {p.host && <p className="p-2">Host is {p.host}</p>}
               </div>
+              {nameError && <p className="text-xs text-error">{nameError}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="Dns-type">TTL</label>
@@ -164,10 +186,23 @@ export const AddDnsModule = (p: {
                 <input
                   type="text"
                   id="Dns-fqdn"
-                  value={p.host ?? ""}
-                  onChange={() => {}}
-                  className="input input-primary input-bordered"
+                  value={fqdn ?? p.host ?? ""}
+                  onChange={(e) => {
+                    setFqdn(e.target.value ?? "");
+                    //test if fqdn is valid
+                    if (fqdnRegex.test(p.host ?? "")) {
+                      console.log("valid");
+                      setFqdnError("");
+                    } else {
+                      console.log("invalid");
+                      setFqdnError("Invalid FQDN");
+                    }
+                  }}
+                  className={`input input-primary input-bordered ${
+                    fqdnError && "input-error"
+                  }`}
                 />
+                {fqdnError && <p className="text-xs text-error">{fqdnError}</p>}
               </div>
             )}
             {otherTypes.includes(dnsType) && (
