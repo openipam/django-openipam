@@ -28,12 +28,7 @@ export const PrimaryTable = (p: {
   const { page, setPage, pageSize } = p.table.options.meta ?? {};
 
   return (
-    <div
-      ref={tableContainerRef}
-      className={`overflow-scroll max-h-[calc(100vh-102px)] ${
-        p.className || ""
-      }`}
-    >
+    <div>
       <div className="w-full grid grid-cols-4 gap-10">
         {auth?.is_ipamadmin ? (
           <div className="flex flex-col justify-between w-full max-w-2xl">
@@ -167,31 +162,37 @@ export const PrimaryTable = (p: {
           </div>
         </div>
       </div>
-      <table className="table table-sm table-fixed">
-        <TableHead table={p.table} />
-        <TableBody
-          tableContainerRef={tableContainerRef}
-          table={p.table}
-          estimateColumnSize={p.estimateColumnSize}
-        />
-        <tfoot>
-          {p.table.getFooterGroups().map((footerGroups) => (
-            <tr key={footerGroups.id} className="sticky bottom-0">
-              {footerGroups.headers.map((header) => (
-                <TableHeaderCell
-                  header={header}
-                  headerGroup={footerGroups}
-                  key={header.id}
-                  hideSorting
-                  hideFilter
-                  table={p.table}
-                  footer
-                />
-              ))}
-            </tr>
-          ))}
-        </tfoot>
-      </table>
+      <div
+        ref={tableContainerRef}
+        className={`overflow-scroll
+       max-h-[calc(100vh-102px)] ${p.className}`}
+      >
+        <table className={`table table-sm table-fixed `}>
+          <TableHead table={p.table} />
+          <TableBody
+            tableContainerRef={tableContainerRef}
+            table={p.table}
+            estimateColumnSize={p.estimateColumnSize}
+          />
+          <tfoot>
+            {p.table.getFooterGroups().map((footerGroups) => (
+              <tr key={footerGroups.id} className="sticky bottom-0">
+                {footerGroups.headers.map((header) => (
+                  <TableHeaderCell
+                    header={header}
+                    headerGroup={footerGroups}
+                    key={header.id}
+                    hideSorting
+                    hideFilter
+                    table={p.table}
+                    footer
+                  />
+                ))}
+              </tr>
+            ))}
+          </tfoot>
+        </table>
+      </div>
     </div>
   );
 };
