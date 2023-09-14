@@ -239,6 +239,7 @@ export const HostPage = () => {
       />
       <AddDnsModule
         host={HostInfo?.hostname ?? ""}
+        ip_address={HostInfo?.addresses?.static[0]}
         showModule={showModule}
         setShowModule={setShowModule}
       />

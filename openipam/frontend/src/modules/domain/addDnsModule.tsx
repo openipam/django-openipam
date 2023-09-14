@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { CreateDnsRecord, DNS_TYPES } from "../../utils/types";
 
@@ -6,24 +6,32 @@ import { CreateDnsRecord, DNS_TYPES } from "../../utils/types";
 //ip needs to be an existing address
 
 const txtTypes = ["TXT", "SPF", "DKIM", "DMARC"];
-const ipTypes = ["A", "A6", "AAAA"];
+const ipv4Types = ["A"];
+const ipv6Types = ["A6", "AAAA"];
 const fqdnTypes = ["CNAME", "NS", "PTR", "MX"];
 const otherTypes = ["SRV", "SOA", "SSHFP"];
-const allTypes = txtTypes.concat(ipTypes, fqdnTypes, otherTypes);
-
+const allTypes = txtTypes.concat(ipv4Types, ipv6Types, fqdnTypes, otherTypes);
+const PTRNAME = "in-addr.arpa";
 const fqdnRegex = new RegExp(
   "^(([a-z0-9-_]+.)?[a-z0-9][a-z0-9-]*.)+[a-z]{2,6}"
 );
 
+const getReversedIp = (ip: string) => {
+  return ip.split(".").reverse().join(".");
+};
+
 export const AddDnsModule = (p: {
   domain?: string;
   host?: string;
+  ip_address?: string;
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const [dnsType, setDnsType] = useState<string>("A");
   const [fqdn, setFqdn] = useState<string>("");
-  const [name, setName] = useState<string>("");
+  const [ipAddress, setIpAddress] = useState<string>(p.ip_address ?? "");
+  const [ipError, setIpError] = useState<string>("");
+  const [name, setName] = useState<string>(p.host ?? "");
   const [fqdnError, setFqdnError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
   const api = useApi();
@@ -40,6 +48,14 @@ export const AddDnsModule = (p: {
       p.setShowModule(false);
     }
   };
+  useEffect(() => {
+    if (p.host) {
+      setName(p.host);
+    }
+    if (p.ip_address) {
+      setIpAddress(p.ip_address);
+    }
+  }, [p]);
   return (
     <>
       <input
@@ -69,7 +85,8 @@ export const AddDnsModule = (p: {
               <path d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </label>
-          <h1 className="text-2xl font-bold mb-4">Add Dns Record</h1>
+          <h1 className="text-2xl font-bold">Add Dns Record</h1>
+          {p.host && <p className="p-2 mb-3">For Host {p.host}</p>}
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
@@ -110,12 +127,44 @@ export const AddDnsModule = (p: {
             }}
           >
             <div className="flex flex-col gap-2">
+              <label htmlFor="Dns-type">Type</label>
+              <select
+                id="Dns-type"
+                className="select select-bordered select-primary"
+                value={dnsType}
+                onChange={(e) => {
+                  setNameError("");
+                  setFqdnError("");
+                  setDnsType(e.target.value);
+                  if (e.target.value === "PTR") {
+                    setFqdn(p.host ?? "");
+                    setName(
+                      p.ip_address ? getReversedIp(p.ip_address) : p.host ?? ""
+                    );
+                  } else if (e.target.value === "A") {
+                    setIpAddress(p.ip_address ?? "");
+                    setName(p.host ?? "");
+                  } else {
+                    setIpAddress("");
+                    setFqdn("");
+                    setName(p.host ?? "");
+                  }
+                }}
+              >
+                {DNS_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
               <label htmlFor="Dns-name">Dns Name</label>
               <div className="flex flex-row gap-2">
                 <input
                   type="text"
                   id="Dns-name"
-                  value={name}
+                  value={name ?? p.host ?? ""}
                   onChange={(e) => {
                     setName(e.target.value);
                     //test if fqdn is valid
@@ -123,15 +172,25 @@ export const AddDnsModule = (p: {
                       console.log("valid");
                       setNameError("");
                     } else {
-                      console.log("invalid");
-                      setNameError("Invalid Name");
+                      //test if name is IP address, if so, set type to PTR
+                      if (e.target.value.match(/^[0-9.]+$/)) {
+                        setDnsType("PTR");
+                      } else {
+                        setNameError("Invalid Name");
+                      }
                     }
                   }}
                   className={`input input-primary input-bordered w-[1/2]
                    ${nameError && "input-error"}`}
                 />
-                {p.domain && <p className="p-2">.{p.domain}</p>}
-                {p.host && <p className="p-2">Host is {p.host}</p>}
+                {
+                  <input
+                    className="input input-primary input-bordered"
+                    value={`.${
+                      dnsType === "PTR" ? PTRNAME : p.domain ?? "usu.edu"
+                    }`}
+                  />
+                }
               </div>
               {nameError && <p className="text-xs text-error">{nameError}</p>}
             </div>
@@ -145,24 +204,32 @@ export const AddDnsModule = (p: {
                 className="input input-primary input-bordered"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="Dns-type">Type</label>
-              <select
-                id="Dns-type"
-                className="select select-bordered select-primary"
-                value={dnsType}
-                onChange={(e) => setDnsType(e.target.value)}
-              >
-                {DNS_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {ipTypes.includes(dnsType) && (
+            {ipv4Types.includes(dnsType) && (
               <div className="flex flex-col gap-2">
                 <label htmlFor="Dns-master">IP Content</label>
+                <input
+                  type="text"
+                  id="Dns-ip"
+                  value={ipAddress ?? p.ip_address ?? ""}
+                  onChange={(e) => {
+                    setIpAddress(e.target.value ?? "");
+                    //test if fqdn is valid
+                    if (e.target.value.match(/^[0-9.]+$/)) {
+                      console.log("valid");
+                      setIpError("");
+                    } else {
+                      console.log("invalid");
+                      setIpError("Invalid IP Address");
+                    }
+                  }}
+                  className="input input-primary input-bordered"
+                />
+                {ipError && <p className="text-xs text-error">{ipError}</p>}
+              </div>
+            )}
+            {ipv6Types.includes(dnsType) && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="Dns-master">IPV6 Content</label>
                 <input
                   type="text"
                   id="Dns-ip"
