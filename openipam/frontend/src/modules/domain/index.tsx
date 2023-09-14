@@ -151,19 +151,21 @@ export const DomainPage = () => {
           </div>
         </div>
       </div>
-      <Tabs tabs={tabs} tab={tab} setTab={setTab}>
-        <Tab tab={tab} name={"DNS"} props={"m-2"} data={data}>
-          <Table
-            table={data.table}
-            loading={data.loading}
-            showSelectColumns={selectingColumns}
-            hideShowSelectColumns={() => setSelectingColumns(false)}
-          />
-        </Tab>
-        <Tab tab={tab} name={"DHCP"} props={"m-2"} data={dhcp}>
-          <Table table={dhcp.table} loading={dhcp.loading} />
-        </Tab>
-      </Tabs>
+      <div className="mb-20">
+        <Tabs tabs={tabs} tab={tab} setTab={setTab}>
+          <Tab tab={tab} name={"DNS"} props={"m-2"} data={data}>
+            <Table
+              table={data.table}
+              loading={data.loading}
+              showSelectColumns={selectingColumns}
+              hideShowSelectColumns={() => setSelectingColumns(false)}
+            />
+          </Tab>
+          <Tab tab={tab} name={"DHCP"} props={"m-2"} data={dhcp}>
+            <Table table={dhcp.table} loading={dhcp.loading} />
+          </Tab>
+        </Tabs>
+      </div>
       <AddDnsModule
         domain={domain ?? ""}
         showModule={showModule}

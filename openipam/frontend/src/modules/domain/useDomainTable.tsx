@@ -88,6 +88,8 @@ export const useDomainTable = (p: {
         });
       },
       onSelectColumns: p.onSelectColumns,
+      pageSize,
+      setPageSize,
     }),
     columnHelper.group({
       id: "Identification",

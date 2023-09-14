@@ -12,6 +12,8 @@ const fqdnTypes = ["CNAME", "NS", "PTR", "MX"];
 const otherTypes = ["SRV", "SOA", "SSHFP"];
 const allTypes = txtTypes.concat(ipv4Types, ipv6Types, fqdnTypes, otherTypes);
 const PTRNAME = "in-addr.arpa";
+const reverseTypes = ["PTR", "NS", "SOA"];
+const NSContent = "root1.usu.edu";
 const fqdnRegex = new RegExp(
   "^(([a-z0-9-_]+.)?[a-z0-9][a-z0-9-]*.)+[a-z]{2,6}"
 );
@@ -29,6 +31,7 @@ export const AddDnsModule = (p: {
 }) => {
   const [dnsType, setDnsType] = useState<string>("A");
   const [fqdn, setFqdn] = useState<string>("");
+  const [ttl, setTTL] = useState<number>(14400);
   const [ipAddress, setIpAddress] = useState<string>(p.ip_address ?? "");
   const [ipError, setIpError] = useState<string>("");
   const [name, setName] = useState<string>(p.host ?? "");
@@ -138,15 +141,24 @@ export const AddDnsModule = (p: {
                   setDnsType(e.target.value);
                   if (e.target.value === "PTR") {
                     setFqdn(p.host ?? "");
-                    setName(
-                      p.ip_address ? getReversedIp(p.ip_address) : p.host ?? ""
-                    );
                   } else if (e.target.value === "A") {
                     setIpAddress(p.ip_address ?? "");
-                    setName(p.host ?? "");
+                  } else if (e.target.value === "CNAME") {
+                    setIpAddress("");
+                    setFqdn(p.host ?? "");
+                  } else if (e.target.value === "NS") {
+                    setIpAddress("");
+                    setFqdn(NSContent ?? "");
+                    setTTL(86400);
                   } else {
                     setIpAddress("");
                     setFqdn("");
+                  }
+                  if (reverseTypes.includes(e.target.value)) {
+                    setName(
+                      p.ip_address ? getReversedIp(p.ip_address) : p.host ?? ""
+                    );
+                  } else {
                     setName(p.host ?? "");
                   }
                 }}
@@ -187,7 +199,9 @@ export const AddDnsModule = (p: {
                   <input
                     className="input input-primary input-bordered"
                     value={`.${
-                      dnsType === "PTR" ? PTRNAME : p.domain ?? "usu.edu"
+                      reverseTypes.includes(dnsType)
+                        ? PTRNAME
+                        : p.domain ?? "usu.edu"
                     }`}
                   />
                 }
@@ -199,8 +213,10 @@ export const AddDnsModule = (p: {
               <input
                 type="number"
                 id="Dns-ttl"
-                value={14400}
-                onChange={() => {}}
+                value={ttl ?? 14400}
+                onChange={(e) => {
+                  setTTL(parseInt(e.target.value));
+                }}
                 className="input input-primary input-bordered"
               />
             </div>
