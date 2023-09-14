@@ -12,6 +12,7 @@ import { Tab, Tabs } from "../../components/tabs";
 import { useDhcpTable } from "./useDhcpTable";
 import { useAuth } from "../../hooks/useAuth";
 import { SingleActionModule } from "../../components/singleActionModule";
+import { AddDHCPDnsModule } from "./addDHCPModule";
 
 const tabs = ["DNS", "DHCP"];
 
@@ -22,6 +23,8 @@ export const DomainPage = () => {
   const [tab, setTab] = useState<typeof tabs[number]>("DNS");
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [showModule, setShowModule] = useState<boolean>(false);
+  const [showDhcpModule, setShowDhcpModule] = useState<boolean>(false);
+
   const [actionModule, setActionModule] = useState<{
     show: boolean;
     data: DnsRecord[] | undefined;
@@ -73,6 +76,7 @@ export const DomainPage = () => {
 
   const dhcp = useDhcpTable({
     domain: domain ?? "",
+    setShowDhcpModule,
   });
 
   return (
@@ -170,6 +174,11 @@ export const DomainPage = () => {
         domain={domain ?? ""}
         showModule={showModule}
         setShowModule={setShowModule}
+      />
+      <AddDHCPDnsModule
+        domain={domain ?? ""}
+        showModule={showDhcpModule}
+        setShowModule={setShowDhcpModule}
       />
       <EditDnsModule
         domain={domain ?? ""}

@@ -9,14 +9,17 @@ import { CreateTable } from "../../components/table/createTable";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
-export const useDhcpTable = (p: { domain: string }) => {
+export const useDhcpTable = (p: {
+  domain: string;
+  setShowDhcpModule: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
   const navigate = useNavigate();
   const data = useInfiniteDhcpRecords({
-    ...p,
+    domain: p.domain,
     ...Object.fromEntries(
       columnFilters
         .filter((f) => DhcpLookupKeys.includes(f.id))
@@ -46,6 +49,9 @@ export const useDhcpTable = (p: { domain: string }) => {
       setPageSize,
       onView: (row) => {
         navigate(`/hosts/${row.host}`);
+      },
+      onAdd: () => {
+        p.setShowDhcpModule(true);
       },
       data,
     }),
