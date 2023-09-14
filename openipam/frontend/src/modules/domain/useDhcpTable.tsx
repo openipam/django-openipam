@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useInfiniteDhcpRecords } from "../../hooks/queries/useInfiniteDhcpRecords";
 import { ActionsColumn } from "../../components/table/actionsColumn";
 import { CreateTable } from "../../components/table/createTable";
+import { useAuth } from "../../hooks/useAuth";
 
 const DhcpLookupKeys = ["host", "ip_content"];
 
@@ -13,6 +14,7 @@ export const useDhcpTable = (p: {
   domain: string;
   setShowDhcpModule: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const auth = useAuth();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -43,18 +45,28 @@ export const useDhcpTable = (p: {
 
   const columnHelper = createColumnHelper<DhcpRecord>();
   const columns = [
-    ...ActionsColumn({
-      size: 100,
-      pageSize,
-      setPageSize,
-      onView: (row) => {
-        navigate(`/hosts/${row.host}`);
-      },
-      onAdd: () => {
-        p.setShowDhcpModule(true);
-      },
-      data,
-    }),
+    ...(auth?.is_ipamadmin
+      ? ActionsColumn({
+          size: 100,
+          pageSize,
+          setPageSize,
+          onView: (row) => {
+            navigate(`/hosts/${row.host}`);
+          },
+          onAdd: () => {
+            p.setShowDhcpModule(true);
+          },
+          data,
+        })
+      : ActionsColumn({
+          size: 100,
+          pageSize,
+          setPageSize,
+          onView: (row) => {
+            navigate(`/hosts/${row.host}`);
+          },
+          data,
+        })),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

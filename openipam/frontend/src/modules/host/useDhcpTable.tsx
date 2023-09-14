@@ -14,6 +14,7 @@ export const useDhcpTable = (p: {
   host?: string;
   mac?: string;
   owner: boolean;
+  setShowDhcpModule: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DhcpRecord[]>([]);
@@ -47,6 +48,9 @@ export const useDhcpTable = (p: {
       data,
       onView: (row) => {
         navigate(`/domains/${row.domain}`);
+      },
+      onAdd: () => {
+        p.setShowDhcpModule(true);
       },
     }),
     columnHelper.group({

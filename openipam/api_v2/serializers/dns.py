@@ -64,8 +64,7 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         )
         self.fields["dns_type"] = serializers.ChoiceField(
             required=True,
-            choices=blank_choice
-            + [(dns_type.name, dns_type.name) for dns_type in dns_type_choices],
+            choices=blank_choice + [(dns_type.name, dns_type.name) for dns_type in dns_type_choices],
         )
 
     def save(self):
@@ -73,15 +72,12 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         data = self.validated_data.copy()
         data["record"] = self.instance
         data["user"] = self.context["request"].user
-        print(f"\nDNS data: {data}")
         try:
             data["content"] = data["ip_content"]
             data.pop("ip_content")
             try:
                 if data["text_content"]:
-                    raise serializers.ValidationError(
-                        "Cannot include both ip content and text content"
-                    )
+                    raise serializers.ValidationError("Cannot include both ip content and text content")
             except KeyError:
                 pass
         except KeyError:
@@ -95,9 +91,7 @@ class DNSCreateSerializer(serializers.ModelSerializer):
         if not self.instance.host:
             if self.instance.dns_type.name in ["A", "AAAA"]:
                 lookup = {"hostname": self.instance.name}
-            elif self.instance.dns_type.name == "CNAME":
-                lookup = {"hostname": self.instance.content}
-            elif self.instance.dns_type.name in ["TXT", "SRV"]:
+            elif self.instance.dns_type.name in ["CNAME", "TXT", "SRV"]:
                 lookup = {"hostname": self.instance.content}
             try:
                 host = Host.objects.filter(**lookup).first()
@@ -127,11 +121,6 @@ class DNSCreateSerializer(serializers.ModelSerializer):
                     "The Dns Type selected is not valid.  Please enter a valid type "
                     + "(https://en.wikipedia.org/wiki/List_of_DNS_record_types)"
                 )
-            if dns_type.name in ["A", "AAAA"]:
-                data["ip_content"] = data["content"]
-            else:
-                data["text_content"] = data["content"]
-            data.pop("content")
             try:
                 print(f"\nvalidating data: {data}")
                 if data["text_content"]:
@@ -147,11 +136,6 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
                         elif dns_type.is_sshfp_record:
                             validate_sshfp_content(data["text_content"])
-
-                        elif dns_type.is_a_record:
-                            raise serializers.ValidationError(
-                                "Content should not be added with A records."
-                            )
                     except ValidationError as e:
                         raise serializers.ValidationError({"text_content": e.messages})
             except KeyError:
@@ -167,11 +151,6 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
                     elif dns_type.is_sshfp_record:
                         validate_sshfp_content(data["ip_content"])
-
-                    elif dns_type.is_a_record:
-                        raise serializers.ValidationError(
-                            "Content should not be added with A records."
-                        )
                 except ValidationError as e:
                     raise serializers.ValidationError({"ip_content": e.messages})
         return data
@@ -188,12 +167,12 @@ class DNSCreateSerializer(serializers.ModelSerializer):
 
 
 class DomainSerializer(serializers.ModelSerializer):
-    user_permissions_queryset = UserObjectPermission.objects.select_related(
-        "user", "permission"
-    ).filter(content_type__model=Domain._meta.model_name)
-    group_permissions_queryset = GroupObjectPermission.objects.select_related(
-        "group", "permission"
-    ).filter(content_type__model=Domain._meta.model_name)
+    user_permissions_queryset = UserObjectPermission.objects.select_related("user", "permission").filter(
+        content_type__model=Domain._meta.model_name
+    )
+    group_permissions_queryset = GroupObjectPermission.objects.select_related("group", "permission").filter(
+        content_type__model=Domain._meta.model_name
+    )
 
     changed_by = serializers.SerializerMethodField()
     user_perms = serializers.SerializerMethodField()
@@ -208,9 +187,7 @@ class DomainSerializer(serializers.ModelSerializer):
 
     def get_records(self, obj):
         """Return a url to the records for this domain."""
-        return self.context["request"].build_absolute_uri(
-            f"/api/v2/domains/{obj.name}/records/"
-        )
+        return self.context["request"].build_absolute_uri(f"/api/v2/domains/{obj.name}/records/")
 
     def get_user_perms(self, obj):
         perms = self.user_permissions_queryset.filter(object_pk=obj.pk)
@@ -272,17 +249,13 @@ class DomainCreateSerializer(serializers.ModelSerializer):
             # This is based on current data in my copy of the database.
             # If this is wrong, let me know.
             if not data["master"] or data["master"] == "":
-                raise serializers.ValidationError(
-                    "Master server must be specified for slave domains."
-                )
+                raise serializers.ValidationError("Master server must be specified for slave domains.")
         elif data["master"] == "":
             data["master"] = None
         elif data["master"] is not None:
             # This is based on current data in my copy of the database.
             # If this is wrong, let me know.
-            raise serializers.ValidationError(
-                "Master server must not be specified for non-slave domains."
-            )
+            raise serializers.ValidationError("Master server must not be specified for non-slave domains.")
         return data
 
     def save(self):

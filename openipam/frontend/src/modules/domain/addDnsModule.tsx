@@ -47,7 +47,7 @@ export const AddDnsModule = (p: {
       p.setShowModule(false);
     } else {
       const results = await api.dns.create({ ...DnsData });
-      alert(`successfully created ${DnsData.name}`);
+      alert(`successfully created ${DnsData.name}, ${JSON.stringify(results)}`);
       p.setShowModule(false);
     }
   };
@@ -94,38 +94,19 @@ export const AddDnsModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
-              const DnsData = {
-                name: e.target["Dns-name"].value,
-                ip_content: e.target["Dns-ip"].value,
-                text_content: e.target["Dns-text"].value,
-                dns_type: e.target["Dns-type"].value,
-                ttl: e.target["Dns-ttl"].value,
+              const DnsData: any = {
+                name,
+                ip_content: ipAddress,
+                text_content: fqdn ?? e.target["Dns-text"].value,
+                dns_type: dnsType,
+                ttl,
               };
-              //   if (DnsData.ip_content === "") delete DnsData.ip_content;
-              //   if (DnsData.text_content === "") delete DnsData.text_content;
-              //   if (DnsData.ip_content && DnsData.text_content) {
-              //     alert("only fill out IP Content OR Text Content");
-              //     return;
-              //   }
-              //   if (
-              //     DnsData.ip_content === undefined &&
-              //     DnsData.text_content === undefined
-              //   ) {
-              //     alert("fill out IP Content OR Text Content");
-              //     return;
-              //   }
-              //   if (DnsData.name === "") {
-              //     alert("fill out Dns Name");
-              //     return;
-              //   }
-              //   if (DnsData.dns_type === "") {
-              //     alert("fill out Dns Type");
-              //     return;
-              //   }
-              //   if (DnsData.ttl === "") {
-              //     alert("fill out Dns TTL");
-              //     return;
-              //   }
+              if (DnsData.ip_content === "") delete DnsData.ip_content;
+              if (DnsData.text_content === "") delete DnsData.text_content;
+              if (DnsData.ip_content && DnsData.text_content) {
+                alert("only fill out IP Content OR Text Content");
+                return;
+              }
               addDns(DnsData);
             }}
           >
@@ -198,10 +179,12 @@ export const AddDnsModule = (p: {
                 {
                   <input
                     className="input input-primary input-bordered"
-                    value={`.${
+                    value={`${
                       reverseTypes.includes(dnsType)
-                        ? PTRNAME
-                        : p.domain ?? "usu.edu"
+                        ? `.${PTRNAME}`
+                        : p.domain
+                        ? `.${p.domain}`
+                        : ""
                     }`}
                   />
                 }
@@ -293,7 +276,7 @@ export const AddDnsModule = (p: {
                 <label htmlFor="Dns-master">Content</label>
                 <input
                   type="text"
-                  id="Dns-other"
+                  id="Dns-text"
                   className="input input-primary input-bordered"
                 />
               </div>
@@ -303,7 +286,7 @@ export const AddDnsModule = (p: {
                 <label htmlFor="Dns-master">Content</label>
                 <input
                   type="text"
-                  id="Dns-other"
+                  id="Dns-text"
                   className="input input-primary input-bordered"
                 />
               </div>
@@ -321,7 +304,7 @@ export const AddDnsModule = (p: {
                 className="btn btn-primary text-primary-content"
                 onClick={() => p.setShowModule(false)}
               >
-                Add Host
+                Add Dns Record
               </button>
             </div>
           </form>

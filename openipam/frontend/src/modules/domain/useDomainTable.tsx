@@ -8,6 +8,7 @@ import { CreateTable } from "../../components/table/createTable";
 import { useApi } from "../../hooks/useApi";
 import { ThemeContext } from "../../hooks/useTheme";
 import { getOrdering } from "../../components/table/getOrdering";
+import { useAuth } from "../../hooks/useAuth";
 
 //TODO search permissions
 
@@ -29,6 +30,7 @@ export const useDomainTable = (p: {
   >;
   onSelectColumns: () => void;
 }) => {
+  const auth = useAuth();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<DnsRecord[]>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -74,23 +76,32 @@ export const useDomainTable = (p: {
   const { theme } = useContext(ThemeContext);
   const columnHelper = createColumnHelper<DnsRecord>();
   const columns = [
-    ...ActionsColumn({
-      size: 80,
-      enableSelection: true,
-      onAdd: () => {
-        p.setShowModule(true);
-      },
-      data,
-      onEdit: (row) => {
-        p.setEditModule({
-          show: true,
-          DnsData: row,
-        });
-      },
-      onSelectColumns: p.onSelectColumns,
-      pageSize,
-      setPageSize,
-    }),
+    ...(auth?.is_ipamadmin
+      ? ActionsColumn({
+          size: 80,
+          enableSelection: true,
+          onAdd: () => {
+            p.setShowModule(true);
+          },
+          data,
+          onEdit: (row) => {
+            p.setEditModule({
+              show: true,
+              DnsData: row,
+            });
+          },
+          onSelectColumns: p.onSelectColumns,
+          pageSize,
+          setPageSize,
+        })
+      : ActionsColumn({
+          size: 80,
+          enableSelection: true,
+          data,
+          onSelectColumns: p.onSelectColumns,
+          pageSize,
+          setPageSize,
+        })),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

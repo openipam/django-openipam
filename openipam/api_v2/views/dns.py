@@ -74,9 +74,8 @@ class DnsViewSet(APIModelViewSet):
         # check permissions on domain. Can't rely on the permission class
         # because we don't have the domain name yet.
         domain_segments = request.data["name"].split(".")
-        domain_possibilities = [
-            ".".join(domain_segments[i:]) for i in range(len(domain_segments))
-        ].reverse()
+        domain_possibilities = [".".join(domain_segments[i:]) for i in range(len(domain_segments))]
+        domain_possibilities.reverse()
         domain = None
         for domain_name in domain_possibilities:
             try:

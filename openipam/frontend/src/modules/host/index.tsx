@@ -15,6 +15,7 @@ import { EditUserOwnerModule } from "./editUserOwnerModule";
 import { EditGroupOwnerModule } from "./editGroupOwnerModule";
 import { useAuth } from "../../hooks/useAuth";
 import { SingleActionModule } from "../../components/singleActionModule";
+import { AddDHCPDnsModule } from "../domain/addDHCPModule";
 
 export const HostPage = () => {
   const { mac } = useParams();
@@ -39,6 +40,7 @@ export const HostPage = () => {
     show: false,
     data: undefined,
   });
+  const [showDhcpModule, setShowDhcpModule] = useState<boolean>(false);
   const [editHost, setEditHost] = useState<{
     show: boolean;
     data: Host | undefined;
@@ -110,6 +112,7 @@ export const HostPage = () => {
     host: HostInfo?.hostname,
     mac: HostInfo?.mac,
     owner,
+    setShowDhcpModule,
   });
 
   return (
@@ -236,6 +239,11 @@ export const HostPage = () => {
         showModule={editGroupOwner.show}
         setShowModule={setEditGroupOwner}
         HostData={editGroupOwner.data}
+      />
+      <AddDHCPDnsModule
+        host={HostInfo?.hostname ?? ""}
+        showModule={showDhcpModule}
+        setShowModule={setShowDhcpModule}
       />
       <AddDnsModule
         host={HostInfo?.hostname ?? ""}

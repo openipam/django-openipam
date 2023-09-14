@@ -34,9 +34,7 @@ class Domain(models.Model):
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     description = models.TextField(blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT
-    )
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, db_column="changed_by", on_delete=models.PROTECT)
 
     objects = DomainQuerySet.as_manager()
 
@@ -52,9 +50,7 @@ class Domain(models.Model):
 
 
 class DnsRecord(models.Model):
-    domain = models.ForeignKey(
-        "Domain", db_column="did", verbose_name="Domain", on_delete=models.PROTECT
-    )
+    domain = models.ForeignKey("Domain", db_column="did", verbose_name="Domain", on_delete=models.PROTECT)
     host = models.ForeignKey(
         "hosts.Host",
         db_column="mac",
@@ -96,9 +92,7 @@ class DnsRecord(models.Model):
     ttl = models.IntegerField(default=14400, blank=True, null=True)
     priority = models.IntegerField(verbose_name="Priority", blank=True, null=True)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(
-        "user.User", db_column="changed_by", on_delete=models.PROTECT
-    )
+    changed_by = models.ForeignKey("user.User", db_column="changed_by", on_delete=models.PROTECT)
 
     objects = DnsManager.from_queryset(DNSQuerySet)()
 
@@ -119,40 +113,33 @@ class DnsRecord(models.Model):
         # Make sure we have text or ip content
         if not self.text_content and not self.ip_content:
             raise ValidationError(
-                "Either Text Content or IP Content must exist for %s."
-                % (self.name if self.name else "record",)
+                "Either Text Content or IP Content must exist for %s." % (self.name if self.name else "record",)
             )
 
         # But we cannot have both text and ip content
         if self.text_content and self.ip_content:
             raise ValidationError(
-                "Text Content and IP Content cannot both exist for %s."
-                % (self.name if self.name else "record",)
+                "Text Content and IP Content cannot both exist for %s." % (self.name if self.name else "record",)
             )
 
         # Make sure the Hosts are assigned for valid types
         if self.dns_type.is_host_type and not self.host:
-            raise ValidationError(
-                "A Host needs to be assigned DNS Records of type '%s'"
-                % self.dns_type.name
-            )
+            print()
+            print()
+            print(self.host)
+            print(self.name)
+            raise ValidationError("A Host needs to be assigned DNS Records of type '%s'" % self.dns_type.name)
 
         # Make sure PTR for desired host has the address already assigned.
         if self.dns_type.is_ptr_record:
             from openipam.network.models import Address
 
-            host_addresses = [
-                str(address.address)
-                for address in Address.objects.filter(host=self.host)
-            ]
+            host_addresses = [str(address.address) for address in Address.objects.filter(host=self.host)]
             address = self.name.split(".")
             address.reverse()
             address = ".".join(address[2:])
             if address not in host_addresses:
-                raise ValidationError(
-                    "Invalid PTR Record.  Host %s has no address %s."
-                    % (self.text_content, address)
-                )
+                raise ValidationError("Invalid PTR Record.  Host %s has no address %s." % (self.text_content, address))
 
         # If these records, then they must have valid A records first, and user must have Host permission
         if self.dns_type.name in ["HINFO", "SSHFP"]:
@@ -162,8 +149,7 @@ class DnsRecord(models.Model):
             ).first()
             if not arecords:
                 raise ValidationError(
-                    "Invalid DNS Record.  A record for '%s' needs to exist first."
-                    % self.text_content
+                    "Invalid DNS Record.  A record for '%s' needs to exist first." % self.text_content
                 )
 
         # Run permission checks
@@ -178,8 +164,7 @@ class DnsRecord(models.Model):
         if not self.pk and not user.has_perm("dns.add_dnsrecord"):
             raise ValidationError(
                 "Invalid credentials: user %s does not have permissions"
-                " to add DNS records. Please contact an IPAM administrator."
-                % self.changed_by
+                " to add DNS records. Please contact an IPAM administrator." % self.changed_by
             )
 
         # Validate permissions on DNS Type
@@ -195,9 +180,7 @@ class DnsRecord(models.Model):
                 " to add '%s' records" % (user, self.dns_type.name)
             )
 
-        valid_domains = Domain.objects.by_dns_change_perms(user).filter(
-            pk=self.domain.pk
-        )
+        valid_domains = Domain.objects.by_dns_change_perms(user).filter(pk=self.domain.pk)
         valid_addresses = Address.objects.by_dns_change_perms(user)
 
         # Users must either have domain permissions when except
@@ -213,9 +196,7 @@ class DnsRecord(models.Model):
             )
 
         # If A or AAAA, then users must have Address / Network permission
-        if self.dns_type.is_a_record and not valid_addresses.filter(
-            address=self.ip_content.address
-        ):
+        if self.dns_type.is_a_record and not valid_addresses.filter(address=self.ip_content.address):
             raise ValidationError(
                 "Invalid credentials: user %s does not have permissions"
                 " to add DNS records to the address provided. "
@@ -227,8 +208,7 @@ class DnsRecord(models.Model):
         if self.dns_type.is_ptr_record and not valid_addresses.filter(host=self.host):
             raise ValidationError(
                 "Invalid credentials: user %s does not have permissions"
-                " to add or modify DNS Records for Host '%s'"
-                % (user, self.text_content)
+                " to add or modify DNS Records for Host '%s'" % (user, self.text_content)
             )
 
     def clean_fields(self, exclude=None):
@@ -283,8 +263,7 @@ class DnsRecord(models.Model):
                     {
                         "name": [
                             "Invalid name for A or AAAA record: '%s'. "
-                            "Name already exists for IP '%s'."
-                            % (self.name, self.ip_content)
+                            "Name already exists for IP '%s'." % (self.name, self.ip_content)
                         ]
                     }
                 )
@@ -292,21 +271,12 @@ class DnsRecord(models.Model):
         # Clean name if PTR record
         if self.dns_type.is_ptr_record and self.domain:
             if "in-addr.arpa" not in self.name and "ip6.arpa" not in self.name:
-                raise ValidationError(
-                    {"name": ["Invalid name for PTR record: %s" % self.name]}
-                )
+                raise ValidationError({"name": ["Invalid name for PTR record: %s" % self.name]})
             else:
-                dns_exists = DnsRecord.objects.filter(
-                    name=self.name, dns_type=DnsType.objects.PTR
-                ).exclude(pk=self.pk)
+                dns_exists = DnsRecord.objects.filter(name=self.name, dns_type=DnsType.objects.PTR).exclude(pk=self.pk)
                 if dns_exists:
                     raise ValidationError(
-                        {
-                            "name": [
-                                "Invalid name for PTR record: %s. Name already exists."
-                                % self.name
-                            ]
-                        }
+                        {"name": ["Invalid name for PTR record: %s. Name already exists." % self.name]}
                     )
 
     def clean_text_content(self):
@@ -327,9 +297,7 @@ class DnsRecord(models.Model):
                     validate_sshfp_content(self.text_content)
 
                 elif self.dns_type.is_a_record:
-                    raise ValidationError(
-                        "Text Content should not be assigned with A records."
-                    )
+                    raise ValidationError("Text Content should not be assigned with A records.")
 
                 # Validate Existing Records
                 dns_exists = DnsRecord.objects.filter(
@@ -340,8 +308,7 @@ class DnsRecord(models.Model):
                 if dns_exists:
                     raise ValidationError(
                         "DNS Record with name: '%s', type: '%s', "
-                        "and content: '%s' already exists."
-                        % (self.name, self.dns_type, self.text_content)
+                        "and content: '%s' already exists." % (self.name, self.dns_type, self.text_content)
                     )
 
         except ValidationError as e:
@@ -358,13 +325,10 @@ class DnsRecord(models.Model):
                 # Validation for Priority
                 parsed_content = self.text_content.strip().split(" ")
                 if self.dns_type.is_mx_record and len(parsed_content) != 2:
-                    error_list.append(
-                        "Content for MX records need to have a priority and FQDN."
-                    )
+                    error_list.append("Content for MX records need to have a priority and FQDN.")
                 elif self.dns_type.is_srv_record and len(parsed_content) != 4:
                     error_list.append(
-                        "Content for SRV records need to only have "
-                        "a priority, weight, port, and FQDN."
+                        "Content for SRV records need to only have " "a priority, weight, port, and FQDN."
                     )
 
         if error_list:
@@ -383,29 +347,19 @@ class DnsRecord(models.Model):
 
             # Name and text content cannot be the same if its a CNAME
             if self.dns_type.is_cname_record and self.name == self.text_content:
-                error_list.append(
-                    "Name and Text Content cannot match for CNAME records."
-                )
+                error_list.append("Name and Text Content cannot match for CNAME records.")
 
             if self.dns_type.is_cname_record:
-                records = DnsRecord.objects.filter(
-                    name=self.name, dns_type=self.dns_type
-                ).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name, dns_type=self.dns_type).exclude(pk=self.pk)
                 if records:
-                    error_list.append(
-                        "Trying to create CNAME record while other records exist: %s"
-                        % records[0].name
-                    )
+                    error_list.append("Trying to create CNAME record while other records exist: %s" % records[0].name)
             # not CNAME
             else:
-                records = DnsRecord.objects.filter(
-                    name=self.name, dns_view=self.dns_view, dns_type_id=5
-                ).exclude(pk=self.pk)
+                records = DnsRecord.objects.filter(name=self.name, dns_view=self.dns_view, dns_type_id=5).exclude(
+                    pk=self.pk
+                )
                 if records:
-                    error_list.append(
-                        "Trying to create record while CNAME record exists:  %s"
-                        % records[0].name
-                    )
+                    error_list.append("Trying to create record while CNAME record exists:  %s" % records[0].name)
 
             if error_list:
                 raise ValidationError({"dns_type": error_list})
@@ -432,14 +386,7 @@ class DnsRecord(models.Model):
                 if domain:
                     self.domain = domain
                 else:
-                    raise ValidationError(
-                        {
-                            "name": [
-                                "Cannot create name %s: no matching domain exists"
-                                % self.name
-                            ]
-                        }
-                    )
+                    raise ValidationError({"name": ["Cannot create name %s: no matching domain exists" % self.name]})
             else:
                 self.domain = None
 
@@ -447,14 +394,7 @@ class DnsRecord(models.Model):
                 raise ValidationError({"name": ["Invalid domain name: %s" % self.name]})
 
             if self.domain.type == "SLAVE":
-                raise ValidationError(
-                    {
-                        "name": [
-                            "Cannot create name %s: not authoritative for domain"
-                            % self.name
-                        ]
-                    }
-                )
+                raise ValidationError({"name": ["Cannot create name %s: not authoritative for domain" % self.name]})
         else:
             raise ValidationError({"name": ["Domain name cannot be blank."]})
 
@@ -505,9 +445,7 @@ class DnsRecordMunged(models.Model):
 
 class DhcpDnsRecord(models.Model):
     domain = models.ForeignKey("Domain", db_column="did", on_delete=models.PROTECT)
-    host = models.OneToOneField(
-        "hosts.Host", db_column="name", to_field="hostname", on_delete=models.CASCADE
-    )
+    host = models.OneToOneField("hosts.Host", db_column="name", to_field="hostname", on_delete=models.CASCADE)
     ip_content = models.ForeignKey(
         "network.Address",
         null=True,
@@ -546,9 +484,7 @@ class DnsType(models.Model):
 
             return _is_record(name.split("_")[1])
         else:
-            raise AttributeError(
-                "%r object has no attribute %r" % (self.__class__, name)
-            )
+            raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
     @property
     def is_host_type(self):
@@ -577,9 +513,7 @@ class Supermaster(models.Model):
     nameserver = models.CharField(max_length=255)
     account = models.CharField(max_length=40, blank=True, null=True, default=None)
     changed = models.DateTimeField(auto_now=True)
-    changed_by = models.ForeignKey(
-        "user.User", db_column="changed_by", on_delete=models.PROTECT
-    )
+    changed_by = models.ForeignKey("user.User", db_column="changed_by", on_delete=models.PROTECT)
 
     def __str__(self):
         return self.ip

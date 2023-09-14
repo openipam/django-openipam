@@ -1,6 +1,5 @@
 import React from "react";
 import { useApi } from "../../hooks/useApi";
-import { CreateDnsRecord, DnsRecord } from "../../utils/types";
 
 //if domain, add host
 //if host, add domain
@@ -58,7 +57,6 @@ export const AddDHCPDnsModule = (p: {
                 onChange={() => {}}
                 className="input input-bordered input-primary"
               />
-              {p.host && <p className="p-2">Host is {p.host}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -67,7 +65,7 @@ export const AddDHCPDnsModule = (p: {
                 type="text"
                 id="Dns-text"
                 onChange={() => {}}
-                value={p.domain ?? ""}
+                value={p.domain ?? "usu.edu"}
                 className="input input-bordered input-primary"
               />
             </div>
