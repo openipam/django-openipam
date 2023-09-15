@@ -23,6 +23,7 @@ from ..serializers.dns import (
     DomainSerializer,
     DNSCreateSerializer,
     DomainCreateSerializer,
+    DHCPDNSCreateSerializer,
 )
 from ..serializers.dns import (
     DnsTypeSerializer,
@@ -411,8 +412,8 @@ class DnsViewsList(generics.ListAPIView):
     queryset = DnsView.objects.all()
 
 
-class DhcpDnsRecordsList(generics.ListAPIView):
-    """API endpoint that allows dhcp dns records to be viewed."""
+class DhcpDnsViewSet(APIModelViewSet):
+    """API endpoint that allows dhcp dns records to be edited."""
 
     permission_classes = [permissions.DjangoModelPermissions]
     pagination_class = APIPagination
@@ -438,3 +439,31 @@ class DhcpDnsRecordsList(generics.ListAPIView):
         if ip_content:
             queryset = queryset.filter(ip_content__ip_lower=ip_content)
         return queryset
+
+    def get_serializer_class(self):
+        """Return the serializer class."""
+        # Necessary to use a different serializer for create
+        if self.action == "create":
+            return DHCPDNSCreateSerializer
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        domain = request.data.get("domain")
+        if not domain:
+            return Response(
+                {"detail": "Domain does not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        domain = Domain.objects.get(name=domain)
+        if not request.user.has_perm("dns.add_dhcpdnsrecord", domain) and not request.user.has_perm(
+            "dns.is_owner_domain", domain
+        ):
+            return Response(
+                {"detail": "You do not have permission to add records to this domain."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # use domain id
+        request.data["domain"] = domain.id
+        # We have permission, so create the record
+        return super().create(request, *args, **kwargs)

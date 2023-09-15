@@ -48,7 +48,6 @@ export const useApi = () => {
           },
           dhcp: {
             get: requestGenerator(HttpMethod.GET, `domains/${id}/dhcp/`),
-            create: requestGenerator(HttpMethod.POST, `domains/${id}/dhcp/`),
             // byId(dhcpId: string) {
             //   return {
             //     get: requestGenerator(HttpMethod.GET, `dhcp/${dhcpId}/`),
@@ -59,6 +58,10 @@ export const useApi = () => {
           },
         };
       },
+    },
+    dhcp: {
+      create: requestGenerator(HttpMethod.POST, `dhcp/`),
+      get: requestGenerator(HttpMethod.GET, `dhcp/`),
     },
     hosts: {
       get: requestGenerator(HttpMethod.GET, "hosts/"),

@@ -8,6 +8,7 @@ from .views import misc
 router = routers.DefaultRouter()
 router.register(r"hosts", views.hosts.HostViewSet)
 router.register(r"dns", views.dns.DnsViewSet)
+router.register(r"dhcp", views.dns.DhcpDnsViewSet)
 router.register(r"domains", views.dns.DomainViewSet)
 router.register(r"attributes", misc.AttributeViewSet)
 router.register(r"networks", views.network.NetworkViewSet)

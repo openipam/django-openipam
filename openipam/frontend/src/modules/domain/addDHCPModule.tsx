@@ -11,7 +11,9 @@ export const AddDHCPDnsModule = (p: {
   setShowModule: (show: any) => void;
 }) => {
   const api = useApi();
-  const updateDns = async () => {};
+  const addDhcp = async (p: { host: string; domain: string; ttl: number }) => {
+    await api.dhcp.create(p);
+  };
   return (
     <>
       <input
@@ -46,6 +48,11 @@ export const AddDHCPDnsModule = (p: {
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
+              addDhcp({
+                host: e.target[0].value,
+                domain: e.target[1].value,
+                ttl: e.target[2].value,
+              });
             }}
           >
             <div className="flex flex-col gap-2">

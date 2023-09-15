@@ -18,6 +18,12 @@ from openipam.hosts.models import Host
 from django.utils import timezone
 
 
+class DHCPDNSCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DhcpDnsRecord
+        fields = ("host", "domain", "ttl", "changed")
+
+
 class DNSSerializer(serializers.ModelSerializer):
     """DNS serializer."""
 
