@@ -18,7 +18,7 @@ from openipam.network.models import Network, Pool
 # Get the user model from Django
 from django.contrib.auth import get_user_model
 
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
 
 User = get_user_model()
 
@@ -150,6 +150,39 @@ class UserViewSet(viewsets.ModelViewSet):
                 elif "pool" in permission:
                     object = Pool.objects.get(name=object)
                 assign_perm(permission, user, object)
+            except User.DoesNotExist:
+                return Response(status=404, data={"detail": f"User {user} not found."})
+            except Exception as e:
+                return Response(status=500, data={"detail": f"Error: {e}"})
+        return Response(status=201)
+
+    @assign_object_permissions.mapping.delete
+    def delete_object_permissions(self, request):
+        """Delete object permssions to given users."""
+        users = self.request.data.get("users", [])
+        object = self.request.data.get("object", None)
+        permission = self.request.data.get("permission", [])
+        if not users:
+            return Response(status=400, data={"detail": "Users are required."})
+        if not object:
+            return Response(status=400, data={"detail": "Object is required."})
+        if not permission:
+            return Response(status=400, data={"detail": "Permission is required."})
+        # assign object permission to users on object
+        for user in users:
+            try:
+                user = User.objects.get(username=user)
+                if "domain" in permission:
+                    object = Domain.objects.get(name=object)
+                elif "dnstype" in permission:
+                    object = DnsType.objects.get(name=object)
+                elif "host" in permission:
+                    object = Host.objects.get(name=object)
+                elif "network" in permission:
+                    object = Network.objects.get(name=object)
+                elif "pool" in permission:
+                    object = Pool.objects.get(name=object)
+                remove_perm(permission, user, object)
             except User.DoesNotExist:
                 return Response(status=404, data={"detail": f"User {user} not found."})
             except Exception as e:

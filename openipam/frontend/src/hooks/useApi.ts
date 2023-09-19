@@ -7,6 +7,10 @@ export const useApi = () => {
         HttpMethod.POST,
         "users/assign-object-permissions/"
       ),
+      removeObjectPerms: requestGenerator(
+        HttpMethod.DELETE,
+        "users/assign-object-permissions/"
+      ),
     },
     user: {
       get: requestGenerator(HttpMethod.GET, "users/"),
