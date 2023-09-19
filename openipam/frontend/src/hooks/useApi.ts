@@ -3,6 +3,10 @@ export const useApi = () => {
   return {
     admin: {
       stats: requestGenerator(HttpMethod.GET, "admin/stats/"),
+      assignObjectPerms: requestGenerator(
+        HttpMethod.POST,
+        "users/assign-object-permissions/"
+      ),
     },
     user: {
       get: requestGenerator(HttpMethod.GET, "users/"),

@@ -51,10 +51,7 @@ class HostListSerializer(serializers.ModelSerializer):
 
     def get_addresses(self, obj):
         addresses = {
-            "leased": [
-                str(lease.address)
-                for lease in [x for x in obj.leases.all() if x.ends > timezone.now()]
-            ],
+            "leased": [str(lease.address) for lease in [x for x in obj.leases.all() if x.ends > timezone.now()]],
             "registered": [str(address.address) for address in obj.addresses.all()],
             "registered_detail": [],
         }
@@ -76,10 +73,7 @@ class HostListSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         def dictfetchall(cursor):
             desc = cursor.description
-            return [
-                dict(list(zip([col[0] for col in desc], row)))
-                for row in cursor.fetchall()
-            ]
+            return [dict(list(zip([col[0] for col in desc], row))) for row in cursor.fetchall()]
 
         c = connection.cursor()
         c.execute(
@@ -144,12 +138,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
                     user.username,
                     user.get_full_name(),
                     user.email,
-                    [
-                        group.name
-                        for group in user.groups.filter(
-                            pk__in=[group[0] for group in groups]
-                        )
-                    ],
+                    [group.name for group in user.groups.filter(pk__in=[group[0] for group in groups])],
                 ]
             )
         owners = {
@@ -161,10 +150,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
 
     def get_addresses(self, obj):
         addresses = {
-            "leased": [
-                str(lease.address)
-                for lease in obj.leases.filter(ends__gt=timezone.now())
-            ],
+            "leased": [str(lease.address) for lease in obj.leases.filter(ends__gt=timezone.now())],
             "registered": [str(address) for address in obj.addresses.all()],
         }
         return addresses
@@ -178,10 +164,7 @@ class HostDetailSerializer(serializers.ModelSerializer):
     def get_attributes(self, obj):
         def dictfetchall(cursor):
             desc = cursor.description
-            return [
-                dict(list(zip([col[0] for col in desc], row)))
-                for row in cursor.fetchall()
-            ]
+            return [dict(list(zip([col[0] for col in desc], row))) for row in cursor.fetchall()]
 
         c = connection.cursor()
         c.execute(
@@ -237,9 +220,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
     ip_address = IPAddressField(required=False, allow_blank=True)
     dhcp_group = serializers.ChoiceField(required=False, allow_blank=True, choices=[])
     user_owners = ListOrItemField(serializers.CharField(required=False), required=False)
-    group_owners = ListOrItemField(
-        serializers.CharField(required=False), required=False
-    )
+    group_owners = ListOrItemField(serializers.CharField(required=False), required=False)
 
     class Meta:
         model = Host
@@ -263,21 +244,15 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         blank_choice = [("", "-------------")]
         self.fields["network"] = serializers.ChoiceField(
             required=False,
-            choices=blank_choice
-            + [(network.network, network.network) for network in Network.objects.all()],
+            choices=blank_choice + [(network.network, network.network) for network in Network.objects.all()],
         )
         self.fields["pool"] = serializers.ChoiceField(
             required=False,
-            choices=blank_choice
-            + [(pool.name, pool.name) for pool in Pool.objects.all()],
+            choices=blank_choice + [(pool.name, pool.name) for pool in Pool.objects.all()],
         )
         self.fields["dhcp_group"] = serializers.ChoiceField(
             required=False,
-            choices=blank_choice
-            + [
-                (dhcp_group.name, dhcp_group.name)
-                for dhcp_group in DhcpGroup.objects.all()
-            ],
+            choices=blank_choice + [(dhcp_group.name, dhcp_group.name) for dhcp_group in DhcpGroup.objects.all()],
         )
 
     def to_representation(self, instance):
@@ -310,21 +285,12 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("A Hostname is required.")
         if not self.instance and not data.get("expire_days"):
             raise serializers.ValidationError("Expire days is required.")
-        if (
-            not self.instance
-            and not data.get("ip_address")
-            and not data.get("network")
-            and not data.get("pool")
-        ):
-            raise serializers.ValidationError(
-                "An IP Address, Network, or Pool is required."
-            )
+        if not self.instance and not data.get("ip_address") and not data.get("network") and not data.get("pool"):
+            raise serializers.ValidationError("An IP Address, Network, or Pool is required.")
         net_fields = set(["ip_address", "network", "pool"])
         attr_fields = set([key if value else None for key, value in list(data.items())])
         if len(net_fields.intersection(attr_fields)) > 1:
-            raise serializers.ValidationError(
-                "Only one of IP Address, Network, or Pool is required."
-            )
+            raise serializers.ValidationError("Only one of IP Address, Network, or Pool is required.")
         return data
 
     def validate_mac(self, value):
@@ -332,9 +298,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
         mac = "".join([c for c in mac if c.isdigit() or c.isalpha()])
 
         if len(mac) != 12:
-            raise serializers.ValidationError(
-                "The mac address entered is not valid: %s." % mac
-            )
+            raise serializers.ValidationError("The mac address entered is not valid: %s." % mac)
 
         host_exists = Host.objects.filter(mac=value)
         if self.instance:
@@ -344,15 +308,13 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
             if host_exists[0].is_expired:
                 if host_exists[0].is_disabled:
                     raise serializers.ValidationError(
-                        "The mac address %s cannot be added because it is currently disabled."
-                        % host_exists[0].hostname
+                        "The mac address %s cannot be added because it is currently disabled." % host_exists[0].hostname
                     )
                 else:
                     host_exists[0].delete(user=self.context["request"].user)
             else:
                 raise serializers.ValidationError(
-                    "The mac address entered already exists for host: %s."
-                    % host_exists[0].hostname
+                    "The mac address entered already exists for host: %s." % host_exists[0].hostname
                 )
         return value
 
@@ -367,8 +329,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
                 host_exists[0].delete(user=self.context["request"].user)
             else:
                 raise serializers.ValidationError(
-                    "The hostname entered already exists for host %s."
-                    % host_exists[0].mac
+                    "The hostname entered already exists for host %s." % host_exists[0].mac
                 )
         return value
 
@@ -383,9 +344,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
             )
 
             if pool not in [p.name for p in user_pools]:
-                raise serializers.ValidationError(
-                    "The pool entered is invalid or not permitted."
-                )
+                raise serializers.ValidationError("The pool entered is invalid or not permitted.")
 
         return value
 
@@ -413,8 +372,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
             if not address:
                 raise serializers.ValidationError(
-                    "There is no addresses available from this network."
-                    "Please contact an IPAM Administrator."
+                    "There is no addresses available from this network." "Please contact an IPAM Administrator."
                 )
         return value
 
@@ -439,12 +397,8 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
             # Check address that are assigned and free to use
             addresses = Address.objects.filter(
-                Q(pool__in=user_pools)
-                | Q(pool__isnull=True)
-                | Q(network__in=user_nets),
-                Q(leases__isnull=True)
-                | Q(leases__abandoned=True)
-                | Q(leases__ends__lte=timezone.now()),
+                Q(pool__in=user_pools) | Q(pool__isnull=True) | Q(network__in=user_nets),
+                Q(leases__isnull=True) | Q(leases__abandoned=True) | Q(leases__ends__lte=timezone.now()),
                 Q(host__isnull=True) | Q(host=self.instance),
                 address=ip_address,
                 reserved=False,
@@ -452,8 +406,7 @@ class HostCreateUpdateSerializer(serializers.ModelSerializer):
 
             if ip_address not in map(str, addresses):
                 raise serializers.ValidationError(
-                    f"The IP Address '{ip_address}' is reserved, in use, or not "
-                    f"allowed. (allowed: {addresses})"
+                    f"The IP Address '{ip_address}' is reserved, in use, or not " f"allowed. (allowed: {addresses})"
                 )
         return value
 
@@ -504,8 +457,7 @@ class HostUpdateAttributeSerializer(serializers.Serializer):
             attr_exists = Attribute.objects.filter(name=key)
             if not attr_exists:
                 raise serializers.ValidationError(
-                    "The attribute '%s', does not exist.  "
-                    "Please specifiy a valid attribute key." % key
+                    "The attribute '%s', does not exist.  " "Please specifiy a valid attribute key." % key
                 )
             else:
                 if attr_exists[0].structured:
@@ -513,8 +465,7 @@ class HostUpdateAttributeSerializer(serializers.Serializer):
                     if attr not in choices:
                         raise serializers.ValidationError(
                             "The value '%s' for attribute '%s' is not a valid choice.  "
-                            "Please specifiy a one of '%s'."
-                            % (attr, key, ",".join(choices))
+                            "Please specifiy a one of '%s'." % (attr, key, ",".join(choices))
                         )
         return value
 
@@ -529,8 +480,7 @@ class HostDeleteAttributeSerializer(serializers.Serializer):
             attr_exists = Attribute.objects.filter(name=key)
             if not attr_exists:
                 raise serializers.ValidationError(
-                    "The attribute '%s', does not exist.  "
-                    "Please specifiy a valid attribute key." % key
+                    "The attribute '%s', does not exist.  " "Please specifiy a valid attribute key." % key
                 )
         return value
 
@@ -588,9 +538,7 @@ class DisabledHostListUpdateSerializer(serializers.ModelSerializer):
             #     raise serializers.ValidationError('No Host found from MAC address entered.')
             disabled_exists = Disabled.objects.filter(pk=value)
             if disabled_exists:
-                raise serializers.ValidationError(
-                    "Host '%s' has already been disabled." % value
-                )
+                raise serializers.ValidationError("Host '%s' has already been disabled." % value)
         except ValidationError as e:
             raise serializers.ValidationError(str(e.message))
         return value

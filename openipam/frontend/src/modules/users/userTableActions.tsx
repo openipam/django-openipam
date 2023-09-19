@@ -93,6 +93,44 @@ export const UserTableActions = (p: {
                 });
                 break;
               case "assignObjectPermissions":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  multiple: true,
+                  title: "Assign Object Permissions",
+                  onSubmit: async (v: any) => {
+                    const permission = v.target[0].value;
+                    const object = v.target[1].value;
+                    await api.admin.assignObjectPerms({
+                      users: p.rows.map((u) => u.username),
+                      permission,
+                      object,
+                    });
+                    p.refetch();
+                  },
+                  children: (
+                    <div className="h-96 flex flex-col gap-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Permission</label>
+                        <select
+                          id={`actions`}
+                          className="select select-bordered select-primary"
+                        >
+                          {objectPermissions.map((key) => (
+                            <option value={key} key={key}>
+                              {key}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Object</label>
+                        <input className="input input-primary input-bordered" />
+                      </div>
+                    </div>
+                  ),
+                });
+                break;
               case "populateUser":
               default:
                 break;
@@ -112,3 +150,13 @@ const actions = {
   assignObjectPermissions: "Assign Object Permissions",
   populateUser: "Populate User From LDAP",
 };
+
+const objectPermissions = [
+  "add_records_to_domain",
+  "add_records_to_dnstype",
+  "is_owner_domain",
+  "is_owner_host",
+  "add_records_to_network",
+  "is_owner_network",
+  "add_records_to_pool",
+];
