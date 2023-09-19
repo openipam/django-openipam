@@ -25,7 +25,11 @@ export const HostTableColumns = (p: {
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   >;
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: VoidFunction;
+    }>
   >;
   setActionModule: React.Dispatch<
     React.SetStateAction<{
@@ -72,6 +76,7 @@ export const HostTableColumns = (p: {
             p.setRenewModule({
               show: true,
               data: [data],
+              refetch: p.data.refetch,
             });
           },
           customHead: (

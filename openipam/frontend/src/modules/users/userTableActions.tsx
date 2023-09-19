@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { User } from "../../utils/types";
 import { Table } from "@tanstack/table-core";
+import { GroupAutocomplete } from "../../components/autocomplete/groupAutocomplete";
 
 export const UserTableActions = (p: {
   setActionModule: React.Dispatch<
@@ -9,15 +10,16 @@ export const UserTableActions = (p: {
       show: boolean;
       data: User[] | undefined;
       title: string;
-      onSubmit?: (data: User[]) => void;
+      onSubmit?: (data: any) => void;
       children: ReactNode;
       multiple?: boolean;
     }>
   >;
   rows: User[];
   table: Table<any>;
+  refetch: () => void;
 }) => {
-  const [action, setAction] = useState<string>("renew");
+  const [action, setAction] = useState<string>("assignGroups");
   const api = useApi();
 
   return (
@@ -41,7 +43,57 @@ export const UserTableActions = (p: {
         <button
           className="btn btn-primary text-primary-content"
           onClick={() => {
+            console.log(action);
             switch (action) {
+              case "assignGroups":
+                console.log(p.rows);
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Assign Groups",
+                  onSubmit: async (v: any) => {
+                    await Promise.all(
+                      p.rows.map((user) => {
+                        api.user.groups.join({
+                          groups: v?.split(",") ?? [],
+                          username: user.username,
+                        });
+                      })
+                    );
+                    p.refetch();
+                  },
+                  children: (
+                    <div className="h-96">
+                      <GroupAutocomplete onGroupChange={(v) => {}} />
+                    </div>
+                  ),
+                });
+                break;
+              case "removeGroups":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Remove Groups",
+                  onSubmit: async (v: any) => {
+                    await Promise.all(
+                      p.rows.map((user) => {
+                        api.user.groups.leave({
+                          groups: v?.split(",") ?? [],
+                          username: user.username,
+                        });
+                      })
+                    );
+                    p.refetch();
+                  },
+                  children: (
+                    <div className="h-96">
+                      <GroupAutocomplete onGroupChange={(v) => {}} />
+                    </div>
+                  ),
+                });
+                break;
+              case "assignObjectPermissions":
+              case "populateUser":
               default:
                 break;
             }

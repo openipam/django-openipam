@@ -8,7 +8,11 @@ import { Table } from "@tanstack/table-core";
 
 export const HostTableActions = (p: {
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: () => void;
+    }>
   >;
   setActionModule: React.Dispatch<
     React.SetStateAction<{
@@ -29,6 +33,7 @@ export const HostTableActions = (p: {
   >;
   rows: Host[];
   table: Table<any>;
+  refetch: () => void;
 }) => {
   const [action, setAction] = useState<string>("renew");
   const api = useApi();
@@ -59,6 +64,7 @@ export const HostTableActions = (p: {
                 p.setRenewModule({
                   show: true,
                   data: p.rows,
+                  refetch: p.refetch,
                 });
                 break;
               case "delete":
@@ -66,10 +72,13 @@ export const HostTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Delete Hosts",
-                  onSubmit: () => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).delete();
-                    });
+                  onSubmit: async () => {
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).delete();
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -84,14 +93,17 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   multiple: true,
                   title: "Rename Hosts",
-                  onSubmit: (e: any) => {
+                  onSubmit: async (e: any) => {
                     const regex = e.target[0].value;
                     const replacement = e.target[1].value;
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).update({
-                        hostname: host.hostname.replace(regex, replacement),
-                      });
-                    });
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).update({
+                          hostname: host.hostname.replace(regex, replacement),
+                        });
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -125,10 +137,13 @@ export const HostTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Populate DNS Records",
-                  onSubmit: () => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).populateDns();
-                    });
+                  onSubmit: async () => {
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).populateDns();
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -142,12 +157,15 @@ export const HostTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Change Network",
-                  onSubmit: (v) => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).setNetwork({
-                        network: v,
-                      });
-                    });
+                  onSubmit: async (v) => {
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).setNetwork({
+                          network: v,
+                        });
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div className="h-96">
@@ -162,25 +180,47 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   title: "Add Owners",
                   multiple: true,
-                  onSubmit: (e: any) => {
+                  onSubmit: async (e: any) => {
                     const group = e.target[0].value.split(",");
                     const users = e.target[1].value.split(",");
-                    p.rows.forEach((host) => {
-                      api.hosts
-                        .byId(host.mac)
-                        .users.create(
-                          Object.fromEntries(
-                            users.map((user: string) => [user, user])
-                          )
-                        );
-                      api.hosts
-                        .byId(host.mac)
-                        .groups.create(
-                          Object.fromEntries(
-                            group.map((group: string) => [group, group])
-                          )
-                        );
-                    });
+                    console.log(group, users);
+                    await Promise.all(
+                      p.rows
+                        .map((host) => {
+                          return [
+                            ...(users.length && users?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .users.create(
+                                      Object.fromEntries(
+                                        users.map((user: string) => [
+                                          user,
+                                          user,
+                                        ])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                            ...(group.length && group?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .groups.create(
+                                      Object.fromEntries(
+                                        group.map((group: string) => [
+                                          group,
+                                          group,
+                                        ])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                          ];
+                        })
+                        .flat()
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -199,25 +239,46 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   title: "Replace Owners",
                   multiple: true,
-                  onSubmit: (e: any) => {
+                  onSubmit: async (e: any) => {
                     const group = e.target[0].value.split(",");
                     const users = e.target[1].value.split(",");
-                    p.rows.forEach((host) => {
-                      api.hosts
-                        .byId(host.mac)
-                        .users.put(
-                          Object.fromEntries(
-                            users.map((user: string) => [user, user])
-                          )
-                        );
-                      api.hosts
-                        .byId(host.mac)
-                        .groups.put(
-                          Object.fromEntries(
-                            group.map((group: string) => [group, group])
-                          )
-                        );
-                    });
+                    await Promise.all(
+                      p.rows
+                        .map((host) => {
+                          return [
+                            ...(users.length && users?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .users.put(
+                                      Object.fromEntries(
+                                        users.map((user: string) => [
+                                          user,
+                                          user,
+                                        ])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                            ...(group.length && group?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .groups.put(
+                                      Object.fromEntries(
+                                        group.map((group: string) => [
+                                          group,
+                                          group,
+                                        ])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                          ];
+                        })
+                        .flat()
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -239,29 +300,47 @@ export const HostTableActions = (p: {
                   data: p.rows,
                   title: "Remove Owners",
                   multiple: true,
-                  onSubmit: (e: any) => {
+                  onSubmit: async (e: any) => {
                     const group = e.target[0].value.split(",");
                     const users = e.target[1].value.split(",");
-                    p.rows.forEach((host) => {
-                      api.hosts
-                        .byId(host.mac)
-                        .users.put(
-                          Object.fromEntries(
-                            host.user_owners
-                              .filter((u) => !users.includes(u))
-                              .map((user: string) => [user, user])
-                          )
-                        );
-                      api.hosts
-                        .byId(host.mac)
-                        .groups.put(
-                          Object.fromEntries(
-                            host.group_owners
-                              .filter((u) => !group.includes(u))
-                              .map((group: string) => [group, group])
-                          )
-                        );
-                    });
+                    await Promise.all(
+                      p.rows
+                        .map((host) => {
+                          return [
+                            ...(users.length && users?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .users.put(
+                                      Object.fromEntries(
+                                        host.user_owners
+                                          .filter((u) => !users.includes(u))
+                                          .map((user: string) => [user, user])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                            ...(group.length && group?.[0] !== ""
+                              ? [
+                                  api.hosts
+                                    .byId(host.mac)
+                                    .groups.put(
+                                      Object.fromEntries(
+                                        host.group_owners
+                                          .filter((u) => !group.includes(u))
+                                          .map((group: string) => [
+                                            group,
+                                            group,
+                                          ])
+                                      )
+                                    ),
+                                ]
+                              : []),
+                          ];
+                        })
+                        .flat()
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -295,12 +374,15 @@ export const HostTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Set DHCP Group",
-                  onSubmit: (v) => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).dhcp.set({
-                        dhcp_group: v,
-                      });
-                    });
+                  onSubmit: async (v) => {
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).dhcp.set({
+                          dhcp_group: v,
+                        });
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div className="h-80">
@@ -315,10 +397,13 @@ export const HostTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Confirm Delete DHCP Group",
-                  onSubmit: () => {
-                    p.rows.forEach((host) => {
-                      api.hosts.byId(host.mac).dhcp.delete();
-                    });
+                  onSubmit: async () => {
+                    await Promise.all(
+                      p.rows.map((host) => {
+                        api.hosts.byId(host.mac).dhcp.delete();
+                      })
+                    );
+                    p.refetch();
                   },
                   children: (
                     <div>
@@ -330,6 +415,7 @@ export const HostTableActions = (p: {
               default:
                 break;
             }
+            p.refetch();
           }}
         >
           Go

@@ -43,6 +43,16 @@ class RestrictedUserSerializer(serializers.ModelSerializer):
         )
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ("id", "name")
+        read_only_fields = (
+            "id",
+            "name",
+        )
+
+
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupField(many=True, queryset=Group.objects.all())
 

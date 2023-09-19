@@ -35,7 +35,11 @@ export const useUserHostsTable = (p: {
   >;
   onSelectColumns: () => void;
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: VoidFunction;
+    }>
   >;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -121,6 +125,7 @@ export const useUserHostsTable = (p: {
         p.setRenewModule({
           show: true,
           data: [row],
+          refetch: data.refetch,
         });
       },
       customHead: (
@@ -270,6 +275,7 @@ export const useUserHostsTable = (p: {
             setActionModule={p.setActionModule}
             setRenewModule={p.setRenewModule}
             setAttributeModule={p.setAttributeModule}
+            refetch={data.refetch}
           />
         );
       },

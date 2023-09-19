@@ -49,9 +49,11 @@ export const Hosts = () => {
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
     data: Host[] | undefined;
+    refetch: VoidFunction;
   }>({
     show: false,
     data: undefined,
+    refetch: () => {},
   });
   const [addByCsv, setAddByCsv] = useState(false);
   const table = useHostsTable({
@@ -95,6 +97,7 @@ export const Hosts = () => {
         HostData={renewModule.data}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
+        refetch={renewModule.refetch}
       />
       <SingleActionModule
         showModule={actionModule.show}

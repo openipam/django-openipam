@@ -16,17 +16,17 @@ export const SingleActionModule = (p: {
         hidden
         checked={p.showModule}
         onChange={(prev) => !prev}
-        id="add-Dns-module"
+        id="action-module"
         className="modal-toggle"
       />
       <dialog id="Dns-module" className="modal">
         <div className="modal-box border border-white">
           <label
-            htmlFor="add-Dns-module"
+            htmlFor="action-module"
             onClick={() =>
               p.setShowModule({
                 show: false,
-                DnsData: undefined,
+                data: undefined,
               })
             }
             className="absolute top-0 right-0 p-4 cursor-pointer"
@@ -50,10 +50,18 @@ export const SingleActionModule = (p: {
               e.preventDefault();
               if (p.multiple) {
                 p.onSubmit?.(e);
+                p.setShowModule({
+                  show: false,
+                  data: undefined,
+                });
                 return;
               }
               const data = e.target[0].value;
               p.onSubmit?.(data);
+              p.setShowModule({
+                show: false,
+                data: undefined,
+              });
             }}
           >
             {p.children}

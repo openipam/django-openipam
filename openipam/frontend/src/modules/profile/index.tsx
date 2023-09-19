@@ -17,9 +17,11 @@ export const Profile = () => {
   const [renewModule, setRenewModule] = useState<{
     show: boolean;
     data: Host[] | undefined;
+    refetch: VoidFunction;
   }>({
     show: false,
     data: undefined,
+    refetch: () => {},
   });
   const [actionModule, setActionModule] = useState<{
     show: boolean;
@@ -90,6 +92,7 @@ export const Profile = () => {
         HostData={renewModule.data}
         showModule={renewModule.show}
         setShowModule={setRenewModule}
+        refetch={renewModule.refetch}
       />
       <SingleActionModule
         showModule={actionModule.show}

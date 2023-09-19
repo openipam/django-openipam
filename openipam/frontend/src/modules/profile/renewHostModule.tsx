@@ -15,6 +15,7 @@ export const RenewHostModule = (p: {
   HostData: Host[] | undefined;
   showModule: boolean;
   setShowModule: (show: any) => void;
+  refetch: () => void;
 }) => {
   const api = useApi();
   const renewHost = async (expires: string) => {
@@ -23,11 +24,11 @@ export const RenewHostModule = (p: {
         return await api.hosts.byId(host.mac).update({ expire_days: expires });
       })
     );
-    alert(`successfully renewed ${p.HostData!.length} hosts`);
     p.setShowModule({
       show: false,
       HostData: undefined,
     });
+    p.refetch();
   };
   return (
     <>

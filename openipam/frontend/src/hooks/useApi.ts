@@ -7,11 +7,19 @@ export const useApi = () => {
     user: {
       get: requestGenerator(HttpMethod.GET, "users/"),
       me: requestGenerator(HttpMethod.GET, "users/me/"),
+      groups: {
+        join: requestGenerator(HttpMethod.POST, "users/groups/"),
+        leave: requestGenerator(HttpMethod.DELETE, "users/groups/"),
+        get: requestGenerator(HttpMethod.GET, "users/groups/"),
+      },
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `users/${id}/`),
         };
       },
+    },
+    groups: {
+      get: requestGenerator(HttpMethod.GET, "groups/"),
     },
     dns: {
       get: requestGenerator(HttpMethod.GET, "dns/"),
@@ -48,13 +56,6 @@ export const useApi = () => {
           },
           dhcp: {
             get: requestGenerator(HttpMethod.GET, `domains/${id}/dhcp/`),
-            // byId(dhcpId: string) {
-            //   return {
-            //     get: requestGenerator(HttpMethod.GET, `dhcp/${dhcpId}/`),
-            //     update: requestGenerator(HttpMethod.PATCH, `dhcp/${dhcpId}/`),
-            //     delete: requestGenerator(HttpMethod.DELETE, `dhcp/${dhcpId}/`),
-            //   };
-            // }
           },
         };
       },

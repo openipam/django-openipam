@@ -23,4 +23,5 @@ urlpatterns = [
     path("admin/logs/", views.admin.LogEntryList.as_view()),
     path("admin/email-logs/", views.admin.EmailLogsList.as_view()),
     path("admin/stats/", misc.DashboardAPIView.as_view()),
+    path("groups/", views.users.GroupView.as_view()),
 ]

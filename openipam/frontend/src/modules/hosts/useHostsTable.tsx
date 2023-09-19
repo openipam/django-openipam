@@ -20,7 +20,11 @@ export const useHostsTable = (p: {
     React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
   >;
   setRenewModule: React.Dispatch<
-    React.SetStateAction<{ show: boolean; data: Host[] | undefined }>
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: VoidFunction;
+    }>
   >;
   setActionModule: React.Dispatch<
     React.SetStateAction<{
@@ -251,6 +255,7 @@ export const useHostsTable = (p: {
             setActionModule={p.setActionModule}
             setRenewModule={p.setRenewModule}
             setAttributeModule={p.setAttributeModule}
+            refetch={data.refetch}
           />
         );
       },

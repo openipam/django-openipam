@@ -171,6 +171,7 @@ export const useUsersTable = (p: {
             rows={rows}
             table={table}
             setActionModule={p.setActionModule}
+            refetch={data.refetch}
           />
         );
       },

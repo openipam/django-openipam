@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from ..filters.users import UserFilterSet
 
 from .base import APIPagination
-from ..serializers.users import RestrictedUserSerializer, UserSerializer
+from ..serializers.users import RestrictedUserSerializer, UserSerializer, GroupSerializer
 from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -33,6 +33,21 @@ class UserView(generics.RetrieveAPIView):
         if not pk and self.request.user.is_authenticated:
             return Response(serializer.data)
         return Response(serializer.data)
+
+
+class GroupView(generics.ListAPIView):
+    """API endpoint that allows groups to be viewed."""
+
+    permission_classes = [permissions.DjangoModelPermissions]
+    pagination_class = APIPagination
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+    def filter_queryset(self, queryset):
+        name = self.request.query_params.get("name", None)
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+        return super().filter_queryset(queryset)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -99,41 +114,54 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(user.groups.values_list("name", flat=True))
 
     @action(
-        detail=True,
+        detail=False,
         methods=["get"],
         url_path=r"groups",
         url_name="groups",
         permission_classes=[permissions.IsAdminUser],
     )
-    def groups(self, request, username__iexact: str = None):
+    def groups(self, request):
         """Return the current user."""
-        user = self.get_object()
+        username = request.query_params.get("username", None)
+        if username is None:
+            return Response(status=400, data={"detail": "Username is required."})
+        user = self.queryset.get(username=username)
         return Response(user.groups.values_list("name", flat=True))
 
     @groups.mapping.post
-    def join_groups(self, request, username__iexact: str = None):
+    def groups_post(self, request):
         """Add the given user to the given groups."""
-        user = self.get_object()
+        username = request.data.get("username", None)
+        if username is None:
+            return Response(status=400, data={"detail": "Username is required."})
+        user = self.queryset.get(username=username)
         groups = request.data.get("groups", [])
+        print()
+        print(groups)
         for group in groups:
             try:
-                Group.objects.get(name=group).user_set.add(user)
+                group = Group.objects.get(name=group)
+                print()
+                print(group)
+                group.user_set.add(user)
+                print()
+                print(group)
+
             except Group.DoesNotExist:
-                return Response(
-                    status=404, data={"detail": f"Group {group} not found."}
-                )
+                return Response(status=404, data={"detail": f"Group {group} not found."})
         return Response(user.groups.values_list("name", flat=True), status=201)
 
     @groups.mapping.delete
-    def leave_groups(self, request, username__iexact: str = None):
+    def groups_delete(self, request):
         """Remove the user from the given groups."""
-        user = self.get_object()
+        username = request.data.get("username", None)
+        if username is None:
+            return Response(status=400, data={"detail": "Username is required."})
+        user = self.queryset.get(username=username)
         groups = request.data.get("groups", [])
         for group in groups:
             try:
                 Group.objects.get(name=group).user_set.remove(user)
             except Group.DoesNotExist:
-                return Response(
-                    status=404, data={"detail": f"Group {group} not found."}
-                )
+                return Response(status=404, data={"detail": f"Group {group} not found."})
         return Response(user.groups.values_list("name", flat=True))
