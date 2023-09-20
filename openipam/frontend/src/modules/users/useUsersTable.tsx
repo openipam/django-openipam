@@ -123,6 +123,11 @@ export const useUsersTable = (p: {
           accessorFn: (row) => row.groups.join(", "),
         },
         {
+          id: "source",
+          header: "Source",
+          accessorFn: (row) => row.source,
+        },
+        {
           id: "last_login",
           header: "Last Login",
           accessorFn: (row) =>

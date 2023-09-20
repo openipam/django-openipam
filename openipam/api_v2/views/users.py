@@ -19,6 +19,10 @@ from openipam.network.models import Network, Pool
 from django.contrib.auth import get_user_model
 
 from guardian.shortcuts import assign_perm, remove_perm
+from openipam.core.backends import IPAMLDAPBackend
+
+import gc
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -117,6 +121,45 @@ class UserViewSet(viewsets.ModelViewSet):
         """Return the current user."""
         user = self.request.user
         return Response(user.groups.values_list("name", flat=True))
+
+    def queryset_iterator(queryset, chunksize=1000):
+        """''
+        Iterate over a Django Queryset ordered by the primary key
+
+        This method loads a maximum of chunksize (default: 1000) rows in it's
+        memory at the same time while django normally would load all rows in it's
+        memory. Using the iterator() method only causes it to not preload all the
+        classes.
+
+        Note that the implementation of the iterator does not support ordered query sets.
+        """
+        pk = 0
+        last_pk = queryset.order_by("-pk")[0].pk
+        queryset = queryset.order_by("pk")
+        while pk < last_pk:
+            for row in queryset.filter(pk__gt=pk)[:chunksize]:
+                pk = row.pk
+                yield row
+            gc.collect()
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path=r"ldap",
+        url_name="ldap",
+    )
+    def populate_user_from_ldap(self, request):
+        ldap_backend = IPAMLDAPBackend()
+        users = request.query_params.get("users", None)
+        if users is None:
+            return Response(status=400, data={"detail": "Users are required."})
+
+        for user in users:
+            try:
+                ldap_backend.populate_user(username=user)
+            except Exception as e:
+                return Response(status=500, data={"detail": f"Error: {e}"})
+        return Response(status=201)
 
     @action(
         detail=False,

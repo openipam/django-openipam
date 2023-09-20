@@ -171,6 +171,19 @@ export const UserTableActions = (p: {
                 });
                 break;
               case "populateUser":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Confirm Populate Users?",
+                  onSubmit: async (v: any) => {
+                    api.user.populate({
+                      users: p.rows.map((u) => u.username),
+                    });
+                    p.refetch();
+                  },
+                  children: <></>,
+                });
+                break;
               default:
                 break;
             }

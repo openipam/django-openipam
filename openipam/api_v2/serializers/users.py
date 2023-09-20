@@ -55,6 +55,12 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupField(many=True, queryset=Group.objects.all())
+    source = serializers.SerializerMethodField()
+
+    def get_source(self, obj):
+        if obj.source is None:
+            return None
+        return obj.source.name
 
     class Meta:
         model = User
@@ -71,6 +77,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_login",
             "date_joined",
             "groups",
+            "source",
         )
         read_only_fields = (
             "id",

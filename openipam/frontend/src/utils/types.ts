@@ -109,6 +109,7 @@ export type User = {
   last_login: string;
   date_joined: string;
   groups: string[];
+  source: string | null;
 };
 
 export type DhcpRecord = {

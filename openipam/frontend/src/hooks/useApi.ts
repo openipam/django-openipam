@@ -15,6 +15,7 @@ export const useApi = () => {
     user: {
       get: requestGenerator(HttpMethod.GET, "users/"),
       me: requestGenerator(HttpMethod.GET, "users/me/"),
+      populate: requestGenerator(HttpMethod.GET, "users/ldap/"),
       groups: {
         join: requestGenerator(HttpMethod.POST, "users/groups/"),
         leave: requestGenerator(HttpMethod.DELETE, "users/groups/"),
