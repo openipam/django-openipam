@@ -77,8 +77,7 @@ export const Hosts = () => {
     <div className="mt-4 flex flex-col items-center justify-center">
       <h1 className="text-2xl">Hosts</h1>
       <Table
-        table={table.table}
-        loading={table.loading}
+        {...table}
         showSelectColumns={selectingColumns}
         hideShowSelectColumns={() => setSelectingColumns(false)}
       />

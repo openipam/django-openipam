@@ -19,6 +19,14 @@ class UserFilterSet(df.FilterSet):
     is_staff = df.BooleanFilter(label="Staff")
     is_superuser = df.BooleanFilter(label="Superuser")
     is_ipamadmin = df.BooleanFilter(label="IPAM Admin", method="filter_is_ipamadmin")
+    source = df.CharFilter(method="filter_source", label="Source")
+
+    def filter_source(self, queryset, _, value):
+        """Filter based on source."""
+        if value:
+            return queryset.filter(source__name__iexact=value)
+        else:
+            return queryset
 
     class Meta:
         model = User
@@ -36,13 +44,9 @@ class UserFilterSet(df.FilterSet):
     def filter_is_ipamadmin(self, queryset, _, value):
         """Filter based on is_ipamadmin."""
         if value:
-            return queryset.filter(
-                Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)
-            ).distinct()
+            return queryset.filter(Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)).distinct()
         else:
-            return queryset.exclude(
-                Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)
-            ).distinct()
+            return queryset.exclude(Q(groups__name__iexact="ipam-admins") | Q(is_superuser=True)).distinct()
 
     def filter_full_name(self, queryset, _, value):
         """Filter based on full name."""

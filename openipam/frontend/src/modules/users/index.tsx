@@ -5,6 +5,7 @@ import { User } from "../../utils/types";
 import { SingleActionModule } from "../../components/singleActionModule";
 
 export const Users = () => {
+  const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [actionModule, setActionModule] = useState<{
     show: boolean;
     data: User[] | undefined;
@@ -21,11 +22,18 @@ export const Users = () => {
   });
   const data = useUsersTable({
     setActionModule,
+    onSelectColumns: () => {
+      setSelectingColumns(true);
+    },
   });
   return (
     <div className="m-4 pb-20 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">Users</h1>
-      <Table {...data} />
+      <Table
+        {...data}
+        showSelectColumns={selectingColumns}
+        hideShowSelectColumns={() => setSelectingColumns(false)}
+      />
 
       <SingleActionModule
         showModule={actionModule.show}

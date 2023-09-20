@@ -20,11 +20,25 @@ export const useUsersTable = (p: {
       multiple?: boolean;
     }>
   >;
+  onSelectColumns: VoidFunction;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<User[]>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnSort, setColumnSort] = useState<any[]>([]);
+  const [columnVisibility, setColumnVisibility] = useState<any>(
+    localStorage.getItem("usersTableColumns")
+      ? JSON.parse(localStorage.getItem("usersTableColumns")!)
+      : {
+          first_name: false,
+          last_name: false,
+          date_joined: false,
+          is_active: false,
+        }
+  );
+  useEffect(() => {
+    localStorage.setItem("usersTableColumns", JSON.stringify(columnVisibility));
+  }, [columnVisibility]);
   const [pageSize, setPageSize] = useState<number>(25);
   const [page, setPage] = useState<number>(1);
   const data = useInfiniteUsers({
@@ -58,6 +72,7 @@ export const useUsersTable = (p: {
       pageSize,
       setPageSize,
       enableSelection: true,
+      onSelectColumns: p.onSelectColumns,
     }),
     columnHelper.group({
       id: "Identification",
@@ -72,6 +87,16 @@ export const useUsersTable = (p: {
           id: "fullname",
           header: "Full Name",
           accessorFn: (row) => row.first_name + " " + row.last_name,
+        },
+        {
+          id: "first_name",
+          header: "First Name",
+          accessorFn: (row) => row.first_name,
+        },
+        {
+          id: "last_name",
+          header: "Last Name",
+          accessorFn: (row) => row.last_name,
         },
         {
           id: "email",
@@ -111,6 +136,15 @@ export const useUsersTable = (p: {
             filterType: "boolean",
           },
         },
+        {
+          id: "is_active",
+          header: "Active",
+          accessorFn: booleanAccessor("is_active"),
+          cell: BooleanRender,
+          meta: {
+            filterType: "boolean",
+          },
+        },
       ],
     }),
     columnHelper.group({
@@ -119,13 +153,17 @@ export const useUsersTable = (p: {
       columns: [
         {
           id: "groups",
-          header: "groups",
+          header: "Groups",
           accessorFn: (row) => row.groups.join(", "),
         },
         {
           id: "source",
           header: "Source",
           accessorFn: (row) => row.source,
+          meta: {
+            filterOptions: ["LDAP", "INTERNAL"],
+            filterType: "exact",
+          },
         },
         {
           id: "last_login",
@@ -157,18 +195,30 @@ export const useUsersTable = (p: {
     setColumnFilters,
     setRowSelection,
     setColumnSort,
+    setColumnVisibility,
     data: dns,
     state: {
       columnFilters,
       rowSelection,
       pageSize,
       sorting: columnSort,
+      columnVisibility,
     },
+    orderingColumns: [
+      "username",
+      "first_name",
+      "last_name",
+      "email",
+      "is_active",
+      "source",
+      "last_login",
+    ],
     columns,
     meta: {
       total: data.data?.pages?.[0]?.count,
       page,
       pageSize,
+      setSorting: setColumnSort,
       setPage,
       rowActions: (rows: User[]) => {
         return (
