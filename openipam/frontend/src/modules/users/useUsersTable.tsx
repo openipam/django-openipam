@@ -44,8 +44,16 @@ export const useUsersTable = (p: {
   const data = useInfiniteUsers({
     ...Object.fromEntries(
       columnFilters
-        .filter((f) => f.value)
+        .filter((f) => f.value !== undefined && f.value !== null)
         .map((filter) => [filter.id, filter.value as string])
+        .map(([id, value]) => {
+          if (id === "is_staff") return [id, value === "Y" ? true : false];
+          if (id === "is_ipamadmin") return [id, value === "Y" ? true : false];
+          if (id === "is_superuser") return [id, value === "Y" ? true : false];
+          if (id === "is_active") return [id, value === "Y" ? true : false];
+
+          return [id, value];
+        })
     ),
     ordering: getOrdering(columnSort),
     page,

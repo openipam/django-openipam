@@ -151,10 +151,11 @@ function Filter({
     case "boolean":
       const value = (header.column.getFilterValue() ?? "") as "Y" | "N" | "";
       return (
-        <div className="">
+        <div className="bg-neutral-content text-neutral">
           <PlainIndeterminateCheckbox
             indeterminate={value === "N"}
             checked={value === "Y"}
+            header
             onChange={() => {
               header.column.setFilterValue((v: "Y" | "" | "N" | undefined) => {
                 if (v === "" || v === undefined) return "Y";

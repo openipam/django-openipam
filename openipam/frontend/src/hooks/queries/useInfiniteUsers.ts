@@ -8,7 +8,11 @@ export const useInfiniteUsers = (p: { [key: string]: string | number }) => {
     queryKey: ["users, all", ...Object.entries(p).map(([k, v]) => `${k}=${v}`)],
     queryFn: async (page) => {
       const results = await api.user.get({
-        ...Object.fromEntries(Object.entries(p).filter(([key, val]) => val)),
+        ...Object.fromEntries(
+          Object.entries(p).filter(
+            ([key, val]) => val !== undefined && val !== null
+          )
+        ),
         page,
       });
       return {
