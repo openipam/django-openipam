@@ -15,8 +15,10 @@ const AddressLookupKeys = ["address", "name", "gateway", "description"];
 export const useAddressesTable = (p: {
   network: string;
   range: string;
-  setShowModule: any;
-  setEditModule: any;
+  setShowModule: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditModule: React.Dispatch<
+    React.SetStateAction<{ show: boolean; address: Address | undefined }>
+  >;
   setActionModule: React.Dispatch<
     React.SetStateAction<{
       show: boolean;
@@ -40,7 +42,10 @@ export const useAddressesTable = (p: {
   const [columnVisibility, setColumnVisibility] = useState<any>(
     localStorage.getItem("networkAddressesTableColumns")
       ? JSON.parse(localStorage.getItem("networkAddressesTableColumns")!)
-      : {}
+      : {
+          host: false,
+          changed: false,
+        }
   );
   useEffect(() => {
     localStorage.setItem(
@@ -88,7 +93,7 @@ export const useAddressesTable = (p: {
       onEdit: (row) => {
         p.setEditModule({
           show: true,
-          Address: row.address,
+          address: row.address,
         });
       },
       onSelectColumns: p.onSelectColumns,
@@ -106,7 +111,7 @@ export const useAddressesTable = (p: {
         },
         {
           id: "host",
-          header: "host",
+          header: "Host",
           cell: ({ row }: { row: { original: Address } }) => {
             return row.original.host ? (
               <a
@@ -123,9 +128,46 @@ export const useAddressesTable = (p: {
           accessorFn: (row) => row.host,
         },
         {
+          id: "hostname",
+          header: "Hostname",
+          size: 200,
+          cell: ({ row }: { row: { original: Address } }) => {
+            return row.original.hostname ? (
+              <a
+                className="text-blue-500 hover:underline btn btn-sm btn-ghost"
+                href={`#/hosts/${row.original.hostname}`}
+              >
+                {row.original.hostname}
+              </a>
+            ) : (
+              <></>
+            );
+          },
+
+          accessorFn: (row) => row.host,
+        },
+        {
           id: "gateway",
           header: "Gateway",
           accessorFn: (row) => row.gateway,
+        },
+      ],
+    }),
+    columnHelper.group({
+      id: "Last Seen",
+      header: "Last Seen",
+      columns: [
+        {
+          id: "last_seen",
+          header: "Last Seen",
+          accessorFn: (row) =>
+            row.last_seen ? new Date(row.last_seen).toDateString() : "",
+        },
+        {
+          id: "last_mac_seen",
+          header: "Last Mac Seen",
+          accessorFn: (row) =>
+            row.last_mac_seen ? new Date(row.last_mac_seen).toDateString() : "",
         },
       ],
     }),
@@ -146,6 +188,12 @@ export const useAddressesTable = (p: {
           id: "pool",
           header: "Pool",
           accessorFn: (row) => row.pool?.name,
+        },
+        {
+          id: "changed",
+          header: "Changed",
+          accessorFn: (row) =>
+            row.changed ? new Date(row.changed).toDateString() : "",
         },
       ],
     }),

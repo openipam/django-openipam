@@ -5,13 +5,18 @@ import { Table } from "../../components/table/table";
 import { useAuth } from "../../hooks/useAuth";
 import { SingleActionModule } from "../../components/singleActionModule";
 import { Address } from "../../utils/types";
+import { AddAddressModule } from "./addAddressModule";
+import { EditAddressModule } from "./editAddressModule";
 
 export const Network = () => {
   const auth = useAuth();
   const { network, range } = useParams();
   const [showModule, setShowModule] = useState(false);
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
-  const [editModule, setEditModule] = useState(false);
+  const [editModule, setEditModule] = React.useState({
+    show: false,
+    address: undefined as Address | undefined,
+  });
   const [actionModule, setActionModule] = useState<{
     show: boolean;
     data: Address[] | undefined;
@@ -62,6 +67,12 @@ export const Network = () => {
         onSubmit={actionModule.onSubmit}
         children={actionModule.children}
         multiple={actionModule.multiple ?? false}
+      />
+      <AddAddressModule show={showModule} setShow={setShowModule} />
+      <EditAddressModule
+        show={editModule.show}
+        setShow={setEditModule}
+        address={editModule.address ?? undefined}
       />
     </div>
   );

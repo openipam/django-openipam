@@ -154,7 +154,8 @@ export const useNetworksTable = (p: {
         {
           id: "changed",
           header: "Changed",
-          accessorFn: (row) => row.changed,
+          accessorFn: (row) =>
+            row.changed ? new Date(row.changed).toDateString() : "",
         },
         {
           id: "changed_by",

@@ -150,6 +150,9 @@ export type Address = {
   changed: string;
   gateway: string;
   host: string;
+  hostname: string;
+  last_seen: string;
+  last_mac_seen: string;
 };
 
 export type AddressType = {
