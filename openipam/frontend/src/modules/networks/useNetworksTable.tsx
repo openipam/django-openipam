@@ -12,8 +12,10 @@ import { NetworksTableActions } from "./networksTableActions";
 const NetworkLookupKeys = ["network", "name", "gateway", "description"];
 
 export const useNetworksTable = (p: {
-  setShowModule: any;
-  setEditModule: any;
+  setShowModule: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditModule: React.Dispatch<
+    React.SetStateAction<{ show: boolean; network: Network | undefined }>
+  >;
   onSelectColumns: () => void;
   setActionModule: React.Dispatch<
     React.SetStateAction<{
@@ -32,10 +34,14 @@ export const useNetworksTable = (p: {
   const [columnSort, setColumnSort] = useState<any[]>([]);
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
-  const [columnVisibility, setColumnVisibility] = useState<any>(
+  const [columnVisibility, setColumnVisibility] = useState<any[]>(
     localStorage.getItem("networksTableColumns")
       ? JSON.parse(localStorage.getItem("networksTableColumns")!)
-      : {}
+      : {
+          changed: false,
+          changed_by: false,
+          dhcp_group: false,
+        }
   );
   useEffect(() => {
     localStorage.setItem(
@@ -82,7 +88,7 @@ export const useNetworksTable = (p: {
       onEdit: (row) => {
         p.setEditModule({
           show: true,
-          Network: row.network,
+          network: row.network,
         });
       },
       onSelectColumns: p.onSelectColumns,
@@ -123,6 +129,12 @@ export const useNetworksTable = (p: {
           header: "Shared Network",
           accessorFn: (row) => row.shared_network?.name,
         },
+
+        {
+          id: "dhcp_group",
+          header: "DHCP Group",
+          accessorFn: (row) => row.dhcp_group,
+        },
         {
           id: "vlans",
           header: "Vlans",
@@ -132,6 +144,22 @@ export const useNetworksTable = (p: {
           id: "buildings",
           header: "Buildings",
           accessorFn: (row) => row.buildings?.length ?? "0",
+        },
+      ],
+    }),
+    columnHelper.group({
+      id: "Changed",
+      header: "Changed",
+      columns: [
+        {
+          id: "changed",
+          header: "Changed",
+          accessorFn: (row) => row.changed,
+        },
+        {
+          id: "changed_by",
+          header: "Changed By",
+          accessorFn: (row) => row.changed_by?.username,
         },
       ],
     }),

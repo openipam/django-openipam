@@ -4,11 +4,16 @@ import { Table } from "../../components/table/table";
 import { useAuth } from "../../hooks/useAuth";
 import { Network } from "../../utils/types";
 import { SingleActionModule } from "../../components/singleActionModule";
+import { AddNetworkModule } from "./addNetworkModule";
+import { EditNetworkModule } from "./editNetworkModule";
 
 export const Networks = () => {
   const auth = useAuth();
   const [showModule, setShowModule] = React.useState(false);
-  const [editModule, setEditModule] = React.useState(false);
+  const [editModule, setEditModule] = React.useState({
+    show: false,
+    network: undefined as Network | undefined,
+  });
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
 
   const [actionModule, setActionModule] = useState<{
@@ -57,6 +62,12 @@ export const Networks = () => {
         onSubmit={actionModule.onSubmit}
         children={actionModule.children}
         multiple={actionModule.multiple ?? false}
+      />
+      <AddNetworkModule show={showModule} setShow={setShowModule} />
+      <EditNetworkModule
+        show={editModule.show}
+        setShow={setEditModule}
+        network={editModule.network ?? undefined}
       />
     </div>
   );

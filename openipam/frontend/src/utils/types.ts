@@ -184,9 +184,14 @@ export type Network = {
     description: string;
   };
   gateway: string;
-  changed_by: number;
+  changed_by: {
+    username: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
   changed: string;
-  dhcp_group: number;
+  dhcp_group: string;
 };
 
 export const DNS_TYPES = [
