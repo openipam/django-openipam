@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from ..filters.users import UserFilterSet
+from ..filters.users import UserFilterSet, AdvancedSearchFilter
 
 from .base import APIPagination
 from ..serializers.users import RestrictedUserSerializer, UserSerializer, GroupSerializer
@@ -66,7 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = APIPagination
     permission_classes = [permissions.DjangoModelPermissions]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, AdvancedSearchFilter]
     lookup_field = "username__iexact"
     filterset_class = UserFilterSet
     ordering_fields = ["username", "first_name", "last_name", "email", "is_active"]

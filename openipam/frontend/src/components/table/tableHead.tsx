@@ -245,7 +245,9 @@ export const TableHeaderCell = (p: {
         <>
           <TableHeaderLabel
             header={header}
-            hideSorting={Boolean(p.hideSorting)}
+            hideSorting={
+              Boolean(p.hideSorting) || !leafColumns.includes(header.column.id)
+            }
             table={p.table}
           />
           {!header.column.columnDef.meta?.hideFilter &&

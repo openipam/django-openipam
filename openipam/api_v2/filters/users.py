@@ -2,7 +2,6 @@
 from rest_framework import filters
 import django_filters as df
 from django.contrib.auth import get_user_model
-from guardian.shortcuts import get_objects_for_user
 from django.db.models import functions as dfn, Q
 
 User = get_user_model()
@@ -65,4 +64,46 @@ class UserFilterSet(df.FilterSet):
         """Filter based on groups."""
         if value:
             queryset = queryset.filter(groups__name__iexact=value)
+        return queryset
+
+
+class AdvancedSearchFilter(filters.BaseFilterBackend):
+    """
+    Filter backend that implements the Advanced Search feature.
+
+    Searches should be formatted as a comma-separated list of terms, where each term is
+    formatted as <model>:<search term>. The search term is passed to the filter backend
+
+    The choices for <model> are:
+    - user (searches for users by username)
+    - group (searches for groups by name)
+    - net (searches for networks by CIDR block)
+    - sattr (searches for structured attribute values by value)
+    - atype (searches for address types by primary key)
+
+    All searches are case-sensitive exact, and the value passed to this endpoint should be
+    constructed based on the values selected from the autocomplete endpoint.
+    """
+
+    def _filter_permissions(self, queryset, value):
+        # use Q to filter on user_permissions or group_permissions
+        return queryset.filter(Q(user_permissions__id=value) | Q(groups__permissions__id=value))
+
+    def filter_queryset(self, request, queryset, view):
+        """
+        Filter the queryset.
+        """
+        query_param = getattr(view, "advanced_search_param", "advanced_search")
+        search_terms = request.query_params.get(query_param, "").split(",")
+
+        for term in search_terms:
+            if not term:
+                continue
+            try:
+                model, value = term.split(":")
+            except ValueError:
+                continue
+            if model == "perm":
+                queryset = self._filter_permissions(queryset, value)
+
         return queryset

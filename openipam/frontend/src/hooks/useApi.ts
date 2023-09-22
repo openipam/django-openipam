@@ -201,6 +201,11 @@ export const useApi = () => {
       "autocomplete/ipam-autocomplete/",
       ""
     ),
+    permissionAutocomplete: requestGenerator(
+      HttpMethod.GET,
+      "autocomplete/permissions-autocomplete/",
+      ""
+    ),
   };
 };
 

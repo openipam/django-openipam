@@ -8,10 +8,8 @@ import { useInfiniteUsers } from "../../hooks/queries/useInfiniteUsers";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { getOrdering } from "../../components/table/getOrdering";
 import { UserTableActions } from "./userTableActions";
-import {
-  GroupAutocomplete,
-  MultiGroupAutocomplete,
-} from "../../components/autocomplete/groupAutocomplete";
+import { GroupAutocomplete } from "../../components/autocomplete/groupAutocomplete";
+import { UserGlobalAutocomplete } from "./userGlobalAutocomplete";
 
 export const useUsersTable = (p: {
   setActionModule: React.Dispatch<
@@ -28,6 +26,9 @@ export const useUsersTable = (p: {
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [prevData, setPrevData] = useState<User[]>([]);
+  const [globalFilter, setGlobalFilter] = useState<
+    { id: string; text: string }[]
+  >([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnSort, setColumnSort] = useState<any[]>([]);
   const [columnVisibility, setColumnVisibility] = useState<any>(
@@ -62,6 +63,9 @@ export const useUsersTable = (p: {
     ordering: getOrdering(columnSort),
     page,
     page_size: pageSize,
+    advanced_search: globalFilter
+      .map((filter) => `perm:${filter.id}`)
+      .join(","),
   });
   const dns = useMemo<User[]>(() => {
     if (!data.data) {
@@ -221,7 +225,7 @@ export const useUsersTable = (p: {
               ? new Date(row.last_login).toLocaleDateString()
               : null,
           meta: {
-            filterType: "date",
+            hideFilter: true,
           },
         },
         {
@@ -232,7 +236,7 @@ export const useUsersTable = (p: {
               ? new Date(row.date_joined).toLocaleDateString()
               : null,
           meta: {
-            filterType: "date",
+            hideFilter: true,
           },
         },
       ],
@@ -244,6 +248,7 @@ export const useUsersTable = (p: {
     setRowSelection,
     setColumnSort,
     setColumnVisibility,
+    setGlobalFilter,
     data: dns,
     state: {
       columnFilters,
@@ -251,6 +256,7 @@ export const useUsersTable = (p: {
       pageSize,
       sorting: columnSort,
       columnVisibility,
+      globalFilter,
     },
     orderingColumns: [
       "username",
@@ -258,13 +264,19 @@ export const useUsersTable = (p: {
       "last_name",
       "email",
       "is_active",
-      "source",
       "last_login",
     ],
     columns,
     meta: {
       total: data.data?.pages?.[0]?.count,
       page,
+      globalFilter: (
+        <UserGlobalAutocomplete
+          onAddFilter={(v) => {
+            setGlobalFilter((prev) => [...prev, v]);
+          }}
+        />
+      ),
       pageSize,
       setSorting: setColumnSort,
       setPage,
