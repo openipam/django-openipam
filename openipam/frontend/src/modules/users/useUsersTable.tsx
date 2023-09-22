@@ -8,6 +8,10 @@ import { useInfiniteUsers } from "../../hooks/queries/useInfiniteUsers";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { getOrdering } from "../../components/table/getOrdering";
 import { UserTableActions } from "./userTableActions";
+import {
+  GroupAutocomplete,
+  MultiGroupAutocomplete,
+} from "../../components/autocomplete/groupAutocomplete";
 
 export const useUsersTable = (p: {
   setActionModule: React.Dispatch<
@@ -94,7 +98,8 @@ export const useUsersTable = (p: {
         {
           id: "fullname",
           header: "Full Name",
-          accessorFn: (row) => row.first_name + " " + row.last_name,
+          accessorFn: (row) =>
+            (row.first_name ?? "") + " " + row.last_name ?? "",
         },
         {
           id: "first_name",
@@ -163,6 +168,41 @@ export const useUsersTable = (p: {
           id: "groups",
           header: "Groups",
           accessorFn: (row) => row.groups.join(", "),
+          meta: {
+            filterType: "custom",
+            filter: (
+              <>
+                <GroupAutocomplete
+                  onGroupChange={(v) => {
+                    setColumnFilters((prev) => {
+                      if (!v) return prev.filter((f) => f.id !== "groups");
+                      const filter = prev.find((f) => f.id === "groups");
+                      if (filter) {
+                        return prev.map((f) => {
+                          if (f.id === "groups") {
+                            return {
+                              ...f,
+                              value: v.name,
+                            };
+                          }
+                          return f;
+                        });
+                      }
+                      return [
+                        ...prev,
+                        {
+                          id: "groups",
+                          value: v.name,
+                        },
+                      ];
+                    });
+                  }}
+                  small
+                  groupId={columnFilters.find((f) => f.id === "groups")?.value}
+                />
+              </>
+            ),
+          },
         },
         {
           id: "source",

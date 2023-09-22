@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { User } from "../../utils/types";
 import { Table } from "@tanstack/table-core";
-import { GroupAutocomplete } from "../../components/autocomplete/groupAutocomplete";
+import { MultiGroupAutocomplete } from "../../components/autocomplete/groupAutocomplete";
 
 export const UserTableActions = (p: {
   setActionModule: React.Dispatch<
@@ -64,7 +64,7 @@ export const UserTableActions = (p: {
                   },
                   children: (
                     <div className="h-96">
-                      <GroupAutocomplete onGroupChange={(v) => {}} />
+                      <MultiGroupAutocomplete onGroupChange={(v) => {}} />
                     </div>
                   ),
                 });
@@ -87,7 +87,7 @@ export const UserTableActions = (p: {
                   },
                   children: (
                     <div className="h-96">
-                      <GroupAutocomplete onGroupChange={(v) => {}} />
+                      <MultiGroupAutocomplete onGroupChange={(v) => {}} />
                     </div>
                   ),
                 });

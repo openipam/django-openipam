@@ -16,6 +16,7 @@ export const AutocompleteSelect = (props: {
   inputProps?: InputHTMLAttributes<HTMLInputElement> | undefined;
   icon?: ReactNode;
   disableFilter?: boolean;
+  small?: boolean;
 }) => {
   const [show, setShow] = useState(false);
   const [hovering, setHovering] = useState(0);
@@ -72,15 +73,21 @@ export const AutocompleteSelect = (props: {
     <>
       <div className={`dropdown dropdown-end ${show ? "dropdown-open" : ""}`}>
         <label
-          className="input input-bordered input-primary flex gap-2 items-center w-full"
+          className={`input input-bordered input-primary flex gap-2 items-center w-full
+           ${
+             props.small ? "input-xs text-xs border-0 rounded-sm m-0 p-0" : ""
+           }`}
           htmlFor={inputId}
         >
           {props.icon}
           <input
             id={inputId}
             type="text"
-            className="bg-transparent p-1 w-full"
+            className={`bg-transparent p-1 w-full ${
+              props.small ? "input-xs text-xs rounded-sm" : ""
+            }`}
             value={props.textFilter}
+            placeholder="Search"
             onInput={handleInput}
             onKeyDown={handleKeydown}
             onFocus={() => setShow(true)}
@@ -88,7 +95,11 @@ export const AutocompleteSelect = (props: {
           />
           {props.loading && <div className="spinner spinner-primary"></div>}
         </label>
-        <ul className="dropdown-content menu shadow bg-base-100 rounded-box w-full z-50 max-h-[30vh] overflow-y-scroll flex-nowrap menu-compact">
+        <ul
+          className={`dropdown-content menu ${
+            props.small ? "menu-xs text-xs" : ""
+          } shadow bg-base-100 rounded-box w-full z-50 max-h-[30vh] overflow-y-scroll flex-nowrap menu-compact`}
+        >
           {filteredOptions().map((item, i) => (
             <li
               className={`${
@@ -105,7 +116,8 @@ export const AutocompleteSelect = (props: {
                     props.getValueFromOption(item) && hovering === i
                     ? "!border-primary-focus"
                     : ""
-                }`}
+                }
+                ${props.small ? "text-xs" : ""}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   handleAdd(item);

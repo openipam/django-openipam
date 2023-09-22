@@ -203,6 +203,12 @@ function Filter({
           </div>
         </div>
       );
+    case "custom":
+      return (
+        <div className="flex flex-col w-full space-x-2">
+          {header.column.columnDef.meta?.filter}
+        </div>
+      );
     default:
       return null;
   }

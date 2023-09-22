@@ -69,15 +69,12 @@ export const Profile = () => {
         <div
           className={`grid ${auth?.is_ipamadmin ? "col-span-3" : "col-span-4"}`}
         >
-          <div className="flex flex-col text-center justify-center items-center content-center">
-            <p className="mt-4">Your Hosts:</p>
-            <Table
-              table={hosts.table}
-              loading={hosts.loading}
-              showSelectColumns={selectingColumns}
-              hideShowSelectColumns={() => setSelectingColumns(false)}
-            />
-          </div>
+          <Table
+            table={hosts.table}
+            loading={hosts.loading}
+            showSelectColumns={selectingColumns}
+            hideShowSelectColumns={() => setSelectingColumns(false)}
+          />
         </div>
         {auth?.is_ipamadmin && (
           <div className="grid col-span-1">

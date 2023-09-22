@@ -40,7 +40,7 @@ export const HostTableActions = (p: {
 
   return (
     <div className="flex flex-col gap-2 m-2">
-      <label>Actions</label>
+      <label className="label justify-start">Actions</label>
       <div className="flex flex-row gap-2">
         <select
           id={`actions`}
