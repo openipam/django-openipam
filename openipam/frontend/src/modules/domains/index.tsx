@@ -41,8 +41,8 @@ export const Domains = () => {
     setActionModule,
   });
   return (
-    <div className="m-auto mt-8 overflow-x-scroll flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Domains</h1>
+    <div className="mt-4 flex flex-col items-center justify-center">
+      <h1 className="text-2xl">Domains</h1>
       <Table
         table={table.table}
         loading={table.loading}

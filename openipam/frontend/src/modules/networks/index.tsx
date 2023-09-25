@@ -46,8 +46,8 @@ export const Networks = () => {
     );
   }
   return (
-    <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Networks</h1>
+    <div className="mt-4 flex flex-col items-center justify-center">
+      <h1 className="text-2xl">Networks</h1>
       <Table
         table={data.table}
         loading={data.loading}

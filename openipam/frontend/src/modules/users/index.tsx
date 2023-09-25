@@ -27,8 +27,8 @@ export const Users = () => {
     },
   });
   return (
-    <div className="m-4 pb-20 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Users</h1>
+    <div className="mt-4 flex flex-col items-center justify-center">
+      <h1 className="text-2xl">Users</h1>
       <Table
         {...data}
         showSelectColumns={selectingColumns}

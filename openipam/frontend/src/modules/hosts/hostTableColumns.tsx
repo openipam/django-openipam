@@ -95,6 +95,9 @@ export const HostTableColumns = (p: {
                   <li onClick={p.onSelectColumns}>
                     <a className="text-neutral-content">Show/Hide Columns</a>
                   </li>
+                  <li onClick={p.onAddByCsv}>
+                    <a className="text-neutral-content">Add By CSV</a>
+                  </li>
                   <li
                     onClick={() => {
                       p.setSelectAll(true);
@@ -106,9 +109,6 @@ export const HostTableColumns = (p: {
                     >
                       <a className="text-neutral-content">Select ALL rows</a>
                     </ToolTip>
-                  </li>
-                  <li onClick={p.onAddByCsv}>
-                    <a className="text-neutral-content">Add By CSV</a>
                   </li>
                 </ul>
               </div>

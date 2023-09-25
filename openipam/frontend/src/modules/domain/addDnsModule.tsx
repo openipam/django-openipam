@@ -40,14 +40,10 @@ export const AddDnsModule = (p: {
   const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
     if (p.domain) {
-      const results = await api.domains
-        .byId(p.domain ?? "")
-        .dns.create({ ...DnsData });
-      alert(`successfully created ${DnsData.name}`);
+      await api.domains.byId(p.domain ?? "").dns.create({ ...DnsData });
       p.setShowModule(false);
     } else {
-      const results = await api.dns.create({ ...DnsData });
-      alert(`successfully created ${DnsData.name}, ${JSON.stringify(results)}`);
+      await api.dns.create({ ...DnsData });
       p.setShowModule(false);
     }
   };
@@ -70,7 +66,7 @@ export const AddDnsModule = (p: {
         className="modal-toggle"
       />
       <dialog id="add-Dns-module" className="modal">
-        <div className="modal-box border border-white">
+        <div className="modal-box border">
           <label
             htmlFor="add-Dns-module"
             onClick={() => p.setShowModule(false)}
@@ -186,6 +182,7 @@ export const AddDnsModule = (p: {
                         ? `.${p.domain}`
                         : ""
                     }`}
+                    onChange={() => {}}
                   />
                 }
               </div>

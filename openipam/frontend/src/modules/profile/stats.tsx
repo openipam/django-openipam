@@ -19,7 +19,7 @@ export const Stats = () => {
     /* This should reflect the 'snapshot' in reports */
   }
   return (
-    <div className="flex w-full md:max-w-[90%] lg:max-w-[75%] flex-row gap-4 flex-wrap justify-center it content-center mt-4">
+    <div className="flex w-full md:max-w-[100%] lg:max-w-[100%] flex-row gap-4 flex-wrap justify-center it content-center mt-4">
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title text-center">Hosts</div>
         <div className="stats">

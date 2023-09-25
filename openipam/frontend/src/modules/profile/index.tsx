@@ -64,27 +64,31 @@ export const Profile = () => {
         Welcome, {auth?.first_name?.charAt(0).toUpperCase()}
         {auth?.first_name?.slice(1)}
       </h1>
-      {auth?.is_ipamadmin && <Stats />}
-      <div className="grid grid-cols-4 gap-2 mb-20">
-        <div
-          className={`grid ${auth?.is_ipamadmin ? "col-span-3" : "col-span-4"}`}
-        >
-          <Table
-            table={hosts.table}
-            loading={hosts.loading}
-            showSelectColumns={selectingColumns}
-            hideShowSelectColumns={() => setSelectingColumns(false)}
-          />
-        </div>
-        {auth?.is_ipamadmin && (
-          <div className="grid col-span-1">
-            <div className="w-full flex flex-col gap-16 justify-center mt-2 pr-4">
+      {!auth?.is_ipamadmin && (
+        <Table
+          table={hosts.table}
+          loading={hosts.loading}
+          showSelectColumns={selectingColumns}
+          hideShowSelectColumns={() => setSelectingColumns(false)}
+        />
+      )}
+      {auth?.is_ipamadmin && (
+        <div className="grid grid-cols-5 gap-2 mb-20 mr-5 mt-4">
+          <div
+            className={`grid 
+              col-span-3
+            `}
+          >
+            <Stats />
+          </div>
+          <div className="grid col-span-2">
+            <div className="w-full flex flex-col gap-16 content-start items-start mt-2">
               <QuickAddToolbar />
               <RecentLogs />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <RenewHostModule
         HostData={renewModule.data}
         showModule={renewModule.show}

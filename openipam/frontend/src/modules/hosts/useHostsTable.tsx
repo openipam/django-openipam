@@ -57,16 +57,23 @@ export const useHostsTable = (p: {
     globalFilter: { id: string; text: string }[];
   };
 }) => {
+  const auth = useAuth();
+  const [loading, setLoading] = useState<boolean>(false);
+  //to map address type name to id
+  const addressTypes = useAddressTypes().data?.addressTypes;
+  //Table state
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnSort, setColumnSort] = useState<any[]>([]);
-  const [prevData, setPrevData] = useState<Host[]>([]);
   const [globalFilter, setGlobalFilter] = useState<
     { id: string; text: string }[]
   >([]);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [page, setPage] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(false);
+  //Select All Rows feature
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+
+  //Table column visibility state
   const [columnVisibility, setColumnVisibility] = useState<any>(
     localStorage.getItem("hostsTableColumns")
       ? JSON.parse(localStorage.getItem("hostsTableColumns")!)
@@ -81,6 +88,11 @@ export const useHostsTable = (p: {
           changed_by: false,
         }
   );
+  useEffect(() => {
+    localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
+  }, [columnVisibility]);
+
+  //onMount, get Table state from local storage
   useEffect(() => {
     const filterState = localStorage.getItem("hostsTableFilters");
     if (filterState) {
@@ -112,9 +124,8 @@ export const useHostsTable = (p: {
       })
     );
   }, [columnFilters, columnSort, globalFilter, page, pageSize]);
-  const auth = useAuth();
-  const addressTypes = useAddressTypes().data?.addressTypes;
-  const [selectAll, setSelectAll] = useState<boolean>(false);
+
+  //For the custom Quick Filters feature
   useEffect(() => {
     setSelectAll(false);
     p.setCurrentFilters({ columnFilters, columnSort, globalFilter });
@@ -127,10 +138,7 @@ export const useHostsTable = (p: {
     setGlobalFilter(p.customFilters.globalFilter ?? []);
   }, [p.customFilters]);
 
-  useEffect(() => {
-    localStorage.setItem("hostsTableColumns", JSON.stringify(columnVisibility));
-  }, [columnVisibility]);
-
+  //Hosts data
   const data = useInfiniteHosts({
     ...Object.fromEntries(
       columnFilters
@@ -185,6 +193,8 @@ export const useHostsTable = (p: {
     quickFilter: p.quickFilter,
   });
 
+  // Flatten the data from the infinite query, use previous state if fetching
+  const [prevData, setPrevData] = useState<Host[]>([]);
   const Hosts = useMemo<Host[]>(() => {
     if (data.isFetching) {
       return [];
@@ -203,6 +213,7 @@ export const useHostsTable = (p: {
     }
   }, [data.data]);
 
+  //Table
   const table = CreateTable({
     data: Hosts,
     setColumnFilters,
@@ -275,6 +286,7 @@ export const useHostsTable = (p: {
     }),
   });
 
+  //Select All Rows feature
   useEffect(() => {
     if (!selectAll || table.getIsAllRowsSelected()) return;
     table.resetRowSelection(true);

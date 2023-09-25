@@ -14,8 +14,8 @@ export const Logs = () => {
     );
   }
   return (
-    <div className="m-8 flex flex-col gap-2 items-center justify-center text-white">
-      <h1 className="text-4xl">Logs</h1>
+    <div className="mt-4 flex flex-col items-center justify-center">
+      <h1 className="text-2xl">Logs</h1>
       <Table table={table.table} loading={table.loading} />
     </div>
   );
