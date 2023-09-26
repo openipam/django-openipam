@@ -37,7 +37,7 @@ export const EditHostModule = (p: {
         payload: {
           ...p.HostData,
           expire_days: 0,
-          dhcp_group: p.HostData?.dhcp_group?.name,
+          dhcp_group: p.HostData?.dhcp_group?.id,
         },
       });
   }, [p.HostData]);
@@ -192,7 +192,7 @@ export const EditHostModule = (p: {
                 onDhcpChange={(dhcp) => {
                   dispatch({ type: "dhcp_group", payload: dhcp });
                 }}
-                DhcpId={host.dhcp_group?.id}
+                DhcpId={host.dhcp_group}
               />
             </div>
             <div className="flex flex-col gap-2">

@@ -29,6 +29,7 @@ export const AddDnsModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
+  const api = useApi();
   const [dnsType, setDnsType] = useState<string>("A");
   const [fqdn, setFqdn] = useState<string>("");
   const [ttl, setTTL] = useState<number>(14400);
@@ -37,7 +38,6 @@ export const AddDnsModule = (p: {
   const [name, setName] = useState<string>(p.host ?? "");
   const [fqdnError, setFqdnError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
-  const api = useApi();
   const addDns = async (DnsData: CreateDnsRecord) => {
     if (p.domain) {
       await api.domains.byId(p.domain ?? "").dns.create({ ...DnsData });

@@ -166,7 +166,8 @@ export const HostPage = () => {
         <Tab
           tab={tab}
           name={"DHCP"}
-          props={"m-2"}
+          props={"m-2 pt-4"}
+          edit={owner ? setEditHost : undefined}
           data={HostInfo ?? {}}
           labels={{
             dhcp_group: "DHCP Group:",
