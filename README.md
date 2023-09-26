@@ -1,4 +1,1 @@
-django-openipam
-===============
-
-Django refactor of openipam foo
+Django refactor of openipam
