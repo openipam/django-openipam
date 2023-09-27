@@ -35,7 +35,7 @@ export const AddDnsModule = (p: {
   const [ttl, setTTL] = useState<number>(14400);
   const [ipAddress, setIpAddress] = useState<string>(p.ip_address ?? "");
   const [ipError, setIpError] = useState<string>("");
-  const [name, setName] = useState<string>(p.host ?? "");
+  const [name, setName] = useState<string | null>();
   const [fqdnError, setFqdnError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
   const addDns = async (DnsData: CreateDnsRecord) => {
@@ -48,9 +48,6 @@ export const AddDnsModule = (p: {
     }
   };
   useEffect(() => {
-    if (p.host) {
-      setName(p.host);
-    }
     if (p.ip_address) {
       setIpAddress(p.ip_address);
     }
@@ -153,7 +150,9 @@ export const AddDnsModule = (p: {
                 <input
                   type="text"
                   id="Dns-name"
-                  value={name ?? p.host ?? ""}
+                  value={
+                    name ?? p.host?.split(".").slice(0, -2).join(".") ?? ""
+                  }
                   onChange={(e) => {
                     setName(e.target.value);
                     //test if fqdn is valid
@@ -180,7 +179,9 @@ export const AddDnsModule = (p: {
                         ? `.${PTRNAME}`
                         : p.domain
                         ? `.${p.domain}`
-                        : ""
+                        : name
+                        ? ""
+                        : `.${p.host?.split(".").splice(-2).join(".")}`
                     }`}
                     onChange={() => {}}
                   />

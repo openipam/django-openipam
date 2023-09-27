@@ -4,7 +4,7 @@ Installation
 
 - npm install (in /frontend)
 
-Compiling
+Compiling - to test changes in real time (separate terminal)
 
 - npm run dev (in /frontend)
 

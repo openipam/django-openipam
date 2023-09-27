@@ -113,6 +113,7 @@ function Filter({
   const columnFilterValue = column.getFilterValue();
 
   const filterType = header.column.columnDef.meta?.filterType ?? "string";
+  const setPage = table.options.meta?.setPage;
   switch (filterType) {
     case "string":
       return (
@@ -120,7 +121,10 @@ function Filter({
           <DebouncedInput
             type="text"
             value={(columnFilterValue ?? "") as string}
-            onChange={(value) => column.setFilterValue(value)}
+            onChange={(value) => {
+              setPage && setPage(1);
+              column.setFilterValue(value);
+            }}
             placeholder={`Search`}
             className="w-full border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
@@ -140,7 +144,10 @@ function Filter({
           <DebouncedInput
             type="text"
             value={(columnFilterValue ?? "") as string}
-            onChange={(value) => column.setFilterValue(value)}
+            onChange={(value) => {
+              setPage && setPage(1);
+              column.setFilterValue(value);
+            }}
             placeholder={`Search (${uniqueValues.length})`}
             className="w-full border  shadow rounded input input-xs input-bordered"
             list={column.id + "list"}
@@ -157,6 +164,7 @@ function Filter({
             checked={value === "Y"}
             header
             onChange={() => {
+              setPage && setPage(1);
               header.column.setFilterValue((v: "Y" | "" | "N" | undefined) => {
                 if (v === "" || v === undefined) return "Y";
                 if (v === "Y") return "N";
@@ -178,6 +186,7 @@ function Filter({
               max={maxDate}
               value={(columnFilterValue as [string, string])?.[0] ?? ""}
               onChange={(e) => {
+                setPage && setPage(1);
                 column.setFilterValue((old: [string, string]) => [
                   e.target.value,
                   old?.[1],
@@ -192,6 +201,7 @@ function Filter({
               max={maxDate}
               value={(columnFilterValue as [string, string])?.[1] ?? ""}
               onChange={(e) => {
+                setPage && setPage(1);
                 column.setFilterValue((old: [string, string]) => [
                   old?.[0],
                   e.target.value,

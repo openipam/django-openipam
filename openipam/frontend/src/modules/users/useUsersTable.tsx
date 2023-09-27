@@ -178,6 +178,7 @@ export const useUsersTable = (p: {
               <>
                 <GroupAutocomplete
                   onGroupChange={(v) => {
+                    setPage(1);
                     setColumnFilters((prev) => {
                       if (!v) return prev.filter((f) => f.id !== "groups");
                       const filter = prev.find((f) => f.id === "groups");
