@@ -42,6 +42,7 @@ const TableHeaderLabel = (p: {
   header: Header<any, unknown>;
   hideSorting: boolean;
   table?: Table<any>;
+  footer?: boolean;
 }) => {
   const header = p.header;
   const setSorting = p.table?.options.meta?.setSorting;
@@ -82,7 +83,10 @@ const TableHeaderLabel = (p: {
             : header.column.clearSorting();
       }}
     >
-      {flexRender(header.column.columnDef.header, header.getContext())}
+      {flexRender(header.column.columnDef.header, {
+        ...header.getContext(),
+        footer: p.footer,
+      })}
       {{
         asc: (
           <>
@@ -259,6 +263,7 @@ export const TableHeaderCell = (p: {
               Boolean(p.hideSorting) || !leafColumns.includes(header.column.id)
             }
             table={p.table}
+            footer={p.footer}
           />
           {!header.column.columnDef.meta?.hideFilter &&
             !p.hideFilter &&

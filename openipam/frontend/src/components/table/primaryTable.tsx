@@ -106,7 +106,7 @@ export const PrimaryTable = (p: {
           <div className="flex flex-col justify-between">
             <div className="flex flex-row gap-4">
               <p className="">
-                Loaded {rows.length} of {total} rows
+                Veiwing {rows.length} of {total} rows
               </p>
             </div>
             {page && setPage && (

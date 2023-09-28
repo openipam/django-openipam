@@ -4,7 +4,6 @@ import {
   Add,
   Autorenew,
   Edit,
-  ExpandMore,
   MoreVert,
   Visibility,
 } from "@mui/icons-material";
@@ -41,93 +40,100 @@ export const ActionsColumn = (p: {
         hideSort: true,
       },
       id: "actions",
-      header: ({ table }: { table: Table<any> }) => (
-        // force overflow to be visible so that the tooltip can be seen
-        <div className="flex flex-col gap-1">
-          <div className="flex gap-1 relative">
-            {p.pageSize && p.setPageSize && (
-              <>
-                <ToolTip
-                  text="Page Size"
-                  props="bottom-8 right-1 rounded-br-none"
-                >
-                  <select
-                    className="select select-ghost select-sm text-neutral"
-                    value={p.pageSize}
-                    onChange={(e) => {
-                      p.setPageSize!(Number(e.target.value));
-                    }}
+      header: (props: { table: Table<any> }) => {
+        return (
+          // force overflow to be visible so that the tooltip can be seen
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-1 relative">
+              {p.pageSize && p.setPageSize && (
+                <>
+                  <ToolTip
+                    text="Page Size"
+                    props="bottom-8 right-1 rounded-br-none"
                   >
-                    {(p.pageSizes ?? pageSizes).map((size) => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))}
-                  </select>
-                </ToolTip>
-              </>
-            )}
-          </div>
+                    <select
+                      className="select select-ghost select-sm text-neutral"
+                      value={p.pageSize}
+                      onChange={(e) => {
+                        p.setPageSize!(Number(e.target.value));
+                      }}
+                    >
+                      {(p.pageSizes ?? pageSizes).map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </ToolTip>
+                </>
+              )}
+            </div>
 
-          <div className="flex gap-1 items-center relative text-neutral">
-            {p.enableSelection && (
-              <PlainIndeterminateCheckbox
-                checked={
-                  table.getRowModel().rows.filter((row) => row.getIsSelected())
-                    .length === table.getRowModel().rows.length ||
-                  table.getRowModel().rows.filter((row) => row.getIsSelected())
-                    .length === p.pageSize
-                }
-                indeterminate={table.getIsSomeRowsSelected()}
-                header
-                onChange={(e) => {
-                  p.setSelectAll?.(false);
-                  if (!e.target.checked) {
-                    table.resetRowSelection(true);
-                  } else {
-                    const array = Array.from(
+            <div className="flex gap-1 items-center relative text-neutral">
+              {p.enableSelection && (
+                <PlainIndeterminateCheckbox
+                  checked={
+                    props.table
+                      .getRowModel()
+                      .rows.filter((row) => row.getIsSelected()).length ===
+                      props.table.getRowModel().rows.length ||
+                    props.table
+                      .getRowModel()
+                      .rows.filter((row) => row.getIsSelected()).length ===
                       p.pageSize
-                        ? table.getRowModel().rows.slice(0, p.pageSize)
-                        : table.getRowModel().rows
-                    );
-                    table.setRowSelection(
-                      Object.fromEntries(array.map((row) => [row.id, true]))
-                    );
                   }
-                }}
-              />
-            )}
-            {p.onAdd && (
-              <button
-                className="btn btn-circle btn-ghost btn-xs text-neutral"
-                onClick={p.onAdd}
-              >
-                <Add style={{ fill: "inherit" }} />
-              </button>
-            )}
-            {p.onSelectColumns && (
-              <div className="dropdown mt-1">
-                <label
-                  tabIndex={0}
+                  indeterminate={props.table.getIsSomeRowsSelected()}
+                  header
+                  onChange={(e) => {
+                    p.setSelectAll?.(false);
+                    if (!e.target.checked) {
+                      props.table.resetRowSelection(true);
+                    } else {
+                      const array = Array.from(
+                        p.pageSize
+                          ? props.table.getRowModel().rows.slice(0, p.pageSize)
+                          : props.table.getRowModel().rows
+                      );
+                      props.table.setRowSelection(
+                        Object.fromEntries(array.map((row) => [row.id, true]))
+                      );
+                    }
+                  }}
+                />
+              )}
+              {p.onAdd && (
+                <button
                   className="btn btn-circle btn-ghost btn-xs text-neutral"
+                  onClick={p.onAdd}
                 >
-                  <MoreVert style={{ fill: "inherit" }} />
-                </label>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu p-2 shadow bg-neutral-focus rounded-box w-48 mt-2"
-                >
-                  <li onClick={p.onSelectColumns}>
-                    <a className="text-neutral-content">Show/Hide Columns</a>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {p.customHead}
+                  <Add style={{ fill: "inherit" }} />
+                </button>
+              )}
+              {/* @ts-ignore */}
+              {p.onSelectColumns && !props.footer && (
+                <div className="dropdown mt-1">
+                  <label
+                    tabIndex={0}
+                    className="btn btn-circle btn-ghost btn-xs text-neutral"
+                  >
+                    <MoreVert style={{ fill: "inherit" }} />
+                  </label>
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content menu p-2 shadow bg-neutral-focus rounded-box w-48 mt-2"
+                  >
+                    <li onClick={p.onSelectColumns}>
+                      <a className="text-neutral-content">Show/Hide Columns</a>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {/* @ts-ignore */}
+              {!props.footer && p.customHead}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
       cell: ({ row }: { row: any }) => (
         <div className="gap-1 items-center !min-w-full">
           {p.enableSelection && (
