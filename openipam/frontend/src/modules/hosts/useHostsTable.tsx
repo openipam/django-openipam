@@ -12,55 +12,10 @@ import { HostGlobalAutocomplete } from "./hostGlobalAutocomplete";
 import { getOrdering } from "../../components/table/getOrdering";
 import { getExpiresDateFromFilter } from "./expiresDateFilter";
 
-//TODO disabled columns only shows for admins.
-
-export const useHostsTable = (p: {
-  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
-  setEditHost: React.Dispatch<
-    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
-  >;
-  setRenewModule: React.Dispatch<
-    React.SetStateAction<{
-      show: boolean;
-      data: Host[] | undefined;
-      refetch: VoidFunction;
-    }>
-  >;
-  setActionModule: React.Dispatch<
-    React.SetStateAction<{
-      show: boolean;
-      data: Host[] | undefined;
-      title: string;
-      onSubmit?: (data: Host[]) => void;
-      children: ReactNode;
-      multiple?: boolean;
-    }>
-  >;
-  setAttributeModule: React.Dispatch<
-    React.SetStateAction<{
-      show: boolean;
-      data: Host[] | undefined;
-      delete?: boolean;
-    }>
-  >;
-  onSelectColumns: VoidFunction;
-  onAddByCsv: VoidFunction;
-  quickFilter?: string[][];
-  setCurrentFilters: (filters: {
-    columnFilters: ColumnFiltersState;
-    columnSort: any[];
-    globalFilter: { id: string; text: string }[];
-  }) => void;
-  customFilters?: {
-    columnFilters: ColumnFiltersState;
-    columnSort: any[];
-    globalFilter: { id: string; text: string }[];
-  };
-}) => {
+export const useHostsTable = (p: useHostsTableProps) => {
   const auth = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
-  //to map address type name to id
-  const addressTypes = useAddressTypes().data?.addressTypes;
+
   //Table state
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
@@ -70,6 +25,7 @@ export const useHostsTable = (p: {
   const [globalFilter, setGlobalFilter] = useState<
     { id: string; text: string }[]
   >([]);
+
   //Select All Rows feature
   const [selectAll, setSelectAll] = useState<boolean>(false);
 
@@ -141,37 +97,7 @@ export const useHostsTable = (p: {
   //Hosts data
   const data = useInfiniteHosts({
     ...Object.fromEntries(
-      columnFilters
-        .map((filter) => [
-          filter.id,
-          filter.value as string | number | string[],
-        ])
-        .map(([key, val]) => {
-          switch (key) {
-            case "expires":
-            case "changed":
-              return [];
-            case "mac":
-              return [`mac`, val ?? ""];
-            case "hostname":
-              return [`hostname`, val ?? ""];
-            case "group_owners":
-              return [`group`, val ?? ""];
-            case "user_owners":
-              return [`user`, val ?? ""];
-            case "disabled_host":
-              return [`disabled`, val];
-            case "ip_addresses":
-              return [`ip_address`, val ?? ""];
-            case "address_type":
-              return [
-                `address_type`,
-                addressTypes?.find((t) => t.name === val)?.id ?? "",
-              ];
-            default:
-              return [key, val ?? ""];
-          }
-        })
+      columnFilters.map((filter) => getKeyVal([filter.id, filter.value]))
     ),
     ...getExpiresDateFromFilter(
       columnFilters.find((filter) => filter.id === "expires")?.value as
@@ -229,14 +155,7 @@ export const useHostsTable = (p: {
       sorting: columnSort,
       columnVisibility,
     },
-    orderingColumns: [
-      "mac",
-      "hostname",
-      "expires",
-      "dhcp_group",
-      "ip_addresses",
-      "changed",
-    ],
+    orderingColumns,
     meta: {
       setSorting: setColumnSort,
       total: data.data?.pages?.[0]?.count,
@@ -272,13 +191,8 @@ export const useHostsTable = (p: {
       },
     },
     columns: HostTableColumns({
+      ...p,
       data,
-      setShowAddHost: p.setShowAddHost,
-      setEditHost: p.setEditHost,
-      setRenewModule: p.setRenewModule,
-      setActionModule: p.setActionModule,
-      onSelectColumns: p.onSelectColumns,
-      onAddByCsv: p.onAddByCsv,
       pageSize,
       setPageSize,
       setSelectAll,
@@ -297,4 +211,81 @@ export const useHostsTable = (p: {
     table,
     data.isFetching,
   ]);
+};
+
+const orderingColumns = [
+  "mac",
+  "hostname",
+  "expires",
+  "dhcp_group",
+  "ip_addresses",
+  "changed",
+];
+
+const getKeyVal = ([key, val]: any[]): any[] => {
+  //to map address type name to id
+  const addressTypes = useAddressTypes().data?.addressTypes;
+  switch (key) {
+    case "expires":
+      return [];
+    case "group_owners":
+      return [`group`, val ?? ""];
+    case "user_owners":
+      return [`user`, val ?? ""];
+    case "disabled_host":
+      return [`disabled`, val];
+    case "ip_addresses":
+      return [`ip_address`, val ?? ""];
+    case "address_type":
+      return [
+        `address_type`,
+        addressTypes?.find((t) => t.name === val)?.id ?? "",
+      ];
+    default:
+      return [key, val ?? ""];
+  }
+};
+
+type useHostsTableProps = {
+  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditHost: React.Dispatch<
+    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
+  >;
+  setRenewModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: VoidFunction;
+    }>
+  >;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      title: string;
+      onSubmit?: (data: Host[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
+  setAttributeModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      delete?: boolean;
+    }>
+  >;
+  onSelectColumns: VoidFunction;
+  onAddByCsv: VoidFunction;
+  quickFilter?: string[][];
+  setCurrentFilters: (filters: {
+    columnFilters: ColumnFiltersState;
+    columnSort: any[];
+    globalFilter: { id: string; text: string }[];
+  }) => void;
+  customFilters?: {
+    columnFilters: ColumnFiltersState;
+    columnSort: any[];
+    globalFilter: { id: string; text: string }[];
+  };
 };

@@ -5,6 +5,8 @@ import { useAddressTypes } from "../../hooks/queries/useAddressTypes";
 import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
 import { NetworkAutocomplete } from "../../components/autocomplete/networkAutocomplete";
 import { AddressAutocomplete } from "../../components/autocomplete/addressAutocomplete";
+import { Module } from "../../components/module";
+import { TitledInput } from "../../components/titledInput";
 
 export const EditHostModule = (p: {
   HostData: Host | undefined;
@@ -42,70 +44,33 @@ export const EditHostModule = (p: {
       });
   }, [p.HostData]);
   return (
-    <>
-      <input
-        type="checkbox"
-        hidden
-        checked={p.showModule}
-        onChange={(prev) => !prev}
-        id="add-Host-module"
-        className="modal-toggle"
-      />
-      <dialog id="add-Host-module" className="modal">
-        <div className="modal-box border border-white">
-          <label
-            htmlFor="add-Host-module"
-            onClick={() =>
-              p.setShowModule({
-                show: false,
-                HostData: undefined,
-              })
-            }
-            className="absolute top-0 right-0 p-4 cursor-pointer"
-          >
-            <svg
-              className="w-6 h-6 text-gray-500 hover:text-gray-300"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </label>
-          <h1 className="text-2xl font-bold mb-4">Update Host</h1>
+    <Module title={'Update Host'} showModule={p.showModule} onClose={() => {
+      p.setShowModule({
+        show: false,
+        HostData: undefined,
+      })
+    }}>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e: any) => {
               e.preventDefault();
               updateHost();
             }}
-          >
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-mac">Mac</label>
-              <input
-                type="text"
-                id="host-mac"
-                value={p.HostData?.mac ?? ""}
-                disabled
+            >
+              <TitledInput
+                title='Mac'
+                value={p.HostData?.mac ?? host.mac ?? ''}
                 onChange={() => {}}
-                className="input input-primary input-bordered"
+                disabled
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-name">Host Name</label>
-              <input
-                type="text"
-                id="host-name"
+              <TitledInput
+                title='Host Name'
                 value={host.hostname ?? ''}
-                onChange={(e) =>
-                  dispatch({ type: "hostname", payload: e.target.value })
-                }
-                className="input input-primary input-bordered"
+                onChange={(value) => {
+                  dispatch({ type: "hostname", payload: value });
+                }}
               />
-            </div>
+              
             <div className="flex flex-col gap-2">
               <label htmlFor="type">Address Type</label>
               <select
@@ -115,7 +80,7 @@ export const EditHostModule = (p: {
                   dispatch({ type: "address_type", payload: v.target.value });
                 }}
                 className="rounded-md p-2 select select-primary select-bordered"
-              >
+                >
                 {addressTypes?.map(({ name, description, id }) => (
                   <option value={name} key={id}>
                     {description}
@@ -133,7 +98,7 @@ export const EditHostModule = (p: {
                     className="toggle toggle-primary mx-8"
                     checked={networkToggle}
                     onChange={() => setNetworkToggle(!networkToggle)}
-                  />
+                    />
                   <label>Network</label>
                 </div>
               </div>
@@ -149,7 +114,7 @@ export const EditHostModule = (p: {
                   addressType={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
-                />
+                  />
               </div>
             )}
             {!isDynamic(host.address_type) && !networkToggle && (
@@ -164,7 +129,7 @@ export const EditHostModule = (p: {
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
                   available
-                />
+                  />
               </div>
             )}
             <div className="flex flex-col gap-2">
@@ -176,7 +141,7 @@ export const EditHostModule = (p: {
                   dispatch({ type: "expire_days", payload: v.target.value });
                 }}
                 className="rounded-md p-2 select select-bordered select-primary"
-              >
+                >
                 {Object.entries(choices).map(([key, value]) => (
                   <option value={key} key={key}>
                     {value}
@@ -193,7 +158,7 @@ export const EditHostModule = (p: {
                   dispatch({ type: "dhcp_group", payload: dhcp });
                 }}
                 DhcpId={host.dhcp_group}
-              />
+                />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="host-description">Description</label>
@@ -204,7 +169,7 @@ export const EditHostModule = (p: {
                   dispatch({ type: "description", payload: e.target.value })
                 }
                 className="input input-primary input-bordered"
-              />
+                />
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="host-last-check">Disable Host</label>
@@ -219,7 +184,7 @@ export const EditHostModule = (p: {
                 }}
                 id="host-disabled"
                 className="toggle toggle-primary toggle-sm"
-              />
+                />
             </div>
             {/* If disabled is checked, add reason */}
             {host.disabled_host && (
@@ -232,7 +197,7 @@ export const EditHostModule = (p: {
                     dispatch({ type: "reason", payload: e.target.value });
                   }}
                   className="input input-primary input-bordered"
-                />
+                  />
               </div>
             )}
             <div className="flex justify-end gap-4 mt-4">
@@ -245,7 +210,7 @@ export const EditHostModule = (p: {
                   })
                 }
                 type="reset"
-              >
+                >
                 Cancel
               </button>
               <button
@@ -257,14 +222,12 @@ export const EditHostModule = (p: {
                     HostData: undefined,
                   })
                 }
-              >
+                >
                 Update Host
               </button>
             </div>
           </form>
-        </div>
-      </dialog>
-    </>
+          </Module>
   );
 };
 

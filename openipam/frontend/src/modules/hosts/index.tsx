@@ -1,4 +1,4 @@
-import React, { ReactNode, Suspense, lazy, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { useHostsTable } from "./useHostsTable";
 import { Table } from "../../components/table/table";
 import { AddHostModule } from "./addHostModule";

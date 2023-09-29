@@ -10,44 +10,7 @@ import { MoreVert } from "@mui/icons-material";
 import { BooleanRender, booleanAccessor } from "../../components/table/boolean";
 import { ThemeContext } from "../../hooks/useTheme";
 
-export const HostTableColumns = (p: {
-  data: UseInfiniteQueryResult<
-    {
-      results: any;
-      page: any;
-      nextPage: any;
-      count: number;
-    },
-    unknown
-  >;
-  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
-  setEditHost: React.Dispatch<
-    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
-  >;
-  setRenewModule: React.Dispatch<
-    React.SetStateAction<{
-      show: boolean;
-      data: Host[] | undefined;
-      refetch: VoidFunction;
-    }>
-  >;
-  setActionModule: React.Dispatch<
-    React.SetStateAction<{
-      show: boolean;
-      data: Host[] | undefined;
-      title: string;
-      onSubmit?: (data: Host[]) => void;
-      children: ReactNode;
-      multiple?: boolean;
-    }>
-  >;
-  onSelectColumns: VoidFunction;
-  onAddByCsv: VoidFunction;
-  pageSize: number;
-  setPageSize: React.Dispatch<React.SetStateAction<number>>;
-  setSelectAll: React.Dispatch<React.SetStateAction<boolean>>;
-  auth: User | undefined;
-}) => {
+export const HostTableColumns = (p: HostTableColumnsInput) => {
   const columnHelper = createColumnHelper<Host>();
   const addressTypes = useAddressTypes().data?.addressTypes;
   const navigate = useNavigate();
@@ -432,3 +395,42 @@ export const expiredFilterOptions = [
   "30 Days Left",
   "Unexpired",
 ] as const;
+
+type HostTableColumnsInput = {
+  data: UseInfiniteQueryResult<
+    {
+      results: any;
+      page: any;
+      nextPage: any;
+      count: number;
+    },
+    unknown
+  >;
+  setShowAddHost: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditHost: React.Dispatch<
+    React.SetStateAction<{ show: boolean; HostData: Host | undefined }>
+  >;
+  setRenewModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      refetch: VoidFunction;
+    }>
+  >;
+  setActionModule: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      data: Host[] | undefined;
+      title: string;
+      onSubmit?: (data: Host[]) => void;
+      children: ReactNode;
+      multiple?: boolean;
+    }>
+  >;
+  onSelectColumns: VoidFunction;
+  onAddByCsv: VoidFunction;
+  pageSize: number;
+  setPageSize: React.Dispatch<React.SetStateAction<number>>;
+  setSelectAll: React.Dispatch<React.SetStateAction<boolean>>;
+  auth: User | undefined;
+};
