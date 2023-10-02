@@ -24,7 +24,7 @@ export const Module = (p: {
             className="absolute top-0 right-0 p-4 cursor-pointer"
           >
             <svg
-              className="w-6 h-6 bg-neutral-content text-neutral-content rounded-full"
+              className="w-6 h-6 bg-base-300 stroke-neutral-content rounded-full"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"

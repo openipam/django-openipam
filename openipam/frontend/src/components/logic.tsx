@@ -5,7 +5,7 @@ export const Show = (p: {
   when: boolean;
   fallback?: React.ReactNode;
 }) => {
-  p.when ? p.children : p.fallback;
+  return p.when ? p.children : p.fallback ?? <></>;
 };
 
 export const Switch = (p: { children: React.ReactNode; expression: any }) => {
