@@ -6,25 +6,18 @@ import { NetworkAutocomplete } from "../../components/autocomplete/networkAutoco
 import { AddressAutocomplete } from "../../components/autocomplete/addressAutocomplete";
 import { DhcpAutocomplete } from "../../components/autocomplete/dhcpGroupAutocomplete";
 import { useAuth } from "../../hooks/useAuth";
+import { Module } from "../../components/forms/module";
+import { FormFooter } from "../../components/forms/footer";
+import { TitledInput, TitledSelect, TitledTextArea, TitledToggle } from "../../components/forms/titledInput";
+import { Show } from "../../components/logic";
 
 export const AddHostModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
-  const auth = useAuth();
-  const [host, dispatch] = useReducer(hostReducer, {
-    mac: "",
-    hostname: "",
-    network: { id: 0, network: "" },
-    address_type: "Dynamic",
-    ip_address: { id: 0, address: "" },
-    description: "",
-    expire_days: 365,
-    error: {},
-  });
+  const [host, dispatch] = useReducer(hostReducer, initHost);
   const [networkToggle, setNetworkToggle] = useState(true);
-  const [error, setError] = useState<{[key: string]: string}>({});
   const addressTypes = useAddressTypes().data?.addressTypes;
   const addHost = async () => {
     const results = await api.hosts.create({ 
@@ -47,98 +40,51 @@ export const AddHostModule = (p: {
     return Boolean(addressTypes?.find((a) => a.name === addressType)?.pool);
   };
   return (
-    <>
-      <input
-        type="checkbox"
-        hidden
-        checked={p.showModule}
-        onChange={(prev) => !prev}
-        id="add-host-module"
-        className="modal-toggle"
-      />
-      <dialog id="add-host-module" className="modal">
-        <div className="modal-box bg-base-100 border border-neutral-content">
-          <label
-            htmlFor="add-host-module"
-            onClick={() => p.setShowModule(false)}
-            className="absolute top-0 right-0 p-4 cursor-pointer"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </label>
-          <h1 className="text-2xl font-bold mb-4">Add Host</h1>
+     <Module title={'Update Host'} showModule={p.showModule} onClose={() => {
+      p.setShowModule(false)
+    }}>
           <form
             className="flex flex-col gap-4"
-            onSubmit={(e: any) => {
-              e.preventDefault();
-              addHost();
-            }}
-          >
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-mac">Mac</label>
-              <input
-                type="text"
-                id="host-mac"
-                className={`input input-primary input-bordered ${host.error?.mac ? 'input-error': ''}`}
-                onChange={(e) =>
-                  dispatch({ type: "mac", payload: e.target.value })
-                }
-              />
-              {host.error?.mac && <p className="text-error">{host.error?.mac}</p>}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-name">Host Name</label>
-              <input
-                type="text"
-                id="host-name"
-                className="input input-primary input-bordered"
-                onChange={(e) =>
-                  dispatch({ type: "hostname", payload: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="type">Address Type</label>
-              <select
-                id={`type`}
-                value={host.address_type}
-                onChange={(v) => {
-                  dispatch({ type: "address_type", payload: v.target.value });
+            >
+              <TitledInput
+                title='Mac'
+                value={host.mac ?? ''}
+                onChange={(value) => {
+                  dispatch({ type: "mac", payload: value });
                 }}
-                className="select select-bordered select-primary"
-              >
+                error={host.error?.mac}
+                />
+            <TitledInput
+                title='Host Name'
+                value={host.hostname ?? ''}
+                onChange={(value) => {
+                  dispatch({ type: "hostname", payload: value });
+                }}
+              />
+            <TitledSelect
+                title='Address Type'
+                value={host.address_type ?? 'Other'}
+                onChange={(value) => {
+                  dispatch({ type: "address_type", payload: value });
+                }}
+                >
                 {addressTypes?.map(({ name, description, id }) => (
                   <option value={name} key={id}>
                     {description}
                   </option>
                 ))}
-              </select>
-            </div>
-            {!isDynamic(host.address_type) && (
-              <div className="flex flex-col gap-2 mt-2">
-                <div className="flex flex-row w-full m-auto justify-center gap-1">
-                  <label>IP Address</label>
-                  <input
-                    type="checkbox"
-                    className="toggle toggle-primary mx-8"
-                    checked={networkToggle}
-                    onChange={() => setNetworkToggle(!networkToggle)}
+              </TitledSelect>
+            <Show when={!isDynamic(host.address_type)}>
+                <TitledToggle
+                  title=""
+                  off="IP Address"
+                  on="Network"
+                  value={networkToggle}
+                  onChange={() => setNetworkToggle(!networkToggle)}
                   />
-                  <label>Network</label>
-                </div>
-              </div>
-            )}
-            {!isDynamic(host.address_type) && networkToggle && (
-              <div className="flex flex-col gap-2">
+              </Show>
+             <Show when={!isDynamic(host.address_type) && networkToggle}>
+                <div className="flex flex-col gap-2">
                 <label htmlFor="network">Network</label>
                 <NetworkAutocomplete
                   onNetworkChange={(network) => {
@@ -148,10 +94,10 @@ export const AddHostModule = (p: {
                   addressType={
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
-                />
+                  />
               </div>
-            )}
-            {!isDynamic(host.address_type) && !networkToggle && (
+              </Show>
+             <Show when={!isDynamic(host.address_type) && !networkToggle}>
               <div className="flex flex-col gap-2">
                 <label htmlFor="network">IP Address</label>
                 <AddressAutocomplete
@@ -163,26 +109,22 @@ export const AddHostModule = (p: {
                     addressTypes?.find((t) => t.name === host.address_type)?.id
                   }
                   available
-                />
+                  />
               </div>
-            )}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-expires">Expires</label>
-              <select
-                id={`expires`}
-                value={host.expire_days}
-                onChange={(v) => {
-                  dispatch({ type: "expire_days", payload: v.target.value });
-                }}
-                className="select select-bordered select-primary"
+            </Show>
+             <TitledSelect
+              title="Expires"
+              value={host.expire_days ?? 0}
+              onChange={(value) => {
+                dispatch({ type: "expire_days", payload: value });
+              }}
               >
-                {Object.entries(auth?.is_ipamadmin ? adminChoices : choices).map(([key, value]) => (
-                  <option value={key} key={key}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {Object.entries(choices).map(([key, value]) => (
+                <option value={key} key={key}>
+                  {value}
+                </option>
+              ))}
+            </TitledSelect>
             <div className="flex flex-col gap-2">
               <label htmlFor="dhcpGroup" className="label">
                 DHCP Group (Leave blank unless otherwise directed)
@@ -191,38 +133,24 @@ export const AddHostModule = (p: {
                 onDhcpChange={(dhcp) => {
                   dispatch({ type: "dhcp_group", payload: dhcp });
                 }}
+                />
+            </div>
+            <TitledTextArea
+              title="Description"
+              value={host.description ?? ''}
+              onChange={(value) => {
+                dispatch({ type: "description", payload: value });
+              }}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="host-description">Description</label>
-              <textarea
-                id="host-description"
-                className="input input-primary input-bordered"
-                onChange={(e) =>
-                  dispatch({ type: "description", payload: e.target.value })
-                }
+            <FormFooter
+              onCancel={() =>
+                p.setShowModule(false)
+              }
+              onSubmit={addHost}
+              submitText="Add Host"
               />
-            </div>
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                className="btn btn-neutral text-neutral-content"
-                onClick={() => p.setShowModule(false)}
-                type="reset"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary text-primary-content"
-                onClick={() => p.setShowModule(false)}
-              >
-                Add Host
-              </button>
-            </div>
           </form>
-        </div>
-      </dialog>
-    </>
+      </Module>
   );
 };
 
@@ -241,6 +169,17 @@ const adminChoices = {
   365: "1 Year",
   10950: "30 Years",
 };
+
+const initHost = {
+    mac: "",
+    hostname: "",
+    network: { id: 0, network: "" },
+    address_type: "Dynamic",
+    ip_address: { id: 0, address: "" },
+    description: "",
+    expire_days: 365,
+    error: {},
+  }
 
 const hostReducer = (state: any, action: any) => {
   let error = {}

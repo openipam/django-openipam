@@ -8,6 +8,7 @@ export const TitledInput = (p: {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  error?: string;
   props?: any;
 }) => {
   return (
@@ -24,6 +25,7 @@ export const TitledInput = (p: {
         disabled={p.disabled}
         {...p.props}
       />
+      {p.error && <p className="text-error">{p.error}</p>}
     </div>
   );
 };
