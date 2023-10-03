@@ -3,7 +3,7 @@ import React from "react";
 export const TitledInput = (p: {
   title: string;
   onChange: (value: string) => void;
-  value: string;
+  value: string | number;
   type?: string;
   placeholder?: string;
   className?: string;
