@@ -1,4 +1,6 @@
 import React, { ReactNode } from "react";
+import { Module } from "./forms/module";
+import { FormFooter } from "./forms/footer";
 
 export const SingleActionModule = (p: {
   data: any[];
@@ -10,86 +12,47 @@ export const SingleActionModule = (p: {
   multiple?: boolean;
 }) => {
   return (
-    <>
-      <input
-        type="checkbox"
-        hidden
-        checked={p.showModule}
-        onChange={(prev) => !prev}
-        id="action-module"
-        className="modal-toggle"
-      />
-      <dialog id="Dns-module" className="modal">
-        <div className="modal-box border border-white">
-          <label
-            htmlFor="action-module"
-            onClick={() =>
-              p.setShowModule({
-                show: false,
-                data: undefined,
-              })
-            }
-            className="absolute top-0 right-0 p-4 cursor-pointer"
-          >
-            <svg
-              className="w-6 h-6 text-gray-500 hover:text-gray-300"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </label>
-          <h1 className="text-2xl font-bold mb-4">{p.title}</h1>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e: any) => {
-              e.preventDefault();
-              if (p.multiple) {
-                p.onSubmit?.(e);
-                p.setShowModule({
-                  show: false,
-                  data: undefined,
-                });
-                return;
-              }
-              const data = e.target[0].value;
-              p.onSubmit?.(data);
-              p.setShowModule({
-                show: false,
-                data: undefined,
-              });
-            }}
-          >
-            {p.children}
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                className="btn btn-neutral text-neutral-content"
-                onClick={() =>
-                  p.setShowModule({
-                    show: false,
-                    data: undefined,
-                  })
-                }
-                type="reset"
-              >
-                Cancel
-              </button>
-              {p.onSubmit && (
-                <button
-                  type="submit"
-                  className="btn btn-primary text-primary-content"
-                >
-                  Submit
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-      </dialog>
-    </>
+    <Module
+      title={p.title}
+      showModule={p.showModule}
+      onClose={() => {
+        p.setShowModule({
+          show: false,
+          data: undefined,
+        });
+      }}
+    >
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(e: any) => {
+          e.preventDefault();
+          if (p.multiple) {
+            p.onSubmit?.(e);
+            p.setShowModule({
+              show: false,
+              data: undefined,
+            });
+            return;
+          }
+          const data = e.target[0].value;
+          p.onSubmit?.(data);
+          p.setShowModule({
+            show: false,
+            data: undefined,
+          });
+        }}
+      >
+        {p.children}
+        <FormFooter
+          onCancel={() =>
+            p.setShowModule({
+              show: false,
+              data: undefined,
+            })
+          }
+          onSubmit={p.onSubmit}
+        />
+      </form>
+    </Module>
   );
 };

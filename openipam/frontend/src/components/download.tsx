@@ -2,6 +2,7 @@ import { Download } from "@mui/icons-material";
 import React, { useEffect, useMemo, useState } from "react";
 import { IdToName } from "./idToName";
 import { Column } from "@tanstack/table-core";
+import { Show } from "./logic";
 
 export const ExportToCsv = (p: {
   columns: Column<any>[];
@@ -48,17 +49,15 @@ export const ExportToCsv = (p: {
 
   return (
     <div className="flex flex-col gap-4 items-center align-middle justify-center content-center">
-      {p.askVisible && (
-        <>
-          <label className="text-lg">Only include visible columns?</label>
-          <input
-            type="checkbox"
-            checked={onlyVisible}
-            onChange={(e) => setOnlyVisible(e.target.checked)}
-            className="toggle toggle-md toggle-primary input mb-4"
-          />
-        </>
-      )}
+      <Show when={p.askVisible}>
+        <label className="text-lg">Only include visible columns?</label>
+        <input
+          type="checkbox"
+          checked={onlyVisible}
+          onChange={(e) => setOnlyVisible(e.target.checked)}
+          className="toggle toggle-md toggle-primary input mb-4"
+        />
+      </Show>
       <a href={url} download={`${p.fileName}.csv`} className="text-neutral">
         <Download fontSize="large" style={{ fill: "inherit" }} />
       </a>

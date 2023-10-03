@@ -2,10 +2,10 @@ import React from "react";
 
 export const Show = (p: {
   children: React.ReactNode;
-  when: boolean;
+  when: boolean | any;
   fallback?: React.ReactNode;
 }) => {
-  return p.when ? p.children : p.fallback ?? <></>;
+  return Boolean(p.when) ? p.children : p.fallback ?? <></>;
 };
 
 export const Switch = (p: { children: React.ReactNode; expression: any }) => {

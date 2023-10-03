@@ -1,8 +1,9 @@
 import React from "react";
+import { Show } from "../logic";
 
 export const FormFooter = (p: {
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit?: (any?: any) => void;
   submitText?: string;
   cancelText?: string;
   submitClassName?: string;
@@ -25,18 +26,20 @@ export const FormFooter = (p: {
       >
         {p.cancelText ?? "Cancel"}
       </button>
-      <button
-        type="submit"
-        className={`btn btn-primary text-primary-content ${p.submitClassName}`}
-        onClick={() => {
-          setLoading(true);
-          p.onSubmit();
-          setLoading(false);
-        }}
-        disabled={p.submitDisabled || loading}
-      >
-        {p.submitText ?? "Submit"}
-      </button>
+      <Show when={p.onSubmit}>
+        <button
+          type="submit"
+          className={`btn btn-primary text-primary-content ${p.submitClassName}`}
+          onClick={() => {
+            setLoading(true);
+            p.onSubmit?.();
+            setLoading(false);
+          }}
+          disabled={p.submitDisabled || loading}
+        >
+          {p.submitText ?? "Submit"}
+        </button>
+      </Show>
     </div>
   );
 };

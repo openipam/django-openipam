@@ -5,6 +5,7 @@ export const Module = (p: {
   title: string;
   showModule: boolean;
   onClose: () => void;
+  form?: boolean;
 }) => {
   return (
     <>
@@ -36,7 +37,8 @@ export const Module = (p: {
             </svg>
           </label>
           <h1 className="text-2xl font-bold mb-4">{p.title}</h1>
-          {p.children}
+          {p.form && <form className="flex flex-col gap-4">{p.children}</form>}
+          {!p.form && p.children}
         </div>
       </dialog>
     </>
