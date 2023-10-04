@@ -1,140 +1,107 @@
-import React from "react";
+import React, { useReducer } from "react";
 import { useApi } from "../../hooks/useApi";
-import { CreateDomain } from "../../utils/types";
+import { Module } from "../../components/forms/module";
+import { FormFooter } from "../../components/forms/footer";
+import { TitledInput } from "../../components/forms/titledInput";
 
 export const AddDomainModule = (p: {
   showModule: boolean;
   setShowModule: (show: boolean) => void;
 }) => {
   const api = useApi();
-  const addDomain = async (domainData: CreateDomain) => {
-    const results = await api.domains.create({ ...domainData });
-    alert(`successfully created ${domainData.name}`);
+  const [domain, dispatch] = useReducer(domainReducer, initDomain);
+  const addDomain = async () => {
+    await api.domains.create({ ...domain });
     p.setShowModule(false);
   };
   return (
-    <>
-      <input
-        type="checkbox"
-        hidden
-        checked={p.showModule}
-        onChange={(prev) => !prev}
-        id="add-domain-module"
-        className="modal-toggle"
+    <Module
+      title={"Add Domain"}
+      showModule={p.showModule}
+      onClose={() => {
+        p.setShowModule(false);
+      }}
+      form
+    >
+      <TitledInput
+        title="Name"
+        value={domain.name}
+        onChange={(value) => dispatch({ type: "name", payload: value })}
       />
-      <dialog id="add-domain-module" className="modal">
-        <div className="modal-box border border-white">
-          <label
-            htmlFor="add-domain-module"
-            onClick={() => p.setShowModule(false)}
-            className="absolute top-0 right-0 p-4 cursor-pointer"
-          >
-            <svg
-              className="w-6 h-6 text-gray-500 hover:text-gray-300"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </label>
-          <h1 className="text-2xl font-bold mb-4">Add Domain</h1>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e: any) => {
-              e.preventDefault();
-              const domainData = {
-                name: e.target[0].value,
-                description: e.target[1].value,
-                master: e.target[2].value,
-                type: e.target[3].value,
-                notified_serial: e.target[4].value,
-                account: e.target[5].value,
-                last_check: e.target[6].value,
-                changed: new Date().toISOString(),
-              };
-              addDomain(domainData);
-            }}
-          >
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-name">Domain Name</label>
-              <input
-                type="text"
-                id="domain-name"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-description">Description</label>
-              <textarea
-                id="domain-description"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-master">Master</label>
-              <input
-                type="text"
-                id="domain-master"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-type">Type</label>
-              <input
-                type="text"
-                id="domain-type"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-type">Notified Serial</label>
-              <input
-                type="text"
-                id="domain-serial"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-account">Account</label>
-              <input
-                type="text"
-                id="domain-type"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="domain-last-check">Last Check</label>
-              <input
-                type="date"
-                min={new Date(0).getTime()}
-                max={new Date().getTime()}
-                id="domain-type"
-                className="input input-primary input-bordered"
-              />
-            </div>
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                className="btn btn-neutral text-neutral-content"
-                onClick={() => p.setShowModule(false)}
-                type="reset"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary text-primary-content"
-                onClick={() => p.setShowModule(false)}
-              >
-                Add Host
-              </button>
-            </div>
-          </form>
-        </div>
-      </dialog>
-    </>
+      <TitledInput
+        title="Description"
+        value={domain.description}
+        onChange={(value) => dispatch({ type: "description", payload: value })}
+      />
+      <TitledInput
+        title="Master"
+        value={domain.master}
+        onChange={(value) => dispatch({ type: "master", payload: value })}
+      />
+      <TitledInput
+        title="Type"
+        value={domain.type}
+        onChange={(value) => dispatch({ type: "type", payload: value })}
+      />
+      <TitledInput
+        title="Notified Serial"
+        value={domain.notified_serial}
+        onChange={(value) =>
+          dispatch({ type: "notified_serial", payload: value })
+        }
+      />
+      <TitledInput
+        title="Account"
+        value={domain.account}
+        onChange={(value) => dispatch({ type: "account", payload: value })}
+      />
+      <TitledInput
+        title="Last Check"
+        value={domain.last_check}
+        type="date"
+        props={{
+          min: new Date(0).getTime(),
+          max: new Date().getTime(),
+        }}
+        onChange={(value) => dispatch({ type: "last_check", payload: value })}
+      />
+      <FormFooter
+        onCancel={() => p.setShowModule(false)}
+        onSubmit={addDomain}
+        submitText="Add Domain"
+      />
+    </Module>
   );
+};
+
+const initDomain = {
+  name: "",
+  description: "",
+  master: "",
+  type: "",
+  notified_serial: "",
+  account: "",
+  last_check: "",
+  changed: new Date().toISOString(),
+};
+
+const domainReducer = (state: any, action: any) => {
+  switch (action.type) {
+    case "name":
+      return { ...state, name: action.payload };
+    case "description":
+      return { ...state, description: action.payload };
+    case "master":
+      return { ...state, master: action.payload };
+    case "type":
+      return { ...state, type: action.payload };
+    case "notified_serial":
+      return { ...state, notified_serial: action.payload };
+    case "account":
+      return { ...state, account: action.payload };
+    case "last_check":
+      return { ...state, last_check: action.payload };
+    default:
+      return state;
+  }
 };
