@@ -58,12 +58,12 @@ export const TitledTextArea = (p: {
 
 export const TitledSelect = (p: {
   title: string;
-  onChange: (value: string) => void;
-  value: string;
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
   props?: any;
+  onChange: (value: any) => void;
+  value: any;
 }) => {
   return (
     <div className="flex flex-col gap-2">

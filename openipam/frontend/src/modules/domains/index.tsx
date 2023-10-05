@@ -11,20 +11,8 @@ export const Domains = () => {
   const auth = useAuth();
   const [showAddDomain, setShowAddDomain] = useState(false);
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
-  const [actionModule, setActionModule] = useState<{
-    show: boolean;
-    data: Domain[] | undefined;
-    title: string;
-    onSubmit?: (data: Domain[]) => void;
-    children: ReactNode;
-    multiple?: boolean;
-  }>({
-    show: false,
-    data: undefined,
-    title: "",
-    onSubmit: () => {},
-    children: <></>,
-  });
+  const [actionModule, setActionModule] =
+    useState<ActionModule>(initActionModule);
   const [editDomain, setEditDomain] = useState<{
     show: boolean;
     domainData: CreateDomain | undefined;
@@ -32,6 +20,7 @@ export const Domains = () => {
     show: false,
     domainData: undefined,
   });
+
   const table = useDomainsTable({
     setShowAddDomain,
     setEditDomain,
@@ -40,6 +29,7 @@ export const Domains = () => {
     },
     setActionModule,
   });
+
   return (
     <div className="mt-4 flex flex-col items-center justify-center">
       <h1 className="text-2xl">Domains</h1>
@@ -73,4 +63,17 @@ export const Domains = () => {
       )}
     </div>
   );
+};
+
+const initActionModule = {
+  show: false as boolean,
+  data: undefined as Domain[] | undefined,
+  title: "" as string,
+  onSubmit: (() => {}) as ((data: Domain[]) => void) | undefined,
+  children: (<></>) as ReactNode,
+};
+
+type ActionModule = Omit<typeof initActionModule, "onSubmit"> & {
+  multiple?: boolean;
+  onSubmit?: ((data: Domain[]) => void) | undefined;
 };

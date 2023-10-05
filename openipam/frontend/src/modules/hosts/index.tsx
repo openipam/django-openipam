@@ -23,38 +23,11 @@ export const Hosts = () => {
     show: false,
     HostData: undefined,
   });
-  const [actionModule, setActionModule] = useState<{
-    show: boolean;
-    data: Host[] | undefined;
-    title: string;
-    onSubmit?: (data: Host[]) => void;
-    children: ReactNode;
-    multiple?: boolean;
-  }>({
-    show: false,
-    data: undefined,
-    title: "",
-    onSubmit: () => {},
-    children: <></>,
-  });
-  const [attributeModule, setAttributeModule] = useState<{
-    show: boolean;
-    data: Host[] | undefined;
-    delete?: boolean;
-  }>({
-    show: false,
-    data: undefined,
-    delete: false,
-  });
-  const [renewModule, setRenewModule] = useState<{
-    show: boolean;
-    data: Host[] | undefined;
-    refetch: VoidFunction;
-  }>({
-    show: false,
-    data: undefined,
-    refetch: () => {},
-  });
+  const [actionModule, setActionModule] =
+    useState<ActionModule>(initActionModule);
+  const [attributeModule, setAttributeModule] =
+    useState<AttributeModule>(initAttributeModule);
+  const [renewModule, setRenewModule] = useState<RenewModule>(initRenewModule);
   const [addByCsv, setAddByCsv] = useState(false);
   const table = useHostsTable({
     setShowAddHost,
@@ -116,4 +89,35 @@ export const Hosts = () => {
       <AddByCSVModule showModule={addByCsv} setShowModule={setAddByCsv} />
     </div>
   );
+};
+
+const initActionModule = {
+  show: false as boolean,
+  data: undefined as Host[] | undefined,
+  title: "" as string,
+  onSubmit: (() => {}) as ((data: Host[]) => void) | undefined,
+  children: (<></>) as ReactNode,
+};
+
+type ActionModule = Omit<typeof initActionModule, "onSubmit"> & {
+  multiple?: boolean;
+  onSubmit?: ((data: Host[]) => void) | undefined;
+};
+
+const initRenewModule = {
+  show: false as boolean,
+  data: undefined as Host[] | undefined,
+  refetch: (() => {}) as VoidFunction,
+};
+
+type RenewModule = typeof initRenewModule;
+
+const initAttributeModule = {
+  show: false as boolean,
+  data: undefined as Host[] | undefined,
+  delete: false as boolean | undefined,
+};
+
+type AttributeModule = Omit<typeof initAttributeModule, "delete"> & {
+  delete?: boolean;
 };

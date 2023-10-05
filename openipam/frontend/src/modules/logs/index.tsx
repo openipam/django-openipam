@@ -13,6 +13,7 @@ export const Logs = () => {
       </div>
     );
   }
+
   return (
     <div className="mt-4 flex flex-col items-center justify-center">
       <h1 className="text-2xl">Logs</h1>

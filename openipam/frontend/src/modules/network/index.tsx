@@ -10,6 +10,7 @@ import { EditAddressModule } from "./editAddressModule";
 
 export const Network = () => {
   const auth = useAuth();
+
   const { network, range } = useParams();
   const [showModule, setShowModule] = useState(false);
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
@@ -17,20 +18,9 @@ export const Network = () => {
     show: false,
     address: undefined as Address | undefined,
   });
-  const [actionModule, setActionModule] = useState<{
-    show: boolean;
-    data: Address[] | undefined;
-    title: string;
-    onSubmit?: (data: Address[]) => void;
-    children: ReactNode;
-    multiple?: boolean;
-  }>({
-    show: false,
-    data: undefined,
-    title: "",
-    onSubmit: () => {},
-    children: <></>,
-  });
+  const [actionModule, setActionModule] =
+    useState<ActionModule>(initActionModule);
+
   const data = useAddressesTable({
     network: network ?? "",
     range: range ?? "",
@@ -41,6 +31,7 @@ export const Network = () => {
     },
     setActionModule,
   });
+
   if (!auth?.is_ipamadmin) {
     return (
       <div className="m-auto mt-8 overflow-x-scroll flex flex-col gap-2 items-center justify-center text-white">
@@ -48,6 +39,7 @@ export const Network = () => {
       </div>
     );
   }
+
   return (
     <div className="m-4 flex flex-col gap-2 items-center justify-center text-white">
       <h1 className="text-4xl">
@@ -76,4 +68,17 @@ export const Network = () => {
       />
     </div>
   );
+};
+
+const initActionModule = {
+  show: false as boolean,
+  data: undefined as Address[] | undefined,
+  title: "" as string,
+  onSubmit: (() => {}) as ((data: Address[]) => void) | undefined,
+  children: (<></>) as ReactNode,
+};
+
+type ActionModule = Omit<typeof initActionModule, "onSubmit"> & {
+  multiple?: boolean;
+  onSubmit?: ((data: Address[]) => void) | undefined;
 };

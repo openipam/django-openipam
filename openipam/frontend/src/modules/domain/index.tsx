@@ -13,6 +13,7 @@ import { useDhcpTable } from "./useDhcpTable";
 import { useAuth } from "../../hooks/useAuth";
 import { SingleActionModule } from "../../components/singleActionModule";
 import { AddDHCPDnsModule } from "./addDHCPModule";
+import { Show } from "../../components/logic";
 
 const tabs = ["DNS", "DHCP"];
 
@@ -20,25 +21,13 @@ export const DomainPage = () => {
   const auth = useAuth();
   const { domain } = useParams();
   const [domainInfo, setDomainInfo] = useState<Domain | undefined>();
-  const [tab, setTab] = useState<typeof tabs[number]>("DNS");
+  const [tab, setTab] = useState<(typeof tabs)[number]>("DNS");
   const [selectingColumns, setSelectingColumns] = useState<boolean>(false);
   const [showModule, setShowModule] = useState<boolean>(false);
   const [showDhcpModule, setShowDhcpModule] = useState<boolean>(false);
 
-  const [actionModule, setActionModule] = useState<{
-    show: boolean;
-    data: DnsRecord[] | undefined;
-    title: string;
-    onSubmit?: (data: DnsRecord[]) => void;
-    children: ReactNode;
-    multiple?: boolean;
-  }>({
-    show: false,
-    data: undefined,
-    title: "",
-    onSubmit: () => {},
-    children: <></>,
-  });
+  const [actionModule, setActionModule] =
+    useState<ActionModule>(initActionModule);
 
   const [showEditDomainModule, setShowEditDomainModule] = useState<{
     show: boolean;
@@ -86,7 +75,7 @@ export const DomainPage = () => {
       <div className="flex flex-col gap-4 m-8 justify-center items-center content-center">
         <div className="card w-[80%] md:w-[50rem] bg-base-300 shadow-xl">
           <div className="card-body relative">
-            {auth?.is_ipamadmin && (
+            <Show when={auth?.is_ipamadmin}>
               <div className="absolute r-2">
                 <button
                   className="btn btn-circle btn-ghost btn-xs"
@@ -100,41 +89,45 @@ export const DomainPage = () => {
                   <Edit />
                 </button>
               </div>
-            )}
+            </Show>
             <div className="card-title text-2xl justify-center">
               Domain Info
             </div>
-            {domainInfo && (
+            <Show when={domainInfo}>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Last Changed:</div>
                   <div className="text-xl col-span-2">
-                    {domainInfo.changed
-                      ? new Date(domainInfo.changed).toISOString().split("T")[0]
+                    {domainInfo!.changed
+                      ? new Date(domainInfo!.changed)
+                          .toISOString()
+                          .split("T")[0]
                       : ""}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Changed By:</div>
                   <div className="text-xl col-span-2">
-                    {domainInfo.changed_by}
+                    {domainInfo!.changed_by}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">User Permissions:</div>
                   <div className="text-xl col-span-2">
-                    {Object.entries(domainInfo.user_perms).map(([key, val]) => (
-                      <div key={key}>
-                        {key}: {val as string}
-                      </div>
-                    ))}
+                    {Object.entries(domainInfo!.user_perms).map(
+                      ([key, val]) => (
+                        <div key={key}>
+                          {key}: {val as string}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 grid-cols-3 w-full justify-between">
                   <div className="col-span-1 text-xl">Group Permissions:</div>
 
                   <div className="text-xl col-span-2">
-                    {Object.entries(domainInfo.group_perms).map(
+                    {Object.entries(domainInfo!.group_perms).map(
                       ([key, val]) => (
                         <div key={key}>
                           {key}: {val as string}
@@ -147,11 +140,11 @@ export const DomainPage = () => {
                   <div className="col-span-1 text-xl">Description:</div>
 
                   <div className="text-xl col-span-2">
-                    {domainInfo.description}
+                    {domainInfo!.description}
                   </div>
                 </div>
               </div>
-            )}
+            </Show>
           </div>
         </div>
       </div>
@@ -202,4 +195,17 @@ export const DomainPage = () => {
       />
     </div>
   );
+};
+
+const initActionModule = {
+  show: false as boolean,
+  data: undefined as DnsRecord[] | undefined,
+  title: "" as string,
+  onSubmit: (() => {}) as ((data: DnsRecord[]) => void) | undefined,
+  children: (<></>) as ReactNode,
+};
+
+type ActionModule = Omit<typeof initActionModule, "onSubmit"> & {
+  multiple?: boolean;
+  onSubmit?: ((data: DnsRecord[]) => void) | undefined;
 };
