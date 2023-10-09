@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAttributes } from "../hooks/queries/useAtributes";
 import { useApi } from "../hooks/useApi";
+import { Show } from "./logic";
 
 export const Attributes = (p: {
   attributes: {
@@ -18,17 +19,16 @@ export const Attributes = (p: {
   }, [p.attributes]);
 
   const onSubmit = async () => {
-    const results = await api.hosts.byId(p.mac).update({
+    await api.hosts.byId(p.mac).update({
       attributes: newAttributes,
     });
-    alert("TODO: submitted");
   };
 
   return (
     <div className={`card w-[80%] relative md:w-[50rem] bg-base-300 shadow-xl`}>
       <div className="card-body">
         <h2 className="card-title">Attributes</h2>
-        {p.attributes && !edit && (
+        <Show when={p.owner && !edit}>
           <div className="flex flex-col gap-2">
             {Object.entries(p.attributes ?? {}).map(([key, value]) => (
               <div className="flex flex-col gap-2" key={key}>
@@ -49,8 +49,8 @@ export const Attributes = (p: {
               </div>
             ))}
           </div>
-        )}
-        {p.attributes && edit && (
+        </Show>
+        <Show when={p.attributes && edit}>
           <div className="flex flex-col gap-2">
             {attributes.data?.attributes.map(
               ({
@@ -74,21 +74,23 @@ export const Attributes = (p: {
                   <label htmlFor={`host-${name}`} className="text-sm m-0 p-0">
                     {description}
                   </label>
-                  {!choices?.length && (
-                    <input
-                      type="text"
-                      id={`host-${name}`}
-                      value={newAttributes[name] ?? ""}
-                      onChange={(v) => {
-                        setNewAttributes({
-                          ...newAttributes,
-                          [name]: v.target.value,
-                        });
-                      }}
-                      className="rounded-md p-2 input input-bordered"
-                    />
-                  )}
-                  {choices?.length && (
+                  <Show
+                    when={choices?.length}
+                    fallback={
+                      <input
+                        type="text"
+                        id={`host-${name}`}
+                        value={newAttributes[name] ?? ""}
+                        onChange={(v) => {
+                          setNewAttributes({
+                            ...newAttributes,
+                            [name]: v.target.value,
+                          });
+                        }}
+                        className="rounded-md p-2 input input-bordered"
+                      />
+                    }
+                  >
                     <select
                       id={`host-${name}`}
                       value={newAttributes[name] ?? ""}
@@ -106,13 +108,13 @@ export const Attributes = (p: {
                         </option>
                       ))}
                     </select>
-                  )}
+                  </Show>
                 </div>
               )
             )}
           </div>
-        )}
-        {p.owner && (
+        </Show>
+        <Show when={p.owner}>
           <div className="flex flex-row gap-2">
             <button
               className="btn btn-primary btn-md text-primary-content"
@@ -125,16 +127,16 @@ export const Attributes = (p: {
             >
               {edit ? "Save" : "Edit"}
             </button>
-            {edit && (
+            <Show when={edit}>
               <button
                 className="btn btn-neutral text-neutral-content btn-md"
                 onClick={() => setEdit(!edit)}
               >
                 Cancel
               </button>
-            )}
+            </Show>
           </div>
-        )}
+        </Show>
       </div>
     </div>
   );

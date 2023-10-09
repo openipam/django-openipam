@@ -4,7 +4,6 @@ import {
   getFacetedMinMaxValues,
   getFacetedRowModel,
   getFacetedUniqueValues,
-  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import React from "react";

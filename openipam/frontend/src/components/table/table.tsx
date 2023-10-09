@@ -5,41 +5,10 @@ import { PrimaryTable } from "./primaryTable";
 import React from "react";
 import { SelectColumnModal } from "./selectColumnModal";
 
-declare module "@tanstack/table-core" {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    tdProps?: (
-      p: TData
-    ) => Record<string, any> & {
-      className?: Component<HTMLTableCellElement>["props"]["className"];
-    };
-    thProps?: () => Record<string, any> & {
-      className?: Component<HTMLTableCellElement>["props"]["className"];
-    };
-    filterOptions?: string[] | null;
-    filterType?: "string" | "date" | "exact" | "boolean" | "custom" | null;
-    hideFilter?: boolean;
-    filter?: ReactNode;
-    hideSort?: boolean;
-  }
-
-  interface TableMeta<TData extends RowData> {
-    trProps?: (p: TData) => Record<string, any>;
-    rowActions?: (p: TData) => React.ReactNode;
-    total?: number;
-    pageSize?: number;
-    globalFilter?: ReactNode;
-    page?: number;
-    setPage?: React.Dispatch<React.SetStateAction<number>>;
-    setSorting?: React.Dispatch<React.SetStateAction<any | undefined>>;
-  }
-}
-
 export const Table = (
   p: {
-    estimateColumnSize?: number;
     table: ReactTable<any>;
     loading: boolean;
-    className?: string;
   } & (
     | {
         showSelectColumns: boolean;
@@ -63,11 +32,34 @@ export const Table = (
           <div></div>
         )}
       </div>
-      <PrimaryTable
-        table={p.table}
-        estimateColumnSize={p.estimateColumnSize}
-        className={p.className}
-      />
+      <PrimaryTable table={p.table} />
     </div>
   );
 };
+
+declare module "@tanstack/table-core" {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    tdProps?: (p: TData) => Record<string, any> & {
+      className?: Component<HTMLTableCellElement>["props"]["className"];
+    };
+    thProps?: () => Record<string, any> & {
+      className?: Component<HTMLTableCellElement>["props"]["className"];
+    };
+    filterOptions?: string[] | null;
+    filterType?: "string" | "date" | "exact" | "boolean" | "custom" | null;
+    hideFilter?: boolean;
+    filter?: ReactNode;
+    hideSort?: boolean;
+  }
+
+  interface TableMeta<TData extends RowData> {
+    trProps?: (p: TData) => Record<string, any>;
+    rowActions?: (p: TData) => React.ReactNode;
+    total?: number;
+    pageSize?: number;
+    globalFilter?: ReactNode;
+    page?: number;
+    setPage?: React.Dispatch<React.SetStateAction<number>>;
+    setSorting?: React.Dispatch<React.SetStateAction<any | undefined>>;
+  }
+}

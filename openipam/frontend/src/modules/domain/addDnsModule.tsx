@@ -265,7 +265,6 @@ const initDNs = {
 type DnsState = typeof initDNs;
 
 const DnsReducer = (state: DnsState, action: any) => {
-  let error = {};
   switch (action.type) {
     case "name":
       return { ...state, name: action.payload };
