@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.admin.sites import AdminSite
-from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
 from django.template import loader
 from django.conf import settings
@@ -22,9 +21,7 @@ from django.utils.translation import ugettext as _
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 from django.db.utils import DataError
-from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeDoneView
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.contrib.auth.views import LoginView
 from django.urls import reverse
 
 from openipam.core.models import FeatureRequest
@@ -39,7 +36,6 @@ import os
 import random
 import sys
 import json
-import ipaddress
 
 import logging
 

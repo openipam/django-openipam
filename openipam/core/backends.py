@@ -100,7 +100,7 @@ class _IPAMLDAPUser(_LDAPUser):
                     obj.source.save()
                 new_groups.append(obj)
 
-        self._user.groups = static_groups + existing_groups + new_groups
+        self._user.groups.set(static_groups + existing_groups + new_groups)
 
 
 class LoggingEmailBackend(EmailBackend):
