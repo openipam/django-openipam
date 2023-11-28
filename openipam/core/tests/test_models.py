@@ -54,7 +54,7 @@ class IPAMTestCase(TestCase):
     def _add_dns_record(self, record, user):
         if isinstance(record["dns_type"], string_types):
             record["dns_type"] = DnsType.objects.get(name=record["dns_type"])
-        if "ip_content" in record and type(record["ip_content"]) == str:
+        if "ip_content" in record and isinstance(record["ip_content"], str):
             record["ip_content"] = Address.objects.get(address=record["ip_content"])
         if "did" not in record:
             parts = record["name"].split(".")
