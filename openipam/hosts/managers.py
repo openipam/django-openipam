@@ -102,12 +102,13 @@ class HostQuerySet(QuerySet):
             else:
                 return qs
 
-    def by_expiring(self, ids_only=False, omit_guests=False):
+    def by_expiring(self, ids_only=False, omit_guests=False, mac_last_seen=False):
         cursor = connection.cursor()
         try:
             cursor.execute(
                 """
-                SELECT DISTINCT h.mac from hosts h
+                SELECT DISTINCT h.mac
+                    FROM hosts h
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
@@ -131,6 +132,9 @@ class HostQuerySet(QuerySet):
 
         if ids_only is False:
             hosts = self.filter(mac__in=hosts)
+
+        if mac_last_seen:
+            hosts = self.select_related("mac_history").filter(mac__in=hosts)
 
         return hosts
 
