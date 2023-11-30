@@ -477,7 +477,7 @@ class HostRenewSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.expire_days = validated_data.get("expire_days")
         instance.user = self.context["request"].user
-        instance.exipires = instance.set_expiration(validated_data.get("expire_days"))
+        instance.expires = instance.set_expiration(validated_data.get("expire_days"))
         instance.save(user=instance.user, force_update=True)
 
         return instance
