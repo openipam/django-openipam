@@ -18,8 +18,8 @@ class LeaseFilter(FilterSet):
     ip = CharFilter(field_name="pk")
     mac = CharFilter(field_name="host_id")
 
-    starts_lte = IsoDateTimeFilter(field_name="starts", lookup_expr="lte")
-    ends_gte = IsoDateTimeFilter(field_name="ends", lookup_expr="gte")
+    starts_gte = IsoDateTimeFilter(field_name="starts", lookup_expr="gte")
+    ends_lte = IsoDateTimeFilter(field_name="ends", lookup_expr="lte")
 
     class Meta:
         model = Lease
