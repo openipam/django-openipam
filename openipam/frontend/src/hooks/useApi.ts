@@ -184,6 +184,9 @@ export const useApi = () => {
           addresses: {
             get: requestGenerator(HttpMethod.GET, `networks/${id}/addresses/`),
           },
+          realeaseAbandoned: () => {},
+          tag: () => {},
+          resize: () => {},
         };
       },
     },

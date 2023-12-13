@@ -17,7 +17,7 @@ export const NetworksTableActions = (p: {
   rows: Network[];
   table: Table<any>;
 }) => {
-  const [action, setAction] = useState<string>("renew");
+  const [action, setAction] = useState<string>("tagNetwork");
   const api = useApi();
 
   return (
@@ -41,7 +41,78 @@ export const NetworksTableActions = (p: {
         <button
           className="btn btn-primary text-primary-content"
           onClick={() => {
+            console.log(action);
             switch (action) {
+              case "tagNetwork":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Add Tag(s)",
+                  multiple: true,
+                  onSubmit: async (e: any) => {
+                    const tags = e.target[0].value.split(",");
+                    await Promise.all(
+                      p.rows
+                        .map((network) => {
+                          return [
+                            ...(tags.length && tags?.[0] !== ""
+                              ? [api.networks.byId(network.network).tag()]
+                              : []),
+                          ];
+                        })
+                        .flat()
+                    );
+                  },
+                  children: (
+                    <div>
+                      <p>Tip: add multiple tags by separating with a comma</p>
+                      <label className="label">Tags</label>
+                      <input className="input input-bordered input-primary" />
+                    </div>
+                  ),
+                });
+                break;
+              case "resizeNetwork":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Set Network Size",
+                  onSubmit: async (v) => {
+                    await Promise.all(
+                      p.rows.map((network) => {
+                        api.networks.byId(network.network).resize();
+                      })
+                    );
+                  },
+                  children: (
+                    <div className="h-80">
+                      <label className="label">
+                        Only increases in Network size are supported
+                      </label>
+                      <input className="input input-primary input-bordered" />
+                    </div>
+                  ),
+                });
+                break;
+              case "releaseAbandonedLeases":
+                p.setActionModule({
+                  show: true,
+                  data: p.rows,
+                  title: "Release Abandoned Leases",
+                  onSubmit: async () => {
+                    await Promise.all(
+                      p.rows.map((network) => {
+                        api.networks.byId(network.network).realeaseAbandoned();
+                      })
+                    );
+                  },
+                  children: (
+                    <div>
+                      <input className="hidden" />
+                    </div>
+                  ),
+                });
+                break;
               default:
                 break;
             }
