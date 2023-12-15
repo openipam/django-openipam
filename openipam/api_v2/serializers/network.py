@@ -9,6 +9,7 @@ from openipam.network.models import (
     Network,
     Pool,
     AddressType,
+    SharedNetwork,
 )
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
@@ -28,6 +29,16 @@ class VlanSerializer(ModelSerializer):
 
         model = Vlan
         fields = ["id", "vlan_id", "name", "description"]
+
+
+class SharedNetworkSerializer(ModelSerializer):
+    """Serializer for shared network objects."""
+
+    class Meta:
+        """Meta class for shared network serializer."""
+
+        model = SharedNetwork
+        fields = ["id", "name", "description"]
 
 
 class NetworkSerializer(ModelSerializer):

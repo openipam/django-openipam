@@ -77,7 +77,12 @@ export const NetworksTableActions = (p: {
                   show: true,
                   data: p.rows,
                   title: "Set Network Size",
-                  onSubmit: async (v) => {
+                  onSubmit: async (v: any) => {
+                    const size: string = v.target[0].value;
+                    if (!size.match(/^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/)) {
+                      alert("invalid network size");
+                      return;
+                    }
                     await Promise.all(
                       p.rows.map((network) => {
                         api.networks.byId(network.network).resize();

@@ -195,6 +195,7 @@ export type Network = {
   };
   changed: string;
   dhcp_group: string;
+  tags?: string[];
 };
 
 export const DNS_TYPES = [

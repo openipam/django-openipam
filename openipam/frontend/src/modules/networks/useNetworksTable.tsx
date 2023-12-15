@@ -85,10 +85,10 @@ export const useNetworksTable = (p: {
       onView: (row) => {
         navigate(`/networks/${row.network}`);
       },
-      onEdit: (row) => {
+      onEdit: (row: Network) => {
         p.setEditModule({
           show: true,
-          network: row.network,
+          network: row,
         });
       },
       onSelectColumns: p.onSelectColumns,

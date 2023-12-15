@@ -12,6 +12,7 @@ from ..permissions import ReadRestrictObjectPermissions
 from ..serializers.network import (
     DhcpGroupSerializer,
     NetworkSerializer,
+    SharedNetworkSerializer,
     AddressSerializer,
     PoolSerializer,
     AddressTypeSerializer,
@@ -25,10 +26,14 @@ from openipam.network.models import (
     NetworkRange,
     Pool,
     AddressType,
+    Lease,
+    DefaultPool,
+    SharedNetwork,
 )
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
 from guardian.shortcuts import get_objects_for_user
+from .base import APIModelViewSet
 
 
 class AddressPagination(APIPagination):
@@ -41,7 +46,7 @@ class AddressPagination(APIPagination):
     max_page_size = 256
 
 
-class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
+class NetworkViewSet(APIModelViewSet):
     """API endpoint that allows networks to be viewed"""
 
     # TODO: figure out how to support editing networks. This is a read-only viewset
@@ -79,6 +84,23 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
             self.queryset,
             any_perm=True,
         )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=SharedNetwork.objects.all(),
+        serializer_class=SharedNetworkSerializer,
+        pagination_class=APIPagination,
+        filter_backends=[],
+        url_path=r"shared-networks",
+        url_name="shared-networks",
+    )
+    def shared_networks(self, request):
+        """Return all shared networks."""
+        shared_networks = self.get_queryset()
+        paginated = self.paginate_queryset(shared_networks)
+        serializer = self.get_serializer(paginated, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
@@ -125,7 +147,102 @@ class NetworkViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(address)
         return Response(serializer.data)
 
-    # don't need the action here, use the viewset below
+    @action(
+        detail=True,
+        methods=["get"],
+        queryset=Network.objects.all(),
+        serializer_class=NetworkSerializer,
+        filter_backends=[],
+        url_path=r"release-abandoned-leases",
+        url_name="release-abandoned-leases",
+    )
+    def release_abandoned_leases(self, request, pk=None):
+        """Release abandoned leases in a given network."""
+        network = Network.objects.get(network=pk)
+        Lease.objects.filter(
+            address__address__net_contained_or_equal=network.network, abandoned=True
+        ).update(abandoned=False, host="000000000000")
+        return Response(status=200, data={"detail": "Abandoned leases released."})
+
+    @action(
+        detail=True,
+        methods=["get"],
+        queryset=Network.objects.all(),
+        serializer_class=NetworkSerializer,
+        filter_backends=[],
+        url_path=r"tag-network",
+        url_name="tag-network",
+    )
+    def tag_network(self, request, pk=None):
+        """Tag a network."""
+        network = Network.objects.get(network=pk)
+        tags = request.query_params.get("tags", None)
+        try:
+            tags = tags.split(",")
+            network.tags.add(tags)
+            network.save()
+            return Response(status=200, data={"detail": "Network tagged."})
+        except Exception:
+            return Response(status=400, data={"detail": "Invalid tags."})
+
+    # resize network
+    @action(
+        detail=True,
+        methods=["get"],
+        queryset=Network.objects.all(),
+        serializer_class=NetworkSerializer,
+        filter_backends=[],
+        url_path=r"resize-network",
+        url_name="resize-network",
+    )
+    def resize_network(self, request, pk=None):
+        """Resize a network."""
+        network = Network.objects.get(network=pk)
+        new_network = request.query_params.get("new_network", None)
+        if new_network:
+            # Update primary key
+            Network.objects.filter(network=network).update(network=new_network)
+            new_network = Network.objects.filter(network=new_network).first()
+
+            addresses = []
+            existing_addresses = [
+                address.address
+                for address in Address.objects.filter(
+                    address__net_contained_or_equal=new_network
+                )
+            ]
+
+            for address in new_network.network:
+                if address not in existing_addresses:
+                    reserved = False
+                    if address in (
+                        new_network.gateway,
+                        new_network.network[0],
+                        new_network.network[-1],
+                    ):
+                        reserved = True
+                    pool = (
+                        DefaultPool.objects.get_pool_default(address)
+                        if not reserved
+                        else None
+                    )
+                    addresses.append(
+                        # TODO: Need to set pool eventually.
+                        Address(
+                            address=address,
+                            network=new_network,
+                            reserved=reserved,
+                            pool=pool,
+                            changed_by=request.user,
+                        )
+                    )
+            if addresses:
+                Address.objects.bulk_create(addresses)
+
+            network.save()
+            return Response(status=200, data={"detail": "Network resized."})
+        else:
+            return Response(status=400, data={"detail": "Invalid network."})
 
 
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):

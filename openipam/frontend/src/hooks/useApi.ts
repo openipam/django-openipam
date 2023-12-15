@@ -178,15 +178,25 @@ export const useApi = () => {
     },
     networks: {
       get: requestGenerator(HttpMethod.GET, "networks/"),
+      getSharedNetworks: requestGenerator(
+        HttpMethod.GET,
+        "networks/shared-networks/"
+      ),
       byId(id: string) {
         return {
           get: requestGenerator(HttpMethod.GET, `networks/${id}/`),
           addresses: {
             get: requestGenerator(HttpMethod.GET, `networks/${id}/addresses/`),
           },
-          realeaseAbandoned: () => {},
-          tag: () => {},
-          resize: () => {},
+          realeaseAbandoned: requestGenerator(
+            HttpMethod.GET,
+            `networks/${id}/release-abandoned-leases/`
+          ),
+          tag: requestGenerator(HttpMethod.GET, `networks/${id}/tag-network/`),
+          resize: requestGenerator(
+            HttpMethod.GET,
+            `networks/${id}/resize-network/`
+          ),
         };
       },
     },
