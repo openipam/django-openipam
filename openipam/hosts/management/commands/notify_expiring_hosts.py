@@ -5,15 +5,18 @@ from django.core.mail import send_mail, send_mass_mail, get_connection
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
+from django.contrib.auth import get_user_model
 from openipam.user.utils.user_utils import populate_user_from_ldap
 
 from datetime import timedelta
 from django.utils import timezone
 
+User = get_user_model()
+
 
 class Command(BaseCommand):
     args = ""
-    help = "Convert Dns Type Permissions"
+    help = "Script for Auto Renewals and Notifications for hosts due to expire."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -146,14 +149,16 @@ http://usu.service-now.com (Issue Tracking System)
         row_fmt = "%(hostname)-40s %(mac)-22s %(days)3s days      %(description)s"
 
         # Get list of people who need to be notified.
-        host_qs = Host.objects.prefetch_related("pools").by_expiring(
-            omit_guests=True, mac_last_seen=True
+        host_qs = (
+            Host.objects.prefetch_related("pools")
+            .by_expiring(omit_guests=True)
+            .select_related("mac_history")
         )
 
         users_to_notify = {}
         messages = []
         bad_users = []
-
+        admin_user = User.objects.get(username="admin")
         for host in host_qs:
             host_users = host.get_owners(users_only=True)
             try:
@@ -167,9 +172,9 @@ http://usu.service-now.com (Issue Tracking System)
                         )
                     else:
                         host.expire_days = 30
-                        host.user = host_users[0]
-                        host.exipires = host.set_expiration(host.expire_days)
-                        host.save(user=host.user, force_update=True)
+                        host.user = admin_user
+                        host.expires = host.set_expiration(host.expire_days)
+                        host.save(force_update=True)
 
                     continue
             except Host.mac_history.RelatedObjectDoesNotExist:
