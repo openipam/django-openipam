@@ -1,4 +1,4 @@
-from django_filters import FilterSet, CharFilter
+from django_filters import FilterSet, CharFilter, IsoDateTimeFilter
 from openipam.network.models import Network, Lease
 
 
@@ -18,6 +18,9 @@ class LeaseFilter(FilterSet):
     ip = CharFilter(field_name="pk")
     mac = CharFilter(field_name="host_id")
 
+    starts_lte = IsoDateTimeFilter(field_name="starts", lookup_expr="lte")
+    ends_gte = IsoDateTimeFilter(field_name="ends", lookup_expr="gte")
+
     class Meta:
         model = Lease
-        fields = ["address", "host"]
+        fields = ["address", "host", "starts", "ends"]
