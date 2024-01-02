@@ -2,17 +2,21 @@
 
 from django.core.management.base import BaseCommand
 from django.core.mail import send_mail, send_mass_mail, get_connection
-from django.utils import timezone
-
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
+from django.contrib.auth import get_user_model
 from openipam.user.utils.user_utils import populate_user_from_ldap
+
+from datetime import timedelta
+from django.utils import timezone
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
     args = ""
-    help = "Convert Dns Type Permissions"
+    help = "Script for Auto Renewals and Notifications for hosts due to expire."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -21,7 +25,7 @@ class Command(BaseCommand):
             action="store_true",
             dest="test",
             default=False,
-            help="Send as test only.  This will NOT send emails, but rather print them to the screen",
+            help="Send as test only.  This will NOT send emails or auto renew, but rather print them to the screen",
         )
         parser.add_argument(
             "-c",
@@ -145,14 +149,36 @@ http://usu.service-now.com (Issue Tracking System)
         row_fmt = "%(hostname)-40s %(mac)-22s %(days)3s days      %(description)s"
 
         # Get list of people who need to be notified.
-        host_qs = Host.objects.prefetch_related("pools").by_expiring(omit_guests=True)
+        host_qs = (
+            Host.objects.prefetch_related("pools")
+            .by_expiring(omit_guests=True)
+            .select_related("mac_history")
+        )
 
         users_to_notify = {}
         messages = []
         bad_users = []
-
+        admin_user = User.objects.get(username="admin")
         for host in host_qs:
             host_users = host.get_owners(users_only=True)
+            try:
+                mac_last_seen = timezone.make_aware(host.mac_history.stopstamp)
+                current_time = timezone.now()
+                thirty_days_ago = current_time - timedelta(days=30)
+                if thirty_days_ago <= mac_last_seen <= current_time:
+                    if test:
+                        self.stdout.write(
+                            f"Host {host.hostname} will auto renew for 30 days"
+                        )
+                    else:
+                        host.expire_days = 30
+                        host.user = admin_user
+                        host.expires = host.set_expiration(host.expire_days)
+                        host.save(force_update=True)
+
+                    continue
+            except Host.mac_history.RelatedObjectDoesNotExist:
+                pass
 
             for user in host_users:
                 if user not in users_to_notify:
