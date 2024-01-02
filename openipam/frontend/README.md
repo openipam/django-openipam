@@ -24,7 +24,7 @@ poetry install
 ./manage.py runserver
 ```
 
-Then visit localhost:3000/ui to view the react app.
+Then visit localhost:8000/ui to view the react app.
 
 ## General Details
 
