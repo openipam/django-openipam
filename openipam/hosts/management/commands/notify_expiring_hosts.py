@@ -162,18 +162,17 @@ http://usu.service-now.com (Issue Tracking System)
         for host in host_qs:
             host_users = host.get_owners(users_only=True)
             try:
-                mac_last_seen = timezone.make_aware(host.mac_history.stopstamp)
+                mac_last_seen = host.mac_history.stopstamp
                 current_time = timezone.now()
                 thirty_days_ago = current_time - timedelta(days=30)
                 if thirty_days_ago <= mac_last_seen <= current_time:
-                    if test:
-                        self.stdout.write(
-                            f"Host {host.hostname} will auto renew for 30 days"
-                        )
-                    else:
+                    self.stdout.write(
+                        f"Host {host.hostname} will auto renew for 30 days"
+                    )
+                    if not test:
                         host.expire_days = 30
                         host.user = admin_user
-                        host.expires = host.set_expiration(host.expire_days)
+                        host.set_expiration(host.expire_days)
                         host.save(force_update=True)
 
                     continue
