@@ -107,13 +107,12 @@ class HostQuerySet(QuerySet):
         try:
             cursor.execute(
                 """
-                SELECT DISTINCT h.mac from hosts h
+                SELECT DISTINCT h.mac
+                    FROM hosts h
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
                         AND (h.expires - n.notification) < now()
-                        AND UPPER(h.hostname::text) NOT LIKE UPPER('g-%%')
-                        AND UPPER(h.hostname::text) NOT LIKE UPPER('%%.guests.usu.edu')
             """
             )
             hosts = [host[0] for host in cursor.fetchall()]
