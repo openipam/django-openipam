@@ -1,0 +1,87 @@
+{% extends "report/base.html" %} {% block page_title %} Disabled Hosts Report
+{%endblock %} {% block extrahead %} {{ block.super }}
+<style type="text/css">
+	#content {
+		background: #fff;
+		padding: 20px;
+	}
+</style>
+
+<script type="text/javascript">
+	$(function () {
+		$('#disabled_link').addClass('active');
+		$('#reports_dropdown').addClass('active');
+	});
+</script>
+
+{% endblock %} {% block content %}
+
+<div class="row">
+	<div class="col-lg-12">
+		<h1>Host Auto-Renewal Report</h1>
+		<p>
+			Shows hosts which were automatically renewed by the system today, and any
+			hosts whose owner was notified of the impending expiration without any
+			action taken.
+		</p>
+
+		<h2>Hosts Renewed Today</h2>
+		<table
+			id="auto-renew-list"
+			class="table table-striped table-condensed table-bordered"
+		>
+			<thead>
+				<tr>
+					<th>Host</th>
+					<th>Mac Address</th>
+					<th>Expires</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% if hosts_were_renewed_today %} {% for host in hosts_renewed_today %}
+				<tr>
+					<td>{{ host.hostname }}</td>
+					<td>{{ host.mac }}</td>
+					<td>{{ host.expires }}</td>
+				</tr>
+				{% endfor %} {% else %}
+				<tr>
+					<td colspan="3">No hosts were renewed today.</td>
+				</tr>
+				{% endif %}
+			</tbody>
+		</table>
+
+		<h2>Hosts Not Renewed</h2>
+		<table
+			id="notified-list"
+			class="table table-striped table-condensed table-bordered"
+		>
+			<thead>
+				<tr>
+					<th>Host</th>
+					<th>Mac Address</th>
+					<th>Expires</th>
+					<th>Last Notified</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% if hosts_were_notified_today %}
+				<!-- prettier doesn't understand templates -->
+				{% for host in hosts_notified_today %}
+				<tr>
+					<td>{{ host.hostname }}</td>
+					<td>{{ host.mac }}</td>
+					<td>{{ host.expires }}</td>
+					<td>{{ host.last_notified }}</td>
+				</tr>
+				{% endfor %} {% else %}
+				<tr>
+					<td colspan="4">No hosts were notified today.</td>
+				</tr>
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endblock %}

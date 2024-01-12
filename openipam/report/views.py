@@ -66,6 +66,36 @@ class IpamStatsView(TemplateView):
         return context
 
 
+class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
+    group_required = "ipam_admins"
+    template_name = "report/host_renewal_stats.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(HostRenewalStatsView, self).get_context_data(**kwargs)
+
+        # Autorenewal renews for 30 days, so any hosts that were autorenewed today will expire in 30 days
+
+        # TODO: remove magic numbers
+        admin_user = User.objects.get(id=1)
+        thirty_days_from_now = timezone.now() + timedelta(days=30)
+
+        hosts_renewed_today = Host.objects.filter(
+            expires__date=thirty_days_from_now.date(),
+            changed_by=admin_user,
+        ).values("hostname", "mac", "expires")
+
+        hosts_notified_today = Host.objects.filter(
+            last_notified__date=timezone.now().date()
+        ).values("hostname", "mac", "expires", "last_notified")
+
+        hosts_renewed_today = list(hosts_renewed_today)
+        hosts_notified_today = list(hosts_notified_today)
+        context["hosts_renewed_today"] = hosts_renewed_today
+        context["hosts_notified_today"] = hosts_notified_today
+
+        return context
+
+
 class DisabledHostsView(GroupRequiredMixin, TemplateView):
     group_required = "ipam_admins"
     template_name = "report/disabled.html"
