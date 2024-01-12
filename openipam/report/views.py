@@ -92,6 +92,8 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
         hosts_notified_today = list(hosts_notified_today)
         context["hosts_renewed_today"] = hosts_renewed_today
         context["hosts_notified_today"] = hosts_notified_today
+        context["hosts_were_renewed_today"] = len(hosts_renewed_today) > 0
+        context["hosts_were_notified_today"] = len(hosts_notified_today) > 0
 
         return context
 
