@@ -101,14 +101,7 @@ class NetworkListSerializer(serializers.ModelSerializer):
 class NetworkBasicListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Network
-        fields = [
-            "network",
-            "name",
-            "gateway",
-            "description",
-            "dhcp_group",
-            "network_in",
-        ]
+        fields = ["network", "name", "gateway", "description", "dhcp_group"]
 
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
