@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import F
 
 from rest_framework import generics
 from rest_framework import permissions
@@ -313,10 +314,8 @@ class ConvertIPAMNetwork(IPAMNetwork):
 
 class NetworkList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
-    queryset = Network.objects.all()
+    queryset = Network.objects.all().annotate(network_in=F("network"))
     pagination_class = APIPagination
-    serializer_class = network_serializers.NetworkListSerializer
-    filter_fields = ("network", "name", "dhcp_group__name")
     filter_class = NetworkFilter
 
     def filter_queryset(self, queryset):
@@ -324,6 +323,11 @@ class NetworkList(generics.ListAPIView):
             return super(NetworkList, self).filter_queryset(queryset)
         except ValidationError as e:
             raise serializers.ValidationError(e.message)
+
+    def get_serializer_class(self):
+        if not (self.request.GET.get("skip_related", False)):
+            return network_serializers.NetworkListSerializer
+        return network_serializers.NetworkBasicListSerializer
 
 
 class NetworkDetail(generics.RetrieveAPIView):

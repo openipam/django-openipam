@@ -4,6 +4,7 @@ from openipam.network.models import Network, Lease
 
 class NetworkFilter(FilterSet):
     network = CharFilter(lookup_expr="net_contains_or_equals")
+    network_in = CharFilter(lookup_expr="net_contained_or_equal")
     name = CharFilter(lookup_expr="icontains")
     dhcp_group = CharFilter(field_name="dhcp_group__name", lookup_expr="icontains")
 

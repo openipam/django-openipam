@@ -98,6 +98,19 @@ class NetworkListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class NetworkBasicListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Network
+        fields = [
+            "network",
+            "name",
+            "gateway",
+            "description",
+            "dhcp_group",
+            "network_in",
+        ]
+
+
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
     network = CidrAddressField()
     gateway = InetAddressField()
