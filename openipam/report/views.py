@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from datetime import timedelta
 
 from openipam.conf.ipam_settings import CONFIG_DEFAULTS
-from openipam.hosts.models import GulRecentArpBymac, Host
+from openipam.hosts.models import GulRecentArpBymac, Host, Notification
 from openipam.network.models import Address, Lease, Network
 from openipam.dns.models import DnsRecord
 
@@ -73,27 +73,39 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HostRenewalStatsView, self).get_context_data(**kwargs)
 
+        # Show hosts automatically renewed in the last week, as well as hosts notified in the last week that
+        # have not been renewed
+
         # Autorenewal renews for 30 days, so any hosts that were autorenewed today will expire in 30 days
 
         # TODO: remove magic numbers
         admin_user = User.objects.get(id=1)
-        thirty_days_from_now = timezone.now() + timedelta(days=30)
+        expiration_date_start = timezone.now() + timedelta(days=30) - timedelta(weeks=1)
+        first_notification = (
+            Notification.objects.order_by("-notification").first().notification
+        )
+        # Any hosts which expire after this date must have been renewed. Note that a host may have been renewed
+        # for only a few days, placing its expiration date before this date, meaning it will still be included
+        # in the list of hosts that were notified without renewal in the last week. Most people won't do this,
+        # since the default is to renew for a year when manually renewing, but it's possible.
+        last_unrenewed_expiration = timezone.now() + first_notification
 
-        hosts_renewed_today = Host.objects.filter(
-            expires__date=thirty_days_from_now.date(),
+        hosts_renewed_this_week = Host.objects.filter(
+            expires__date=expiration_date_start.date(),
             changed_by=admin_user,
         ).values("hostname", "mac", "expires")
 
-        hosts_notified_today = Host.objects.filter(
-            last_notified__date=timezone.now().date()
+        hosts_notified_this_week = Host.objects.filter(
+            last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
+            expires__date__lte=last_unrenewed_expiration.date(),
         ).values("hostname", "mac", "expires", "last_notified")
 
-        hosts_renewed_today = list(hosts_renewed_today)
-        hosts_notified_today = list(hosts_notified_today)
-        context["hosts_renewed_today"] = hosts_renewed_today
-        context["hosts_notified_today"] = hosts_notified_today
-        context["hosts_were_renewed_today"] = len(hosts_renewed_today) > 0
-        context["hosts_were_notified_today"] = len(hosts_notified_today) > 0
+        hosts_renewed_this_week = list(hosts_renewed_this_week)
+        hosts_notified_this_week = list(hosts_notified_this_week)
+        context["hosts_renewed_today"] = hosts_renewed_this_week
+        context["hosts_notified_today"] = hosts_notified_this_week
+        context["hosts_were_renewed_today"] = len(hosts_renewed_this_week) > 0
+        context["hosts_were_notified_today"] = len(hosts_notified_this_week) > 0
 
         return context
 
