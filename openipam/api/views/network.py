@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import F
 
 from rest_framework import generics
 from rest_framework import permissions
