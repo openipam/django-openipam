@@ -98,6 +98,7 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
         hosts_notified_this_week = Host.objects.filter(
             last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
             expires__date__lte=last_unrenewed_expiration.date(),
+            expires__date__gte=timezone.now().date(),
         ).values("hostname", "mac", "expires", "last_notified")
 
         hosts_renewed_this_week = list(hosts_renewed_this_week)

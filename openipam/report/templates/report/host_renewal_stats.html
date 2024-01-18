@@ -46,7 +46,9 @@
 				</tr>
 				{% endfor %} {% else %}
 				<tr>
-					<td colspan="3">No hosts were renewed today.</td>
+					<td colspan="3">
+						No hosts were automatically renewed in the last week.
+					</td>
 				</tr>
 				{% endif %}
 			</tbody>
@@ -77,7 +79,10 @@
 				</tr>
 				{% endfor %} {% else %}
 				<tr>
-					<td colspan="4">No hosts were notified today.</td>
+					<td colspan="4">
+						All unexpired hosts whose owners were notified in the last week have
+						been manually renewed!
+					</td>
 				</tr>
 				{% endif %}
 			</tbody>
