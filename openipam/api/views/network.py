@@ -314,7 +314,7 @@ class ConvertIPAMNetwork(IPAMNetwork):
 
 class NetworkList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
-    queryset = Network.objects.all().annotate(network_in=F("network"))
+    queryset = Network.objects.all()
     pagination_class = APIPagination
     filter_class = NetworkFilter
 
