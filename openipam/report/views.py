@@ -90,23 +90,47 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
         # since the default is to renew for a year when manually renewing, but it's possible.
         last_unrenewed_expiration = timezone.now() + first_notification
 
-        hosts_renewed_this_week = Host.objects.filter(
-            expires__date=expiration_date_start.date(),
-            changed_by=admin_user,
-        ).values("hostname", "mac", "expires")
+        hosts_renewed_this_week = (
+            Host.objects.filter(
+                expires__date=expiration_date_start.date(),
+                changed_by=admin_user,
+            )
+            .order_by("-expires")
+            .values("hostname", "mac", "expires", "changed")
+        )
 
-        hosts_notified_this_week = Host.objects.filter(
-            last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
-            expires__date__lte=last_unrenewed_expiration.date(),
-            expires__date__gte=timezone.now().date(),
-        ).values("hostname", "mac", "expires", "last_notified")
+        hosts_notified_this_week = (
+            Host.objects.filter(
+                last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
+                expires__date__lte=last_unrenewed_expiration.date(),
+                expires__date__gte=timezone.now().date(),
+            )
+            .order_by("-last_notified")
+            .values("hostname", "mac", "expires", "last_notified")
+        )
+
+        manually_renewed_after_notification = (
+            Host.objects.filter(
+                last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
+                expires__date__gte=last_unrenewed_expiration.date(),
+            )
+            .order_by("-changed")
+            .values("hostname", "mac", "expires", "last_notified", "changed")
+        )
 
         hosts_renewed_this_week = list(hosts_renewed_this_week)
         hosts_notified_this_week = list(hosts_notified_this_week)
+        manually_renewed_after_notification = list(manually_renewed_after_notification)
         context["hosts_renewed_today"] = hosts_renewed_this_week
         context["hosts_notified_today"] = hosts_notified_this_week
+        context[
+            "manually_renewed_after_notification"
+        ] = manually_renewed_after_notification
         context["hosts_were_renewed_today"] = len(hosts_renewed_this_week) > 0
         context["hosts_were_notified_today"] = len(hosts_notified_this_week) > 0
+        context["hosts_were_manually_renewed_after_notification"] = (
+            len(manually_renewed_after_notification) > 0
+        )
 
         return context
 
