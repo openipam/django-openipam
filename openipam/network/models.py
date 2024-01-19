@@ -293,9 +293,8 @@ class Network(models.Model):
 
     @property
     def usage(self):
-        count_when = lambda q: Sum(
-            Case(When(q, then=1), default=0, output_field=IntegerField())
-        )
+        def count_when(q):
+            return Sum(Case(When(q, then=1), default=0, output_field=IntegerField()))
 
         return (
             Network.objects.values("network")
