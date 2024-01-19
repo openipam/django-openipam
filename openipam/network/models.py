@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum, Case, When, Count, IntegerField
+from django.db.models.query_utils import Q
 from django.core.exceptions import ValidationError
 from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 from django.utils import timezone
@@ -288,6 +290,47 @@ class Network(models.Model):
     @property
     def pk(self):
         return str(self.network)
+
+    @property
+    def usage(self):
+        count_when = lambda q: Sum(
+            Case(When(q, then=1), default=0, output_field=IntegerField())
+        )
+
+        return (
+            Network.objects.values("network")
+            .annotate(
+                static_addresses=Count("net_addresses__host"),
+                dynamic_addresses=Count("net_addresses__pool"),
+                leased_addresses=count_when(
+                    Q(net_addresses__leases__abandoned=False)
+                    & Q(net_addresses__leases__ends__gt=timezone.now())
+                ),
+                expired_addresses=count_when(
+                    Q(net_addresses__leases__abandoned=False)
+                    & Q(net_addresses__leases__ends__lte=timezone.now())
+                ),
+                abandoned_addresses=count_when(
+                    Q(net_addresses__leases__abandoned=True)
+                ),
+                unleased_addresses=count_when(
+                    Q(net_addresses__pool__isnull=False)
+                    & Q(net_addresses__leases__address__isnull=True)
+                ),
+                reserved_addresses=count_when(Q(net_addresses__reserved=True)),
+                available_addresses=count_when(
+                    (
+                        Q(net_addresses__leases__ends__lte=timezone.now())
+                        & Q(net_addresses__leases__abandoned=False)
+                    )
+                    | (
+                        Q(net_addresses__pool__isnull=False)
+                        & Q(net_addresses__leases__address__isnull=True)
+                    ),
+                ),
+            )
+            .get(network=self.network)
+        )
 
     def __str__(self):
         return "%s" % self.network

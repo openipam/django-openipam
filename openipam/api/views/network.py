@@ -316,17 +316,13 @@ class NetworkList(generics.ListAPIView):
     queryset = Network.objects.all()
     pagination_class = APIPagination
     filter_class = NetworkFilter
+    serializer_class = network_serializers.NetworkListSerializer
 
     def filter_queryset(self, queryset):
         try:
             return super(NetworkList, self).filter_queryset(queryset)
         except ValidationError as e:
             raise serializers.ValidationError(e.message)
-
-    def get_serializer_class(self):
-        if not (self.request.GET.get("skip_related", False)):
-            return network_serializers.NetworkListSerializer
-        return network_serializers.NetworkBasicListSerializer
 
 
 class NetworkDetail(generics.RetrieveAPIView):

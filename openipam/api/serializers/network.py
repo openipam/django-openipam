@@ -90,18 +90,24 @@ class NetworkVlanSerializer(serializers.ModelSerializer):
         fields = ["id", "vlan_id", "name", "description"]
 
 
+class UsageSerializer(serializers.Serializer):
+    static_addresses = serializers.IntegerField()
+    dynamic_addresses = serializers.IntegerField()
+    leased_addresses = serializers.IntegerField()
+    expired_addresses = serializers.IntegerField()
+    abandoned_addresses = serializers.IntegerField()
+    unleased_addresses = serializers.IntegerField()
+    reserved_addresses = serializers.IntegerField()
+    available_addresses = serializers.IntegerField()
+
+
 class NetworkListSerializer(serializers.ModelSerializer):
     vlans = NetworkVlanSerializer(many=True, read_only=True)
+    usage = UsageSerializer()
 
     class Meta:
         model = Network
         fields = "__all__"
-
-
-class NetworkBasicListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Network
-        fields = ["network", "name", "gateway", "description", "dhcp_group"]
 
 
 class NetworkCreateUpdateSerializer(serializers.ModelSerializer):
