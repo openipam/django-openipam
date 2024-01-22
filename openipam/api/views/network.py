@@ -1,5 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Sum, Case, When, Count, IntegerField, Max
+from django.db.models.query_utils import Q
+from django.utils import timezone
 
 from rest_framework import generics
 from rest_framework import permissions
@@ -313,16 +316,61 @@ class ConvertIPAMNetwork(IPAMNetwork):
 
 class NetworkList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
-    queryset = Network.objects.all()
     pagination_class = APIPagination
     filter_class = NetworkFilter
     serializer_class = network_serializers.NetworkListSerializer
+    queryset = Network.objects.all()
 
     def filter_queryset(self, queryset):
         try:
             return super(NetworkList, self).filter_queryset(queryset)
         except ValidationError as e:
             raise serializers.ValidationError(e.message)
+
+
+class NetworkUsageList(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = APIPagination
+    filter_class = NetworkFilter
+    serializer_class = network_serializers.UsageSerializer
+
+    def get_queryset(self):
+        def count_when(q):
+            return Sum(Case(When(q, then=1), default=0, output_field=IntegerField()))
+
+        now = timezone.now()
+        return Network.objects.values("network").annotate(
+            static_addresses=Count("net_addresses__host"),
+            dynamic_addresses=Count("net_addresses__pool"),
+            leased_addresses=count_when(
+                Q(net_addresses__leases__abandoned=False)
+                & Q(net_addresses__leases__ends__gt=now)
+            ),
+            expired_addresses=count_when(
+                Q(net_addresses__leases__abandoned=False)
+                & Q(net_addresses__leases__ends__lte=now)
+            ),
+            abandoned_addresses=count_when(Q(net_addresses__leases__abandoned=True)),
+            unleased_addresses=count_when(
+                Q(net_addresses__pool__isnull=False)
+                & Q(net_addresses__leases__address__isnull=True)
+            ),
+            reserved_addresses=count_when(Q(net_addresses__reserved=True)),
+            available_addresses=count_when(
+                (
+                    Q(net_addresses__leases__ends__lte=now)
+                    & Q(net_addresses__leases__abandoned=False)
+                )
+                | (
+                    Q(net_addresses__pool__isnull=False)
+                    & Q(net_addresses__leases__address__isnull=True)
+                ),
+            ),
+            # Django ORM Hacks; Django < 2 doesn't recognize 'network' is a unique key
+            # so we can't include other values in the select field
+            description=Max("description"),
+            name=Max("name"),
+        )
 
 
 class NetworkDetail(generics.RetrieveAPIView):
