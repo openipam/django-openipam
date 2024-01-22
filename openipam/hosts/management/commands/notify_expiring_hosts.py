@@ -5,8 +5,12 @@ from django.core.mail import send_mail, send_mass_mail, get_connection
 
 from openipam.conf.ipam_settings import CONFIG
 from openipam.hosts.models import Host
+from openipam.user.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from openipam.user.utils.user_utils import populate_user_from_ldap
+
+from guardian.models import UserObjectPermission, GroupObjectPermission
 
 from datetime import timedelta
 from django.utils import timezone
@@ -154,6 +158,23 @@ http://usu.service-now.com (Issue Tracking System)
             .by_expiring(omit_guests=True)
             .select_related("mac_history")
         )
+        # Check to see if the user has the is_owner_host permission
+        # Sync the user's email and groups from LDAP if they do.
+        perm = Permission.objects.get(codename="is_owner_host")
+        ctype = ContentType.objects.get(model="host")
+        users_sync = UserObjectPermission.objects.filter(
+            permission=perm, content_type=ctype, object_pk__in=[h.mac for h in host_qs]
+        )
+        group_sync = GroupObjectPermission.objects.filter(
+            permission=perm, content_type=ctype, object_pk__in=[h.mac for h in host_qs]
+        )
+        users_sync = [u.user for u in users_sync]
+        group_sync = [g.group.user_set.all() for g in group_sync]
+        group_sync = [u for g in group_sync for u in g]
+        to_sync = set(users_sync + group_sync)
+        for user in to_sync:
+            self.stdout.write(f"Updating {user.username} email and groups from LDAP...")
+            populate_user_from_ldap(user=user)
 
         users_to_notify = {}
         messages = []
@@ -188,10 +209,10 @@ http://usu.service-now.com (Issue Tracking System)
                     users_to_notify[user]["dynamic"].append(host)
 
         for user, host_types in list(users_to_notify.items()):
-            if not user.email:
-                e_user = populate_user_from_ldap(user=user)
-            else:
-                e_user = user
+            # if not user.email:
+            #     e_user = populate_user_from_ldap(user=user)
+            # else:
+            e_user = user
             if e_user and e_user.email:
                 mesg_type = "static" if host_types.get("static") else "dynamic"
                 row_hosts = []
