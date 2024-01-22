@@ -315,9 +315,8 @@ class NetworkList(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     queryset = Network.objects.all()
     pagination_class = APIPagination
-    serializer_class = network_serializers.NetworkListSerializer
-    filter_fields = ("network", "name", "dhcp_group__name")
     filter_class = NetworkFilter
+    serializer_class = network_serializers.NetworkListSerializer
 
     def filter_queryset(self, queryset):
         try:
