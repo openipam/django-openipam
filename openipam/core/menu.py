@@ -198,6 +198,9 @@ class IPAMMenu(Menu):
                             title="Broken PTR Records", url=reverse("reports_ptr_dns")
                         ),
                         items.MenuItem(
+                            title="Renewed Hosts", url=reverse("host_renewal_stats")
+                        ),
+                        items.MenuItem(
                             title="Expired Hosts", url=reverse("expired_hosts")
                         ),
                         items.MenuItem(
