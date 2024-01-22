@@ -81,6 +81,7 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
         # TODO: remove magic numbers
         admin_user = User.objects.get(id=1)
         expiration_date_start = timezone.now() + timedelta(days=30) - timedelta(weeks=1)
+        expiration_date_end = timezone.now() + timedelta(days=30)
         first_notification = (
             Notification.objects.order_by("-notification").first().notification
         )
@@ -92,7 +93,8 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
 
         hosts_renewed_this_week = (
             Host.objects.filter(
-                expires__date=expiration_date_start.date(),
+                expires__date__gte=expiration_date_start.date(),
+                expires__date__lte=expiration_date_end.date(),
                 changed_by=admin_user,
             )
             .order_by("-expires")
@@ -111,6 +113,7 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
 
         manually_renewed_after_notification = (
             Host.objects.filter(
+                ~Q(changed_by=admin_user),
                 last_notified__date__gte=(timezone.now() - timedelta(weeks=1)).date(),
                 expires__date__gte=last_unrenewed_expiration.date(),
             )
