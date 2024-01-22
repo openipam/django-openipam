@@ -242,6 +242,11 @@ urlpatterns = [
         views.dns.DomainNameList.as_view(),
         name="api_domain_name_list",
     ),
+    url(
+        r"^networks?/usage/$",
+        views.network.NetworkUsageList.as_view(),
+        name="api_network_usage_list",
+    ),
     url(r"^networks?/$", views.network.NetworkList.as_view(), name="api_network_list"),
     url(
         r"^networks?/(?P<pk>(\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}\/\d{0,2}))/$",

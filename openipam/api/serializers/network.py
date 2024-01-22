@@ -91,6 +91,10 @@ class NetworkVlanSerializer(serializers.ModelSerializer):
 
 
 class UsageSerializer(serializers.Serializer):
+    network = serializers.CharField()
+    description = serializers.CharField()
+    name = serializers.CharField()
+
     static_addresses = serializers.IntegerField()
     dynamic_addresses = serializers.IntegerField()
     leased_addresses = serializers.IntegerField()
@@ -103,7 +107,6 @@ class UsageSerializer(serializers.Serializer):
 
 class NetworkListSerializer(serializers.ModelSerializer):
     vlans = NetworkVlanSerializer(many=True, read_only=True)
-    usage = UsageSerializer()
 
     class Meta:
         model = Network
