@@ -17,5 +17,10 @@ urlpatterns = [
     url(r"^ipam_stats/$", views.IpamStatsView.as_view(), name="reports_ipam_stats"),
     url(r"^expired_hosts/$", views.ExpiredHostsView.as_view(), name="expired_hosts"),
     url(r"^orphaned_dns/$", views.OrphanedDNSView.as_view(), name="orphaned_dns"),
+    url(
+        r"^host_renewal/$",
+        views.HostRenewalStatsView.as_view(),
+        name="host_renewal_stats",
+    ),
     url(r"^$", RedirectView.as_view(url=reverse_lazy("reports_ipam_stats"))),
 ]
