@@ -128,8 +128,17 @@ async function update_tables() {
 	update_unrenewed_table(stats.notified_unrenewed);
 }
 
-document
-	.getElementById('update_button')
-	.addEventListener('click', update_tables);
+function init() {
+	const today = new Date();
+	date_selectors.start_date.value = format_date(
+		new Date(today.valueOf() - 7 * 24 * 60 * 60 * 1000)
+	);
+	date_selectors.end_date.value = format_date(today);
+	document
+		.getElementById('update_button')
+		.addEventListener('click', update_tables);
 
-update_tables();
+	update_tables();
+}
+
+init();
