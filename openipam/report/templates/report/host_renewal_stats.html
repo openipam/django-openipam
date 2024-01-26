@@ -2,33 +2,12 @@
 <!---->
 {% block page_title %} Disabled Hosts Report {%endblock %} {% block extrahead %}
 {{ block.super }}
-<link
-	rel="stylesheet"
-	href="{% static 'core/css/dataTables.bootstrap.css' %}"
-/>
-<link
-	rel="stylesheet"
-	href="{% static 'datatables-responsive/css/dataTables.responsive.css' %}"
-/>
 <style type="text/css">
 	#content {
 		background: #fff;
 		padding: 20px;
 	}
 </style>
-
-<script
-	type="text/javascript"
-	src="{% static 'datatables/media/js/jquery.dataTables.min.js' %}"
-></script>
-<script
-	type="text/javascript"
-	src="{% static 'datatables-responsive/js/dataTables.responsive.js' %}"
-></script>
-<script
-	type="text/javascript"
-	src="{% static 'core/js/dataTables.bootstrap.js' %}"
-></script>
 
 <script
 	type="text/javascript"
@@ -51,14 +30,29 @@
 			impending expiration (whether they were renewed or not).
 		</p>
 
-		<div id="date_selectors">
-			<label for="start_date">Start Date</label>
-			<input type="date" id="start_date" name="start_date" value="" />
-			<label for="end_date">End Date</label>
-			<input type="date" id="end_date" name="end_date" value="" />
+		<div id="date_selectors" class="input-group mb-3">
+			<span class="input-group-addon">Date Range: </span>
+			<input
+				class="form-control"
+				type="date"
+				id="start_date"
+				name="start_date"
+				value=""
+				aria-label="Start date"
+			/>
+			<span class="input-group-addon">to</span>
+			<input
+				class="form-control"
+				type="date"
+				id="end_date"
+				name="end_date"
+				value=""
+				aria-label="End date"
+			/>
+			<span class="input-group-btn">
+				<button id="update_button" class="btn btn-primary">Update</button>
+			</span>
 		</div>
-
-		<button id="update_button" class="btn btn-primary">Update</button>
 
 		<h2>Summary</h2>
 		<table
