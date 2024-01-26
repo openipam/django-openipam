@@ -99,6 +99,11 @@ urlpatterns = [
         name="api_reports_server_hosts",
     ),
     url(
+        r"^reports/renewalstats/$",
+        views.report.RenewalStatsView.as_view(),
+        name="api_reports_renewal_stats",
+    ),
+    url(
         r"^reports/chartstats/$",
         views.report.StatsAPIView.as_view(),
         name="api_reports_chart_stats",
