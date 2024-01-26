@@ -241,13 +241,13 @@ class RenewalStatsView(APIView):
         )
 
         notified_unrenewed = list(
-            notified.filter(changed__lte=F("last_notified"))
+            notified.filter(changed__lt=F("last_notified"))
             .order_by("-expires")
             .values("hostname", "mac", "expires", "last_notified", "changed")
         )
 
         notified_renewed = list(
-            notified.filter(changed__gt=F("last_notified"))
+            notified.filter(changed__gte=F("last_notified"))
             .exclude(changed_by=admin_user)
             .order_by("-expires")
             .values("hostname", "mac", "expires", "last_notified", "changed")
