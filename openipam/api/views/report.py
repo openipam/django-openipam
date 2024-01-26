@@ -19,7 +19,7 @@ from django.db.models import Q, F
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-from openipam.hosts.models import Host, Attribute, Notification
+from openipam.hosts.models import Host, Attribute
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
