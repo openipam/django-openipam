@@ -139,10 +139,12 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
         for user in qs:
             json_data.append(
                 [
-                    '<input class="action-select" name="selected_users" type="checkbox" value="%s" />'
-                    % user.pk
-                    if self.request.user.is_superuser
-                    else "",
+                    (
+                        '<input class="action-select" name="selected_users" type="checkbox" value="%s" />'
+                        % user.pk
+                        if self.request.user.is_superuser
+                        else ""
+                    ),
                     '<a class="user-details" href="user/%s">%s</a>'
                     % (user.pk, user.username),
                     user.get_full_name() if user.first_name or user.last_name else "",
@@ -153,9 +155,13 @@ class UserManagerJson(PermissionRequiredMixin, BaseDatatableView):
                     boolean_img(user.is_superuser),
                     boolean_img(user.is_ipamadmin),
                     user.source.name if user.source else "",
-                    timezone.localtime(user.last_login).strftime("%Y-%m-%d %I:%M %p")
-                    if user.last_login
-                    else None,
+                    (
+                        timezone.localtime(user.last_login).strftime(
+                            "%Y-%m-%d %I:%M %p"
+                        )
+                        if user.last_login
+                        else None
+                    ),
                     user.last_login,
                 ]
             )
