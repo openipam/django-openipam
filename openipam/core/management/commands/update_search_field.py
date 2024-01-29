@@ -1,6 +1,7 @@
 """
 Update search fields.
 """
+
 from __future__ import print_function
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ImproperlyConfigured

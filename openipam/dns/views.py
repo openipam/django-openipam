@@ -302,11 +302,13 @@ class DNSListJson(PermissionRequiredMixin, BaseDatatableView):
             json_data.append(
                 [
                     (
-                        '<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
-                        % dns_record.pk
-                    )
-                    if has_change_permission or global_delete_permission
-                    else "",
+                        (
+                            '<input class="action-select" name="selected-records" type="checkbox" value="%s" />'
+                            % dns_record.pk
+                        )
+                        if has_change_permission or global_delete_permission
+                        else ""
+                    ),
                     get_name(dns_record, has_change_permission),
                     get_ttl(dns_record, has_change_permission),
                     get_type(dns_record, has_change_permission),
@@ -511,9 +513,11 @@ class DNSCreateUpdateView(PermissionRequiredMixin, FormView):
                     name=form.cleaned_data["name"],
                     content=form.cleaned_data["content"],
                     # We do not edit the type, delete it and make a new one.
-                    dns_type=self.record.dns_type
-                    if hasattr(self.record, "pk")
-                    else form.cleaned_data["dns_type"],
+                    dns_type=(
+                        self.record.dns_type
+                        if hasattr(self.record, "pk")
+                        else form.cleaned_data["dns_type"]
+                    ),
                     ttl=form.cleaned_data["ttl"],
                     # TODO: Finish domain linking, this is currently broken.
                     # domain=self.record.pk
