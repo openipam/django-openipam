@@ -114,9 +114,11 @@ class GuestRegister(APIView):
                         hostname=hostname,
                         mac=mac_address,
                         expires=serializer.valid_ticket.ends,
-                        description=description
-                        if description
-                        else "Name: %s; Ticket used: %s" % (name, ticket),
+                        description=(
+                            description
+                            if description
+                            else "Name: %s; Ticket used: %s" % (name, ticket)
+                        ),
                         pool=Pool.objects.get(name=CONFIG.get("GUEST_POOL")),
                         user_owners=[user_owner],
                         group_owners=[CONFIG.get("GUEST_GROUP")],

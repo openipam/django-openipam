@@ -126,9 +126,9 @@ class HostRenewalStatsView(GroupRequiredMixin, TemplateView):
         manually_renewed_after_notification = list(manually_renewed_after_notification)
         context["hosts_renewed_today"] = hosts_renewed_this_week
         context["hosts_notified_today"] = hosts_notified_this_week
-        context[
-            "manually_renewed_after_notification"
-        ] = manually_renewed_after_notification
+        context["manually_renewed_after_notification"] = (
+            manually_renewed_after_notification
+        )
         context["hosts_were_renewed_today"] = len(hosts_renewed_this_week) > 0
         context["hosts_were_notified_today"] = len(hosts_notified_this_week) > 0
         context["hosts_were_manually_renewed_after_notification"] = (

@@ -357,7 +357,6 @@ class SQLLogMiddlewareSimple(MiddlewareMixin):
 
 
 class SQLLogMiddleware(MiddlewareMixin):
-
     """
     Logs SQL statements and excecutions times to the end of templates.
     This works even with ajax requests.

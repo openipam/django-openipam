@@ -949,9 +949,11 @@ class Host(DirtyFieldsMixin, models.Model):
                 user=user,
                 name=hostname,
                 content=address.address,
-                dns_type=DnsType.objects.A
-                if address.address.version == 4
-                else DnsType.objects.AAAA,
+                dns_type=(
+                    DnsType.objects.A
+                    if address.address.version == 4
+                    else DnsType.objects.AAAA
+                ),
                 host=self,
                 record=arecord if arecord else None,
             )
