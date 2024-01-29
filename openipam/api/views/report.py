@@ -15,7 +15,7 @@ from django.db import connection
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
@@ -201,6 +201,69 @@ class ServerHostCSVRenderer(CSVRenderer):
         "group_owners",
         "nac_profiles",
     ]
+
+
+class RenewalStatsView(APIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, CSVRenderer)
+
+    def get(self, request, format=None, **kwargs):
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if not start_date:
+            # TODO: magic number
+            start_date = (timezone.now() - timedelta(weeks=1)).date()
+        else:
+            start_date = dateutil.parser.parse(start_date).date()
+
+        if not end_date:
+            end_date = timezone.now().date()
+        else:
+            end_date = dateutil.parser.parse(end_date).date()
+
+        # TODO: magic number
+        admin_user = User.objects.get(id=1)
+
+        auto_renewed = list(
+            Host.objects.filter(
+                changed__date__gte=start_date,
+                changed__date__lte=end_date,
+                changed_by=admin_user,
+            )
+            .order_by("-expires")
+            .values("hostname", "mac", "expires", "changed")
+        )
+
+        notified = Host.objects.filter(
+            last_notified__date__gte=start_date,
+            last_notified__date__lte=end_date,
+        )
+
+        notified_unrenewed = list(
+            notified.filter(changed__lt=F("last_notified"))
+            .order_by("-expires")
+            .values("hostname", "mac", "expires", "last_notified", "changed")
+        )
+
+        notified_renewed = list(
+            notified.filter(changed__gte=F("last_notified"))
+            .exclude(changed_by=admin_user)
+            .order_by("-expires")
+            .values("hostname", "mac", "expires", "last_notified", "changed")
+        )
+
+        # Serialize EUI to string
+        for host in auto_renewed + notified_unrenewed + notified_renewed:
+            host["mac"] = str(host["mac"])
+
+        data = {
+            "auto_renewed": auto_renewed,
+            "notified_unrenewed": notified_unrenewed,
+            "notified_renewed": notified_renewed,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ServerHostView(APIView):
