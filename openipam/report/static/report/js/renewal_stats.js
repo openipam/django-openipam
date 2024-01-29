@@ -59,7 +59,7 @@ function update_auto_table(data) {
 	if (data.length === 0) {
 		const tr = document.createElement('tr');
 		tr.innerHTML =
-			'<td colspan="4">No hosts were manually renewed in the specified timeframe.</td>';
+			'<td colspan="4">No hosts were automatically renewed in the specified timeframe.</td>';
 		tbody.appendChild(tr);
 	}
 }
