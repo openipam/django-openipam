@@ -490,9 +490,9 @@ class HostAttributeList(APIView):
         ).filter(host=host)
 
         for attr in structured_attrs:
-            attributes[
-                attr.structured_attribute_value.attribute.name
-            ] = attr.structured_attribute_value.value
+            attributes[attr.structured_attribute_value.attribute.name] = (
+                attr.structured_attribute_value.value
+            )
         for attr in freeform_attrs:
             attributes[attr.attribute.name] = attr.value
 
