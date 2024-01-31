@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import ParseError, ValidationError
 
-from django.db import connection, reset_queries
+from django.db import connection
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
