@@ -215,12 +215,18 @@ class RenewalStatsView(APIView):
             # TODO: magic number
             start_date = (timezone.now() - timedelta(weeks=1)).date()
         else:
-            start_date = dateutil.parser.parse(start_date).date()
+            try:
+                start_date = dateutil.parser.parse(start_date).date()
+            except ValueError:
+                raise ParseError("'start_date' must be an ISO date string")
 
         if not end_date:
             end_date = timezone.now().date()
         else:
-            end_date = dateutil.parser.parse(end_date).date()
+            try:
+                end_date = dateutil.parser.parse(end_date).date()
+            except ValueError:
+                raise ParseError("'end_date' must be an ISO date string")
 
         # TODO: magic number
         admin_user = User.objects.get(id=1)
