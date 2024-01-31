@@ -225,20 +225,20 @@ class RenewalStatsView(APIView):
         # TODO: magic number
         admin_user = User.objects.get(id=1)
 
+        auto_renewed_qs = Host.objects.filter(
+            changed__date__gte=start_date,
+            changed__date__lte=end_date,
+            changed_by=admin_user,
+        ).order_by("-expires")
+
         auto_renewed = list(
-            Host.objects.filter(
-                changed__date__gte=start_date,
-                changed__date__lte=end_date,
-                changed_by=admin_user,
-            )
-            .order_by("-expires")
-            .values("hostname", "mac", "expires", "changed")
+            auto_renewed_qs.values("hostname", "mac", "expires", "changed")
         )
 
         notified = Host.objects.filter(
             last_notified__date__gte=start_date,
             last_notified__date__lte=end_date,
-        )
+        ).difference(auto_renewed_qs)
 
         notified_unrenewed = list(
             notified.filter(changed__lt=F("last_notified"))
