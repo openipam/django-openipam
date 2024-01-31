@@ -236,6 +236,7 @@ class RenewalStatsView(APIView):
         )
 
         notified = Host.objects.filter(
+            last_notified__isnull=False,
             last_notified__date__gte=start_date,
             last_notified__date__lte=end_date,
         ).difference(auto_renewed_qs)
