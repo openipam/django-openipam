@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import ParseError, ValidationError
 
-from django.db import connection
+from django.db import connection, reset_queries
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
@@ -239,7 +239,11 @@ class RenewalStatsView(APIView):
             last_notified__isnull=False,
             last_notified__date__gte=start_date,
             last_notified__date__lte=end_date,
-        ).difference(auto_renewed_qs)
+        ).exclude(
+            changed__date__gte=start_date,
+            changed__date__lte=end_date,
+            changed_by=admin_user,
+        )
 
         notified_unrenewed = list(
             notified.filter(changed__lt=F("last_notified"))
@@ -248,8 +252,8 @@ class RenewalStatsView(APIView):
         )
 
         notified_renewed = list(
-            notified.filter(changed__gte=F("last_notified"))
-            .exclude(changed_by=admin_user)
+            notified.exclude(changed_by=admin_user)
+            .exclude(changed__lt=F("last_notified"))
             .order_by("-expires")
             .values("hostname", "mac", "expires", "last_notified", "changed")
         )
