@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.renderers import (
     TemplateHTMLRenderer,
     JSONRenderer,
@@ -204,7 +204,7 @@ class ServerHostCSVRenderer(CSVRenderer):
 
 
 class RenewalStatsView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAdminUser,)
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer, CSVRenderer)
 
     def get(self, request, format=None, **kwargs):
