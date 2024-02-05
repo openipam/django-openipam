@@ -15,7 +15,7 @@ from django.db import connection
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
-from django.db.models import Q, F
+from django.db.models import Q, F, Value, CharField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
@@ -231,14 +231,20 @@ class RenewalStatsView(APIView):
         # TODO: magic number
         admin_user = User.objects.get(id=1)
 
-        auto_renewed_qs = Host.objects.filter(
-            changed__date__gte=start_date,
-            changed__date__lte=end_date,
-            changed_by=admin_user,
-        ).order_by("-expires")
+        auto_renewed_qs = (
+            Host.objects.filter(
+                changed__date__gte=start_date,
+                changed__date__lte=end_date,
+                changed_by=admin_user,
+            )
+            .order_by("-expires")
+            .annotate(list=Value("auto_renewed", output_field=CharField()))
+        )
 
         auto_renewed = list(
-            auto_renewed_qs.values("hostname", "mac", "expires", "changed")
+            auto_renewed_qs.values(
+                "hostname", "mac", "expires", "last_notified", "changed", "list"
+            )
         )
 
         notified = Host.objects.filter(
@@ -254,14 +260,16 @@ class RenewalStatsView(APIView):
         notified_unrenewed = list(
             notified.filter(changed__lt=F("last_notified"))
             .order_by("-expires")
-            .values("hostname", "mac", "expires", "last_notified", "changed")
+            .annotate(list=Value("notified_unrenewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
         )
 
         notified_renewed = list(
             notified.exclude(changed_by=admin_user)
             .exclude(changed__lt=F("last_notified"))
             .order_by("-expires")
-            .values("hostname", "mac", "expires", "last_notified", "changed")
+            .annotate(list=Value("notified_renewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
         )
 
         # Serialize EUI to string
@@ -273,6 +281,10 @@ class RenewalStatsView(APIView):
             "notified_unrenewed": notified_unrenewed,
             "notified_renewed": notified_renewed,
         }
+
+        if request.accepted_renderer.format == "csv":
+            # If the request is for CSV, we need to compile the data into a single list
+            data = auto_renewed + notified_unrenewed + notified_renewed
 
         return Response(data, status=status.HTTP_200_OK)
 
