@@ -180,6 +180,7 @@ http://usu.service-now.com (Issue Tracking System)
         messages = []
         bad_users = []
         admin_user = User.objects.get(username="admin")
+        renewed_hosts = []
         for host in host_qs:
             host_users = host.get_owners(users_only=True)
             try:
@@ -195,6 +196,8 @@ http://usu.service-now.com (Issue Tracking System)
                         host.user = admin_user
                         host.set_expiration(host.expire_days)
                         host.save(force_update=True)
+
+                    renewed_hosts.append(host.mac)
 
                     continue
             except Host.mac_history.RelatedObjectDoesNotExist:
@@ -252,7 +255,9 @@ http://usu.service-now.com (Issue Tracking System)
                 send_mass_mail(messages, fail_silently=False, connection=connection)
 
             if not test:
-                host_qs.update(last_notified=timezone.now())
+                host_qs.exclude(mac__in=renewed_hosts).update(
+                    last_notified=timezone.now()
+                )
 
         self.stdout.write(
             "%s Notifications have been sent for %s hosts"

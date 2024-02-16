@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.renderers import (
     TemplateHTMLRenderer,
     JSONRenderer,
@@ -15,7 +15,7 @@ from django.db import connection
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
-from django.db.models import Q, F
+from django.db.models import Q, F, Value, CharField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
@@ -204,7 +204,7 @@ class ServerHostCSVRenderer(CSVRenderer):
 
 
 class RenewalStatsView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAdminUser,)
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer, CSVRenderer)
 
     def get(self, request, format=None, **kwargs):
@@ -215,42 +215,61 @@ class RenewalStatsView(APIView):
             # TODO: magic number
             start_date = (timezone.now() - timedelta(weeks=1)).date()
         else:
-            start_date = dateutil.parser.parse(start_date).date()
+            try:
+                start_date = dateutil.parser.parse(start_date).date()
+            except ValueError:
+                raise ParseError("'start_date' must be an ISO date string")
 
         if not end_date:
             end_date = timezone.now().date()
         else:
-            end_date = dateutil.parser.parse(end_date).date()
+            try:
+                end_date = dateutil.parser.parse(end_date).date()
+            except ValueError:
+                raise ParseError("'end_date' must be an ISO date string")
 
         # TODO: magic number
         admin_user = User.objects.get(id=1)
 
-        auto_renewed = list(
+        auto_renewed_qs = (
             Host.objects.filter(
                 changed__date__gte=start_date,
                 changed__date__lte=end_date,
                 changed_by=admin_user,
             )
             .order_by("-expires")
-            .values("hostname", "mac", "expires", "changed")
+            .annotate(list=Value("auto_renewed", output_field=CharField()))
+        )
+
+        auto_renewed = list(
+            auto_renewed_qs.values(
+                "hostname", "mac", "expires", "last_notified", "changed", "list"
+            )
         )
 
         notified = Host.objects.filter(
+            last_notified__isnull=False,
             last_notified__date__gte=start_date,
             last_notified__date__lte=end_date,
+        ).exclude(
+            changed__date__gte=start_date,
+            changed__date__lte=end_date,
+            changed_by=admin_user,
         )
 
         notified_unrenewed = list(
             notified.filter(changed__lt=F("last_notified"))
             .order_by("-expires")
-            .values("hostname", "mac", "expires", "last_notified", "changed")
+            .annotate(list=Value("notified_unrenewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
         )
 
         notified_renewed = list(
-            notified.filter(changed__gte=F("last_notified"))
-            .exclude(changed_by=admin_user)
+            notified.exclude(changed_by=admin_user)
+            .exclude(changed__lt=F("last_notified"))
             .order_by("-expires")
-            .values("hostname", "mac", "expires", "last_notified", "changed")
+            .annotate(list=Value("notified_renewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
         )
 
         # Serialize EUI to string
@@ -262,6 +281,10 @@ class RenewalStatsView(APIView):
             "notified_unrenewed": notified_unrenewed,
             "notified_renewed": notified_renewed,
         }
+
+        if request.accepted_renderer.format == "csv":
+            # If the request is for CSV, we need to compile the data into a single list
+            data = auto_renewed + notified_unrenewed + notified_renewed
 
         return Response(data, status=status.HTTP_200_OK)
 
