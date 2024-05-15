@@ -1,5 +1,5 @@
 from django_filters import FilterSet, CharFilter, IsoDateTimeFilter
-from openipam.network.models import Network, Lease
+from openipam.network.models import Network, Lease, Address
 
 
 class NetworkFilter(FilterSet):
@@ -25,3 +25,13 @@ class LeaseFilter(FilterSet):
     class Meta:
         model = Lease
         fields = ["address", "host", "starts", "ends"]
+
+
+class AddressFilter(FilterSet):
+    address = CharFilter(lookup_expr="exact")
+    host = CharFilter(lookup_expr="istartswith", field_name="host_id__hostname")
+    in_network = CharFilter(lookup_expr="net_contained", field_name="address")
+
+    class Meta:
+        model = Address
+        fields = ["address", "host", "network"]
