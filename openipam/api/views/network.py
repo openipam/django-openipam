@@ -32,7 +32,7 @@ from openipam.network.models import (
 )
 from openipam.api.views.base import APIPagination, ListDestroyViewSet
 from openipam.api.serializers import network as network_serializers
-from openipam.api.filters.network import NetworkFilter, LeaseFilter
+from openipam.api.filters.network import NetworkFilter, LeaseFilter, AddressFilter
 from openipam.api.permissions import IPAMAPIAdminPermission, IPAMAPIPermission
 
 from ipaddress import IPv4Network, ip_interface
@@ -453,7 +453,8 @@ class AddressList(generics.ListAPIView):
     queryset = Address.objects.select_related().all()
     serializer_class = network_serializers.AddressSerializer
     pagination_class = APIPagination
-    filter_fields = ("address", "mac")
+    filter_class = AddressFilter
+    # filter_fields = ("address", "mac")
 
 
 class AddressDetail(generics.RetrieveAPIView):
