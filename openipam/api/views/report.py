@@ -18,12 +18,13 @@ from django.apps import apps
 from django.db.models import Q, F, Value, CharField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
+from django.contrib.admin.models import LogEntry
+from openipam.api.views.base import APIPagination
 from openipam.hosts.models import Host, Attribute
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
-
+from datetime import datetime
 from functools import reduce
 
 import qsstats
@@ -35,7 +36,6 @@ from datetime import timedelta
 import dateutil.parser
 
 User = get_user_model()
-
 
 class StatsAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -189,6 +189,61 @@ class DashboardAPIView(APIView):
         )
 
         return Response(data, status=status.HTTP_200_OK)
+class LeaseReportAPIView(APIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
+
+    def get(self, request, format=None, **kwargs):
+        start = request.query_params.get("start")
+        end = request.query_params.get("end")
+
+        if not start or not end:
+            return Response("Both 'start' and 'end' are required", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = dateutil.parser.parse(start).date()
+            end_date = dateutil.parser.parse(end).date()
+        except ValueError:
+            raise ParseError("'start' and 'end' must be ISO date strings")
+
+        if start_date > end_date:
+            raise ValidationError("'start' must be less than or equal to 'end'")
+
+        date_range = [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
+        lease_logs = LogEntry.objects.filter(
+            content_type__model='lease',
+            action_time__date__range=(start_date, end_date)
+        ).extra({'date': 'date(action_time)'}).values('date').annotate(count=Count('id')).order_by('date')
+        counts = {log['date']: log['count'] for log in lease_logs}
+        xdata = [int((datetime.combine(date, datetime.min.time())).timestamp()) for date in date_range]
+        ydata = [counts.get(date, 0) for date in date_range]
+        charttype = "discreteBarChart"
+        extra_serie1 = {
+            "tooltip": {
+                "y_start": "",
+                "y_end": " Lease Counts",
+            }
+        }
+        extra = {
+            "x_is_date": True,
+            "x_axis_format": "",
+            "tag_script_js": True,
+            "jquery_on_ready": False,
+        }
+        response_data = {
+            "charttype": charttype,
+            "chartdata": {
+                "x": xdata,
+                "name1": "Leases",
+                "y1": ydata,
+                "extra1": extra_serie1,
+            },
+            "extra": extra,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 
 
 class ServerHostCSVRenderer(CSVRenderer):
