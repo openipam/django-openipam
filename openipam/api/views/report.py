@@ -221,7 +221,7 @@ class LeaseReportAPIView(APIView):
         lease_logs = (
             LogEntry.objects.filter(
                 content_type__model="lease",
-                action_flag__in=[2],# Filter to only include changes
+                action_flag__in=[2],  # Filter to only include changes
                 action_time__date__range=(start_date, end_date),
             )
             .extra({"date": "date(action_time)"})
