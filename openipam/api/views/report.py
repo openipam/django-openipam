@@ -36,6 +36,7 @@ import dateutil.parser
 
 User = get_user_model()
 
+
 class StatsAPIView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (TemplateHTMLRenderer, JSONRenderer)
@@ -188,6 +189,8 @@ class DashboardAPIView(APIView):
         )
 
         return Response(data, status=status.HTTP_200_OK)
+
+
 class LeaseReportAPIView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
@@ -197,7 +200,10 @@ class LeaseReportAPIView(APIView):
         end = request.query_params.get("end")
 
         if not start or not end:
-            return Response("Both 'start' and 'end' are required", status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                "Both 'start' and 'end' are required",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             start_date = dateutil.parser.parse(start).date()
@@ -208,13 +214,25 @@ class LeaseReportAPIView(APIView):
         if start_date > end_date:
             raise ValidationError("'start' must be less than or equal to 'end'")
 
-        date_range = [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
-        lease_logs = LogEntry.objects.filter(
-            content_type__model='lease',
-            action_time__date__range=(start_date, end_date)
-        ).extra({'date': 'date(action_time)'}).values('date').annotate(count=Count('id')).order_by('date')
-        counts = {log['date']: log['count'] for log in lease_logs}
-        xdata = [int((datetime.combine(date, datetime.min.time())).timestamp()) for date in date_range]
+        date_range = [
+            start_date + timedelta(days=x)
+            for x in range((end_date - start_date).days + 1)
+        ]
+        lease_logs = (
+            LogEntry.objects.filter(
+                content_type__model="lease",
+                action_time__date__range=(start_date, end_date),
+            )
+            .extra({"date": "date(action_time)"})
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+        counts = {log["date"]: log["count"] for log in lease_logs}
+        xdata = [
+            int((datetime.combine(date, datetime.min.time())).timestamp())
+            for date in date_range
+        ]
         ydata = [counts.get(date, 0) for date in date_range]
         charttype = "discreteBarChart"
         response_data = {
@@ -226,6 +244,7 @@ class LeaseReportAPIView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
 
 class ServerHostCSVRenderer(CSVRenderer):
     header = [
