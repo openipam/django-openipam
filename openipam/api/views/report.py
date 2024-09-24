@@ -235,9 +235,7 @@ class LeaseReportAPIView(APIView):
             for date in date_range
         ]
         ydata = [counts.get(date, 0) for date in date_range]
-        charttype = "discreteBarChart"
         response_data = {
-            "charttype": charttype,
             "chartdata": {
                 "x": xdata,
                 "y": ydata,
