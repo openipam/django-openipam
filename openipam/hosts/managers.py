@@ -294,39 +294,31 @@ class HostManager(Manager):
             users, groups = instance.get_owners()
             user_groups = []
 
-            if user_owners is not None:
-                # Remove existing user owners
-                instance.remove_user_owners(users=users)
-                if isinstance(user_owners, QuerySet):
-                    users_to_add = user_owners
-                elif isinstance(user_owners, list):
-                    # u_list = [Q(username__iexact=user_owner) for user_owner in user_owners]
-                    # users_to_add = User.objects.filter(reduce(operator.or_, u_list))
-                    users_to_add = User.objects.filter(
-                        username__in=[user_owner for user_owner in user_owners]
-                    )
-                else:
-                    # users_to_add = User.objects.filter(username__iexact=user_owners)
-                    users_to_add = User.objects.filter(username=user_owners)
-                users_to_add = list(users_to_add)
-                user_groups += users_to_add
+            # Remove existing user owners
+            instance.remove_user_owners(users=users)
+            if isinstance(user_owners, QuerySet):
+                users_to_add = user_owners
+            elif isinstance(user_owners, list):
+                users_to_add = User.objects.filter(
+                    username__in=[user_owner for user_owner in user_owners]
+                )
+            else:
+                users_to_add = User.objects.filter(username=user_owners)
+            users_to_add = list(users_to_add)
+            user_groups += users_to_add
 
-            if group_owners is not None:
-                # Remove existing group owners
-                instance.remove_group_owners()
-                if isinstance(group_owners, QuerySet):
-                    groups_to_add = group_owners
-                elif isinstance(group_owners, list):
-                    # g_list = [Q(name__iexact=group_owner) for group_owner in group_owners]
-                    # groups_to_add = Group.objects.filter(reduce(operator.or_, g_list))
-                    groups_to_add = Group.objects.filter(
-                        name__in=[group_owner for group_owner in group_owners]
-                    )
-                else:
-                    # groups_to_add = Group.objects.filter(name__iexact=group_owners)
-                    groups_to_add = Group.objects.filter(name=group_owners)
-                groups_to_add = list(groups_to_add)
-                user_groups += groups_to_add
+            # Remove existing group owners
+            instance.remove_group_owners()
+            if isinstance(group_owners, QuerySet):
+                groups_to_add = group_owners
+            elif isinstance(group_owners, list):
+                groups_to_add = Group.objects.filter(
+                    name__in=[group_owner for group_owner in group_owners]
+                )
+            else:
+                groups_to_add = Group.objects.filter(name=group_owners)
+            groups_to_add = list(groups_to_add)
+            user_groups += groups_to_add
 
             if user_groups:
                 for user_group in user_groups:
