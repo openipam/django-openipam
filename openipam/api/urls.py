@@ -113,6 +113,11 @@ urlpatterns = [
         views.report.DashboardAPIView.as_view(),
         name="api_reports_dashboard",
     ),
+    url(
+        r"^reports/lease_changes/$",
+        views.report.LeaseReportAPIView.as_view(),
+        name="api_reports_lease_changes",
+    ),
     # Users
     url(r"^users?/$", views.users.UserList.as_view(), name="api_users_list"),
     # Groups
