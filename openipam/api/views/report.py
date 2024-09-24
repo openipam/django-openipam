@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.renderers import (
     TemplateHTMLRenderer,
     JSONRenderer,
@@ -15,15 +15,15 @@ from django.db import connection
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import Permission
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, F, Value, CharField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
+from django.contrib.admin.models import LogEntry
 from openipam.hosts.models import Host, Attribute
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
-
+from datetime import datetime
 from functools import reduce
 
 import qsstats
@@ -191,6 +191,60 @@ class DashboardAPIView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+class LeaseReportAPIView(APIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
+
+    def get(self, request, format=None, **kwargs):
+        start = request.query_params.get("start")
+        end = request.query_params.get("end")
+
+        if not start or not end:
+            return Response(
+                "Both 'start' and 'end' are required",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            start_date = dateutil.parser.parse(start).date()
+            end_date = dateutil.parser.parse(end).date()
+        except ValueError:
+            raise ParseError("'start' and 'end' must be ISO date strings")
+
+        if start_date > end_date:
+            raise ValidationError("'start' must be less than or equal to 'end'")
+
+        date_range = [
+            start_date + timedelta(days=x)
+            for x in range((end_date - start_date).days + 1)
+        ]
+        lease_logs = (
+            LogEntry.objects.filter(
+                content_type__model="lease",
+                action_flag__in=[2],  # Filter to only include changes
+                action_time__date__range=(start_date, end_date),
+            )
+            .extra({"date": "date(action_time)"})
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+        counts = {log["date"]: log["count"] for log in lease_logs}
+        xdata = [
+            int((datetime.combine(date, datetime.min.time())).timestamp())
+            for date in date_range
+        ]
+        ydata = [counts.get(date, 0) for date in date_range]
+        response_data = {
+            "chartdata": {
+                "x": xdata,
+                "y": ydata,
+            },
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 class ServerHostCSVRenderer(CSVRenderer):
     header = [
         "hostname",
@@ -201,6 +255,92 @@ class ServerHostCSVRenderer(CSVRenderer):
         "group_owners",
         "nac_profiles",
     ]
+
+
+class RenewalStatsView(APIView):
+    permission_classes = (IsAdminUser,)
+    renderer_classes = (BrowsableAPIRenderer, JSONRenderer, CSVRenderer)
+
+    def get(self, request, format=None, **kwargs):
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if not start_date:
+            # TODO: magic number
+            start_date = (timezone.now() - timedelta(weeks=1)).date()
+        else:
+            try:
+                start_date = dateutil.parser.parse(start_date).date()
+            except ValueError:
+                raise ParseError("'start_date' must be an ISO date string")
+
+        if not end_date:
+            end_date = timezone.now().date()
+        else:
+            try:
+                end_date = dateutil.parser.parse(end_date).date()
+            except ValueError:
+                raise ParseError("'end_date' must be an ISO date string")
+
+        # TODO: magic number
+        admin_user = User.objects.get(id=1)
+
+        auto_renewed_qs = (
+            Host.objects.filter(
+                changed__date__gte=start_date,
+                changed__date__lte=end_date,
+                changed_by=admin_user,
+            )
+            .order_by("-expires")
+            .annotate(list=Value("auto_renewed", output_field=CharField()))
+        )
+
+        auto_renewed = list(
+            auto_renewed_qs.values(
+                "hostname", "mac", "expires", "last_notified", "changed", "list"
+            )
+        )
+
+        notified = Host.objects.filter(
+            last_notified__isnull=False,
+            last_notified__date__gte=start_date,
+            last_notified__date__lte=end_date,
+        ).exclude(
+            changed__date__gte=start_date,
+            changed__date__lte=end_date,
+            changed_by=admin_user,
+        )
+
+        notified_unrenewed = list(
+            notified.filter(changed__lt=F("last_notified"))
+            .order_by("-expires")
+            .annotate(list=Value("notified_unrenewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
+        )
+
+        notified_renewed = list(
+            notified.exclude(changed_by=admin_user)
+            .exclude(changed__lt=F("last_notified"))
+            .order_by("-expires")
+            .annotate(list=Value("notified_renewed", output_field=CharField()))
+            .values("hostname", "mac", "expires", "last_notified", "changed", "list")
+        )
+
+        # Serialize EUI to string
+        for host in auto_renewed + notified_unrenewed + notified_renewed:
+            host["mac"] = str(host["mac"])
+
+        data = {
+            "auto_renewed": auto_renewed,
+            "notified_unrenewed": notified_unrenewed,
+            "notified_renewed": notified_renewed,
+        }
+
+        if request.accepted_renderer.format == "csv":
+            # If the request is for CSV, we need to compile the data into a single list
+            data = auto_renewed + notified_unrenewed + notified_renewed
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ServerHostView(APIView):
