@@ -43,7 +43,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 
     def action_name(self, obj):
         if obj.action_flag == 1:
-            return "Addition"
+            return "Additions"
         elif obj.action_flag == 2:
             return "Changed"
         elif obj.action_flag == 3:
