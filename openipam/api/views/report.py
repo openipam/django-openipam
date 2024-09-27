@@ -18,19 +18,18 @@ from django.apps import apps
 from django.db.models import Q, F, Value, CharField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.contrib.admin.models import LogEntry
 from openipam.hosts.models import Host, Attribute
 from openipam.network.models import Network, Lease, Address
 from openipam.dns.models import DnsRecord
 from openipam.conf.ipam_settings import CONFIG
-from datetime import datetime
 from functools import reduce
 
 import qsstats
 
 import operator
 
-from datetime import timedelta
+import time
+from datetime import timedelta, datetime
 
 import dateutil.parser
 
@@ -196,53 +195,46 @@ class LeaseReportAPIView(APIView):
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
-        start = request.query_params.get("start")
-        end = request.query_params.get("end")
+        TABLE_NAME = "leases_log"
 
-        if not start or not end:
-            return Response(
-                "Both 'start' and 'end' are required",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        start_date = datetime.combine(datetime.today(), datetime.min.time())
+        end_date = datetime.now()
 
-        try:
-            start_date = dateutil.parser.parse(start).date()
-            end_date = dateutil.parser.parse(end).date()
-        except ValueError:
-            raise ParseError("'start' and 'end' must be ISO date strings")
-
-        if start_date > end_date:
-            raise ValidationError("'start' must be less than or equal to 'end'")
-
-        date_range = [
-            start_date + timedelta(days=x)
-            for x in range((end_date - start_date).days + 1)
-        ]
-        lease_logs = (
-            LogEntry.objects.filter(
-                content_type__model="lease",
-                action_flag__in=[2],  # Filter to only include changes
-                action_time__date__range=(start_date, end_date),
-            )
-            .extra({"date": "date(action_time)"})
-            .values("date")
-            .annotate(count=Count("id"))
-            .order_by("date")
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT
+                DATE(trigger_changed) AS day,
+                COUNT(DISTINCT address) AS item_count
+            FROM
+                {TABLE_NAME}
+            WHERE
+                trigger_tuple != 'old'
+                AND trigger_changed >= %s
+                AND trigger_changed <= %s
+            GROUP BY
+                DATE(trigger_changed)
+            ORDER BY
+                day;
+            """,
+            [start_date, end_date],
         )
-        counts = {log["date"]: log["count"] for log in lease_logs}
-        xdata = [
-            int((datetime.combine(date, datetime.min.time())).timestamp())
-            for date in date_range
-        ]
-        ydata = [counts.get(date, 0) for date in date_range]
-        response_data = {
+
+        data = cursor.fetchall()
+
+        if data:
+            day, item_count = data[0]
+        else:
+            day, item_count = start_date.date(), 0
+
+        chartdata = {
             "chartdata": {
-                "x": xdata,
-                "y": ydata,
-            },
+                "x": [int(time.mktime(day.timetuple()))],
+                "y": [item_count],
+            }
         }
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(chartdata, status=status.HTTP_200_OK)
 
 
 class ServerHostCSVRenderer(CSVRenderer):
