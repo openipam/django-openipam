@@ -198,12 +198,21 @@ class LeaseReportAPIView(APIView):
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
 
     def get(self, request, format=None, **kwargs):
+        TABLE_NAME = "leases_log_all_v"
         start = request.query_params.get("start")
         end = request.query_params.get("end")
+
+        # hardcoded for dev
+        start = "2023-04-15T19:38:58.509Z"
+        end = "2023-04-21T19:38:58.509Z"
+
         if not start or not end:
             raise ParseError("'start' and 'end' query parameters are required")
+
         start_date = datetime.fromisoformat(start[:-1])
-        end_date = datetime.fromisoformat(end[:-1]) + timedelta(days=1)
+        end_date = datetime.fromisoformat(end[:-1]) + timedelta(
+            days=1
+        )  # offset to include last day in range
         all_dates = [
             (start_date + timedelta(days=i)).date()
             for i in range((end_date - start_date).days)
@@ -211,12 +220,12 @@ class LeaseReportAPIView(APIView):
 
         cursor = connection.cursor()
         cursor.execute(
-            """
+            f"""
             SELECT                                
                 DATE(trigger_changed) AS day,
                 COUNT(*) AS item_count
             FROM 
-                leases_log_all_v
+                {TABLE_NAME}
             WHERE 
                 trigger_tuple != 'old'
                 AND trigger_changed >= %s
@@ -225,7 +234,7 @@ class LeaseReportAPIView(APIView):
                 DATE(trigger_changed)
             ORDER BY 
                 day;
-        """,
+            """,
             [start, end],
         )
 
@@ -234,11 +243,13 @@ class LeaseReportAPIView(APIView):
         data_dict = {row[0]: row[1] for row in data}
 
         chartdata = {
-            "x": [int(time.mktime(day.timetuple())) for day in all_dates],
-            "y": [data_dict.get(day, 0) for day in all_dates],
+            "chartdata": {
+                "x": [int(time.mktime(day.timetuple())) for day in all_dates],
+                "y": [data_dict.get(day, 0) for day in all_dates],
+            }
         }
 
-        return Response({"chartdata": chartdata}, status=status.HTTP_200_OK)
+        return Response(chartdata, status=status.HTTP_200_OK)
 
 
 class ServerHostCSVRenderer(CSVRenderer):
