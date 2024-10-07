@@ -13,6 +13,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.parsers import FormParser, JSONParser
+from rest_framework_csv.renderers import CSVRenderer
 
 from openipam.network.models import (
     Network,
@@ -564,6 +565,26 @@ class BuildingViewSet(viewsets.ModelViewSet):
         if self.action == "destroy":
             return network_serializers.BuildingDeleteSerializer
         return network_serializers.BuildingSerializer
+
+
+class BuildingCSVRenderer(CSVRenderer):
+    header = ["CODE", "ABBREV", "NAME"]
+
+
+class BuildingCSVView(APIView):
+    renderer_classes = [BuildingCSVRenderer]
+
+    def get(self, request, format=None):
+        queryset = Building.objects.all()
+        data = [
+            {
+                "CODE": building.number,
+                "ABBREV": building.abbreviation,
+                "NAME": building.name,
+            }
+            for building in queryset
+        ]
+        return Response(data)
 
 
 class BuildingToVlanViewSet(viewsets.ModelViewSet):

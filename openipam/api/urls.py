@@ -75,6 +75,11 @@ urlpatterns = [
         csrf_exempt(views.network.ConvertIPAMNetwork.as_view()),
         name="router_upgrade",
     ),
+    url(
+        r"^network/buildings/csv$",
+        views.network.BuildingCSVView.as_view(),
+        name="api_building_csv",
+    ),
     url(r"^", include(router.urls)),
     url(
         r"^web/show_users/(?P<group_id>\d+)$",
