@@ -574,7 +574,7 @@ class BuildingCSVRenderer(CSVRenderer):
 class BuildingCSVView(APIView):
     renderer_classes = [BuildingCSVRenderer]
     permission_classes = (AllowAny,)
-    
+
     def get(self, request, format=None):
         queryset = Building.objects.all()
         data = [
