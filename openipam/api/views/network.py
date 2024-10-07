@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import serializers
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
@@ -573,6 +573,7 @@ class BuildingCSVRenderer(CSVRenderer):
 
 class BuildingCSVView(APIView):
     renderer_classes = [BuildingCSVRenderer]
+    permission_classes = (AllowAny,)
 
     def get(self, request, format=None):
         queryset = Building.objects.all()
