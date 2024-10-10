@@ -350,6 +350,7 @@ class NetworkUsageList(generics.ListAPIView):
             expired_addresses=count_when(
                 Q(net_addresses__leases__abandoned=False)
                 & Q(net_addresses__leases__ends__lte=now)
+                & Q(net_addresses__host__isnull=True)
             ),
             abandoned_addresses=count_when(Q(net_addresses__leases__abandoned=True)),
             unleased_addresses=count_when(
