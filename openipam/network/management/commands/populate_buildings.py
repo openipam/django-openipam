@@ -21,7 +21,9 @@ class Command(BaseCommand):
                 return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * from e911_location where u_type = 'Building';")
+                cursor.execute(
+                    "SELECT * from e911.e911_location where u_type = 'Building';"
+                )
                 building_data = dictfetchall(cursor)
             return building_data
 
