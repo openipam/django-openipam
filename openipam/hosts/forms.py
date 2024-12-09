@@ -255,6 +255,9 @@ class HostForm(forms.ModelForm):
 
         # Get all attributes, broken down by category plus uncategorized.
         uncategorized_attributes = Attribute.objects.filter(category__isnull=True)
+        print(self.user.is_ipamadmin)
+        if self.user.is_ipamadmin is False:
+            uncategorized_attributes = uncategorized_attributes.filter(admin_only=False)
 
         if len(uncategorized_attributes) > 0:
             self._init_attribute_category("Uncategorized", uncategorized_attributes)
@@ -263,6 +266,11 @@ class HostForm(forms.ModelForm):
             category: Attribute.objects.filter(category=category)
             for category in attribute_categories
         }
+        if self.user.is_ipamadmin is False:
+            categorized_attributes = {
+                category: attributes.filter(admin_only=False)
+                for category, attributes in categorized_attributes.items()
+            }
 
         for category, attributes in categorized_attributes.items():
             if len(attributes) > 0:
@@ -287,6 +295,8 @@ class HostForm(forms.ModelForm):
                 attribute_choices_qs = StructuredAttributeValue.objects.filter(
                     attribute=attribute_field.id
                 )
+                if self.user.is_ipamadmin is False:
+                    attribute_choices_qs = attribute_choices_qs.filter(admin_only=False)
                 if attribute_field.multiple:
                     self.fields[attribute_field_key] = forms.ModelMultipleChoiceField(
                         queryset=attribute_choices_qs, required=False
