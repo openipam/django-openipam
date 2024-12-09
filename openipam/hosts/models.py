@@ -56,6 +56,7 @@ class Attribute(models.Model):
     multiple = models.BooleanField(default=False)
     required = models.BooleanField(default=False)
     validation = models.TextField(blank=True, null=True)
+    admin_only = models.BooleanField(default=False)
     category = models.ForeignKey(
         AttributeCategory,
         db_column="category",
@@ -1319,6 +1320,7 @@ class StructuredAttributeValue(models.Model):
     attribute = models.ForeignKey("Attribute", db_column="aid", related_name="choices")
     value = models.TextField()
     is_default = models.BooleanField(default=False)
+    admin_only = models.BooleanField(default=False)
     changed = models.DateTimeField(auto_now=True)
     changed_by = models.ForeignKey(User, db_column="changed_by")
 
