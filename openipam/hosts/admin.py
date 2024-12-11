@@ -87,7 +87,7 @@ class GuestTicketAdmin(admin.ModelAdmin):
 
 
 class AttributeAdmin(ChangedAdmin):
-    pass
+    list_display = ("name", "structured", "admin_only", "required", "changed")
 
 
 class AttributeCategoryAdmin(ChangedAdmin):
@@ -104,7 +104,14 @@ class ExpirationTypeAdmin(GuardedModelAdmin):
 
 
 class StructuredAttributeValueAdmin(ChangedAdmin):
-    list_display = ("attribute", "value", "is_default", "changed_by", "changed")
+    list_display = (
+        "attribute",
+        "value",
+        "admin_only",
+        "is_default",
+        "changed_by",
+        "changed",
+    )
     list_filter = ("attribute__name",)
 
 
