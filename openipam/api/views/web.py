@@ -45,9 +45,14 @@ def network_selects(request, address_type_id, use_permissions=True):
 def structured_attribute_selects(request, attribute_id, use_permissions=True):
     data = {}
 
-    structured_attribute_values = StructuredAttributeValue.objects.filter(
-        attribute__pk=attribute_id
-    )
+    if request.user.is_ipamadmin:
+        structured_attribute_values = StructuredAttributeValue.objects.filter(
+            attribute__pk=attribute_id
+        )
+    else:
+        structured_attribute_values = StructuredAttributeValue.objects.filter(
+            attribute__pk=attribute_id, admin_only=False
+        )
     data["structured_attribute_values"] = structured_attribute_values
 
     return Response(data, template_name="api/web/structured_attribute_selects.html")

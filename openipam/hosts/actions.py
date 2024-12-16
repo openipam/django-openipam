@@ -13,6 +13,7 @@ from openipam.hosts.models import (
     HostGroupView,
     HostUserView,
     StructuredAttributeToHost,
+    StructuredAttributeValue,
     FreeformAttributeToHost,
     Attribute,
 )
@@ -263,6 +264,16 @@ def add_attribute_to_hosts(request, selected_hosts):
         attribute_choice_list = request.POST.getlist("attribute_choice")
         attribute_text_list = request.POST.getlist("attribute_text")
 
+        if not request.user.is_ipamadmin:
+            if StructuredAttributeValue.objects.filter(
+                id__in=attribute_choice_list, admin_only=True
+            ).exists():
+                messages.error(
+                    request,
+                    "You do not have permissions to add this attribute value one or more of the selected hosts. "
+                    "Please contact an IPAM administrator.",
+                )
+                return
         for index, attribute_id in enumerate(attribute_list):
             for host in selected_hosts:
                 attribute = Attribute.objects.get(pk=attribute_id)
