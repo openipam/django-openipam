@@ -20,6 +20,7 @@ class UserAuthenticated(APIView):
             "username": request.user.username,
             "is_superuser": request.user.is_superuser,
             "is_ipamadmin": request.user.is_ipamadmin,
+            "is_ipam_eleveated": request.user.is_ipam_elevated,
         }
         return Response(data, status=status.HTTP_200_OK)
 

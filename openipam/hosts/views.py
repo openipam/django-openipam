@@ -554,7 +554,10 @@ class HostListView(PermissionRequiredMixin, TemplateView):
         context["renew_form"] = HostRenewForm(user=self.request.user)
         context["rename_form"] = HostRenameForm()
         context["network_form"] = HostNetworkForm()
-        context["attribute_qs"] = Attribute.objects.all()
+        if self.request.user.is_ipamadmin:
+            context["attribute_qs"] = Attribute.objects.all()
+        else:
+            context["attribute_qs"] = Attribute.objects.filter(admin_only=False)
         context["dhcp_group_form"] = HostDhcpGroupForm()
         context["attribute_delete_from"] = HostAttributesDeleteForm()
 

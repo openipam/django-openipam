@@ -27,9 +27,10 @@ name = "django-openipam"
 version = "0.9.0"
 description = "Openipam Django/Web frontent"
 authors = ["Jay McEntire <jay.mcentire@usu.edu>"]
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.9.2"
+python = "3.9.21"
 Django = "1.11.29"
 beautifulsoup4 = "4.8.2"
 django-admin-tools = "0.9.0"

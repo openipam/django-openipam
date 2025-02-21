@@ -56,8 +56,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             return True
         else:
-            groups = [group.name for group in self.groups.all()]
-            return True if "ipam-admins" in groups else False
+            group = self.groups.filter(name="ipam-admins")
+            return True if group else False
+
+    @cached_property
+    def is_ipam_evelated(self):
+        if self.is_superuser:
+            return True
+        else:
+            group = self.groups.filter(name="openIPAM-elevated")
+            return True if group else False
 
     @cached_property
     def network_owner_perms(self):
