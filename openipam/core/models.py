@@ -30,8 +30,7 @@ class FeatureRequest(models.Model):
                 Type: %s
 
                 %s
-                """
-                % (instance.type.capitalize(), instance.comment),
+                """ % (instance.type.capitalize(), instance.comment),
             )
 
     class Meta:

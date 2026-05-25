@@ -4,7 +4,6 @@ from django.views.generic.base import RedirectView
 
 from openipam.report import views
 
-
 urlpatterns = [
     url(r"^disabled/$", views.DisabledHostsView.as_view(), name="reports_disabled"),
     url(
