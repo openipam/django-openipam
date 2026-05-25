@@ -4,7 +4,6 @@ from django.views.generic import TemplateView
 
 from openipam.core import views, auth
 
-
 urlpatterns = [
     url(r"^$", views.index, name="index"),
     # Accounts URLs

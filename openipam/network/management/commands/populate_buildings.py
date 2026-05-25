@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 
 from openipam.network.models import Building
 
-
 User = get_user_model()
 
 
