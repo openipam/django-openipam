@@ -335,25 +335,19 @@ class HostForm(forms.ModelForm):
             if master_ip_address in addresses:
                 addresses.pop(addresses.index(master_ip_address))
 
-            html_primary_address = (
-                """
+            html_primary_address = """
                 <p class="pull-left"><span class="label label-primary">%s</span></p>
                 <a href="javascript:void(0);" id="ip-change" class="pull-left renew">Change Address</a>
-            """
-                % master_ip_address
-            )
+            """ % master_ip_address
 
-            self.primary_address_html = HTML(
-                """
+            self.primary_address_html = HTML("""
                 <div class="form-group">
                     <label class="col-sm-2 col-md-2 col-lg-2 control-label">Primary IP Address:</label>
                     <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
                             %s
                     </div>
                 </div>
-            """
-                % "".join(html_primary_address)
-            )
+            """ % "".join(html_primary_address))
 
             html_secondary_addresses = []
             for address in addresses:
@@ -373,8 +367,7 @@ class HostForm(forms.ModelForm):
                         )
                     )
 
-                self.secondary_address_html = HTML(
-                    """
+                self.secondary_address_html = HTML("""
                     <div class="form-group">
                         <label class="col-sm-2 col-md-2 col-lg-2 control-label">Additional IP Addresses:</label>
                         <div class="controls col-sm-6 col-md-6 col-lg-6 form-label">
@@ -382,9 +375,7 @@ class HostForm(forms.ModelForm):
                                 %s
                         </div>
                     </div>
-                """
-                    % ("".join(html_secondary_addresses), add_link)
-                )
+                """ % ("".join(html_secondary_addresses), add_link))
         elif self.previous_form_data:
             if "network_or_ip" in self.previous_form_data:
                 self.fields["network_or_ip"].initial = self.previous_form_data.get(
