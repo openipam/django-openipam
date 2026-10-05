@@ -17,7 +17,6 @@ from crispy_forms.helper import FormHelper
 
 from autocomplete_light import shortcuts as al
 
-
 User = get_user_model()
 
 
