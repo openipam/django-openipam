@@ -6,7 +6,6 @@ from django.conf import settings
 
 from openipam.conf.ipam_settings import CONFIG
 
-
 DIRECT_PERM_MODELS_LIST = (
     ("hosts", "host"),
     ("dns", "domain"),

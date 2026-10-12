@@ -3,7 +3,6 @@ from django.apps import apps
 
 from openipam.firewall.models import Rule
 
-
 app = apps.get_app_config("firewall")
 
 

@@ -363,8 +363,7 @@ class HostListJson(PermissionRequiredMixin, BaseDatatableView):
                 WHERE hosts.mac IN %%s
                 GROUP BY hosts.mac, hosts.hostname, hosts.expires, disabled.mac
                 ORDER BY %s
-            """
-                % self.raw_ordering(),
+            """ % self.raw_ordering(),
                 [tuple(qs_macs)],
             )
             value_qs = dictfetchall(c)

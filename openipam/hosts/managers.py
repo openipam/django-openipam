@@ -28,14 +28,10 @@ import re
 
 class HostQuerySet(QuerySet):
     def with_oui(self):
-        return self.extra(
-            select={
-                "vendor": """
+        return self.extra(select={"vendor": """
             SELECT ouis.shortname from ouis
                 WHERE hosts.mac >= ouis.start AND hosts.mac <= ouis.stop
-                ORDER BY ouis.id DESC LIMIT 1"""
-            }
-        )
+                ORDER BY ouis.id DESC LIMIT 1"""})
 
     def by_owner(self, user, use_groups=False, ids_only=False):
         User = get_user_model()
@@ -105,16 +101,14 @@ class HostQuerySet(QuerySet):
     def by_expiring(self, ids_only=False, omit_guests=False):
         cursor = connection.cursor()
         try:
-            cursor.execute(
-                """
+            cursor.execute("""
                 SELECT DISTINCT h.mac
                     FROM hosts h
                     CROSS JOIN notifications n
                     WHERE h.expires > now()
                         AND (h.last_notified IS NULL OR (now() - n.notification) > h.last_notified)
                         AND (h.expires - n.notification) < now()
-            """
-            )
+            """)
             hosts = [host[0] for host in cursor.fetchall()]
         finally:
             cursor.close()

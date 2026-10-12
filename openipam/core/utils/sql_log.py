@@ -307,8 +307,7 @@ class SQLLogMiddlewareSimple(MiddlewareMixin):
         for q in connection.queries:
             ttime += float(q["time"])
 
-        t = Template(
-            """
+        t = Template("""
             <div>
                 <p><em>Total query count:</em> {{ count }}<br/>
                 <em>Total execution time:</em> {{ time }}</p>
@@ -339,8 +338,7 @@ class SQLLogMiddlewareSimple(MiddlewareMixin):
             </script>
 
 
-        """
-        )
+        """)
         response.content = "%s%s" % (
             response.content,
             t.render(
@@ -402,8 +400,7 @@ class SQLLogMiddleware(MiddlewareMixin):
                 duplicate += 1
             q["seen"] = c
             seen[sql] = c + 1
-        t = Template(
-            """
+        t = Template("""
             <fieldset class="sqlinfo" style="float:left; color: black; margin: 10px; background: #ffffcc; padding: 10px;">
                 <h4>Django Query Execution</h4>
                 <p>
@@ -442,8 +439,7 @@ class SQLLogMiddleware(MiddlewareMixin):
                     </div>
                 </div>
             </fieldset>
-        """
-        )
+        """)
         timerequest = round(time.time() - self.start, 3)
         queries = connection.queries
         html = str(t.render(Context(locals())))
