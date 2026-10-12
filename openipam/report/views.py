@@ -151,9 +151,7 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(PTRDNSView, self).get_context_data(**kwargs)
 
-        rogue_ptrs = list(
-            DnsRecord.objects.raw(
-                r"""
+        rogue_ptrs = list(DnsRecord.objects.raw(r"""
             SELECT d.*, a.address as address, d3.name as arecord, a.mac as arecord_host
             FROM dns_records AS d
                 LEFT JOIN addresses AS a ON (
@@ -171,9 +169,7 @@ class PTRDNSView(GroupRequiredMixin, TemplateView):
 
             ORDER BY d.changed DESC
                 --AND d.text_content != d2.name
-        """
-            )
-        )
+        """))
 
         prefetch_related_objects(rogue_ptrs, "changed_by")
 
